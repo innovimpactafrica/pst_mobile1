@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'conversation_page.dart';
+import 'chat.dart';
 
 class DiscussionsPage extends StatelessWidget {
   const DiscussionsPage({super.key});
