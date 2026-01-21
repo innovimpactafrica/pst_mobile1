@@ -1,0 +1,738 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../data/models/trip_model.dart';
+import '../widgets/driver_details_modal.dart';
+import '../widgets/passengers_list_modal.dart';
+import '../widgets/schools_list_modal.dart';
+import '../../../../utils/app_colors.dart';
+import '../pages/payment_page.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
+class TripDetailPage extends StatefulWidget {
+  final TripModel trip;
+
+  const TripDetailPage({
+    super.key,
+    required this.trip,
+  });
+
+  @override
+  State<TripDetailPage> createState() => _TripDetailPageState();
+}
+
+class _TripDetailPageState extends State<TripDetailPage> {
+  bool _isMapExpanded = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // HEADER
+            Container(
+              color: AppColors.primaryGreen,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Dakar → ${widget.trip.arrival}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // CARTE INTERACTIVE
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isMapExpanded = !_isMapExpanded;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        height: _isMapExpanded ? 250 : 120,
+                        width: double.infinity,
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                image: const DecorationImage(
+                                  image: NetworkImage(
+                                    'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/pin-s+4CAF50(-17.4467,14.7167),pin-s+FF5252(-17.4677,14.6937)/auto/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              child: CustomPaint(
+                                painter: RouteLinePainter(),
+                              ),
+                            ),
+                            if (_isMapExpanded) ...[
+                              // MARQUEUR DÉPART (NOIR)
+                              Positioned(
+                                top: 80,
+                                left: 40,
+                                child: _buildMapMarker(Icons.circle, Colors.black, 'Départ'),
+                              ),
+                              // MARQUEUR ARRIVÉE (VERT)
+                              Positioned(
+                                bottom: 60,
+                                right: 40,
+                                child: _buildMapMarker(Icons.location_on, AppColors.primaryGreen, 'Arrivée'),
+                              ),
+                              // ÉCOLES SUR LA CARTE
+                              Positioned(
+                                top: 120,
+                                left: 100,
+                                child: _buildSchoolMarker('A'),
+                              ),
+                              Positioned(
+                                bottom: 100,
+                                right: 100,
+                                child: _buildSchoolMarker('B'),
+                              ),
+                            ],
+                            // INDICATEUR POUR AGRANDIR/RÉDUIRE
+                            Positioned(
+                              bottom: 8,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  width: 40,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // INFO CHAUFFEUR (CLIQUABLE)
+                          if (widget.trip.driver != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showDriverDetails();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          // PHOTO CHAUFFEUR
+                                          CircleAvatar(
+                                            radius: 28,
+                                            backgroundColor: Colors.grey.shade200,
+                                            backgroundImage: widget.trip.driver?.photo != null
+                                                ? AssetImage('assets/images/${widget.trip.driver!.photo}')
+                                                : null,
+                                            onBackgroundImageError: (_, __) {},
+                                            child: widget.trip.driver?.photo == null
+                                                ? Icon(Icons.person, color: Colors.grey.shade600, size: 28)
+                                                : null,
+                                          ),
+                                          // PHOTO BUS/VOITURE (superposée)
+                                          if (widget.trip.driver?.vehicle?.photo != null)
+                                            Positioned(
+                                              right: -4,
+                                              bottom: -4,
+                                              child: Container(
+                                                width: 28,
+                                                height: 28,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(color: Colors.white, width: 2),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.1),
+                                                      blurRadius: 4,
+                                                      offset: const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: ClipOval(
+                                                  child: Image.asset(
+                                                    'assets/images/${widget.trip.driver!.vehicle!.photo}',
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.directions_bus,
+                                                        color: Colors.grey.shade600,
+                                                        size: 14,
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.trip.driver!.name,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  widget.trip.driver!.vehicle?.plate ?? '',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 13,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                const Icon(Icons.star, color: Colors.amber, size: 16),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  widget.trip.driver!.rating.toString(),
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          // BOUTONS APPELER / MESSAGE
+                          if (widget.trip.driver != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.phone, size: 18),
+                                      label: Text('Appeler', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryGreen,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {},
+                                      icon: Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.primaryGreen),
+                                      label: Text('Message', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                        side: BorderSide(color: AppColors.primaryGreen),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          const SizedBox(height: 20),
+
+                          // DÉTAILS DU TRAJET
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildTripPoint(
+                                    icon: Icons.circle_outlined,
+                                    iconColor: AppColors.primaryGreen,
+                                    title: 'Point de départ',
+                                    location: widget.trip.departure,
+                                    time: widget.trip.departureTime,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    child: SizedBox(
+                                      width: 2,
+                                      height: 30,
+                                      child: CustomPaint(painter: DashedLinePainter()),
+                                    ),
+                                  ),
+                                  _buildTripPoint(
+                                    icon: Icons.location_on,
+                                    iconColor: Colors.red,
+                                    title: 'Destination',
+                                    location: widget.trip.arrival,
+                                    time: widget.trip.arrivalTime,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // DATE + ESTIMATION
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  widget.trip.date,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  'Estimation ${widget.trip.duration}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // PASSAGERS CARD (CLIQUABLE)
+                          if (widget.trip.passengers.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: GestureDetector(
+                                onTap: _showPassengersList,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // AVATARS EMPILÉS (3 PASSAGERS)
+                                      SizedBox(
+                                        width: 80,
+                                        height: 32,
+                                        child: Stack(
+                                          children: [
+                                            if (widget.trip.passengers.isNotEmpty)
+                                              Positioned(
+                                                left: 0,
+                                                child: _buildPassengerAvatar(
+                                                  widget.trip.passengers[0].initials,
+                                                  Color(int.parse(widget.trip.passengers[0].avatarColor.replaceFirst('#', '0xFF'))),
+                                                ),
+                                              ),
+                                            if (widget.trip.passengers.length > 1)
+                                              Positioned(
+                                                left: 24,
+                                                child: _buildPassengerAvatar(
+                                                  widget.trip.passengers[1].initials,
+                                                  Color(int.parse(widget.trip.passengers[1].avatarColor.replaceFirst('#', '0xFF'))),
+                                                ),
+                                              ),
+                                            if (widget.trip.passengers.length > 2)
+                                              Positioned(
+                                                left: 48,
+                                                child: _buildPassengerAvatar(
+                                                  widget.trip.passengers[2].initials,
+                                                  Color(int.parse(widget.trip.passengers[2].avatarColor.replaceFirst('#', '0xFF'))),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          '${widget.trip.passengers.length.toString().padLeft(2, '0')} passagers',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          // ÉCOLES (CLIQUABLE)
+                          if (widget.trip.schools.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: GestureDetector(
+                                onTap: () {
+                                  _showSchoolsList();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryGreen.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Center(
+                                          child: Image.asset(
+                                            'assets/icons/etablissement.png',
+                                            width: 22,
+                                            height: 22,
+                                            color: AppColors.primaryGreen,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return Icon(
+                                                Icons.school,
+                                                color: AppColors.primaryGreen,
+                                                size: 22,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Écoles désservies',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '${widget.trip.schools.length} écoles',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2)),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () {
+              _showReservationConfirmation(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5B4FC7),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text('Réserver', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMapMarker(IconData icon, Color color, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)],
+          ),
+          child: Icon(icon, color: Colors.white, size: 16),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSchoolMarker(String letter) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          letter,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPassengerAvatar(String initials, Color color) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTripPoint({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String location,
+    required String time,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(location, style: GoogleFonts.inter(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+        Text(time, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primaryBlue)),
+      ],
+    );
+  }
+
+  void _showDriverDetails() {
+    if (widget.trip.driver == null) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => DriverDetailsModal(driver: widget.trip.driver!),
+    );
+  }
+
+  void _showPassengersList() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => PassengersListModal(passengers: widget.trip.passengers),
+    );
+  }
+
+  void _showSchoolsList() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SchoolsListModal(schools: widget.trip.schools),
+    );
+  }
+
+  void _showReservationConfirmation(BuildContext context) {
+    // Navigation directe vers la page de paiement
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(trip: widget.trip),
+      ),
+    );
+  }
+}
+
+class RouteLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF5B4FC7)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    path.moveTo(size.width * 0.2, size.height * 0.4);
+    path.quadraticBezierTo(size.width * 0.5, size.height * 0.2, size.width * 0.8, size.height * 0.6);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade400
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const dashHeight = 3;
+    const dashSpace = 3;
+    double startY = 0;
+
+    while (startY < size.height) {
+      canvas.drawLine(Offset(size.width / 2, startY), Offset(size.width / 2, startY + dashHeight), paint);
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}

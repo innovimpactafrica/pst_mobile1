@@ -1,0 +1,7 @@
+# IDE
+.idea/
+.DS_Store
+
+# Flutter
+private_school/build/
+private_school/.dart_tool/

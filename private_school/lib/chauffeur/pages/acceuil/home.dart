@@ -1,52 +1,222 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'discussion.dart';
 
+import 'package:private_school/chauffeur/pages/acceuil/domain/bloc/home_bloc.dart';
+import 'package:private_school/chauffeur/pages/acceuil/domain/bloc/home_event.dart';
+import 'package:private_school/chauffeur/pages/acceuil/domain/bloc/home_state.dart';
+
+import '../../widgets/main_layout.dart';
+import '../trajets/presentation/pages/trip_detail_page.dart';
+import 'discussion.dart';
+import 'package:private_school/chauffeur/utils/app_colors.dart';
+import 'package:private_school/chauffeur/pages/acceuil/widgets/report_problem_modal.dart';
+import 'package:private_school/chauffeur/pages/trajets/data/models/trip_model.dart';
+import 'package:private_school/chauffeur/pages/trajets/data/repositories/trip_repository.dart';
+import 'package:private_school/chauffeur/pages/trajets/presentation/widgets/trip_card_widget.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _openDiscussions(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DiscussionsPage()));
+  @override
+  Widget build(BuildContext context) {
+    // BlocProvider : Fournit le BLoC à tout l'arbre de widgets
+    return BlocProvider(
+      create: (context) => HomeBloc(repository: TripRepository())
+        ..add(LoadDriversEvent()), // Déclenche le chargement au démarrage
+      child: const HomePageContent(),
+    );
   }
+}
+
+class HomePageContent extends StatefulWidget {
+  const HomePageContent({super.key});
+
+  @override
+  State<HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<HomePageContent> {
+  int _selectedIndex = 0;
+
+  void _openDiscussions(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DiscussionsPage()),
+    );
+  }
+
+  void _openReportProblem(BuildContext context) {
+    showReportProblemModal(context);
+  }
+
+
+ /* void _onBottomNavTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }*/
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C1E85),
+      backgroundColor: AppColors.primaryGreen,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // Header violet
-            _buildHeader(context),
-            // Carte blanche qui se superpose
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Column(
+            Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: Stack(
                     children: [
-                      _buildSearchBar(),
-                      const SizedBox(height: 20),
-                      _buildTrajetsAVenirSection(),
-                      const SizedBox(height: 20),
-                      _buildNotificationsSection(),
-                      const SizedBox(height: 100),
+                      // CARTE EN BACKGROUND
+                      _buildMapBackground(context),
+                      // CONTENU PAR-DESSUS LA CARTE
+                      Column(
+                        children: [
+                          _buildSearchBar(),
+                          const Spacer(),
+                          // BlocBuilder : Reconstruit le widget selon l'état du BLoC
+                          BlocBuilder<HomeBloc, HomeState>(
+                            builder: (context, state) {
+                              if (state is HomeLoading) {
+                                // Affiche un loader pendant le chargement
+                                return const SizedBox(
+                                  height: 280,
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              } else if (state is HomeLoaded) {
+                                // Affiche la liste des chauffeurs
+                                return _buildTripCardsSection(state.trips);
+                              } else if (state is HomeError) {
+                                // Affiche un message d'erreur
+                                return SizedBox(
+                                  height: 280,
+                                  child: Center(
+                                    child: Text(
+                                      state.message,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                );
+                              }
+                              // État initial
+                              return const SizedBox(height: 280);
+                            },
+                          ),
+                          const SizedBox(height: 100),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
+            _buildBottomNavigationBar(),
+            _buildFloatingActionButton(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMapBackground(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Icon(
+              Icons.map_outlined,
+              size: 80,
+              color: Colors.grey.shade300,
+            ),
+          ),
+          Positioned(
+            top: 150,
+            left: MediaQuery.of(context).size.width * 0.4,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primaryBlue, width: 3),
+              ),
+              child: Icon(
+                Icons.location_on,
+                color: AppColors.primaryBlue,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Rechercher un trajet",
+                  hintStyle: GoogleFonts.inter(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey.shade500,
+                    size: 22,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(Icons.tune, color: Colors.grey.shade600, size: 22),
+          ),
+        ],
       ),
     );
   }
@@ -54,8 +224,8 @@ class HomePage extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      decoration: const BoxDecoration(
-        color: Color(0xFF2C1E85),
+      decoration: BoxDecoration(
+        color: AppColors.primaryGreen,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,7 +242,11 @@ class HomePage extends StatelessWidget {
                     height: 56,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.person, size: 32, color: Color(0xFF2C1E85));
+                      return Icon(
+                        Icons.person,
+                        size: 32,
+                        color: AppColors.primaryGreen,
+                      );
                     },
                   ),
                 ),
@@ -90,7 +264,7 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "Birama Diop",
+                    "Mariama Ly",
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -108,7 +282,7 @@ class HomePage extends StatelessWidget {
                 child: _buildNotifIconSvg('assets/icons/notif.svg', 1),
               ),
               const SizedBox(width: 12),
-              _buildNotifIconSvg('assets/icons/Settings.svg', 2),
+              _buildNotifIconSvg('assets/icons/Settings.svg', 0),
             ],
           ),
         ],
@@ -128,7 +302,10 @@ class HomePage extends StatelessWidget {
               svgPath,
               width: 30,
               height: 30,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ),
@@ -144,7 +321,11 @@ class HomePage extends StatelessWidget {
               ),
               child: Text(
                 notifCount.toString(),
-                style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 8,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -152,305 +333,143 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Rechercher un trajet",
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: SvgPicture.asset(
-                      'assets/icons/Search.svg',
-                      colorFilter: ColorFilter.mode(Colors.grey.shade500, BlendMode.srcIn),
+  Widget _buildTripCardsSection(List<TripModel> trips) {
+    return SizedBox(
+      height: 280,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: trips.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(right: index < trips.length - 1 ? 12 : 0),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.85,
+              child: TripCardWidget(
+                trip: trips[index],
+                onTap: () {
+                  // Navigation vers TripDetailPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TripDetailPage(trip: trips[index]),
                     ),
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                ),
+                  );
+                },
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 44,
-            height: 44,
-            child: SvgPicture.asset(
-              'assets/icons/Icon-filter.svg',
-              fit: BoxFit.contain,
-              colorFilter: ColorFilter.mode(Colors.grey.shade600, BlendMode.srcIn),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTrajetsAVenirSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Mes trajet a venir",
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 17,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                "Voir plus",
-                style: GoogleFonts.inter(
-                  color: const Color(0xFF2C1E85),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTrajetCard("Lundi 12 décembre", "03 passagers"),
-          const SizedBox(height: 16),
-          _buildTrajetCard("Lundi 12 décembre", "12 passagers"),
-        ],
+
+
+  Widget _buildBottomNavigationBar() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        height: 70,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(icon: Icons.home_rounded, label: 'Accueil', index: 0),
+            _buildNavItem(icon: Icons.people_rounded, label: 'Enfants', index: 1),
+            _buildNavItem(icon: Icons.route_rounded, label: 'Mes trajets', index: 2),
+            _buildNavItem(icon: Icons.groups_rounded, label: 'Groupes', index: 3),
+            _buildNavItem(icon: Icons.person_rounded, label: 'Profil', index: 4),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTrajetCard(String date, String passagers) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: SvgPicture.asset(
-                      'assets/icons/icon (7).svg',
-                      width: 24,
-                      height: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        date,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        passagers,
-                        style: GoogleFonts.inter(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade400,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    "En attente",
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Icon(Icons.circle_outlined, color: Colors.grey.shade500, size: 16),
-                  Container(
-                    width: 2,
-                    height: 20,
-                    margin: const EdgeInsets.symmetric(vertical: 2),
-                    child: CustomPaint(
-                      painter: DashedLinePainter(),
-                    ),
-                  ),
-                  Icon(Icons.location_on, color: Colors.grey.shade500, size: 18),
-                ],
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "123 Avenue des Champs-Élysées",
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      "Quakam",
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            "2 écoles desservies",
-            style: GoogleFonts.inter(
-              color: Colors.green.shade600,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+  // 1️⃣ La fonction de navigation / sélection
+  void _onBottomNavTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 1) {
+      // Navigation vers EnfantsPage
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MainLayout(initialIndex: 1), // 1 = Enfants
+        ),
+      );
+    }
+
+    // Si tu veux ajouter d'autres pages pour d'autres index, tu peux le faire ici
+  }
+
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+   }) {
+    final bool isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onBottomNavTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primaryGreen : Colors.grey.shade500,
+              size: 26,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppColors.primaryGreen : Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildNotificationsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Notifications récentes",
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w600,
-              fontSize: 17,
-              color: Colors.black87,
-            ),
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return Positioned(
+      right: 20,
+      bottom: 90,
+      child: FloatingActionButton(
+        onPressed: () => _openReportProblem(context),
+        backgroundColor: AppColors.primaryGreen,
+        elevation: 4,
+        child: SvgPicture.asset(
+          'assets/icons/13.svg',
+          width: 28,
+          height: 28,
+          colorFilter: const ColorFilter.mode(
+            Colors.white,
+            BlendMode.srcIn,
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2C1E85).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/icons/bx_trip.svg',
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Trajet commencé",
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Le conducteur a commencé le trajet vers ÉcolePri...",
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Aujourd'hui",
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
+
       ),
     );
   }
