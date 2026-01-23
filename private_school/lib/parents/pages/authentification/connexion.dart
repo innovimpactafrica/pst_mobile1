@@ -1,0 +1,318 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:private_school/parents/pages/authentification/inscription.dart';
+import '../../utils/HexColor.dart';
+import 'mdp_oublie.dart';
+import '../acceuil/home.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../authentification/domain/bloc/auth_bloc.dart';
+import '../../authentification/domain/bloc/auth_event.dart';
+import '../../authentification/domain/bloc/auth_state.dart';
+
+class Connexion extends StatefulWidget {
+  const Connexion({super.key});
+
+  @override
+  State<Connexion> createState() => _ConnexionState();
+}
+
+class _ConnexionState extends State<Connexion> {
+  bool _obscurePassword = true;
+
+  // ✅ AJOUTER CES LIGNES
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthLoading) {
+          // Afficher un loader
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is AuthAuthenticated) {
+          // Fermer le loader
+          Navigator.of(context).pop();
+
+          // Succès - Aller à l'accueil
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Connexion réussie !')),
+          );
+        } else if (state is AuthError) {
+          // Fermer le loader si ouvert
+          if (Navigator.canPop(context)) {
+            Navigator.of(context).pop();
+          }
+
+          // Afficher l'erreur
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // ======== Barre du haut (Langue) ========
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/4.svg',
+                          color: HexColor("#2F2884"),
+                          width: 20,
+                          height: 20,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Français",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: HexColor("#374151"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // ======== Logo ========
+                Image.asset(
+                  'assets/images/2.jpg',
+                  width: 120,
+                  height: 120,
+                ),
+
+                const SizedBox(height: 25),
+
+                // ======== Titre & Description ========
+                Text(
+                  "Connexion",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: HexColor("#2F2884"),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Connectez-vous pour explorer toutes les\nfonctionnalités de l’application.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: HexColor("#4B5563"),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // ======== Champ Email ========
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Identification",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: HexColor("#343741"),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: "Ex: bdiop@gmail.com",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#D4B036")),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ======== Champ Mot de passe ========
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Mot de passe",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: HexColor("#343741"),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    hintText: "********",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: HexColor("#D4B036")),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: HexColor("#ACB5BB"),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // ======== Bouton Se connecter ========
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: HexColor("#2F2884"),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    onPressed: () {
+                      // Validation simple
+                      if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Veuillez remplir tous les champs')),
+                        );
+                        return;
+                      }
+
+                      // ✅ Déclencher l'événement de connexion
+                      context.read<AuthBloc>().add(
+                        LoginEvent(
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text,
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "Se connecter",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ======== Mot de passe oublié ? ========
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MdpOubliePage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Mot de passe oublié ?",
+                    style: TextStyle(
+                      color: HexColor("#2F2884"),
+                      fontWeight: FontWeight.w600,
+                    
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 50),
+
+                // ======== Lien inscription ========
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Vous n'avez pas de compte ",
+                      style: TextStyle(color: HexColor("#CBD5E1")),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, "/inscription");Navigator.push(
+  context,
+  MaterialPageRoute(builder: (_) => const InscriptionPage()),
+);
+
+                      },
+                      child: Text(
+                        "S’inscrire",
+                        style: TextStyle(
+                          color: HexColor("#38AA36"),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      ),
+    );
+
+  }
+}

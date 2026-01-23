@@ -1,7 +1,7 @@
-// main_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // ✅ Nécessaire pour SvgPicture
+import 'package:flutter_svg/flutter_svg.dart';
 
+import '../pages/acceuil/home.dart';
 import '../utils/HexColor.dart';
 
 class MainScreen extends StatefulWidget {
@@ -10,16 +10,23 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key, this.off = false});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
+  final List<Widget> pages = [
+    const HomePage(),
+    const PlaceholderPage(title: 'Trajets'),
+    const PlaceholderPage(title: 'Abonnement'),
+    const PlaceholderPage(title: 'Profil'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _buildCurrentPage(),
+      body: pages[_selectedIndex],
       backgroundColor: HexColor('#F5F7FA'),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
@@ -28,18 +35,49 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildCurrentPage() {
-    final List<Widget> pages = [
-      
-    ];
-
-    return pages[_selectedIndex];
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+}
+
+class PlaceholderPage extends StatelessWidget {
+  final String title;
+  
+  const PlaceholderPage({super.key, required this.title});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: const Color(0xFF2C1E85),
+        foregroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Page $title',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'En cours de développement',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -55,71 +93,55 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final navItems = [
-      _buildNavItem(context, 0, 'home', 'Accueil'),
-      _buildNavItem(context, 1, 'calendar', 'Rendez-vous'),
-      _buildNavItem(context, 2, 'ordonnance', 'Ordonnances'),
-      _buildNavItem(context, 3, 'user', 'Mon compte'),
-    ];
-
     return Container(
+      height: 80,
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(35),
-          topRight: Radius.circular(35),
-        ),
         color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            spreadRadius: 0,
             blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
-      height: 80,
-      child: SafeArea(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: navItems,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, Icons.home, 'Accueil'),
+          _buildNavItem(1, Icons.directions_car, 'Trajets'),
+          _buildNavItem(2, Icons.card_membership, 'Abonnement'),
+          _buildNavItem(3, Icons.person, 'Profil'),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context,
-    int index,
-    String iconName,
-    String label,
-  ) {
-    final isSelected = index == selectedIndex;
-    final iconPath = isSelected
-        ? 'assets/icons/${iconName}_selected.svg'
-        : 'assets/icons/$iconName.svg';
-
-    return InkWell(
-      onTap: () {
-        if (!isSelected) {
-          onItemTapped(index);
-        }
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(iconPath, width: 22.0, height: 22.0),
-          const SizedBox(height: 4.0),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.0,
-              color: isSelected
-                  ? HexColor('#FF5C02')
-                  : const Color.fromARGB(255, 113, 113, 113),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => onItemTapped(index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? const Color(0xFF2C1E85) : Colors.grey,
+              size: 24,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFF2C1E85) : Colors.grey,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
