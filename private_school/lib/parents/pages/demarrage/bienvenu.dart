@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:private_school/pages/role_selection_page.dart';
 import '../../utils/HexColor.dart';
-import '../authentification/connexion.dart';
+//import '../authentification/connexion.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -28,7 +29,7 @@ class WelcomePage extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  HexColor('#2F2884').withOpacity(0.85),
+                  HexColor('#2F2884').withValues(alpha: 0.85),
                   HexColor('#2F2884'),
                 ],
                 stops: const [0.3, 0.7, 1.0],
@@ -114,10 +115,13 @@ class WelcomePage extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const Connexion()),
-                        );
+                        // ✅ APRÈS
+                       Navigator.push(
+                       context,
+                        MaterialPageRoute(
+                        builder: (_) => const RoleSelectionPage(),
+                        ),
+                          );
                       },
                       child: Text(
                         "Commencer",

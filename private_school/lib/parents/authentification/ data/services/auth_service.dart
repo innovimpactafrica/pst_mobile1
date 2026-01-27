@@ -1,10 +1,12 @@
-/// Service d'authentification - Appels API
-/// Chemin: lib/parents/authentification/data/services/auth_service.dart
+// Service d'authentification - Appels API
+// Chemin: lib/parents/authentification/data/services/auth_service.dart
+
+import 'package:private_school/core/models/user_model.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../../core/utils/api_constants.dart';
-import '../models/user_model.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final ApiClient _apiClient = ApiClient();
@@ -19,7 +21,7 @@ class AuthService {
     required String email,
   }) async {
     try {
-      print('📤 Registering parent: $email');
+      debugPrint('📤 Registering parent: $email');
 
       final response = await _apiClient.post(
         ApiConstants.registerParent,
@@ -31,7 +33,7 @@ class AuthService {
         },
       );
 
-      print('✅ Registration successful');
+      debugPrint('✅ Registration successful');
 
       return {
         'success': true,
@@ -39,7 +41,7 @@ class AuthService {
         'data': response.data,
       };
     } catch (e) {
-      print('❌ Registration error: $e');
+      debugPrint('❌ Registration error: $e');
       throw Exception('Erreur lors de l\'inscription: $e');
     }
   }
@@ -51,17 +53,14 @@ class AuthService {
     required String password,
   }) async {
     try {
-      print('📤 Logging in parent: $email');
+      debugPrint('📤 Logging in parent: $email');
 
       final response = await _apiClient.post(
         ApiConstants.loginParent,
-        data: {
-          'email': email,
-          'password': password,
-        },
+        data: {'email': email, 'password': password},
       );
 
-      print('✅ Login successful');
+      debugPrint('✅ Login successful');
 
       // Extraire le token et les données utilisateur
       final token = response.data['token'] ?? response.data['accessToken'];
@@ -70,13 +69,13 @@ class AuthService {
       // Sauvegarder le token
       if (token != null) {
         await _storage.saveAccessToken(token);
-        print('✅ Token saved');
+        debugPrint('✅ Token saved');
       }
 
       // Sauvegarder les données utilisateur
       if (userData != null) {
         await _storage.saveUserData(userData.toString());
-        print('✅ User data saved');
+        debugPrint('✅ User data saved');
       }
 
       return {
@@ -85,7 +84,7 @@ class AuthService {
         'user': userData != null ? UserModel.fromJson(userData) : null,
       };
     } catch (e) {
-      print('❌ Login error: $e');
+      debugPrint('❌ Login error: $e');
       throw Exception('Email ou mot de passe incorrect');
     }
   }
@@ -97,17 +96,14 @@ class AuthService {
     required String otp,
   }) async {
     try {
-      print('📤 Verifying OTP for: $email');
+      debugPrint('📤 Verifying OTP for: $email');
 
       final response = await _apiClient.post(
         ApiConstants.verifyOtp,
-        data: {
-          'email': email,
-          'otp': otp,
-        },
+        data: {'email': email, 'otp': otp},
       );
 
-      print('✅ OTP verified successfully');
+      debugPrint('✅ OTP verified successfully');
 
       return {
         'success': true,
@@ -115,32 +111,30 @@ class AuthService {
         'token': response.data['token'],
       };
     } catch (e) {
-      print('❌ OTP verification error: $e');
+      debugPrint('❌ OTP verification error: $e');
       throw Exception('Code de vérification invalide');
     }
   }
 
   /// ✅ MOT DE PASSE OUBLIÉ - Demander OTP
   /// Endpoint: POST /api/auth/forgot-password
-  Future<Map<String, dynamic>> forgotPassword({
-    required String email,
-  }) async {
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
-      print('📤 Requesting password reset for: $email');
+      debugPrint('📤 Requesting password reset for: $email');
 
       final response = await _apiClient.post(
         ApiConstants.forgotPassword,
         data: {'email': email},
       );
 
-      print('✅ OTP sent successfully');
+      debugPrint('✅ OTP sent successfully');
 
       return {
         'success': true,
         'message': response.data['message'] ?? 'Code OTP envoyé',
       };
     } catch (e) {
-      print('❌ Forgot password error: $e');
+      debugPrint('❌ Forgot password error: $e');
       throw Exception('Erreur lors de l\'envoi du code');
     }
   }
@@ -153,25 +147,21 @@ class AuthService {
     required String newPassword,
   }) async {
     try {
-      print('📤 Resetting password for: $email');
+      debugPrint('📤 Resetting password for: $email');
 
       final response = await _apiClient.post(
         ApiConstants.resetPassword,
-        data: {
-          'email': email,
-          'otp': otp,
-          'newPassword': newPassword,
-        },
+        data: {'email': email, 'otp': otp, 'newPassword': newPassword},
       );
 
-      print('✅ Password reset successfully');
+      debugPrint('✅ Password reset successfully');
 
       return {
         'success': true,
         'message': response.data['message'] ?? 'Mot de passe réinitialisé',
       };
     } catch (e) {
-      print('❌ Reset password error: $e');
+      debugPrint('❌ Reset password error: $e');
       throw Exception('Erreur lors de la réinitialisation');
     }
   }
@@ -180,16 +170,16 @@ class AuthService {
   /// Endpoint: POST /api/auth/logout
   Future<void> logout() async {
     try {
-      print('📤 Logging out...');
+      debugPrint('📤 Logging out...');
 
       await _apiClient.post(ApiConstants.logout);
 
       // Supprimer le token local
       await _storage.clearAll();
 
-      print('✅ Logged out successfully');
+      debugPrint('✅ Logged out successfully');
     } catch (e) {
-      print('❌ Logout error: $e');
+      debugPrint('❌ Logout error: $e');
       // Même si l'API échoue, on supprime le token local
       await _storage.clearAll();
     }
@@ -199,16 +189,16 @@ class AuthService {
   /// Endpoint: GET /api/auth
   Future<UserModel> getCurrentUser() async {
     try {
-      print('📤 Fetching current user profile...');
+      debugPrint('📤 Fetching current user profile...');
 
       final response = await _apiClient.get('/api/auth');
 
-      print('✅ User profile received');
+      debugPrint('✅ User profile received');
 
       final userData = response.data['user'] ?? response.data['data'];
       return UserModel.fromJson(userData);
     } catch (e) {
-      print('❌ Get current user error: $e');
+      debugPrint('❌ Get current user error: $e');
       throw Exception('Impossible de récupérer le profil');
     }
   }

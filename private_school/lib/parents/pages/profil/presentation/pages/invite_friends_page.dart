@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 class InviteFriendsPage extends StatelessWidget {
   const InviteFriendsPage({super.key});
@@ -10,7 +9,7 @@ class InviteFriendsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGrey,
+      backgroundColor: AppColors.background,
       appBar: _buildAppBar(context),
       body: Column(
         children: [
@@ -29,7 +28,7 @@ class InviteFriendsPage extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.primaryGreen,
+      backgroundColor: AppColors.success,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
@@ -55,7 +54,7 @@ class InviteFriendsPage extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderGrey),
+          border: Border.all(color: AppColors.border),
         ),
         child: TextField(
           decoration: InputDecoration(
@@ -65,11 +64,7 @@ class InviteFriendsPage extends StatelessWidget {
               fontSize: 14,
             ),
             border: InputBorder.none,
-            icon: Icon(
-              Icons.search,
-              color: AppColors.textGrey,
-              size: 20,
-            ),
+            icon: Icon(Icons.search, color: AppColors.textGrey, size: 20),
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
@@ -86,31 +81,31 @@ class InviteFriendsPage extends StatelessWidget {
           _buildSocialButton(
             label: 'Copier',
             imagePath: 'assets/icons/link.svg',
-            color: AppColors.primaryGreen,
+            color: AppColors.success,
             isSvg: true,
           ),
           _buildSocialButton(
             label: 'WhatsApp',
             imagePath: 'assets/icons/whatsapp.svg',
-            color: AppColors.whatsappGreen,
+            color: AppColors.whatsapp,
             isSvg: true,
           ),
           _buildSocialButton(
             label: 'Instagram',
             imagePath: 'assets/icons/instagram.svg',
-            color: AppColors.instagramPink,
+            color: AppColors.instagram,
             isSvg: true,
           ),
           _buildSocialButton(
             label: 'Messenger',
             imagePath: 'assets/icons/messenger.svg',
-            color: AppColors.messengerBlue,
+            color: AppColors.messenger,
             isSvg: true,
           ),
           _buildSocialButton(
             label: 'Twitter',
             imagePath: 'assets/images/twiter.jpeg',
-            color: AppColors.twitterBlack,
+            color: AppColors.twitter,
             isSvg: false, // ✅ Pour Twitter qui est un JPEG
           ),
         ],
@@ -129,45 +124,39 @@ class InviteFriendsPage extends StatelessWidget {
         Container(
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           child: Center(
             child: isSvg
                 ? SvgPicture.asset(
-              imagePath,
-              width: 28,
-              height: 28,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
-              ),
-            )
+                    imagePath,
+                    width: 28,
+                    height: 28,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  )
                 : ClipOval(
-              child: Image.asset(
-                imagePath,
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.image,
-                    color: Colors.white,
-                    size: 28,
-                  );
-                },
-              ),
-            ),
+                    child: Image.asset(
+                      imagePath,
+                      width: 28,
+                      height: 28,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.image,
+                          color: Colors.white,
+                          size: 28,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            color: AppColors.textDark,
-          ),
+          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textPrimary),
         ),
       ],
     );
@@ -183,7 +172,7 @@ class InviteFriendsPage extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -243,7 +232,7 @@ class InviteFriendsPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -253,9 +242,7 @@ class InviteFriendsPage extends StatelessWidget {
         children: [
           _buildAvatar(photo),
           const SizedBox(width: 12),
-          Expanded(
-            child: _buildFriendInfo(name, phone),
-          ),
+          Expanded(child: _buildFriendInfo(name, phone)),
           _buildInviteButton(),
         ],
       ),
@@ -268,11 +255,7 @@ class InviteFriendsPage extends StatelessWidget {
       backgroundColor: AppColors.imagePlaceholder,
       backgroundImage: AssetImage(photo),
       onBackgroundImageError: (_, __) {},
-      child: Icon(
-        Icons.person,
-        color: AppColors.textGrey,
-        size: 28,
-      ),
+      child: Icon(Icons.person, color: AppColors.textGrey, size: 28),
     );
   }
 
@@ -285,16 +268,13 @@ class InviteFriendsPage extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           phone,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppColors.textGrey,
-          ),
+          style: GoogleFonts.inter(fontSize: 13, color: AppColors.textGrey),
         ),
       ],
     );
@@ -306,12 +286,10 @@ class InviteFriendsPage extends StatelessWidget {
         // TODO: Envoyer invitation
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 0,
       ),
       child: Row(
@@ -321,10 +299,7 @@ class InviteFriendsPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             'Inviter',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ],
       ),

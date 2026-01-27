@@ -5,7 +5,7 @@ import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class InviteMemberModal extends StatefulWidget {
   final String groupId;
@@ -30,7 +30,10 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
     if (_controller.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Veuillez remplir ce champ', style: GoogleFonts.inter()),
+          content: Text(
+            'Veuillez remplir ce champ',
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: Colors.orange,
         ),
       );
@@ -57,7 +60,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Invitation envoyée', style: GoogleFonts.inter()),
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.success,
               ),
             );
           }
@@ -100,13 +103,9 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        Expanded(
-                          child: _buildTabButton('Email', true),
-                        ),
+                        Expanded(child: _buildTabButton('Email', true)),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildTabButton('Téléphone', false),
-                        ),
+                        Expanded(child: _buildTabButton('Téléphone', false)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -129,7 +128,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                             : 'Ex : +77 123 45 67',
                         prefixIcon: Icon(
                           _isEmail ? Icons.email : Icons.phone,
-                          color: AppColors.primaryGreen,
+                          color: AppColors.success,
                         ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
@@ -143,7 +142,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.primaryGreen),
+                          borderSide: BorderSide(color: AppColors.success),
                         ),
                       ),
                     ),
@@ -153,7 +152,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                       child: ElevatedButton(
                         onPressed: () => _sendInvite(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: AppColors.success,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -191,7 +190,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryGreen : Colors.grey.shade100,
+          color: isSelected ? AppColors.success : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(

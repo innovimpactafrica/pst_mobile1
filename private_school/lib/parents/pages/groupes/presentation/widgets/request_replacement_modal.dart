@@ -7,7 +7,7 @@ import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
 import '../../data/models/group_model.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 /// Modal pour DEMANDER un remplacement (utilisateur qui veut être remplacé)
 class RequestReplacementModal extends StatefulWidget {
@@ -33,8 +33,7 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
     if (_reasonController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-          Text('Veuillez entrer un motif', style: GoogleFonts.inter()),
+          content: Text('Veuillez entrer un motif', style: GoogleFonts.inter()),
           backgroundColor: Colors.orange,
         ),
       );
@@ -59,9 +58,11 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Demande de remplacement envoyée',
-                    style: GoogleFonts.inter()),
-                backgroundColor: AppColors.primaryGreen,
+                content: Text(
+                  'Demande de remplacement envoyée',
+                  style: GoogleFonts.inter(),
+                ),
+                backgroundColor: AppColors.success,
               ),
             );
           }
@@ -110,7 +111,7 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.1),
+                        color: AppColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -119,12 +120,12 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.2),
+                              color: AppColors.success.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.calendar_today,
-                              color: AppColors.primaryGreen,
+                              color: AppColors.success,
                               size: 18,
                             ),
                           ),
@@ -141,8 +142,10 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                DateFormat('EEEE dd MMMM', 'fr_FR')
-                                    .format(widget.planning.date),
+                                DateFormat(
+                                  'EEEE dd MMMM',
+                                  'fr_FR',
+                                ).format(widget.planning.date),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -188,7 +191,7 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.primaryGreen),
+                          borderSide: BorderSide(color: AppColors.success),
                         ),
                       ),
                     ),
@@ -203,7 +206,7 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                             ? null
                             : () => _requestReplacement(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: AppColors.success,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -213,20 +216,20 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                         ),
                         child: state is GroupLoading
                             ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : Text(
-                          'Envoyer',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                                'Envoyer',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                   ],

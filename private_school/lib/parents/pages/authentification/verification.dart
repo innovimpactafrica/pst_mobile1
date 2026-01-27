@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../utils/HexColor.dart';
+import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 import 'creer_mdp.dart';
 
 class Verification extends StatefulWidget {
@@ -12,8 +13,8 @@ class Verification extends StatefulWidget {
 }
 
 class _VerificationState extends State<Verification> {
-  final List<TextEditingController> _controllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
 
   int _secondsRemaining = 23;
   Timer? _timer;
@@ -27,6 +28,7 @@ class _VerificationState extends State<Verification> {
   @override
   void dispose() {
     for (var c in _controllers) c.dispose();
+    for (var f in _focusNodes) f.dispose();
     _timer?.cancel();
     super.dispose();
   }
@@ -38,237 +40,188 @@ class _VerificationState extends State<Verification> {
       if (_secondsRemaining == 0) {
         timer.cancel();
       } else {
-        setState(() {
-          _secondsRemaining--;
-        });
+        setState(() => _secondsRemaining--);
       }
     });
   }
 
- void _checkOTPCompletion() {
-  if (_controllers.every((c) => c.text.isNotEmpty)) {
-    // Affichage du message en bas avec icône
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(
-            bottom: 20, left: 16, right: 16), // place en bas
-        backgroundColor: Colors.white,
-        content: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icons/9.svg', // icône check
-              width: 24,
-              height: 24,
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              "Vérification terminée",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+  void _checkOTPCompletion() {
+    if (_controllers.every((c) => c.text.isNotEmpty)) {
+      // SnackBar stylisée
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(AppConstants.spacingM),
+          backgroundColor: AppColors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.radiusL)),
+          content: Row(
+            children: [
+              SvgPicture.asset('assets/icons/9.svg', width: 24, height: 24),
+              const SizedBox(width: AppConstants.spacingS),
+              const Text(
+                "Vérification terminée",
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    // Après 1.5 secondes, naviguer vers la page de création de mot de passe
-    Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PasswordCreationPage()),
-      );
-    });
-  }
-}
-
-
-  Widget _buildOTPField(int index) {
-    bool isSelected =
-        _controllers[index].selection.baseOffset >= 0; // si le curseur est actif
-
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: TextField(
-        controller: _controllers[index],
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        maxLength: 1,
-        style: TextStyle(
-          fontSize: 18,
-          color: HexColor("#212121"),
-        ),
-        decoration: InputDecoration(
-          counterText: "",
-          filled: true,
-          fillColor: isSelected ? HexColor("#DFF8E2") : HexColor("#F1F2F6"),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: isSelected ? HexColor("#38AA36") : HexColor("#F1F2F6"),
-              width: 2,
-            ),
+            ],
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-        onChanged: (_) {
-          _checkOTPCompletion();
-          setState(() {}); // met à jour la bordure
-        },
-      ),
-    );
+      );
+
+      Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PasswordCreationPage()),
+        );
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: SvgPicture.asset('assets/icons/back.svg'),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/icons/4.svg',
-                  color: HexColor("#2F2884"),
-                  width: 20,
-                  height: 20,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  "Français",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: HexColor("#374151"),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.white,
+      appBar: _buildAppBar(),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(AppConstants.spacingXXL),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo
-              Center(
-                child: Image.asset(
-                  'assets/images/2.jpg', // <-- ton logo
-                  width: 100,
-                  height: 100,
+              Image.asset(AppConstants.logoPath, height: 100),
+              const SizedBox(height: AppConstants.spacingL),
+              const Text(
+                "Code de vérification",
+                style: TextStyle(
+                  fontSize: AppConstants.fontSizeXXL,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: 16),
-              // Titre
-              Center(
-                child: Text(
-                  "Code de vérification",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: HexColor("#2F2884"),
-                  ),
-                ),
+              const SizedBox(height: AppConstants.spacingS),
+              const Text(
+                "Saisissez le code à 4 chiffres envoyé par Email à votre@email.com",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: AppConstants.fontSizeM, color: AppColors.textSecondary),
               ),
-              const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  "Saisissez le code à 4 chiffres envoyé par\nEmail à votre@email.com",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: HexColor("#4B5563"),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
+              
               // Cases OTP
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(4, (index) => _buildOTPField(index)),
               ),
-              const SizedBox(height: 20),
-              // Renvoyer le code
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      "Vous n’avez pas reçu de code ?",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: HexColor("#212121"),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    GestureDetector(
-                      onTap: _secondsRemaining == 0
-                          ? () {
-                              _startCountdown();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text("Nouveau code envoyé")),
-                              );
-                            }
-                          : null,
-                      child: Text(
-                        _secondsRemaining > 0
-                            ? "Renvoyer dans (${_secondsRemaining}s)"
-                            : "Renvoyer le code",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: _secondsRemaining > 0
-                              ? HexColor("#B0B0B0")
-                              : HexColor("#38AA36"),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              
+              const SizedBox(height: 30),
+              _buildResendSection(),
               const Spacer(),
-              // Bouton Vérifier
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _checkOTPCompletion,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: HexColor("#2F2884"),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Vérifier",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              _buildVerifyButton(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: AppColors.white,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: AppColors.primary, size: 20),
+        onPressed: () => Navigator.pop(context),
+      ),
+      actions: [
+        _buildLanguageSelector(),
+      ],
+    );
+  }
+
+  Widget _buildOTPField(int index) {
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: TextField(
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        maxLength: 1,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        decoration: InputDecoration(
+          counterText: "",
+          filled: true,
+          fillColor: _controllers[index].text.isNotEmpty ? AppColors.successLight : AppColors.backgroundLight,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            borderSide: const BorderSide(color: AppColors.successDark, width: 2),
+          ),
+        ),
+        onChanged: (value) {
+          if (value.isNotEmpty && index < 3) {
+            _focusNodes[index + 1].requestFocus();
+          } else if (value.isEmpty && index > 0) {
+            _focusNodes[index - 1].requestFocus();
+          }
+          _checkOTPCompletion();
+          setState(() {}); 
+        },
+      ),
+    );
+  }
+
+  Widget _buildResendSection() {
+    return Column(
+      children: [
+        const Text("Vous n’avez pas reçu de code ?", style: TextStyle(color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _secondsRemaining == 0 ? _startCountdown : null,
+          child: Text(
+            _secondsRemaining > 0 ? "Renvoyer dans (${_secondsRemaining}s)" : "Renvoyer le code",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _secondsRemaining > 0 ? AppColors.textGrey : AppColors.successDark,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerifyButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: _checkOTPCompletion,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.radiusXXL)),
+        ),
+        child: const Text(
+          "Vérifier",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            'assets/icons/4.svg',
+            colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
+            width: 18,
+          ),
+          const SizedBox(width: 6),
+          const Text("Français", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        ],
       ),
     );
   }

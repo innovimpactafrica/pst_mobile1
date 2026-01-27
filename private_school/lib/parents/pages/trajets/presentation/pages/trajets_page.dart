@@ -6,7 +6,7 @@ import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
 import '../../data/repositories/trip_repository.dart';
 import '../widgets/trip_card_widget.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 import 'trip_detail_page.dart';
 
@@ -16,8 +16,9 @@ class TrajetsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TripBloc(repository: TripRepository())
-        ..add(LoadAvailableTripsEvent()),
+      create: (context) =>
+          TripBloc(repository: TripRepository())
+            ..add(LoadAvailableTripsEvent()),
       child: const TrajetsPageContent(),
     );
   }
@@ -38,7 +39,7 @@ class TrajetsPageContent extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen,
+                color: AppColors.success,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
@@ -56,7 +57,6 @@ class TrajetsPageContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-
                 ],
               ),
             ),
@@ -80,7 +80,7 @@ class TrajetsPageContent extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -116,7 +116,7 @@ class TrajetsPageContent extends StatelessWidget {
                   if (state is TripLoading) {
                     return Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primaryGreen,
+                        color: AppColors.success,
                       ),
                     );
                   }
@@ -148,7 +148,7 @@ class TrajetsPageContent extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGreen,
+                              backgroundColor: AppColors.success,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 32,
@@ -196,7 +196,9 @@ class TrajetsPageContent extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 40),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                              ),
                               child: Text(
                                 state.selectedTabIndex == 0
                                     ? 'Les trajets disponibles apparaîtront ici'
@@ -214,12 +216,16 @@ class TrajetsPageContent extends StatelessWidget {
                     }
 
                     return RefreshIndicator(
-                      color: AppColors.primaryGreen,
+                      color: AppColors.success,
                       onRefresh: () async {
                         if (state.selectedTabIndex == 0) {
-                          context.read<TripBloc>().add(LoadAvailableTripsEvent());
+                          context.read<TripBloc>().add(
+                            LoadAvailableTripsEvent(),
+                          );
                         } else {
-                          context.read<TripBloc>().add(LoadMyReservationsEvent());
+                          context.read<TripBloc>().add(
+                            LoadMyReservationsEvent(),
+                          );
                         }
                       },
                       child: ListView.builder(
@@ -234,7 +240,8 @@ class TrajetsPageContent extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => TripDetailPage(trip: trip),
+                                  builder: (context) =>
+                                      TripDetailPage(trip: trip),
                                 ),
                               );
                             },
@@ -255,11 +262,11 @@ class TrajetsPageContent extends StatelessWidget {
   }
 
   Widget _buildTabButton(
-      BuildContext context,
-      String label,
-      int tabIndex,
-      int selectedTabIndex,
-      ) {
+    BuildContext context,
+    String label,
+    int tabIndex,
+    int selectedTabIndex,
+  ) {
     final isSelected = tabIndex == selectedTabIndex;
 
     return Expanded(
@@ -270,7 +277,7 @@ class TrajetsPageContent extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+            color: isSelected ? AppColors.success : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(

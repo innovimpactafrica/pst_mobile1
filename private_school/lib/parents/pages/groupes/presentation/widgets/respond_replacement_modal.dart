@@ -7,7 +7,7 @@ import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
 import '../../data/models/group_model.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 /// Modal pour RÉPONDRE à une demande de remplacement (autres membres)
 class RespondReplacementModal extends StatelessWidget {
@@ -17,10 +17,7 @@ class RespondReplacementModal extends StatelessWidget {
 
   void _respondToReplacement(BuildContext context, bool accept) {
     context.read<GroupBloc>().add(
-      RespondToReplacementEvent(
-        planningId: planning.id,
-        accept: accept,
-      ),
+      RespondToReplacementEvent(planningId: planning.id, accept: accept),
     );
   }
 
@@ -41,7 +38,7 @@ class RespondReplacementModal extends StatelessWidget {
                   style: GoogleFonts.inter(),
                 ),
                 backgroundColor: state.accepted
-                    ? AppColors.primaryGreen
+                    ? AppColors.success
                     : Colors.orange,
               ),
             );
@@ -91,7 +88,7 @@ class RespondReplacementModal extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.1),
+                        color: AppColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -100,12 +97,12 @@ class RespondReplacementModal extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.2),
+                              color: AppColors.success.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.calendar_today,
-                              color: AppColors.primaryGreen,
+                              color: AppColors.success,
                               size: 18,
                             ),
                           ),
@@ -122,8 +119,10 @@ class RespondReplacementModal extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                DateFormat('EEEE dd MMMM', 'fr_FR')
-                                    .format(planning.date),
+                                DateFormat(
+                                  'EEEE dd MMMM',
+                                  'fr_FR',
+                                ).format(planning.date),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -206,7 +205,7 @@ class RespondReplacementModal extends StatelessWidget {
                                 ? null
                                 : () => _respondToReplacement(context, true),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primaryGreen,
+                              backgroundColor: AppColors.success,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -216,20 +215,20 @@ class RespondReplacementModal extends StatelessWidget {
                             ),
                             child: state is GroupLoading
                                 ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
                                 : Text(
-                              'Accepter',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                                    'Accepter',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],

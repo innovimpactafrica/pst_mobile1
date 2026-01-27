@@ -1,11 +1,10 @@
-/// BLoC pour gérer le profil utilisateur
-/// Chemin: lib/parents/profil/domain/bloc/profil_bloc.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/user_repository.dart';
 import 'profil_event.dart';
 import 'profil_state.dart';
 
+/// BLoC for managing user profile
+/// Handles all profile-related events and state management
 class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   final UserRepository repository;
 
@@ -19,41 +18,41 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
     on<LogoutEvent>(_onLogout);
   }
 
-  /// Charger le profil utilisateur
+  /// Load user profile
   Future<void> _onLoadUserProfile(
-      LoadUserProfileEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    LoadUserProfileEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     emit(ProfilLoading());
     try {
       final user = await repository.getCurrentUser();
       emit(ProfilLoaded(user));
     } catch (e) {
-      emit(ProfilError('Erreur lors du chargement du profil: ${e.toString()}'));
+      emit(ProfilError('Unable to load profile: ${e.toString()}'));
     }
   }
 
-  /// Mettre à jour le profil complet
+  /// Update complete profile
   Future<void> _onUpdateUserProfile(
-      UpdateUserProfileEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    UpdateUserProfileEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     emit(ProfilUpdating());
     try {
       final updatedUser = await repository.updateUser(event.user);
       emit(ProfilUpdated(updatedUser));
-      // Recharger le profil pour avoir les données à jour
+      // Reload profile to get updated data
       emit(ProfilLoaded(updatedUser));
     } catch (e) {
-      emit(ProfilError('Erreur lors de la mise à jour: ${e.toString()}'));
+      emit(ProfilError('Unable to update profile: ${e.toString()}'));
     }
   }
 
-  /// Mettre à jour uniquement certains champs
+  /// Update specific fields only
   Future<void> _onUpdateUserFields(
-      UpdateUserFieldsEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    UpdateUserFieldsEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     emit(ProfilUpdating());
     try {
       final updatedUser = await repository.updateUserFields(
@@ -66,67 +65,67 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
       emit(ProfilUpdated(updatedUser));
       emit(ProfilLoaded(updatedUser));
     } catch (e) {
-      emit(ProfilError('Erreur lors de la mise à jour: ${e.toString()}'));
+      emit(ProfilError('Unable to update profile: ${e.toString()}'));
     }
   }
 
-  /// Mettre à jour la photo de profil
+  /// Update profile photo
   Future<void> _onUpdateProfilePhoto(
-      UpdateProfilePhotoEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    UpdateProfilePhotoEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     emit(PhotoUploading());
     try {
       final photoUrl = await repository.updateProfilePhoto(event.photoFile);
       emit(PhotoUploaded(photoUrl));
-      // Recharger le profil pour avoir la nouvelle photo
+      // Reload profile to get new photo
       add(LoadUserProfileEvent());
     } catch (e) {
-      emit(ProfilError('Erreur lors du téléchargement de la photo: ${e.toString()}'));
+      emit(ProfilError('Unable to upload photo: ${e.toString()}'));
     }
   }
 
-  /// Mettre à jour la photo de profil depuis un chemin
+  /// Update profile photo from path
   Future<void> _onUpdateProfilePhotoFromPath(
-      UpdateProfilePhotoFromPathEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    UpdateProfilePhotoFromPathEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     emit(PhotoUploading());
     try {
       final photoUrl = await repository.updateProfilePhotoFromPath(event.photoPath);
       emit(PhotoUploaded(photoUrl));
-      // Recharger le profil pour avoir la nouvelle photo
+      // Reload profile to get new photo
       add(LoadUserProfileEvent());
     } catch (e) {
-      emit(ProfilError('Erreur lors du téléchargement de la photo: ${e.toString()}'));
+      emit(ProfilError('Unable to upload photo: ${e.toString()}'));
     }
   }
 
-  /// Supprimer la photo de profil
+  /// Delete profile photo
   Future<void> _onDeleteProfilePhoto(
-      DeleteProfilePhotoEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    DeleteProfilePhotoEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     try {
       await repository.deleteProfilePhoto();
       emit(PhotoDeleted());
-      // Recharger le profil
+      // Reload profile
       add(LoadUserProfileEvent());
     } catch (e) {
-      emit(ProfilError('Erreur lors de la suppression de la photo: ${e.toString()}'));
+      emit(ProfilError('Unable to delete photo: ${e.toString()}'));
     }
   }
 
-  /// Déconnexion
+  /// Logout
   Future<void> _onLogout(
-      LogoutEvent event,
-      Emitter<ProfilState> emit,
-      ) async {
+    LogoutEvent event,
+    Emitter<ProfilState> emit,
+  ) async {
     try {
-      await repository.logout(); 
+      await repository.logout();
       emit(LogoutSuccess());
     } catch (e) {
-      emit(ProfilError('Erreur lors de la déconnexion: ${e.toString()}'));
+      emit(ProfilError('Unable to logout: ${e.toString()}'));
     }
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
@@ -10,10 +10,7 @@ import '../../domain/bloc/child_event.dart';
 class ChildScheduleModal extends StatefulWidget {
   final ChildModel child;
 
-  const ChildScheduleModal({
-    super.key,
-    required this.child,
-  });
+  const ChildScheduleModal({super.key, required this.child});
 
   @override
   State<ChildScheduleModal> createState() => _ChildScheduleModalState();
@@ -21,12 +18,21 @@ class ChildScheduleModal extends StatefulWidget {
 
 class _ChildScheduleModalState extends State<ChildScheduleModal> {
   late Map<String, DaySchedule> _schedule;
-  final List<String> _days = ['Lun.', 'Mar', 'Mer.', 'Jeu', 'Ven.', 'Sam.', 'Dim.'];
+  final List<String> _days = [
+    'Lun.',
+    'Mar',
+    'Mer.',
+    'Jeu',
+    'Ven.',
+    'Sam.',
+    'Dim.',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _schedule = widget.child.schedule != null && widget.child.schedule!.isNotEmpty
+    _schedule =
+        widget.child.schedule != null && widget.child.schedule!.isNotEmpty
         ? Map<String, DaySchedule>.from(widget.child.schedule!)
         : _getDefaultSchedule();
   }
@@ -57,9 +63,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primaryGreen,
-            ),
+            colorScheme: ColorScheme.light(primary: AppColors.success),
           ),
           child: child!,
         );
@@ -82,10 +86,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
 
   void _handleSave() {
     context.read<ChildBloc>().add(
-      UpdateChildScheduleEvent(
-        childId: widget.child.id,
-        schedule: _schedule,
-      ),
+      UpdateChildScheduleEvent(childId: widget.child.id, schedule: _schedule),
     );
     if (mounted) {
       Navigator.pop(context);
@@ -114,7 +115,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
                 children: [
                   _buildTableHeader(),
                   const SizedBox(height: 8),
-                  ..._days.map((day) => _buildDayRow(day)).toList(),
+                  ..._days.map((day) => _buildDayRow(day)),
                   const SizedBox(height: 24),
                   _buildSaveButton(),
                   const SizedBox(height: 16),
@@ -152,11 +153,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
           ),
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Icon(
-              Icons.close,
-              color: Colors.grey.shade600,
-              size: 24,
-            ),
+            child: Icon(Icons.close, color: Colors.grey.shade600, size: 24),
           ),
         ],
       ),
@@ -259,14 +256,12 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
                   child: Checkbox(
                     value: schedule.isOpen,
                     onChanged: (_) => _toggleDay(day),
-                    activeColor: AppColors.primaryBlue,
+                    activeColor: AppColors.primary
+,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(3),
                     ),
-                    side: BorderSide(
-                      color: Colors.grey.shade400,
-                      width: 1.5,
-                    ),
+                    side: BorderSide(color: Colors.grey.shade400, width: 1.5),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
                   ),
@@ -320,10 +315,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: Colors.grey.shade300,
-            width: 0.5,
-          ),
+          border: Border.all(color: Colors.grey.shade300, width: 0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -332,9 +324,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
             Icon(
               Icons.access_time,
               size: 14,
-              color: isEnabled
-                  ? const Color(0xFFFF6B6B)
-                  : Colors.grey.shade300,
+              color: isEnabled ? const Color(0xFFFF6B6B) : Colors.grey.shade300,
             ),
             const SizedBox(width: 4),
             Text(
@@ -360,7 +350,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
       child: ElevatedButton(
         onPressed: _handleSave,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.success,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import '../../../utils/modal_helper.dart';
 import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
@@ -13,10 +13,7 @@ import 'child_schedule_modal.dart';
 class ChildDetailsModal extends StatelessWidget {
   final ChildModel child;
 
-  const ChildDetailsModal({
-    super.key,
-    required this.child,
-  });
+  const ChildDetailsModal({super.key, required this.child});
 
   void _showEditModal(BuildContext context) {
     Navigator.pop(context); // Fermer le modal actuel
@@ -127,9 +124,7 @@ class ChildDetailsModal extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,11 +139,7 @@ class ChildDetailsModal extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Icon(
-              Icons.close,
-              color: Colors.grey.shade600,
-              size: 24,
-            ),
+            child: Icon(Icons.close, color: Colors.grey.shade600, size: 24),
           ),
         ],
       ),
@@ -160,7 +151,7 @@ class ChildDetailsModal extends StatelessWidget {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen.withOpacity(0.15),
+        color: AppColors.success.withValues(alpha: 0.15),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -169,7 +160,7 @@ class ChildDetailsModal extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 28,
             fontWeight: FontWeight.w600,
-            color: AppColors.primaryGreen,
+            color: AppColors.success,
           ),
         ),
       ),
@@ -212,7 +203,7 @@ class ChildDetailsModal extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () => _showEditModal(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.success,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -238,8 +229,12 @@ class ChildDetailsModal extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () => _showScheduleModal(context),
         style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue.withOpacity(0.15), // bleu clair
-          foregroundColor: AppColors.primaryBlue,
+          backgroundColor: AppColors.primary
+.withValues(
+            alpha: 0.15,
+          ), // bleu clair
+          foregroundColor: AppColors.primary
+,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -250,13 +245,13 @@ class ChildDetailsModal extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.primaryBlue,
+            color: AppColors.primary
+,
           ),
         ),
       ),
     );
   }
-
 
   Widget _buildDeleteButton(BuildContext context) {
     return SizedBox(
@@ -287,5 +282,4 @@ class ChildDetailsModal extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
-import '../../../acceuil/widgets/report_problem_modal.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/app_constants.dart';
 
-
+/// Reports page for drivers
+/// Displays and filters driver reports
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
 
@@ -15,14 +16,13 @@ class ReportsPage extends StatefulWidget {
 class _ReportsPageState extends State<ReportsPage> {
   int _selectedTab = 0;
 
-  // TODO: Cette liste devrait venir d'un BLoC/Repository
-  // Pour l'instant, données mockées pour le UI
+  // Mock data - should come from BLoC/Repository
   final List<Map<String, dynamic>> _allReports = [
     {
       'title': 'Signalement A',
       'description': 'Lorem ipsum is simply dumm...',
       'status': 'Résolu',
-      'statusColor': AppColors.successGreen,
+      'statusColor': AppColors.success,
       'category': 'Incident',
       'imageUrl': 'assets/images/signalementA.png',
     },
@@ -30,7 +30,7 @@ class _ReportsPageState extends State<ReportsPage> {
       'title': 'Signalement A',
       'description': 'Lorem ipsum is simply dumm...',
       'status': 'En cours',
-      'statusColor': AppColors.warningOrange,
+      'statusColor': AppColors.warning,
       'category': 'Litiges',
       'imageUrl': 'assets/images/report2.jpg',
     },
@@ -38,7 +38,7 @@ class _ReportsPageState extends State<ReportsPage> {
       'title': 'Signalement sécurité',
       'description': 'Lorem ipsum is simply dumm...',
       'status': 'Rejeté',
-      'statusColor': AppColors.errorRed,
+      'statusColor': AppColors.error,
       'category': 'Sécurité',
       'imageUrl': 'assets/images/signalementsecurite.png',
     },
@@ -60,31 +60,35 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundGrey,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textWhite,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Signalements',
           style: GoogleFonts.inter(
-            fontSize: 18,
+            fontSize: AppConstants.fontSizeXL,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.textWhite,
           ),
         ),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: AppConstants.spacingXL),
           _buildSearchBar(),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppConstants.spacingXL),
           _buildTabs(),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppConstants.spacingXL),
           _buildReportsList(),
         ],
       ),
@@ -94,28 +98,35 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.spacingXL,
+          vertical: AppConstants.spacingXS,
+        ),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderGrey),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppConstants.radiusXL + 4),
+          border: Border.all(color: AppColors.border),
         ),
         child: TextField(
           decoration: InputDecoration(
             hintText: 'Rechercher',
             hintStyle: GoogleFonts.inter(
               color: AppColors.textGrey,
-              fontSize: 14,
+              fontSize: AppConstants.fontSizeM,
             ),
             border: InputBorder.none,
-            icon: Icon(
+            icon: const Icon(
               Icons.search,
               color: AppColors.textGrey,
               size: 20,
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: AppConstants.spacingL,
+            ),
           ),
         ),
       ),
@@ -124,15 +135,17 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildTabs() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Row(
         children: [
           _buildTab('Tous', 0),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppConstants.spacingS),
           _buildTab('Incident', 1),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppConstants.spacingS),
           _buildTab('Litiges', 2),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppConstants.spacingS),
           _buildTab('Sécurité', 3),
         ],
       ),
@@ -149,21 +162,23 @@ class _ReportsPageState extends State<ReportsPage> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppConstants.spacingM + 2,
+          ),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryPurple : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: isSelected ? AppColors.primary : AppColors.white,
+            borderRadius: BorderRadius.circular(AppConstants.radiusXL + 4),
             border: Border.all(
-              color: isSelected ? AppColors.primaryPurple : AppColors.borderGrey,
+              color: isSelected ? AppColors.primary : AppColors.border,
             ),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              fontSize: 13,
+              fontSize: AppConstants.fontSizeS + 1,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? Colors.white : AppColors.textDark,
+              color: isSelected ? AppColors.textWhite : AppColors.textPrimary,
             ),
           ),
         ),
@@ -175,28 +190,30 @@ class _ReportsPageState extends State<ReportsPage> {
     return Expanded(
       child: _filteredReports.isEmpty
           ? Center(
-        child: Text(
-          'Aucun signalement',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: AppColors.textGrey,
-          ),
-        ),
-      )
+              child: Text(
+                'Aucun signalement',
+                style: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeM,
+                  color: AppColors.textGrey,
+                ),
+              ),
+            )
           : ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _filteredReports.length,
-        itemBuilder: (context, index) {
-          final report = _filteredReports[index];
-          return _buildReportCard(
-            title: report['title'],
-            description: report['description'],
-            status: report['status'],
-            statusColor: report['statusColor'],
-            imageUrl: report['imageUrl'],
-          );
-        },
-      ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.spacingXL + 4,
+              ),
+              itemCount: _filteredReports.length,
+              itemBuilder: (context, index) {
+                final report = _filteredReports[index];
+                return _buildReportCard(
+                  title: report['title'],
+                  description: report['description'],
+                  status: report['status'],
+                  statusColor: report['statusColor'],
+                  imageUrl: report['imageUrl'],
+                );
+              },
+            ),
     );
   }
 
@@ -208,14 +225,14 @@ class _ReportsPageState extends State<ReportsPage> {
     required String imageUrl,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppConstants.spacingL),
+      padding: const EdgeInsets.all(AppConstants.spacingL),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppConstants.spacingL),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppColors.blackOpacity03,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -224,11 +241,9 @@ class _ReportsPageState extends State<ReportsPage> {
       child: Row(
         children: [
           _buildReportImage(imageUrl),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildReportInfo(title, description),
-          ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppConstants.spacingL),
+          Expanded(child: _buildReportInfo(title, description)),
+          const SizedBox(width: AppConstants.spacingS),
           _buildStatusBadge(status, statusColor),
         ],
       ),
@@ -237,7 +252,7 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildReportImage(String imageUrl) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppConstants.spacingS),
       child: Container(
         width: 50,
         height: 50,
@@ -245,7 +260,7 @@ class _ReportsPageState extends State<ReportsPage> {
         child: Image.asset(
           imageUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Icon(
+          errorBuilder: (_, __, ___) => const Icon(
             Icons.image,
             color: AppColors.textGrey,
             size: 24,
@@ -262,16 +277,16 @@ class _ReportsPageState extends State<ReportsPage> {
         Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: AppConstants.fontSizeM,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDark,
+            color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppConstants.spacingXS),
         Text(
           description,
           style: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: AppConstants.fontSizeS,
             color: AppColors.textGrey,
           ),
           maxLines: 1,
@@ -283,9 +298,12 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildStatusBadge(String status, Color statusColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingM + 2,
+        vertical: 5,
+      ),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -303,7 +321,7 @@ class _ReportsPageState extends State<ReportsPage> {
           Text(
             status,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: AppConstants.fontSizeXS + 1,
               fontWeight: FontWeight.w600,
               color: statusColor,
             ),
@@ -316,15 +334,164 @@ class _ReportsPageState extends State<ReportsPage> {
   Widget _buildFAB() {
     return FloatingActionButton(
       onPressed: () {
-        showReportProblemModal(context);
+        _showReportProblemModal(context);
       },
-      backgroundColor: AppColors.primaryGreen,
+      backgroundColor: AppColors.success,
       elevation: 4,
       child: SvgPicture.asset(
         'assets/icons/13.svg',
         width: 24,
         height: 24,
-        color: Colors.white,
+        colorFilter: const ColorFilter.mode(
+          AppColors.textWhite,
+          BlendMode.srcIn,
+        ),
+      ),
+    );
+  }
+
+  void _showReportProblemModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(AppConstants.radiusXL + 8),
+            topRight: Radius.circular(AppConstants.radiusXL + 8),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.spacingXXL),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingXL),
+
+              // Title
+              Text(
+                'Signaler un problème',
+                style: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeXXL,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingXL),
+
+              // Category dropdown
+              Text(
+                'Catégorie',
+                style: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeM,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingS),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacingXL,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                ),
+                child: DropdownButton<String>(
+                  value: 'Incident',
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  items: ['Incident', 'Litiges', 'Sécurité']
+                      .map((category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(category),
+                          ))
+                      .toList(),
+                  onChanged: (value) {},
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingXL),
+
+              // Description
+              Text(
+                'Description',
+                style: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeM,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingS),
+              TextField(
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Décrivez le problème...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppConstants.spacingXXL),
+
+              // Submit button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Signalement envoyé'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                    ),
+                  ),
+                  child: Text(
+                    'Envoyer',
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeL,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textWhite,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

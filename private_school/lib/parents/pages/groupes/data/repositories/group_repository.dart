@@ -1,8 +1,11 @@
-/// Repository pour gérer la logique métier des groupes
-/// Chemin: lib/parents/groupes/data/repositories/group_repository.dart
+// Repository pour gérer la logique métier des groupes
+// Chemin: lib/parents/groupes/data/repositories/group_repository.dart
 
 import '../models/group_model.dart';
 import '../services/group_service.dart';
+import 'package:flutter/foundation.dart';
+
+
 
 class GroupRepository {
   final GroupService _groupService = GroupService();
@@ -14,7 +17,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchMyGroups();
     } catch (e) {
-      print('❌ Repository: Failed to load groups - $e');
+      debugPrint('❌ Repository: Failed to load groups - $e');
       throw Exception('Impossible de charger les groupes: $e');
     }
   }
@@ -24,7 +27,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchAvailableGroups();
     } catch (e) {
-      print('❌ Repository: Failed to load available groups - $e');
+      debugPrint('❌ Repository: Failed to load available groups - $e');
       throw Exception('Impossible de charger les groupes disponibles: $e');
     }
   }
@@ -36,7 +39,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchGroupById(groupId);
     } catch (e) {
-      print('❌ Repository: Failed to load group $groupId - $e');
+      debugPrint('❌ Repository: Failed to load group $groupId - $e');
       throw Exception('Impossible de charger le groupe: $e');
     }
   }
@@ -61,7 +64,7 @@ class GroupRepository {
         memberEmails: memberEmails,
       );
     } catch (e) {
-      print('❌ Repository: Failed to create group - $e');
+      debugPrint('❌ Repository: Failed to create group - $e');
       throw Exception('Impossible de créer le groupe: $e');
     }
   }
@@ -79,7 +82,7 @@ class GroupRepository {
         description: description,
       );
     } catch (e) {
-      print('❌ Repository: Failed to update group - $e');
+      debugPrint('❌ Repository: Failed to update group - $e');
       throw Exception('Impossible de modifier le groupe: $e');
     }
   }
@@ -89,7 +92,7 @@ class GroupRepository {
     try {
       await _groupService.deleteGroup(groupId);
     } catch (e) {
-      print('❌ Repository: Failed to delete group - $e');
+      debugPrint('❌ Repository: Failed to delete group - $e');
       throw Exception('Impossible de supprimer le groupe: $e');
     }
   }
@@ -104,7 +107,8 @@ class GroupRepository {
   }) async {
     try {
       // Validation : au moins un des deux doit être fourni
-      if ((email == null || email.isEmpty) && (phone == null || phone.isEmpty)) {
+      if ((email == null || email.isEmpty) &&
+          (phone == null || phone.isEmpty)) {
         throw Exception('Email ou téléphone requis');
       }
 
@@ -114,7 +118,7 @@ class GroupRepository {
         phone: phone,
       );
     } catch (e) {
-      print('❌ Repository: Failed to invite member - $e');
+      debugPrint('❌ Repository: Failed to invite member - $e');
       throw Exception('Impossible d\'inviter le membre: $e');
     }
   }
@@ -124,7 +128,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchInvitations();
     } catch (e) {
-      print('❌ Repository: Failed to load invitations - $e');
+      debugPrint('❌ Repository: Failed to load invitations - $e');
       throw Exception('Impossible de charger les invitations: $e');
     }
   }
@@ -140,7 +144,7 @@ class GroupRepository {
         accept: accept,
       );
     } catch (e) {
-      print('❌ Repository: Failed to respond to invitation - $e');
+      debugPrint('❌ Repository: Failed to respond to invitation - $e');
       throw Exception('Impossible de répondre à l\'invitation: $e');
     }
   }
@@ -150,10 +154,10 @@ class GroupRepository {
     try {
       // TODO: Implémenter la logique de rejoindre un groupe
       // Pour l'instant, on considère que c'est équivalent à accepter une invitation
-      print('⚠️ joinGroup not yet implemented via API');
+      debugPrint('⚠️ joinGroup not yet implemented via API');
       throw UnimplementedError('Fonctionnalité à implémenter avec le backend');
     } catch (e) {
-      print('❌ Repository: Failed to join group - $e');
+      debugPrint('❌ Repository: Failed to join group - $e');
       throw Exception('Impossible de rejoindre le groupe: $e');
     }
   }
@@ -165,7 +169,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchGroupCalendar(groupId);
     } catch (e) {
-      print('❌ Repository: Failed to load calendar - $e');
+      debugPrint('❌ Repository: Failed to load calendar - $e');
       throw Exception('Impossible de charger le calendrier: $e');
     }
   }
@@ -180,7 +184,8 @@ class GroupRepository {
       // Créer un planning pour chaque jour entre startDate et endDate
       DateTime currentDate = startDate;
 
-      while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
+      while (currentDate.isBefore(endDate) ||
+          currentDate.isAtSameMomentAs(endDate)) {
         await _groupService.addToCalendar(
           groupId: groupId,
           date: currentDate,
@@ -190,7 +195,7 @@ class GroupRepository {
         currentDate = currentDate.add(const Duration(days: 1));
       }
     } catch (e) {
-      print('❌ Repository: Failed to create planning - $e');
+      debugPrint('❌ Repository: Failed to create planning - $e');
       throw Exception('Impossible de créer le planning: $e');
     }
   }
@@ -207,7 +212,7 @@ class GroupRepository {
         assignedTo: planning.assignedTo,
       );
     } catch (e) {
-      print('❌ Repository: Failed to create planning - $e');
+      debugPrint('❌ Repository: Failed to create planning - $e');
       throw Exception('Impossible de créer le planning: $e');
     }
   }
@@ -218,11 +223,9 @@ class GroupRepository {
     required String planningId,
   }) async {
     try {
-      return await _groupService.updateCalendar(
-        calendarId: planningId,
-      );
+      return await _groupService.updateCalendar(calendarId: planningId);
     } catch (e) {
-      print('❌ Repository: Failed to confirm planning - $e');
+      debugPrint('❌ Repository: Failed to confirm planning - $e');
       throw Exception('Impossible de confirmer le planning: $e');
     }
   }
@@ -240,17 +243,19 @@ class GroupRepository {
         reason: reason,
       );
     } catch (e) {
-      print('❌ Repository: Failed to request replacement - $e');
+      debugPrint('❌ Repository: Failed to request replacement - $e');
       throw Exception('Impossible de demander un remplacement: $e');
     }
   }
 
   /// Récupérer les propositions d'échange
-  Future<List<Map<String, dynamic>>> getExchangeProposals(String groupId) async {
+  Future<List<Map<String, dynamic>>> getExchangeProposals(
+    String groupId,
+  ) async {
     try {
       return await _groupService.fetchExchangeProposals(groupId);
     } catch (e) {
-      print('❌ Repository: Failed to load exchange proposals - $e');
+      debugPrint('❌ Repository: Failed to load exchange proposals - $e');
       throw Exception('Impossible de charger les propositions: $e');
     }
   }
@@ -266,7 +271,7 @@ class GroupRepository {
         accept: accept,
       );
     } catch (e) {
-      print('❌ Repository: Failed to respond to replacement - $e');
+      debugPrint('❌ Repository: Failed to respond to replacement - $e');
       throw Exception('Impossible de répondre à la demande: $e');
     }
   }

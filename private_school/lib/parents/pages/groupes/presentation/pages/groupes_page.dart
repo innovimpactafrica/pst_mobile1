@@ -8,7 +8,7 @@ import '../../data/repositories/group_repository.dart';
 import '../../data/models/group_model.dart';
 import '../widgets/join_group_modal.dart';
 import 'group_detail_page.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class GroupesPage extends StatelessWidget {
   const GroupesPage({super.key});
@@ -114,7 +114,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primaryGreen),
+                        borderSide: BorderSide(color: AppColors.success),
                       ),
                     ),
                   ),
@@ -148,7 +148,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.primaryGreen),
+                        borderSide: BorderSide(color: AppColors.success),
                       ),
                     ),
                   ),
@@ -161,7 +161,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -199,7 +199,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen,
+                color: AppColors.success,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
@@ -232,7 +232,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -286,7 +286,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                     if (state is GroupLoading && myGroups.isEmpty) {
                       return Center(
                         child: CircularProgressIndicator(
-                          color: AppColors.primaryGreen,
+                          color: AppColors.success,
                         ),
                       );
                     }
@@ -316,10 +316,12 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                     }
 
                     return RefreshIndicator(
-                      color: AppColors.primaryGreen,
+                      color: AppColors.success,
                       onRefresh: () async {
                         context.read<GroupBloc>().add(LoadMyGroupsEvent());
-                        context.read<GroupBloc>().add(LoadAvailableGroupsEvent());
+                        context.read<GroupBloc>().add(
+                          LoadAvailableGroupsEvent(),
+                        );
                       },
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -333,7 +335,9 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
 
                             // SECTION "MES GROUPES" (VERTICAL)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Text(
                                 'Mes groupes',
                                 style: GoogleFonts.inter(
@@ -349,10 +353,14 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                             // LISTE VERTICALE DES GROUPES
                             if (myGroups.isEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 40),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 40,
+                                    ),
                                     child: Column(
                                       children: [
                                         Icon(
@@ -384,10 +392,15 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                               )
                             else
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
                                 child: Column(
                                   children: myGroups.map((group) {
-                                    return _buildVerticalGroupCard(group, context);
+                                    return _buildVerticalGroupCard(
+                                      group,
+                                      context,
+                                    );
                                   }).toList(),
                                 ),
                               ),
@@ -396,7 +409,9 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
 
                             // SECTION "GROUPES À REJOINDRE" (HORIZONTAL)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Text(
                                 'Groupe que vous pouvez rejoindre',
                                 style: GoogleFonts.inter(
@@ -429,7 +444,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
         margin: const EdgeInsets.only(bottom: 60),
         child: FloatingActionButton(
           onPressed: _openCreateGroupModal,
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.success,
           elevation: 6,
           child: const Icon(Icons.add, color: Colors.white, size: 28),
         ),
@@ -447,7 +462,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -460,7 +475,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -469,7 +484,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryGreen,
+                  color: AppColors.success,
                 ),
               ),
             ),
@@ -515,11 +530,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    size: 18,
-                    color: Colors.red.shade400,
-                  ),
+                  icon: Icon(Icons.close, size: 18, color: Colors.red.shade400),
                   padding: EdgeInsets.zero,
                   onPressed: () {
                     // Refuser l'invitation
@@ -572,7 +583,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -585,7 +596,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -594,7 +605,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.success,
                   ),
                 ),
               ),
@@ -628,11 +639,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
             ),
 
             // ICÔNE FLÈCHE
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey.shade400,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 24),
           ],
         ),
       ),
@@ -647,10 +654,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
           child: Text(
             'Aucun groupe disponible',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500),
           ),
         ),
       );
@@ -690,7 +694,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -704,7 +708,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -713,7 +717,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.success,
                   ),
                 ),
               ),

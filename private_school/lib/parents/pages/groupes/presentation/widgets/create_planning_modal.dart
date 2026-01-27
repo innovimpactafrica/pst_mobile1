@@ -6,7 +6,7 @@ import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class CreatePlanningModal extends StatefulWidget {
   final String groupId;
@@ -30,9 +30,7 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primaryGreen,
-            ),
+            colorScheme: ColorScheme.light(primary: AppColors.success),
           ),
           child: child!,
         );
@@ -84,7 +82,7 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Planning créé', style: GoogleFonts.inter()),
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.success,
               ),
             );
           }
@@ -142,7 +140,7 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
                       child: ElevatedButton(
                         onPressed: () => _createPlanning(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: AppColors.success,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -178,10 +176,7 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -195,8 +190,11 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today,
-                    color: Colors.grey.shade600, size: 20),
+                Icon(
+                  Icons.calendar_today,
+                  color: Colors.grey.shade600,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   date != null

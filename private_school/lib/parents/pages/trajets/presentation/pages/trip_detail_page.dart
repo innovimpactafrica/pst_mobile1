@@ -4,17 +4,13 @@ import '../../data/models/trip_model.dart';
 import '../widgets/driver_details_modal.dart';
 import '../widgets/passengers_list_modal.dart';
 import '../widgets/schools_list_modal.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import 'payment_page.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class TripDetailPage extends StatefulWidget {
   final TripModel trip;
 
-  const TripDetailPage({
-    super.key,
-    required this.trip,
-  });
+  const TripDetailPage({super.key, required this.trip});
 
   @override
   State<TripDetailPage> createState() => _TripDetailPageState();
@@ -32,12 +28,16 @@ class _TripDetailPageState extends State<TripDetailPage> {
           children: [
             // HEADER
             Container(
-              color: AppColors.primaryGreen,
+              color: AppColors.success,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -83,22 +83,28 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   fit: BoxFit.cover,
                                 ),
                               ),
-                              child: CustomPaint(
-                                painter: RouteLinePainter(),
-                              ),
+                              child: CustomPaint(painter: RouteLinePainter()),
                             ),
                             if (_isMapExpanded) ...[
                               // MARQUEUR DÉPART (NOIR)
                               Positioned(
                                 top: 80,
                                 left: 40,
-                                child: _buildMapMarker(Icons.circle, Colors.black, 'Départ'),
+                                child: _buildMapMarker(
+                                  Icons.circle,
+                                  Colors.black,
+                                  'Départ',
+                                ),
                               ),
                               // MARQUEUR ARRIVÉE (VERT)
                               Positioned(
                                 bottom: 60,
                                 right: 40,
-                                child: _buildMapMarker(Icons.location_on, AppColors.primaryGreen, 'Arrivée'),
+                                child: _buildMapMarker(
+                                  Icons.location_on,
+                                  AppColors.success,
+                                  'Arrivée',
+                                ),
                               ),
                               // ÉCOLES SUR LA CARTE
                               Positioned(
@@ -122,7 +128,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   width: 40,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
@@ -148,7 +154,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                           // INFO CHAUFFEUR (CLIQUABLE)
                           if (widget.trip.driver != null)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: GestureDetector(
                                 onTap: () {
                                   _showDriverDetails();
@@ -160,7 +168,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 2),
                                       ),
@@ -173,17 +183,33 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           // PHOTO CHAUFFEUR
                                           CircleAvatar(
                                             radius: 28,
-                                            backgroundColor: Colors.grey.shade200,
-                                            backgroundImage: widget.trip.driver?.photo != null
-                                                ? AssetImage('assets/images/${widget.trip.driver!.photo}')
+                                            backgroundColor:
+                                                Colors.grey.shade200,
+                                            backgroundImage:
+                                                widget.trip.driver?.photo !=
+                                                    null
+                                                ? AssetImage(
+                                                    'assets/images/${widget.trip.driver!.photo}',
+                                                  )
                                                 : null,
                                             onBackgroundImageError: (_, __) {},
-                                            child: widget.trip.driver?.photo == null
-                                                ? Icon(Icons.person, color: Colors.grey.shade600, size: 28)
+                                            child:
+                                                widget.trip.driver?.photo ==
+                                                    null
+                                                ? Icon(
+                                                    Icons.person,
+                                                    color: Colors.grey.shade600,
+                                                    size: 28,
+                                                  )
                                                 : null,
                                           ),
                                           // PHOTO BUS/VOITURE (superposée)
-                                          if (widget.trip.driver?.vehicle?.photo != null)
+                                          if (widget
+                                                  .trip
+                                                  .driver
+                                                  ?.vehicle
+                                                  ?.photo !=
+                                              null)
                                             Positioned(
                                               right: -4,
                                               bottom: -4,
@@ -193,12 +219,21 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
-                                                  border: Border.all(color: Colors.white, width: 2),
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 2,
+                                                  ),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.black.withOpacity(0.1),
+                                                      color: Colors.black
+                                                          .withValues(
+                                                            alpha: 0.1,
+                                                          ),
                                                       blurRadius: 4,
-                                                      offset: const Offset(0, 2),
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -206,13 +241,21 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                   child: Image.asset(
                                                     'assets/images/${widget.trip.driver!.vehicle!.photo}',
                                                     fit: BoxFit.cover,
-                                                    errorBuilder: (context, error, stackTrace) {
-                                                      return Icon(
-                                                        Icons.directions_bus,
-                                                        color: Colors.grey.shade600,
-                                                        size: 14,
-                                                      );
-                                                    },
+                                                    errorBuilder:
+                                                        (
+                                                          context,
+                                                          error,
+                                                          stackTrace,
+                                                        ) {
+                                                          return Icon(
+                                                            Icons
+                                                                .directions_bus,
+                                                            color: Colors
+                                                                .grey
+                                                                .shade600,
+                                                            size: 14,
+                                                          );
+                                                        },
                                                   ),
                                                 ),
                                               ),
@@ -222,7 +265,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               widget.trip.driver!.name,
@@ -236,17 +280,27 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                             Row(
                                               children: [
                                                 Text(
-                                                  widget.trip.driver!.vehicle?.plate ?? '',
+                                                  widget
+                                                          .trip
+                                                          .driver!
+                                                          .vehicle
+                                                          ?.plate ??
+                                                      '',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 13,
                                                     color: Colors.grey.shade600,
                                                   ),
                                                 ),
                                                 const SizedBox(width: 12),
-                                                const Icon(Icons.star, color: Colors.amber, size: 16),
+                                                const Icon(
+                                                  Icons.star,
+                                                  color: Colors.amber,
+                                                  size: 16,
+                                                ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  widget.trip.driver!.rating.toString(),
+                                                  widget.trip.driver!.rating
+                                                      .toString(),
                                                   style: GoogleFonts.inter(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
@@ -258,7 +312,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           ],
                                         ),
                                       ),
-                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.grey,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -270,19 +327,32 @@ class _TripDetailPageState extends State<TripDetailPage> {
                           // BOUTONS APPELER / MESSAGE
                           if (widget.trip.driver != null)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Row(
                                 children: [
                                   Expanded(
                                     child: ElevatedButton.icon(
                                       onPressed: () {},
                                       icon: const Icon(Icons.phone, size: 18),
-                                      label: Text('Appeler', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                                      label: Text(
+                                        'Appeler',
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primaryGreen,
+                                        backgroundColor: AppColors.success,
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -290,12 +360,30 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () {},
-                                      icon: Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.primaryGreen),
-                                      label: Text('Message', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
+                                      icon: Icon(
+                                        Icons.chat_bubble_outline,
+                                        size: 18,
+                                        color: AppColors.success,
+                                      ),
+                                      label: Text(
+                                        'Message',
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.success,
+                                        ),
+                                      ),
                                       style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                        side: BorderSide(color: AppColors.primaryGreen),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 14,
+                                        ),
+                                        side: BorderSide(
+                                          color: AppColors.success,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -315,7 +403,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
                                   ),
@@ -325,7 +413,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                 children: [
                                   _buildTripPoint(
                                     icon: Icons.circle_outlined,
-                                    iconColor: AppColors.primaryGreen,
+                                    iconColor: AppColors.success,
                                     title: 'Point de départ',
                                     location: widget.trip.departure,
                                     time: widget.trip.departureTime,
@@ -335,7 +423,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     child: SizedBox(
                                       width: 2,
                                       height: 30,
-                                      child: CustomPaint(painter: DashedLinePainter()),
+                                      child: CustomPaint(
+                                        painter: DashedLinePainter(),
+                                      ),
                                     ),
                                   ),
                                   _buildTripPoint(
@@ -362,7 +452,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   widget.trip.date,
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: AppColors.primaryGreen,
+                                    color: AppColors.success,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -382,7 +472,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                           // PASSAGERS CARD (CLIQUABLE)
                           if (widget.trip.passengers.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: GestureDetector(
                                 onTap: _showPassengersList,
                                 child: Container(
@@ -392,7 +484,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 2),
                                       ),
@@ -406,28 +500,75 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                         height: 32,
                                         child: Stack(
                                           children: [
-                                            if (widget.trip.passengers.isNotEmpty)
+                                            if (widget
+                                                .trip
+                                                .passengers
+                                                .isNotEmpty)
                                               Positioned(
                                                 left: 0,
                                                 child: _buildPassengerAvatar(
-                                                  widget.trip.passengers[0].initials,
-                                                  Color(int.parse(widget.trip.passengers[0].avatarColor.replaceFirst('#', '0xFF'))),
+                                                  widget
+                                                      .trip
+                                                      .passengers[0]
+                                                      .initials,
+                                                  Color(
+                                                    int.parse(
+                                                      widget
+                                                          .trip
+                                                          .passengers[0]
+                                                          .avatarColor
+                                                          .replaceFirst(
+                                                            '#',
+                                                            '0xFF',
+                                                          ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
-                                            if (widget.trip.passengers.length > 1)
+                                            if (widget.trip.passengers.length >
+                                                1)
                                               Positioned(
                                                 left: 24,
                                                 child: _buildPassengerAvatar(
-                                                  widget.trip.passengers[1].initials,
-                                                  Color(int.parse(widget.trip.passengers[1].avatarColor.replaceFirst('#', '0xFF'))),
+                                                  widget
+                                                      .trip
+                                                      .passengers[1]
+                                                      .initials,
+                                                  Color(
+                                                    int.parse(
+                                                      widget
+                                                          .trip
+                                                          .passengers[1]
+                                                          .avatarColor
+                                                          .replaceFirst(
+                                                            '#',
+                                                            '0xFF',
+                                                          ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
-                                            if (widget.trip.passengers.length > 2)
+                                            if (widget.trip.passengers.length >
+                                                2)
                                               Positioned(
                                                 left: 48,
                                                 child: _buildPassengerAvatar(
-                                                  widget.trip.passengers[2].initials,
-                                                  Color(int.parse(widget.trip.passengers[2].avatarColor.replaceFirst('#', '0xFF'))),
+                                                  widget
+                                                      .trip
+                                                      .passengers[2]
+                                                      .initials,
+                                                  Color(
+                                                    int.parse(
+                                                      widget
+                                                          .trip
+                                                          .passengers[2]
+                                                          .avatarColor
+                                                          .replaceFirst(
+                                                            '#',
+                                                            '0xFF',
+                                                          ),
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
                                           ],
@@ -444,7 +585,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           ),
                                         ),
                                       ),
-                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.grey,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -456,7 +600,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                           // ÉCOLES (CLIQUABLE)
                           if (widget.trip.schools.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: GestureDetector(
                                 onTap: () {
                                   _showSchoolsList();
@@ -468,7 +614,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 10,
                                         offset: const Offset(0, 2),
                                       ),
@@ -480,29 +628,35 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                         width: 40,
                                         height: 40,
                                         decoration: BoxDecoration(
-                                          color: AppColors.primaryGreen.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(10),
+                                          color: AppColors.success.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                         child: Center(
                                           child: Image.asset(
                                             'assets/icons/etablissement.png',
                                             width: 22,
                                             height: 22,
-                                            color: AppColors.primaryGreen,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return Icon(
-                                                Icons.school,
-                                                color: AppColors.primaryGreen,
-                                                size: 22,
-                                              );
-                                            },
+                                            color: AppColors.success,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return Icon(
+                                                    Icons.school,
+                                                    color: AppColors.success,
+                                                    size: 22,
+                                                  );
+                                                },
                                           ),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'Écoles désservies',
@@ -523,7 +677,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           ],
                                         ),
                                       ),
-                                      const Icon(Icons.chevron_right, color: Colors.grey),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.grey,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -546,7 +703,11 @@ class _TripDetailPageState extends State<TripDetailPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
           ],
         ),
         child: SafeArea(
@@ -558,10 +719,18 @@ class _TripDetailPageState extends State<TripDetailPage> {
               backgroundColor: const Color(0xFF5B4FC7),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
-            child: Text('Réserver', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Réserver',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),
@@ -577,7 +746,13 @@ class _TripDetailPageState extends State<TripDetailPage> {
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)],
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.4),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ],
           ),
           child: Icon(icon, color: Colors.white, size: 16),
         ),
@@ -590,11 +765,15 @@ class _TripDetailPageState extends State<TripDetailPage> {
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue,
+        color: AppColors.primary,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Center(
@@ -615,7 +794,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 2),
       ),
@@ -648,13 +827,34 @@ class _TripDetailPageState extends State<TripDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(location, style: GoogleFonts.inter(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500)),
+              Text(
+                location,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
-        Text(time, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.primaryBlue)),
+        Text(
+          time,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          ),
+        ),
       ],
     );
   }
@@ -674,7 +874,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => PassengersListModal(passengers: widget.trip.passengers),
+      builder: (context) =>
+          PassengersListModal(passengers: widget.trip.passengers),
     );
   }
 
@@ -690,9 +891,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     // Navigation directe vers la page de paiement
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => PaymentPage(trip: widget.trip),
-      ),
+      MaterialPageRoute(builder: (context) => PaymentPage(trip: widget.trip)),
     );
   }
 }
@@ -707,7 +906,12 @@ class RouteLinePainter extends CustomPainter {
 
     final path = Path();
     path.moveTo(size.width * 0.2, size.height * 0.4);
-    path.quadraticBezierTo(size.width * 0.5, size.height * 0.2, size.width * 0.8, size.height * 0.6);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.2,
+      size.width * 0.8,
+      size.height * 0.6,
+    );
     canvas.drawPath(path, paint);
   }
 
@@ -728,7 +932,11 @@ class DashedLinePainter extends CustomPainter {
     double startY = 0;
 
     while (startY < size.height) {
-      canvas.drawLine(Offset(size.width / 2, startY), Offset(size.width / 2, startY + dashHeight), paint);
+      canvas.drawLine(
+        Offset(size.width / 2, startY),
+        Offset(size.width / 2, startY + dashHeight),
+        paint,
+      );
       startY += dashHeight + dashSpace;
     }
   }

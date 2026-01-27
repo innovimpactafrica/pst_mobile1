@@ -1,26 +1,25 @@
-/// Service pour gérer les appels API des groupes de covoiturage
-/// Chemin: lib/parents/groupes/data/services/group_service.dart
-
+import 'package:flutter/foundation.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
-
 import '../models/group_model.dart';
 
+/// Service for managing carpool group API calls
+/// Handles all group-related operations: CRUD, invitations, calendar, exchanges
 class GroupService {
   final ApiClient _apiClient = ApiClient();
 
-  /// ✅ Récupérer mes groupes (groupes dont je suis membre)
+  /// Fetch my groups (groups I'm a member of)
   /// Endpoint: GET /api/parents/carpool/groups
   Future<List<GroupModel>> fetchMyGroups() async {
     try {
-      print('🔍 Fetching my groups from API...');
+      debugPrint('🔍 [GroupService] Fetching my groups from API...');
 
       final response = await _apiClient.get(ApiConstants.carpoolGroups);
 
-      print('✅ Response received: ${response.statusCode}');
-      print('📦 Data: ${response.data}');
+      debugPrint('✅ [GroupService] Response received: ${response.statusCode}');
+      debugPrint('📦 [GroupService] Data: ${response.data}');
 
-      // L'API peut retourner soit un tableau direct, soit { data: [...] }
+      // API can return either a direct array or { data: [...] }
       final List<dynamic> groupsData = response.data is List
           ? response.data
           : response.data['data'] ?? response.data['groups'] ?? [];
@@ -29,28 +28,26 @@ class GroupService {
           .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      print('✅ ${groups.length} groups loaded successfully');
+      debugPrint('✅ [GroupService] ${groups.length} groups loaded successfully');
       return groups;
     } catch (e) {
-      print('❌ Error fetching groups: $e');
-      throw Exception('Impossible de charger les groupes: $e');
+      debugPrint('❌ [GroupService] Error fetching groups: $e');
+      throw Exception('Unable to load groups: $e');
     }
   }
 
-  /// ✅ Récupérer les groupes disponibles (pour rejoindre)
-  /// Note: Si l'API n'a pas d'endpoint spécifique, on filtre côté client
+  /// Fetch available groups (to join)
+  /// Note: Using same endpoint with query parameter
   Future<List<GroupModel>> fetchAvailableGroups() async {
     try {
-      print('🔍 Fetching available groups from API...');
+      debugPrint('🔍 [GroupService] Fetching available groups from API...');
 
-      // TODO: Vérifier si l'API a un endpoint spécifique pour les groupes disponibles
-      // Pour l'instant, on utilise le même endpoint
       final response = await _apiClient.get(
         ApiConstants.carpoolGroups,
-        queryParameters: {'available': true}, // Paramètre à vérifier avec le backend
+        queryParameters: {'available': true},
       );
 
-      print('✅ Response received: ${response.statusCode}');
+      debugPrint('✅ [GroupService] Response received: ${response.statusCode}');
 
       final List<dynamic> groupsData = response.data is List
           ? response.data
@@ -60,25 +57,26 @@ class GroupService {
           .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      print('✅ ${groups.length} available groups loaded');
+      debugPrint('✅ [GroupService] ${groups.length} available groups loaded');
       return groups;
     } catch (e) {
-      print('❌ Error fetching available groups: $e');
-      throw Exception('Impossible de charger les groupes disponibles: $e');
+      debugPrint('❌ [GroupService] Error fetching available groups: $e');
+      throw Exception('Unable to load available groups: $e');
     }
   }
 
-  /// ✅ Récupérer un groupe par son ID
-  /// Endpoint: GET /api/parents/carpool/groups/{groupId}
+  /// Fetch a group by its ID
+  /// Endpoint: GET /api/parents/carpool/groups (with groupId parameter)
   Future<GroupModel> fetchGroupById(String groupId) async {
     try {
-      print('🔍 Fetching group with ID: $groupId');
+      debugPrint('🔍 [GroupService] Fetching group with ID: $groupId');
 
       final response = await _apiClient.get(
-        '${ApiConstants.carpoolGroups}/$groupId',
+        ApiConstants.carpoolGroups,
+        queryParameters: {'groupId': groupId},
       );
 
-      print('✅ Group details received');
+      debugPrint('✅ [GroupService] Group details received');
 
       final groupData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -86,12 +84,12 @@ class GroupService {
 
       return GroupModel.fromJson(groupData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error fetching group $groupId: $e');
-      throw Exception('Impossible de charger les détails du groupe: $e');
+      debugPrint('❌ [GroupService] Error fetching group $groupId: $e');
+      throw Exception('Unable to load group details: $e');
     }
   }
 
-  /// ✅ Créer un nouveau groupe
+  /// Create a new group
   /// Endpoint: POST /api/parents/carpool/groups
   Future<GroupModel> createGroup({
     required String name,
@@ -99,7 +97,7 @@ class GroupService {
     List<String>? memberEmails,
   }) async {
     try {
-      print('📤 Creating new group: $name');
+      debugPrint('📤 [GroupService] Creating new group: $name');
 
       final response = await _apiClient.post(
         ApiConstants.carpoolGroups,
@@ -110,7 +108,7 @@ class GroupService {
         },
       );
 
-      print('✅ Group created successfully');
+      debugPrint('✅ [GroupService] Group created successfully');
 
       final groupData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -118,12 +116,12 @@ class GroupService {
 
       return GroupModel.fromJson(groupData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error creating group: $e');
-      throw Exception('Impossible de créer le groupe: $e');
+      debugPrint('❌ [GroupService] Error creating group: $e');
+      throw Exception('Unable to create group: $e');
     }
   }
 
-  /// ✅ Modifier un groupe
+  /// Update a group
   /// Endpoint: PUT /api/parents/carpool/groups
   Future<GroupModel> updateGroup({
     required String groupId,
@@ -131,7 +129,7 @@ class GroupService {
     String? description,
   }) async {
     try {
-      print('📝 Updating group: $groupId');
+      debugPrint('📝 [GroupService] Updating group: $groupId');
 
       final response = await _apiClient.put(
         ApiConstants.carpoolGroups,
@@ -142,7 +140,7 @@ class GroupService {
         },
       );
 
-      print('✅ Group updated successfully');
+      debugPrint('✅ [GroupService] Group updated successfully');
 
       final groupData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -150,30 +148,30 @@ class GroupService {
 
       return GroupModel.fromJson(groupData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error updating group: $e');
-      throw Exception('Impossible de modifier le groupe: $e');
+      debugPrint('❌ [GroupService] Error updating group: $e');
+      throw Exception('Unable to update group: $e');
     }
   }
 
-  /// ✅ Supprimer un groupe
+  /// Delete a group
   /// Endpoint: DELETE /api/parents/carpool/groups
   Future<void> deleteGroup(String groupId) async {
     try {
-      print('🗑️ Deleting group: $groupId');
+      debugPrint('🗑️ [GroupService] Deleting group: $groupId');
 
       await _apiClient.delete(
         ApiConstants.carpoolGroups,
         data: {'groupId': groupId},
       );
 
-      print('✅ Group deleted successfully');
+      debugPrint('✅ [GroupService] Group deleted successfully');
     } catch (e) {
-      print('❌ Error deleting group: $e');
-      throw Exception('Impossible de supprimer le groupe: $e');
+      debugPrint('❌ [GroupService] Error deleting group: $e');
+      throw Exception('Unable to delete group: $e');
     }
   }
 
-  /// ✅ Inviter un membre au groupe
+  /// Invite a member to the group
   /// Endpoint: POST /api/parents/carpool/invitations
   Future<void> inviteMember({
     required String groupId,
@@ -181,9 +179,9 @@ class GroupService {
     String? phone,
   }) async {
     try {
-      print('📨 Inviting member to group: $groupId');
+      debugPrint('📨 [GroupService] Inviting member to group: $groupId');
 
-      final response = await _apiClient.post(
+      await _apiClient.post(
         ApiConstants.carpoolInvitations,
         data: {
           'groupId': groupId,
@@ -192,22 +190,22 @@ class GroupService {
         },
       );
 
-      print('✅ Invitation sent successfully');
+      debugPrint('✅ [GroupService] Invitation sent successfully');
     } catch (e) {
-      print('❌ Error inviting member: $e');
-      throw Exception('Impossible d\'inviter le membre: $e');
+      debugPrint('❌ [GroupService] Error inviting member: $e');
+      throw Exception('Unable to invite member: $e');
     }
   }
 
-  /// ✅ Récupérer les invitations
+  /// Fetch invitations
   /// Endpoint: GET /api/parents/carpool/invitations
   Future<List<Map<String, dynamic>>> fetchInvitations() async {
     try {
-      print('🔍 Fetching invitations from API...');
+      debugPrint('🔍 [GroupService] Fetching invitations from API...');
 
       final response = await _apiClient.get(ApiConstants.carpoolInvitations);
 
-      print('✅ Invitations received');
+      debugPrint('✅ [GroupService] Invitations received');
 
       final List<dynamic> invitationsData = response.data is List
           ? response.data
@@ -215,19 +213,21 @@ class GroupService {
 
       return invitationsData.cast<Map<String, dynamic>>();
     } catch (e) {
-      print('❌ Error fetching invitations: $e');
-      throw Exception('Impossible de charger les invitations: $e');
+      debugPrint('❌ [GroupService] Error fetching invitations: $e');
+      throw Exception('Unable to load invitations: $e');
     }
   }
 
-  /// ✅ Répondre à une invitation
+  /// Respond to an invitation
   /// Endpoint: PUT /api/parents/carpool/invitations
   Future<void> respondToInvitation({
     required String invitationId,
     required bool accept,
   }) async {
     try {
-      print('📝 Responding to invitation: $invitationId (${accept ? "accept" : "decline"})');
+      debugPrint(
+        '📝 [GroupService] Responding to invitation: $invitationId (${accept ? "accept" : "decline"})',
+      );
 
       await _apiClient.put(
         ApiConstants.carpoolInvitations,
@@ -237,25 +237,25 @@ class GroupService {
         },
       );
 
-      print('✅ Response sent successfully');
+      debugPrint('✅ [GroupService] Response sent successfully');
     } catch (e) {
-      print('❌ Error responding to invitation: $e');
-      throw Exception('Impossible de répondre à l\'invitation: $e');
+      debugPrint('❌ [GroupService] Error responding to invitation: $e');
+      throw Exception('Unable to respond to invitation: $e');
     }
   }
 
-  /// ✅ Récupérer le calendrier du groupe
+  /// Fetch group calendar
   /// Endpoint: GET /api/parents/carpool/calendar
   Future<List<Planning>> fetchGroupCalendar(String groupId) async {
     try {
-      print('📅 Fetching calendar for group: $groupId');
+      debugPrint('📅 [GroupService] Fetching calendar for group: $groupId');
 
       final response = await _apiClient.get(
         ApiConstants.carpoolCalendar,
         queryParameters: {'groupId': groupId},
       );
 
-      print('✅ Calendar received');
+      debugPrint('✅ [GroupService] Calendar received');
 
       final List<dynamic> calendarData = response.data is List
           ? response.data
@@ -265,12 +265,12 @@ class GroupService {
           .map((json) => Planning.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('❌ Error fetching calendar: $e');
-      throw Exception('Impossible de charger le calendrier: $e');
+      debugPrint('❌ [GroupService] Error fetching calendar: $e');
+      throw Exception('Unable to load calendar: $e');
     }
   }
 
-  /// ✅ Ajouter un trajet au calendrier
+  /// Add to calendar
   /// Endpoint: POST /api/parents/carpool/calendar
   Future<Planning> addToCalendar({
     required String groupId,
@@ -278,7 +278,7 @@ class GroupService {
     required String assignedTo,
   }) async {
     try {
-      print('📅 Adding to calendar: $date');
+      debugPrint('📅 [GroupService] Adding to calendar: $date');
 
       final response = await _apiClient.post(
         ApiConstants.carpoolCalendar,
@@ -289,7 +289,7 @@ class GroupService {
         },
       );
 
-      print('✅ Added to calendar successfully');
+      debugPrint('✅ [GroupService] Added to calendar successfully');
 
       final planningData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -297,12 +297,12 @@ class GroupService {
 
       return Planning.fromJson(planningData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error adding to calendar: $e');
-      throw Exception('Impossible d\'ajouter au calendrier: $e');
+      debugPrint('❌ [GroupService] Error adding to calendar: $e');
+      throw Exception('Unable to add to calendar: $e');
     }
   }
 
-  /// ✅ Modifier une entrée du calendrier
+  /// Update calendar entry
   /// Endpoint: PUT /api/parents/carpool/calendar
   Future<Planning> updateCalendar({
     required String calendarId,
@@ -310,18 +310,18 @@ class GroupService {
     String? assignedTo,
   }) async {
     try {
-      print('📝 Updating calendar entry: $calendarId');
+      debugPrint('📝 [GroupService] Updating calendar entry: $calendarId');
 
       final response = await _apiClient.put(
         ApiConstants.carpoolCalendar,
         data: {
           'calendarId': calendarId,
-          'date': date?.toIso8601String(),
-          'assignedTo': assignedTo,
+          if (date != null) 'date': date.toIso8601String(),
+          if (assignedTo != null) 'assignedTo': assignedTo,
         },
       );
 
-      print('✅ Calendar updated successfully');
+      debugPrint('✅ [GroupService] Calendar updated successfully');
 
       final planningData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -329,37 +329,37 @@ class GroupService {
 
       return Planning.fromJson(planningData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error updating calendar: $e');
-      throw Exception('Impossible de modifier le calendrier: $e');
+      debugPrint('❌ [GroupService] Error updating calendar: $e');
+      throw Exception('Unable to update calendar: $e');
     }
   }
 
-  /// ✅ Supprimer une entrée du calendrier
+  /// Delete from calendar
   /// Endpoint: DELETE /api/parents/carpool/calendar
   Future<void> deleteFromCalendar(String calendarId) async {
     try {
-      print('🗑️ Deleting from calendar: $calendarId');
+      debugPrint('🗑️ [GroupService] Deleting from calendar: $calendarId');
 
       await _apiClient.delete(
         ApiConstants.carpoolCalendar,
         data: {'calendarId': calendarId},
       );
 
-      print('✅ Deleted from calendar successfully');
+      debugPrint('✅ [GroupService] Deleted from calendar successfully');
     } catch (e) {
-      print('❌ Error deleting from calendar: $e');
-      throw Exception('Impossible de supprimer du calendrier: $e');
+      debugPrint('❌ [GroupService] Error deleting from calendar: $e');
+      throw Exception('Unable to delete from calendar: $e');
     }
   }
 
-  /// ✅ Proposer un échange
+  /// Propose an exchange
   /// Endpoint: POST /api/parents/carpool/conduite
   Future<void> proposeExchange({
     required String planningId,
     required String reason,
   }) async {
     try {
-      print('🔄 Proposing exchange for planning: $planningId');
+      debugPrint('🔄 [GroupService] Proposing exchange for planning: $planningId');
 
       await _apiClient.post(
         ApiConstants.carpoolConduite,
@@ -369,25 +369,27 @@ class GroupService {
         },
       );
 
-      print('✅ Exchange proposed successfully');
+      debugPrint('✅ [GroupService] Exchange proposed successfully');
     } catch (e) {
-      print('❌ Error proposing exchange: $e');
-      throw Exception('Impossible de proposer l\'échange: $e');
+      debugPrint('❌ [GroupService] Error proposing exchange: $e');
+      throw Exception('Unable to propose exchange: $e');
     }
   }
 
-  /// ✅ Récupérer les propositions d'échange
+  /// Fetch exchange proposals
   /// Endpoint: GET /api/parents/carpool/conduite
-  Future<List<Map<String, dynamic>>> fetchExchangeProposals(String groupId) async {
+  Future<List<Map<String, dynamic>>> fetchExchangeProposals(
+    String groupId,
+  ) async {
     try {
-      print('🔍 Fetching exchange proposals for group: $groupId');
+      debugPrint('🔍 [GroupService] Fetching exchange proposals for group: $groupId');
 
       final response = await _apiClient.get(
         ApiConstants.carpoolConduite,
         queryParameters: {'groupId': groupId},
       );
 
-      print('✅ Exchange proposals received');
+      debugPrint('✅ [GroupService] Exchange proposals received');
 
       final List<dynamic> proposalsData = response.data is List
           ? response.data
@@ -395,19 +397,19 @@ class GroupService {
 
       return proposalsData.cast<Map<String, dynamic>>();
     } catch (e) {
-      print('❌ Error fetching exchange proposals: $e');
-      throw Exception('Impossible de charger les propositions: $e');
+      debugPrint('❌ [GroupService] Error fetching exchange proposals: $e');
+      throw Exception('Unable to load proposals: $e');
     }
   }
 
-  /// ✅ Répondre à une proposition d'échange
+  /// Respond to an exchange proposal
   /// Endpoint: PUT /api/parents/carpool/conduite
   Future<void> respondToExchange({
     required String proposalId,
     required bool accept,
   }) async {
     try {
-      print('📝 Responding to exchange: $proposalId');
+      debugPrint('📝 [GroupService] Responding to exchange: $proposalId');
 
       await _apiClient.put(
         ApiConstants.carpoolConduite,
@@ -417,10 +419,10 @@ class GroupService {
         },
       );
 
-      print('✅ Response sent successfully');
+      debugPrint('✅ [GroupService] Response sent successfully');
     } catch (e) {
-      print('❌ Error responding to exchange: $e');
-      throw Exception('Impossible de répondre à la proposition: $e');
+      debugPrint('❌ [GroupService] Error responding to exchange: $e');
+      throw Exception('Unable to respond to proposal: $e');
     }
   }
 }

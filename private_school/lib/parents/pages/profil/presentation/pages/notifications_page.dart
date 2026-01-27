@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -14,13 +14,16 @@ class NotificationsPage extends StatelessWidget {
           children: [
             // HEADER VERT
             Container(
-              color: AppColors.primaryGreen,
+              color: AppColors.success,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back,
-                        color: Colors.white, size: 24),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -51,7 +54,7 @@ class NotificationsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -109,7 +112,7 @@ class NotificationsPage extends StatelessWidget {
                     borderColor: Colors.blue.shade100,
                     title: 'Trajet commencé',
                     subtitle:
-                    'Le conducteur a commencé le trajet vers ÉcolePrimaire Saint-Joseph',
+                        'Le conducteur a commencé le trajet vers ÉcolePrimaire Saint-Joseph',
                     time: 'Aujourd\'hui, 07:35',
                     hasLeftBorder: true,
                     leftBorderColor: Colors.blue.shade600,
@@ -118,12 +121,12 @@ class NotificationsPage extends StatelessWidget {
                   // TRAJET TERMINÉ (VERT)
                   _buildNotificationCard(
                     icon: Icons.check_circle,
-                    iconColor: AppColors.primaryGreen,
+                    iconColor: AppColors.success,
                     backgroundColor: Colors.white,
                     borderColor: Colors.grey.shade200,
                     title: 'Trajet terminé',
                     subtitle:
-                    'Votre enfant est arrivé à destination en toute sécurité',
+                        'Votre enfant est arrivé à destination en toute sécurité',
                     time: 'Aujourd\'hui, 07:55',
                     hasLeftBorder: false,
                   ),
@@ -203,7 +206,7 @@ class NotificationsPage extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: iconColor.withOpacity(0.15),
+                        color: iconColor.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(icon, color: iconColor, size: 22),
@@ -272,7 +275,7 @@ class NotificationsPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.15),
+              color: AppColors.success.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -281,7 +284,7 @@ class NotificationsPage extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryGreen,
+                  color: AppColors.success,
                 ),
               ),
             ),
@@ -344,7 +347,11 @@ class NotificationsPage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.check, size: 16, color: Colors.green.shade600),
+                  icon: Icon(
+                    Icons.check,
+                    size: 16,
+                    color: Colors.green.shade600,
+                  ),
                   padding: EdgeInsets.zero,
                   onPressed: () {
                     // Accepter
@@ -381,8 +388,11 @@ class NotificationsPage extends StatelessWidget {
                   color: Colors.orange.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.calendar_today,
-                    color: Colors.orange.shade600, size: 20),
+                child: Icon(
+                  Icons.calendar_today,
+                  color: Colors.orange.shade600,
+                  size: 20,
+                ),
               ),
 
               const SizedBox(width: 12),
@@ -458,7 +468,7 @@ class NotificationsPage extends StatelessWidget {
                     // Confirmer
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
+                    backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import '../../../utils/modal_helper.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
@@ -18,7 +18,8 @@ class EnfantsPage extends StatefulWidget {
   State<EnfantsPage> createState() => _EnfantsPageState();
 }
 
-class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin {
+class _EnfantsPageState extends State<EnfantsPage>
+    with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -38,16 +39,13 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
   }
 
   void _showAddChildModal() {
-    ModalHelper.showSlideModal(
-      context: context,
-      child: const AddChildModal(),
-    );
+    ModalHelper.showSlideModal(context: context, child: const AddChildModal());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryGreen,
+      backgroundColor: AppColors.success,
       body: SafeArea(
         child: Column(
           children: [
@@ -73,7 +71,7 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(state.message),
-                                backgroundColor: AppColors.primaryGreen,
+                                backgroundColor: AppColors.success,
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -91,12 +89,13 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
                           if (state is ChildLoadingState) {
                             return Center(
                               child: CircularProgressIndicator(
-                                color: AppColors.primaryGreen,
+                                color: AppColors.success,
                               ),
                             );
                           }
 
-                          if (state is ChildErrorState && state.children.isEmpty) {
+                          if (state is ChildErrorState &&
+                              state.children.isEmpty) {
                             return Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +123,7 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
                                     child: Text(
                                       'Réessayer',
                                       style: GoogleFonts.inter(
-                                        color: AppColors.primaryGreen,
+                                        color: AppColors.success,
                                       ),
                                     ),
                                   ),
@@ -175,7 +174,7 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddChildModal,
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
@@ -228,12 +227,7 @@ class _EnfantsPageState extends State<EnfantsPage> with TickerProviderStateMixin
 
   Widget _buildChildrenList(List<ChildModel> children) {
     return ListView.builder(
-      padding: const EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 8,
-        bottom: 80,
-      ),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 80),
       itemCount: children.length,
       itemBuilder: (context, index) {
         return Padding(

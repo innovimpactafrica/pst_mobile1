@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
 
+/// Trip card widget
+/// Displays trip information including driver, route, and status
 class TripCardWidget extends StatelessWidget {
   final TripModel trip;
   final VoidCallback? onTap;
 
-  const TripCardWidget({
-    super.key,
-    required this.trip,
-    this.onTap,
-  });
+  const TripCardWidget({super.key, required this.trip, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: AppConstants.spacingXL),
+        padding: const EdgeInsets.all(AppConstants.spacingXL),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppConstants.radiusXL - 8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppColors.blackOpacity10,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -34,10 +33,10 @@ class TripCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // SECTION CHAUFFEUR + STATUT
+            // Driver section + status
             Row(
               children: [
-                // Photos superposées
+                // Overlapping photos
                 SizedBox(
                   width: 60,
                   height: 40,
@@ -45,37 +44,39 @@ class TripCardWidget extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: Colors.grey.shade200,
+                        backgroundColor: AppColors.grey200,
                         backgroundImage: trip.driver?.photo != null
                             ? AssetImage('assets/images/${trip.driver!.photo}')
                             : null,
                         onBackgroundImageError: (_, __) {},
                         child: trip.driver?.photo == null
                             ? Icon(
-                          Icons.person,
-                          color: Colors.grey.shade600,
-                          size: 20,
-                        )
+                                Icons.person,
+                                color: AppColors.grey600,
+                                size: 20,
+                              )
                             : null,
                       ),
                       Positioned(
                         left: 28,
                         child: CircleAvatar(
                           radius: 16,
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppColors.white,
                           child: CircleAvatar(
                             radius: 14,
-                            backgroundColor: Colors.grey.shade300,
+                            backgroundColor: AppColors.grey300,
                             backgroundImage: trip.driver?.vehicle?.photo != null
-                                ? AssetImage('assets/images/${trip.driver!.vehicle!.photo}')
+                                ? AssetImage(
+                                    'assets/images/${trip.driver!.vehicle!.photo}',
+                                  )
                                 : null,
                             onBackgroundImageError: (_, __) {},
                             child: trip.driver?.vehicle?.photo == null
                                 ? Icon(
-                              Icons.directions_bus,
-                              color: Colors.grey.shade600,
-                              size: 14,
-                            )
+                                    Icons.directions_bus,
+                                    color: AppColors.grey600,
+                                    size: 14,
+                                  )
                                 : null,
                           ),
                         ),
@@ -83,7 +84,7 @@ class TripCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppConstants.spacingL),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,8 +93,8 @@ class TripCardWidget extends StatelessWidget {
                         trip.driver?.name ?? 'Chauffeur',
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.black87,
+                          fontSize: AppConstants.fontSizeL - 1,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -102,21 +103,24 @@ class TripCardWidget extends StatelessWidget {
                           Text(
                             trip.driver?.vehicle?.plate ?? 'N/A',
                             style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                              fontSize: AppConstants.fontSizeS,
+                              color: AppColors.textSecondary,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.star, color: Colors.amber, size: 13),
+                          const SizedBox(width: AppConstants.spacingS),
+                          const Icon(
+                            Icons.star,
+                            color: AppColors.rating,
+                            size: 13,
+                          ),
                           const SizedBox(width: 2),
-                          Text(
-                            trip.driver?.rating?.toString() ?? '0.0',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
+                         Text(
+                         '${trip.passengers.length} enfants inscrits / ${(trip.driver?.vehicle?.capacity) ?? 0}',
+                         style: GoogleFonts.inter(
+                         fontSize: AppConstants.fontSizeS,
+                         color: AppColors.textSecondary,
+                         ),
+                       ),
                         ],
                       ),
                     ],
@@ -125,24 +129,35 @@ class TripCardWidget extends StatelessWidget {
                 _buildStatusBadge(trip.status),
               ],
             ),
-            const SizedBox(height: 16),
-            // SECTION TRAJET
+            const SizedBox(height: AppConstants.spacingXL),
+
+            // Route section
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Column(
                   children: [
-                    Icon(Icons.circle_outlined, color: Colors.grey.shade500, size: 16),
+                    Icon(
+                      Icons.circle_outlined,
+                      color: AppColors.textGrey,
+                      size: 16,
+                    ),
                     Container(
                       width: 2,
                       height: 30,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingXS,
+                      ),
                       child: CustomPaint(painter: DashedLinePainter()),
                     ),
-                    Icon(Icons.location_on, color: AppColors.primaryGreen, size: 18),
+                    const Icon(
+                      Icons.location_on,
+                      color: AppColors.success,
+                      size: 18,
+                    ),
                   ],
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppConstants.spacingL),
                 Expanded(
                   child: Column(
                     children: [
@@ -153,8 +168,8 @@ class TripCardWidget extends StatelessWidget {
                             child: Text(
                               trip.departure,
                               style: GoogleFonts.inter(
-                                fontSize: 13,
-                                color: Colors.black87,
+                                fontSize: AppConstants.fontSizeS + 1,
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w500,
                               ),
                               maxLines: 1,
@@ -164,9 +179,9 @@ class TripCardWidget extends StatelessWidget {
                           Text(
                             trip.departureTime,
                             style: GoogleFonts.inter(
-                              fontSize: 13,
+                              fontSize: AppConstants.fontSizeS + 1,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primaryBlue,
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -178,17 +193,17 @@ class TripCardWidget extends StatelessWidget {
                           Text(
                             trip.arrival,
                             style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: Colors.black87,
+                              fontSize: AppConstants.fontSizeS + 1,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
                             trip.arrivalTime,
                             style: GoogleFonts.inter(
-                              fontSize: 13,
+                              fontSize: AppConstants.fontSizeS + 1,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primaryBlue,
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -198,24 +213,25 @@ class TripCardWidget extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // SECTION INFOS
+            const SizedBox(height: AppConstants.spacingL),
+
+            // Info section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${trip.schools?.length ?? 0} écoles desservies',
+                  '${trip.schools.length} écoles desservies',
                   style: GoogleFonts.inter(
-                    color: AppColors.primaryGreen,
-                    fontSize: 12,
+                    color: AppColors.success,
+                    fontSize: AppConstants.fontSizeS,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
-                  '${trip.passengers?.length ?? 0} enfants inscrits / ${trip.driver?.vehicle?.capacity ?? 0}',
+                  '${trip.passengers.length} enfants inscrits / ${trip.driver?.vehicle?.capacity ?? 0}',
                   style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
+                    fontSize: AppConstants.fontSizeS,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -232,23 +248,26 @@ class TripCardWidget extends StatelessWidget {
 
     switch (status) {
       case 'Accepté':
-        badgeColor = AppColors.primaryBlue;
+        badgeColor = AppColors.primary;
         badgeText = 'Accepté';
         break;
       case 'En attente':
-        badgeColor = Colors.orange;
+        badgeColor = AppColors.warning;
         badgeText = 'En attente';
         break;
       default:
-        badgeColor = Colors.grey;
+        badgeColor = AppColors.textGrey;
         badgeText = status;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 5,
+      ),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppConstants.radiusXL - 8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -261,11 +280,11 @@ class TripCardWidget extends StatelessWidget {
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppConstants.spacingXS),
           Text(
             badgeText,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: AppConstants.fontSizeXS + 1,
               fontWeight: FontWeight.w600,
               color: badgeColor,
             ),
@@ -276,11 +295,12 @@ class TripCardWidget extends StatelessWidget {
   }
 }
 
+/// Custom painter for dashed line
 class DashedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.grey.shade400
+      ..color = AppColors.grey400
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 

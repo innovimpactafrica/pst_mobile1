@@ -1,8 +1,9 @@
-/// States d'authentification
-/// Chemin: lib/parents/authentification/domain/bloc/auth_state.dart
+// States d'authentification
+// Chemin: lib/parents/authentification/domain/bloc/auth_state.dart
 
 import 'package:equatable/equatable.dart';
-import '../../ data/models/user_model.dart';
+import 'package:private_school/core/models/user_model.dart';
+
 
 
 abstract class AuthState extends Equatable {

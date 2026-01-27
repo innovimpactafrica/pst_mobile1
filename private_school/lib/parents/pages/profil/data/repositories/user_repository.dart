@@ -1,26 +1,26 @@
-/// Repository pour gérer la logique métier du profil utilisateur
-/// Chemin: lib/parents/profil/data/repositories/user_repository.dart
-
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../../../../../core/storage/secure_storage.dart';
-import '../models/ user_model.dart';
+import '../../../../../core/models/user_model.dart';
 import '../services/user_service.dart';
 
+/// Repository for managing user profile business logic
+/// Handles data operations between service and BLoC layers
 class UserRepository {
   final UserService _userService = UserService();
   final SecureStorage _storage = SecureStorage();
 
-  /// Récupère les infos de l'utilisateur connecté
+  /// Fetch current logged-in user information
   Future<UserModel> getCurrentUser() async {
     try {
       return await _userService.fetchCurrentUser();
     } catch (e) {
-      print('❌ Repository: Failed to load user - $e');
-      throw Exception('Impossible de charger le profil: $e');
+      debugPrint('❌ [UserRepository] Failed to load user - $e');
+      throw Exception('Unable to load profile: $e');
     }
   }
 
-  /// Met à jour les informations de l'utilisateur
+  /// Update user information
   Future<UserModel> updateUser(UserModel user) async {
     try {
       return await _userService.updateUserProfile(
@@ -31,12 +31,12 @@ class UserRepository {
         address: user.address,
       );
     } catch (e) {
-      print('❌ Repository: Failed to update user - $e');
-      throw Exception('Impossible de mettre à jour le profil: $e');
+      debugPrint('❌ [UserRepository] Failed to update user - $e');
+      throw Exception('Unable to update profile: $e');
     }
   }
 
-  /// Met à jour uniquement certains champs
+  /// Update specific user fields only
   Future<UserModel> updateUserFields({
     String? firstName,
     String? lastName,
@@ -53,62 +53,64 @@ class UserRepository {
         address: address,
       );
     } catch (e) {
-      print('❌ Repository: Failed to update user fields - $e');
-      throw Exception('Impossible de mettre à jour le profil: $e');
+      debugPrint('❌ [UserRepository] Failed to update user fields - $e');
+      throw Exception('Unable to update profile: $e');
     }
   }
 
-  /// Met à jour la photo de profil
+  /// Update profile photo
   Future<String> updateProfilePhoto(File photoFile) async {
     try {
       return await _userService.updateProfilePhoto(photoFile);
     } catch (e) {
-      print('❌ Repository: Failed to update photo - $e');
-      throw Exception('Impossible de mettre à jour la photo: $e');
+      debugPrint('❌ [UserRepository] Failed to update photo - $e');
+      throw Exception('Unable to update photo: $e');
     }
   }
 
-  /// Met à jour la photo de profil depuis un chemin
+  /// Update profile photo from file path
   Future<String> updateProfilePhotoFromPath(String photoPath) async {
     try {
       return await _userService.updateProfilePhotoFromPath(photoPath);
     } catch (e) {
-      print('❌ Repository: Failed to update photo from path - $e');
-      throw Exception('Impossible de mettre à jour la photo: $e');
+      debugPrint('❌ [UserRepository] Failed to update photo from path - $e');
+      throw Exception('Unable to update photo: $e');
     }
   }
 
-  /// Supprime la photo de profil
+  /// Delete profile photo
   Future<void> deleteProfilePhoto() async {
     try {
       await _userService.deleteProfilePhoto();
     } catch (e) {
-      print('❌ Repository: Failed to delete photo - $e');
-      throw Exception('Impossible de supprimer la photo: $e');
+      debugPrint('❌ [UserRepository] Failed to delete photo - $e');
+      throw Exception('Unable to delete photo: $e');
     }
   }
 
-  /// Déconnexion
+  /// Logout user
   Future<void> logout() async {
     try {
-      // Appeler l'API pour déconnecter côté serveur
+      // Call API to logout on server side
       await _userService.logout();
     } catch (e) {
-      print('⚠️ Repository: API logout failed, continuing with local logout - $e');
-      // On continue quand même avec la déconnexion locale
+      debugPrint(
+        '⚠️ [UserRepository] API logout failed, continuing with local logout - $e',
+      );
+      // Continue with local logout anyway
     } finally {
-      // Supprimer tous les tokens localement (TOUJOURS exécuté)
+      // Clear all tokens locally (ALWAYS executed)
       await _storage.clearAll();
-      print('✅ Local data cleared');
+      debugPrint('✅ [UserRepository] Local data cleared');
     }
   }
 
-  /// Vérifie si l'utilisateur est connecté
+  /// Check if user is logged in
   Future<bool> isLoggedIn() async {
     try {
       return await _storage.isLoggedIn();
     } catch (e) {
-      print('❌ Repository: Failed to check login status - $e');
+      debugPrint('❌ [UserRepository] Failed to check login status - $e');
       return false;
     }
   }

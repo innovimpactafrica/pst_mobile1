@@ -6,17 +6,12 @@ import '../pages/trip_tracking_page.dart';
 class PaymentSuccessDialog extends StatelessWidget {
   final TripModel trip;
 
-  const PaymentSuccessDialog({
-    super.key,
-    required this.trip,
-  });
+  const PaymentSuccessDialog({super.key, required this.trip});
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -27,14 +22,10 @@ class PaymentSuccessDialog extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.green,
-                size: 50,
-              ),
+              child: const Icon(Icons.check, color: Colors.green, size: 50),
             ),
 
             const SizedBox(height: 24),

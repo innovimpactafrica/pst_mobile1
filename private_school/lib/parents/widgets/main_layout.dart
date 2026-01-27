@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
-
+import '../../core/utils/app_colors.dart';
 import '../pages/acceuil/home.dart';
 import '../pages/enfants/presentation/pages/enfants_page.dart';
-import '../pages/profil/presentation/pages/profil_page.dart';
-import 'bottom_nav_bar.dart';
 import '../pages/enfants/presentation/widgets/add_child_modal.dart';
-import '../utils/app_colors.dart';
-
-import '../pages/trajets/presentation/pages/trajets_page.dart';
 import '../pages/groupes/presentation/pages/groupes_page.dart';
+import '../pages/profil/presentation/pages/profil_page.dart';
+import '../pages/trajets/presentation/pages/trajets_page.dart';
+import 'bottom_nav_bar.dart';
 
+/// Main layout with bottom navigation
+/// Manages navigation between main app sections
 class MainLayout extends StatefulWidget {
   final int initialIndex;
 
-  const MainLayout({
-    super.key,
-    this.initialIndex = 0,
-  });
+  const MainLayout({super.key, this.initialIndex = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -59,16 +56,18 @@ class _MainLayoutState extends State<MainLayout> {
                 _currentIndex = index;
               });
             },
-            children: [
-              const HomePage(), // Index 0
-              const EnfantsPage(), // Index 1
-              const TrajetsPage(), // Index 2
-              const GroupesPage(), // Index 3
-              const ProfilPage(), // Index 4
+            children: const [
+              HomePage(), // Index 0
+              EnfantsPage(), // Index 1
+              TrajetsPage(), // Index 2
+              GroupesPage(), // Index 3
+              ProfilPage(), // Index 4
             ],
           ),
-          // 🔹 BOUTON + (SEULEMENT SUR ENFANTS)
+
+          // Add button (only on children page)
           if (_currentIndex == 1) _buildFloatingAddButton(),
+
           BottomNavBar(
             currentIndex: _currentIndex,
             onTap: _onNavTap,
@@ -78,24 +77,12 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildPlaceholderPage(String title) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-        child: Text('Page $title - À implémenter'),
-      ),
-    );
-  }
-
   Widget _buildFloatingAddButton() {
     return Positioned(
       bottom: 90,
       right: 20,
       child: FloatingActionButton(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         elevation: 6,
         onPressed: () {
           showModalBottomSheet(
@@ -105,9 +92,12 @@ class _MainLayoutState extends State<MainLayout> {
             builder: (_) => const AddChildModal(),
           );
         },
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+        child: const Icon(
+          Icons.add,
+          color: AppColors.textWhite,
+          size: 28,
+        ),
       ),
     );
   }
-
 }

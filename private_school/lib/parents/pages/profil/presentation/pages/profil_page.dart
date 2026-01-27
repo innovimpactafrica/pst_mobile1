@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/profil_bloc.dart';
 import '../../domain/bloc/profil_event.dart';
 import '../../domain/bloc/profil_state.dart';
@@ -13,14 +14,16 @@ import 'payment_history_page.dart';
 import 'reports_page.dart';
 import 'invite_friends_page.dart';
 
+/// Profile page for parent users
+/// Displays user information and menu options
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProfilBloc(repository: UserRepository())
-        ..add(LoadUserProfileEvent()),
+      create: (context) =>
+          ProfilBloc(repository: UserRepository())..add(LoadUserProfileEvent()),
       child: const ProfilPageContent(),
     );
   }
@@ -32,29 +35,31 @@ class ProfilPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: BlocListener<ProfilBloc, ProfilState>(
           listener: (context, state) {
             if (state is LogoutSuccess) {
-              // Navigation vers la page de connexion
+              // Navigate to login page
               Navigator.of(context).pushNamedAndRemoveUntil(
                 '/login',
-                    (route) => false,
+                (route) => false,
               );
             }
           },
           child: Column(
             children: [
-              // HEADER VERT
+              // Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGreen,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppConstants.spacingXL + 4,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(AppConstants.radiusXXL - 6),
+                    bottomRight: Radius.circular(AppConstants.radiusXXL - 6),
                   ),
                 ),
                 child: Column(
@@ -62,37 +67,43 @@ class ProfilPageContent extends StatelessWidget {
                     Text(
                       'Mon compte',
                       style: GoogleFonts.inter(
-                        fontSize: 24,
+                        fontSize: AppConstants.fontSizeXXL,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textWhite,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppConstants.spacingXL + 4),
 
-              // CARTE PROFIL
+              // Profile card
               BlocBuilder<ProfilBloc, ProfilState>(
                 builder: (context, state) {
                   if (state is ProfilLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     );
                   }
 
                   if (state is ProfilLoaded) {
+                    final user = state.user;
+                    
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppConstants.spacingXL + 4,
+                      ),
                       child: Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(AppConstants.radiusXL - 8),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: AppColors.blackOpacity05,
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -100,23 +111,25 @@ class ProfilPageContent extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            // PHOTO DE PROFIL
+                            // Profile photo
                             Stack(
                               children: [
                                 CircleAvatar(
                                   radius: 35,
-                                  backgroundColor: Colors.grey.shade200,
-                                  backgroundImage: AssetImage(
-                                    'assets/images/${state.user.photo}',
-                                  ),
+                                  backgroundColor: AppColors.grey200,
+                                  backgroundImage: user.photo != null && user.photo!.isNotEmpty
+                                      ? AssetImage('assets/images/${user.photo}')
+                                      : null,
                                   onBackgroundImageError: (_, __) {},
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 40,
-                                    color: Colors.grey.shade600,
-                                  ),
+                                  child: user.photo == null || user.photo!.isEmpty
+                                      ? Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: AppColors.grey600,
+                                        )
+                                      : null,
                                 ),
-                                // ICÔNE ÉDITER
+                                // Edit icon
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
@@ -135,16 +148,16 @@ class ProfilPageContent extends StatelessWidget {
                                     child: Container(
                                       padding: const EdgeInsets.all(6),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primaryBlue,
+                                        color: AppColors.primary,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           width: 2,
                                         ),
                                       ),
                                       child: const Icon(
                                         Icons.edit,
-                                        color: Colors.white,
+                                        color: AppColors.textWhite,
                                         size: 14,
                                       ),
                                     ),
@@ -152,26 +165,26 @@ class ProfilPageContent extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 16),
-                            // INFOS
+                            const SizedBox(width: AppConstants.spacingXL),
+                            // User info
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    state.user.fullName,
+                                    user.fullName,
                                     style: GoogleFonts.inter(
-                                      fontSize: 18,
+                                      fontSize: AppConstants.fontSizeXL,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: AppConstants.spacingXS),
                                   Text(
-                                    state.user.role,
+                                    user.role ?? 'Parent',
                                     style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600,
+                                      fontSize: AppConstants.fontSizeM,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -187,41 +200,43 @@ class ProfilPageContent extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppConstants.spacingXL + 4),
 
-              // SECTION GÉNÉRAL
+              // General section
               Expanded(
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
+                  decoration: const BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(AppConstants.radiusXXL - 6),
+                      topRight: Radius.circular(AppConstants.radiusXXL - 6),
                     ),
                   ),
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppConstants.spacingXL + 4),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppConstants.spacingXL + 4,
+                          ),
                           child: Text(
                             'Général',
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: AppConstants.fontSizeL,
                               fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade700,
+                              color: AppColors.grey700,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppConstants.spacingS),
 
-                        // MENU ITEMS
+                        // Menu items
                         MenuItemWidget(
                           icon: Icons.person_outline,
                           title: 'Informations personnelles',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -238,7 +253,7 @@ class ProfilPageContent extends StatelessWidget {
                         MenuItemWidget(
                           icon: Icons.notifications_outlined,
                           title: 'Notifications',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -252,7 +267,7 @@ class ProfilPageContent extends StatelessWidget {
                         MenuItemWidget(
                           icon: Icons.receipt_long_outlined,
                           title: 'Historiques des paiements',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -266,7 +281,7 @@ class ProfilPageContent extends StatelessWidget {
                         MenuItemWidget(
                           icon: Icons.flag_outlined,
                           title: 'Mes signalements',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -280,7 +295,7 @@ class ProfilPageContent extends StatelessWidget {
                         MenuItemWidget(
                           icon: Icons.group_add_outlined,
                           title: 'Inviter des amis',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -294,26 +309,26 @@ class ProfilPageContent extends StatelessWidget {
                         MenuItemWidget(
                           icon: Icons.language,
                           title: 'Langue',
-                          iconColor: AppColors.primaryGreen,
+                          iconColor: AppColors.success,
                           trailing: Text(
                             'Français',
                             style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
+                              fontSize: AppConstants.fontSizeM,
+                              color: AppColors.textGrey,
                             ),
                           ),
                           onTap: () {
-                            // TODO: Ouvrir sélecteur de langue
+                            // Language selector to be implemented
                           },
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: AppConstants.spacingXL + 4),
 
-                        // BOUTON DÉCONNEXION
+                        // Logout button
                         MenuItemWidget(
                           icon: Icons.logout,
                           title: 'Se déconnecter',
-                          iconColor: Colors.red,
+                          iconColor: AppColors.error,
                           showChevron: false,
                           onTap: () {
                             _showLogoutDialog(context);
@@ -350,7 +365,7 @@ class ProfilPageContent extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Annuler',
-              style: GoogleFonts.inter(color: Colors.grey.shade600),
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
@@ -361,7 +376,7 @@ class ProfilPageContent extends StatelessWidget {
             child: Text(
               'Déconnexion',
               style: GoogleFonts.inter(
-                color: Colors.red,
+                color: AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),

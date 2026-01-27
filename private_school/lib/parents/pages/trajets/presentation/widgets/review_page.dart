@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/trip_model.dart';
 import 'review_submitted_dialog.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 class ReviewPage extends StatefulWidget {
   final TripModel trip;
 
-  const ReviewPage({
-    super.key,
-    required this.trip,
-  });
+  const ReviewPage({super.key, required this.trip});
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -81,12 +78,12 @@ class _ReviewPageState extends State<ReviewPage> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.1),
+                        color: AppColors.success.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.check,
-                        color: AppColors.primaryGreen,
+                        color: AppColors.success,
                         size: 60,
                       ),
                     ),
@@ -222,7 +219,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.primaryGreen),
+                          borderSide: BorderSide(color: AppColors.success),
                         ),
                         contentPadding: const EdgeInsets.all(16),
                       ),
@@ -242,20 +239,32 @@ class _ReviewPageState extends State<ReviewPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
           ],
         ),
         child: SafeArea(
           child: ElevatedButton(
             onPressed: _submitReview,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: AppColors.success,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
-            child: Text('Envoyer la note', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: Text(
+              'Envoyer la note',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ),
@@ -278,9 +287,11 @@ class _ReviewPageState extends State<ReviewPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryGreen.withOpacity(0.1) : Colors.grey.shade100,
+          color: isSelected
+              ? AppColors.success.withValues(alpha: 0.1)
+              : Colors.grey.shade100,
           border: Border.all(
-            color: isSelected ? AppColors.primaryGreen : Colors.grey.shade300,
+            color: isSelected ? AppColors.success : Colors.grey.shade300,
             width: isSelected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -289,7 +300,7 @@ class _ReviewPageState extends State<ReviewPage> {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primaryGreen : Colors.grey.shade600,
+              color: isSelected ? AppColors.success : Colors.grey.shade600,
               size: 28,
             ),
             const SizedBox(height: 8),
@@ -298,7 +309,7 @@ class _ReviewPageState extends State<ReviewPage> {
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.primaryGreen : Colors.grey.shade600,
+                color: isSelected ? AppColors.success : Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -312,10 +323,7 @@ class _ReviewPageState extends State<ReviewPage> {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Veuillez donner une note',
-            style: GoogleFonts.inter(),
-          ),
+          content: Text('Veuillez donner une note', style: GoogleFonts.inter()),
           backgroundColor: Colors.orange,
         ),
       );

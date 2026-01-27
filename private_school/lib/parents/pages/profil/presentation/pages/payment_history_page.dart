@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 class PaymentHistoryPage extends StatelessWidget {
   const PaymentHistoryPage({super.key});
@@ -10,7 +10,7 @@ class PaymentHistoryPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
@@ -47,7 +47,11 @@ class PaymentHistoryPage extends StatelessWidget {
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
-                  icon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                  icon: Icon(
+                    Icons.search,
+                    color: Colors.grey.shade400,
+                    size: 20,
+                  ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -94,8 +98,8 @@ class PaymentHistoryPage extends StatelessWidget {
   }) {
     //
     final Color iconColor = isCardPayment
-        ? AppColors.primaryGreen
-        : AppColors.primaryPurple; // Mauve pour mobile
+        ? AppColors.success
+        : AppColors.primary; // Mauve pour mobile
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -105,7 +109,7 @@ class PaymentHistoryPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -117,7 +121,7 @@ class PaymentHistoryPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.08),
+              color: iconColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(

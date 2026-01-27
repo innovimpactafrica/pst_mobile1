@@ -5,10 +5,7 @@ import '../../data/models/passenger_model.dart';
 class PassengersListModal extends StatelessWidget {
   final List<PassengerModel> passengers;
 
-  const PassengersListModal({
-    super.key,
-    required this.passengers,
-  });
+  const PassengersListModal({super.key, required this.passengers});
 
   @override
   Widget build(BuildContext context) {
@@ -62,34 +59,35 @@ class PassengersListModal extends StatelessWidget {
           Expanded(
             child: passengers.isEmpty
                 ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 64,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucun passager',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aucun passager',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            )
+                  )
                 : ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: passengers.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final passenger = passengers[index];
-                return _buildPassengerItem(passenger);
-              },
-            ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: passengers.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final passenger = passengers[index];
+                      return _buildPassengerItem(passenger);
+                    },
+                  ),
           ),
         ],
       ),
@@ -109,26 +107,26 @@ class PassengersListModal extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: avatarColor.withOpacity(0.15),
+              color: avatarColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: passenger.photo.isNotEmpty
                   ? ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/images/${passenger.photo}',
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildInitialsAvatar(
-                      passenger.initials,
-                      avatarColor,
-                    );
-                  },
-                ),
-              )
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/images/${passenger.photo}',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildInitialsAvatar(
+                            passenger.initials,
+                            avatarColor,
+                          );
+                        },
+                      ),
+                    )
                   : _buildInitialsAvatar(passenger.initials, avatarColor),
             ),
           ),

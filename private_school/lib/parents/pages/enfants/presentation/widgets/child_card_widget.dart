@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import '../../../utils/modal_helper.dart';
 import '../../data/models/child_model.dart';
 import 'child_details_modal.dart';
@@ -9,10 +9,7 @@ import 'child_details_modal.dart';
 class ChildCardWidget extends StatelessWidget {
   final ChildModel child;
 
-  const ChildCardWidget({
-    super.key,
-    required this.child,
-  });
+  const ChildCardWidget({super.key, required this.child});
 
   void _showChildDetails(BuildContext context) {
     ModalHelper.showSlideModal(
@@ -33,7 +30,7 @@ class ChildCardWidget extends StatelessWidget {
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -46,7 +43,7 @@ class ChildCardWidget extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -55,7 +52,7 @@ class ChildCardWidget extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.success,
                   ),
                 ),
               ),
@@ -87,11 +84,7 @@ class ChildCardWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey.shade400,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 24),
           ],
         ),
       ),

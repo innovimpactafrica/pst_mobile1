@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/driver_model.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 
 class DriverDetailsModal extends StatelessWidget {
   final DriverModel driver;
 
-  const DriverDetailsModal({
-    super.key,
-    required this.driver,
-  });
+  const DriverDetailsModal({super.key, required this.driver});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +56,9 @@ class DriverDetailsModal extends StatelessWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.grey.shade200,
-                        backgroundImage: AssetImage('assets/images/${driver.photo}'),
+                        backgroundImage: AssetImage(
+                          'assets/images/${driver.photo}',
+                        ),
                         onBackgroundImageError: (_, __) {},
                         /*child: Icon(
                           Icons.person,
@@ -74,7 +72,7 @@ class DriverDetailsModal extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryGreen,
+                            color: AppColors.success,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 3),
                           ),
@@ -123,7 +121,7 @@ class DriverDetailsModal extends StatelessWidget {
                           width: 24,
                           height: 24,
                           colorFilter: ColorFilter.mode(
-                            AppColors.primaryGreen,
+                            AppColors.success,
                             BlendMode.srcIn,
                           ),
                         ),
@@ -131,14 +129,13 @@ class DriverDetailsModal extends StatelessWidget {
                         label: 'Trajets réussis',
                       ),
 
-
                       _buildStatColumn(
                         icon: Icon(
                           Icons.star,
-                          color: AppColors.primaryGreen,
+                          color: AppColors.success,
                           size: 24,
                         ),
-                        iconColor: AppColors.primaryGreen,
+                        iconColor: AppColors.success,
                         value: driver.rating.toString(),
                         label: '${driver.totalReviews} avis',
                       ),
@@ -146,14 +143,13 @@ class DriverDetailsModal extends StatelessWidget {
                       _buildStatColumn(
                         icon: Icon(
                           Icons.check_circle,
-                          color: AppColors.primaryGreen,
+                          color: AppColors.success,
                           size: 24,
                         ),
-                        iconColor: AppColors.primaryGreen,
+                        iconColor: AppColors.success,
                         value: '${driver.successRate.toStringAsFixed(0)}%',
                         label: 'Taux de réussite',
                       ),
-
                     ],
                   ),
 
@@ -213,15 +209,9 @@ class DriverDetailsModal extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          _buildVehicleInfoRow(
-                            'Modèle',
-                            driver.vehicle!.model,
-                          ),
+                          _buildVehicleInfoRow('Modèle', driver.vehicle!.model),
                           const Divider(height: 24),
-                          _buildVehicleInfoRow(
-                            'Plaque',
-                            driver.vehicle!.plate,
-                          ),
+                          _buildVehicleInfoRow('Plaque', driver.vehicle!.plate),
                           const Divider(height: 24),
                           _buildVehicleInfoRow(
                             'Couleur',
@@ -252,7 +242,7 @@ class DriverDetailsModal extends StatelessWidget {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
+                            backgroundColor: AppColors.success,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -271,18 +261,18 @@ class DriverDetailsModal extends StatelessWidget {
                           icon: Icon(
                             Icons.chat_bubble_outline,
                             size: 18,
-                            color: AppColors.primaryGreen,
+                            color: AppColors.success,
                           ),
                           label: Text(
                             'Message',
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
-                              color: AppColors.primaryGreen,
+                              color: AppColors.success,
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(color: AppColors.primaryGreen),
+                            side: BorderSide(color: AppColors.success),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -308,13 +298,12 @@ class DriverDetailsModal extends StatelessWidget {
     required String value,
     required String label,
   }) {
-
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: (iconColor ?? AppColors.primaryGreen).withOpacity(0.1),
+            color: (iconColor ?? AppColors.success).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: icon,
@@ -332,10 +321,7 @@ class DriverDetailsModal extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600),
           textAlign: TextAlign.center,
         ),
       ],
@@ -348,10 +334,7 @@ class DriverDetailsModal extends StatelessWidget {
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600),
         ),
         Text(
           value,

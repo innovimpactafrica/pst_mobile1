@@ -23,9 +23,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Stack(
         children: [
           Padding(
@@ -38,14 +36,10 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.green,
-                    size: 60,
-                  ),
+                  child: const Icon(Icons.check, color: Colors.green, size: 60),
                 ),
 
                 const SizedBox(height: 32),
@@ -67,10 +61,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.blue.shade100,
-                      width: 2,
-                    ),
+                    border: Border.all(color: Colors.blue.shade100, width: 2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -112,11 +103,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
                   color: Colors.grey.shade200,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.close,
-                  color: Colors.grey.shade700,
-                  size: 20,
-                ),
+                child: Icon(Icons.close, color: Colors.grey.shade700, size: 20),
               ),
             ),
           ),

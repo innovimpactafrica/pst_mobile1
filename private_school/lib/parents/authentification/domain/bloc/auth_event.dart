@@ -1,5 +1,5 @@
-/// Events d'authentification
-/// Chemin: lib/parents/authentification/domain/bloc/auth_event.dart
+// Events d'authentification
+// Chemin: lib/parents/authentification/domain/bloc/auth_event.dart
 
 import 'package:equatable/equatable.dart';
 

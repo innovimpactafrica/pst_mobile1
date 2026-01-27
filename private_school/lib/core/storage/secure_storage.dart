@@ -1,8 +1,7 @@
-/// Service de stockage sécurisé pour les tokens
-/// Chemin: lib/core/storage/secure_storage.dart
+// Secure storage service for tokens and user data
+// Path: lib/core/storage/secure_storage.dart
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../utils/api_constants.dart';
 
 class SecureStorage {
   static final SecureStorage _instance = SecureStorage._internal();
@@ -15,51 +14,47 @@ class SecureStorage {
     ),
   );
 
-  //  Sauvegarder le token d'accès
+  // Storage keys
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  static const String _userDataKey = 'user_data';
+
+  /// Save access token
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(
-      key: ApiConstants.accessTokenKey,
-      value: token,
-    );
+    await _storage.write(key: _accessTokenKey, value: token);
   }
 
-  //  Récupérer le token d'accès
+  /// Get access token
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: ApiConstants.accessTokenKey);
+    return await _storage.read(key: _accessTokenKey);
   }
 
-  //  Sauvegarder le refresh token
+  /// Save refresh token
   Future<void> saveRefreshToken(String token) async {
-    await _storage.write(
-      key: ApiConstants.refreshTokenKey,
-      value: token,
-    );
+    await _storage.write(key: _refreshTokenKey, value: token);
   }
 
-  //  Récupérer le refresh token
+  /// Get refresh token
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: ApiConstants.refreshTokenKey);
+    return await _storage.read(key: _refreshTokenKey);
   }
 
-  //  Sauvegarder les données utilisateur
+  /// Save user data
   Future<void> saveUserData(String userData) async {
-    await _storage.write(
-      key: ApiConstants.userDataKey,
-      value: userData,
-    );
+    await _storage.write(key: _userDataKey, value: userData);
   }
 
-  //  Récupérer les données utilisateur
+  /// Get user data
   Future<String?> getUserData() async {
-    return await _storage.read(key: ApiConstants.userDataKey);
+    return await _storage.read(key: _userDataKey);
   }
 
-  //  Supprimer tous les tokens (déconnexion)
+  /// Clear all tokens (logout)
   Future<void> clearAll() async {
     await _storage.deleteAll();
   }
 
-  //  Vérifier si l'utilisateur est connecté
+  /// Check if user is logged in
   Future<bool> isLoggedIn() async {
     final token = await getAccessToken();
     return token != null && token.isNotEmpty;

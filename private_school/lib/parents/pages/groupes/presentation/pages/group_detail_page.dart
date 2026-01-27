@@ -12,15 +12,12 @@ import '../widgets/create_planning_modal.dart';
 import '../widgets/invite_member_modal.dart';
 import '../widgets/request_replacement_modal.dart';
 import '../widgets/respond_replacement_modal.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class GroupDetailPage extends StatefulWidget {
   final GroupModel group;
 
-  const GroupDetailPage({
-    super.key,
-    required this.group,
-  });
+  const GroupDetailPage({super.key, required this.group});
 
   @override
   State<GroupDetailPage> createState() => _GroupDetailPageState();
@@ -56,16 +53,13 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (!_localeInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return BlocProvider(
-      create: (context) => GroupBloc(repository: GroupRepository())
-        ..add(LoadGroupDetailsEvent(widget.group.id)),
+      create: (context) =>
+          GroupBloc(repository: GroupRepository())
+            ..add(LoadGroupDetailsEvent(widget.group.id)),
       child: GroupDetailPageContent(initialGroup: widget.group),
     );
   }
@@ -74,10 +68,7 @@ class _GroupDetailPageState extends State<GroupDetailPage> {
 class GroupDetailPageContent extends StatelessWidget {
   final GroupModel initialGroup;
 
-  const GroupDetailPageContent({
-    super.key,
-    required this.initialGroup,
-  });
+  const GroupDetailPageContent({super.key, required this.initialGroup});
 
   @override
   Widget build(BuildContext context) {
@@ -88,13 +79,16 @@ class GroupDetailPageContent extends StatelessWidget {
           children: [
             // HEADER VERT
             Container(
-              color: AppColors.primaryGreen,
+              color: AppColors.success,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios,
-                        color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -112,8 +106,11 @@ class GroupDetailPageContent extends StatelessWidget {
                   BlocBuilder<GroupBloc, GroupState>(
                     builder: (context, state) {
                       return IconButton(
-                        icon: const Icon(Icons.person_add,
-                            color: Colors.white, size: 24),
+                        icon: const Icon(
+                          Icons.person_add,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                         onPressed: () {
                           final groupId = state is GroupDetailsLoaded
                               ? state.group.id
@@ -152,7 +149,7 @@ class GroupDetailPageContent extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -162,10 +159,11 @@ class GroupDetailPageContent extends StatelessWidget {
                       children: [
                         _buildTabButton(context, 'Planning', 0, selectedTab),
                         _buildTabButton(
-                            context,
-                            'Membres(${initialGroup.membersCount})',
-                            1,
-                            selectedTab),
+                          context,
+                          'Membres(${initialGroup.membersCount})',
+                          1,
+                          selectedTab,
+                        ),
                         _buildTabButton(context, 'Historiques', 2, selectedTab),
                       ],
                     ),
@@ -187,7 +185,7 @@ class GroupDetailPageContent extends StatelessWidget {
                           'Planning créé avec succès',
                           style: GoogleFonts.inter(),
                         ),
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.success,
                       ),
                     );
                   }
@@ -198,7 +196,7 @@ class GroupDetailPageContent extends StatelessWidget {
                           'Invitation envoyée',
                           style: GoogleFonts.inter(),
                         ),
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.success,
                       ),
                     );
                   }
@@ -209,7 +207,7 @@ class GroupDetailPageContent extends StatelessWidget {
                           'Demande de remplacement envoyée',
                           style: GoogleFonts.inter(),
                         ),
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.success,
                       ),
                     );
                   }
@@ -218,7 +216,7 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is GroupLoading) {
                     return Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primaryGreen,
+                        color: AppColors.success,
                       ),
                     );
                   }
@@ -261,7 +259,7 @@ class GroupDetailPageContent extends StatelessWidget {
                   builder: (context) => CreatePlanningModal(groupId: groupId),
                 );
               },
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: AppColors.success,
               child: const Icon(Icons.add, color: Colors.white),
             );
           }
@@ -273,7 +271,11 @@ class GroupDetailPageContent extends StatelessWidget {
   }
 
   Widget _buildTabButton(
-      BuildContext context, String label, int tabIndex, int selectedTabIndex) {
+    BuildContext context,
+    String label,
+    int tabIndex,
+    int selectedTabIndex,
+  ) {
     final isSelected = tabIndex == selectedTabIndex;
 
     return Expanded(
@@ -284,7 +286,7 @@ class GroupDetailPageContent extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryGreen : Colors.transparent,
+            color: isSelected ? AppColors.success : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -361,7 +363,11 @@ class GroupDetailPageContent extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close, color: Colors.orange.shade700, size: 20),
+                        icon: Icon(
+                          Icons.close,
+                          color: Colors.orange.shade700,
+                          size: 20,
+                        ),
                         onPressed: () {
                           // Fermer l'alerte
                         },
@@ -406,8 +412,11 @@ class GroupDetailPageContent extends StatelessWidget {
                 padding: const EdgeInsets.all(40),
                 child: Column(
                   children: [
-                    Icon(Icons.calendar_today,
-                        size: 64, color: Colors.grey.shade300),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 64,
+                      color: Colors.grey.shade300,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'Aucun planning',
@@ -439,7 +448,10 @@ class GroupDetailPageContent extends StatelessWidget {
   }
 
   Widget _buildPlanningCard(
-      BuildContext context, Planning planning, GroupModel group) {
+    BuildContext context,
+    Planning planning,
+    GroupModel group,
+  ) {
     String dateStr;
     try {
       dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
@@ -457,7 +469,7 @@ class GroupDetailPageContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -493,7 +505,7 @@ class GroupDetailPageContent extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: isYou
-                      ? AppColors.primaryGreen.withOpacity(0.2)
+                      ? AppColors.success.withValues(alpha: 0.2)
                       : Colors.grey.shade200,
                   shape: BoxShape.circle,
                 ),
@@ -502,22 +514,20 @@ class GroupDetailPageContent extends StatelessWidget {
                     isYou
                         ? 'MN'
                         : group.members
-                        .firstWhere(
-                          (m) => m.name == planning.assignedTo,
-                      orElse: () => GroupMember(
-                        id: '',
-                        name: planning.assignedTo,
-                        role: '',
-                        availability: '',
-                      ),
-                    )
-                        .displayInitials,
+                              .firstWhere(
+                                (m) => m.name == planning.assignedTo,
+                                orElse: () => GroupMember(
+                                  id: '',
+                                  name: planning.assignedTo,
+                                  role: '',
+                                  availability: '',
+                                ),
+                              )
+                              .displayInitials,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: isYou
-                          ? AppColors.primaryGreen
-                          : Colors.grey.shade700,
+                      color: isYou ? AppColors.success : Colors.grey.shade700,
                     ),
                   ),
                 ),
@@ -562,8 +572,7 @@ class GroupDetailPageContent extends StatelessWidget {
                     ),
                   )
                 else if (planning.isConfirmed)
-                  Icon(Icons.check_circle,
-                      color: AppColors.primaryGreen, size: 20),
+                  Icon(Icons.check_circle, color: AppColors.success, size: 20),
               ],
             ],
           ),
@@ -632,8 +641,7 @@ class GroupDetailPageContent extends StatelessWidget {
                 child: Row(
                   children: [
                     // 🔧 Icône sync (comme dans l'UI)
-                    Icon(Icons.sync,
-                        color: Colors.orange.shade700, size: 18),
+                    Icon(Icons.sync, color: Colors.orange.shade700, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -645,8 +653,11 @@ class GroupDetailPageContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right,
-                        color: Colors.orange.shade700, size: 18),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.orange.shade700,
+                      size: 18,
+                    ),
                   ],
                 ),
               ),
@@ -671,7 +682,7 @@ class GroupDetailPageContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -729,7 +740,7 @@ class GroupDetailPageContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -742,7 +753,7 @@ class GroupDetailPageContent extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.2),
+              color: AppColors.success.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -751,7 +762,7 @@ class GroupDetailPageContent extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryGreen,
+                  color: AppColors.success,
                 ),
               ),
             ),
@@ -790,7 +801,7 @@ class GroupDetailPageContent extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: AppColors.primaryGreen,
+              color: AppColors.success,
             ),
           ),
         ],
@@ -823,116 +834,116 @@ class GroupDetailPageContent extends StatelessWidget {
       child: Column(
         children: historyItems.isEmpty
             ? [
-          const SizedBox(height: 40),
-          Icon(Icons.history, size: 64, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'Aucun historique',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Les trajets passés apparaîtront ici',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ]
+                const SizedBox(height: 40),
+                Icon(Icons.history, size: 64, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  'Aucun historique',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Les trajets passés apparaîtront ici',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ]
             : historyItems.map((item) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ICÔNE SYNC ORANGE
-                Container(
-                  width: 40,
-                  height: 40,
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.sync,
-                      color: Colors.orange.shade600,
-                      size: 20,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // CONTENU
-                Expanded(
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // DATE
-                      Text(
-                        item['date']!,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                      // ICÔNE SYNC ORANGE
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.sync,
+                            color: Colors.orange.shade600,
+                            size: 20,
+                          ),
                         ),
                       ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 12),
 
-                      // NOMS (FROM → TO)
-                      Text(
-                        '${item['from']} → ${item['to']}',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey.shade700,
+                      // CONTENU
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DATE
+                            Text(
+                              item['date']!,
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // NOMS (FROM → TO)
+                            Text(
+                              '${item['from']} → ${item['to']}',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            // RAISON
+                            Text(
+                              'Raison : ${item['reason']}',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
-                      const SizedBox(height: 8),
-
-                      // RAISON
+                      // HEURE
                       Text(
-                        'Raison : ${item['reason']}',
+                        item['time']!,
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
-                          fontStyle: FontStyle.italic,
+                          color: Colors.grey.shade500,
                         ),
                       ),
                     ],
                   ),
-                ),
-
-                // HEURE
-                Text(
-                  item['time']!,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+                );
+              }).toList(),
       ),
     );
   }

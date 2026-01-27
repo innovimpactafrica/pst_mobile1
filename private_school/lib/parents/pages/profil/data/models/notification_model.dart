@@ -1,5 +1,5 @@
-/// Notification Model
-/// Path: lib/parents/profil/data/models/notification_model.dart
+// Notification Model
+// Path: lib/parents/profil/data/models/notification_model.dart
 
 class NotificationModel {
   final String id;

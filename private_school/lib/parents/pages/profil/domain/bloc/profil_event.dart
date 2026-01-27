@@ -1,8 +1,9 @@
-/// Events pour le profil utilisateur
-/// Chemin: lib/parents/profil/domain/bloc/profil_event.dart
+// Events pour le profil utilisateur
+// Chemin: lib/parents/profil/domain/bloc/profil_event.dart
 
 import 'dart:io';
-import '../../data/models/ user_model.dart';
+import 'package:private_school/core/models/user_model.dart';
+
 
 abstract class ProfilEvent {}
 

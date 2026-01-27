@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:private_school/parents/pages/authentification/inscription.dart';
-import '../../utils/HexColor.dart';
-import 'mdp_oublie.dart';
-import '../acceuil/home.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/parents/pages/authentification/inscription.dart';
 import '../../authentification/domain/bloc/auth_bloc.dart';
 import '../../authentification/domain/bloc/auth_event.dart';
 import '../../authentification/domain/bloc/auth_state.dart';
+import '../acceuil/home.dart';
+import 'mdp_oublie.dart';
 
 class Connexion extends StatefulWidget {
   const Connexion({super.key});
@@ -18,10 +19,9 @@ class Connexion extends StatefulWidget {
 
 class _ConnexionState extends State<Connexion> {
   bool _obscurePassword = true;
-
-  // ✅ AJOUTER CES LIGNES
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -35,284 +35,278 @@ class _ConnexionState extends State<Connexion> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoading) {
-          // Afficher un loader
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()),
+            builder: (_) => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         } else if (state is AuthAuthenticated) {
-          // Fermer le loader
-          Navigator.of(context).pop();
-
-          // Succès - Aller à l'accueil
+          if (Navigator.canPop(context)) Navigator.of(context).pop();
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const HomePage()),
           );
-
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Connexion réussie !')),
+            const SnackBar(
+              content: Text('Connexion réussie !'),
+              backgroundColor: AppColors.success,
+            ),
           );
         } else if (state is AuthError) {
-          // Fermer le loader si ouvert
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop();
-          }
-
-          // Afficher l'erreur
+          if (Navigator.canPop(context)) Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
         }
       },
       child: Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        backgroundColor: AppColors.white,
+        body: SafeArea(
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // ======== Barre du haut (Langue) ========
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingXXL,
+              vertical: AppConstants.spacingM,
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // ======== Langue ========
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         SvgPicture.asset(
                           'assets/icons/4.svg',
-                          color: HexColor("#2F2884"),
-                          width: 20,
-                          height: 20,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.primary,
+                            BlendMode.srcIn,
+                          ),
+                          width: AppConstants.iconSizeM,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
+                        const SizedBox(width: AppConstants.spacingS),
+                        const Text(
                           "Français",
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: AppConstants.fontSizeM,
                             fontWeight: FontWeight.w600,
-                            color: HexColor("#374151"),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
-
-                // ======== Logo ========
-                Image.asset(
-                  'assets/images/2.jpg',
-                  width: 120,
-                  height: 120,
-                ),
-
-                const SizedBox(height: 25),
-
-                // ======== Titre & Description ========
-                Text(
-                  "Connexion",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: HexColor("#2F2884"),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Connectez-vous pour explorer toutes les\nfonctionnalités de l’application.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: HexColor("#4B5563"),
+
+                  const SizedBox(height: AppConstants.spacingXXXL),
+
+                  // ======== Logo ========
+                  Image.asset(
+                    AppConstants.logoPath,
+                    width: 120,
+                    height: 120,
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  const SizedBox(height: AppConstants.spacingXXL),
 
-                // ======== Champ Email ========
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Identification",
+                  // ======== Titre & Description ========
+                  const Text(
+                    "Connexion",
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: HexColor("#343741"),
+                      fontSize: AppConstants.fontSizeXXL,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
                     ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Ex: bdiop@gmail.com",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#D4B036")),
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // ======== Champ Mot de passe ========
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Mot de passe",
+                  const SizedBox(height: AppConstants.spacingS),
+                  const Text(
+                    "Connectez-vous pour explorer toutes les\nfonctionnalités de l’application.",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: HexColor("#343741"),
+                      fontSize: AppConstants.fontSizeM,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: "********",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+
+                  const SizedBox(height: AppConstants.spacingXXXL),
+
+                  // ======== Champ Identification (Email) ========
+                  _buildInputLabel("Identification"),
+                  const SizedBox(height: AppConstants.spacingS),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: _buildInputDecoration(
+                      hint: "Ex: bdiop@gmail.com",
+                      prefixIcon: Icons.email_outlined,
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#CBD5E1")),
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingXL),
+
+                  // ======== Champ Mot de passe ========
+                  _buildInputLabel("Mot de passe"),
+                  const SizedBox(height: AppConstants.spacingS),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: _buildInputDecoration(
+                      hint: "********",
+                      prefixIcon: Icons.lock_outline,
+                      isPassword: true,
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: HexColor("#D4B036")),
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                        color: HexColor("#ACB5BB"),
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingM),
+
+                  // ======== Mot de passe oublié ========
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MdpOubliePage()),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // ======== Bouton Se connecter ========
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: HexColor("#2F2884"),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    ),
-                    onPressed: () {
-                      // Validation simple
-                      if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Veuillez remplir tous les champs')),
-                        );
-                        return;
-                      }
-
-                      // ✅ Déclencher l'événement de connexion
-                      context.read<AuthBloc>().add(
-                        LoginEvent(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text,
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "Se connecter",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // ======== Mot de passe oublié ? ========
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const MdpOubliePage(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "Mot de passe oublié ?",
-                    style: TextStyle(
-                      color: HexColor("#2F2884"),
-                      fontWeight: FontWeight.w600,
-                    
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                // ======== Lien inscription ========
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Vous n'avez pas de compte ",
-                      style: TextStyle(color: HexColor("#CBD5E1")),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, "/inscription");Navigator.push(
-  context,
-  MaterialPageRoute(builder: (_) => const InscriptionPage()),
-);
-
-                      },
-                      child: Text(
-                        "S’inscrire",
+                      child: const Text(
+                        "Mot de passe oublié ?",
                         style: TextStyle(
-                          color: HexColor("#38AA36"),
-                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingXXL),
+
+                  // ======== Bouton Se connecter ========
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: _handleLogin,
+                      child: const Text(
+                        "Se connecter",
+                        style: TextStyle(
+                          fontSize: AppConstants.fontSizeL,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppConstants.spacingXXXL),
+
+                  // ======== Lien Inscription ========
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Vous n'avez pas de compte ? ",
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const InscriptionPage()),
+                        ),
+                        child: const Text(
+                          "S’inscrire",
+                          style: TextStyle(
+                            color: AppColors.successDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // --- Helpers UI ---
+
+  Widget _buildInputLabel(String label) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+          fontSize: AppConstants.fontSizeM,
+        ),
       ),
     );
+  }
 
+  InputDecoration _buildInputDecoration({
+    required String hint,
+    required IconData prefixIcon,
+    bool isPassword = false,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: AppColors.textGrey),
+      prefixIcon: Icon(prefixIcon, color: AppColors.textGrey, size: 20),
+      suffixIcon: isPassword
+          ? IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: AppColors.textGrey,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            )
+          : null,
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+        borderSide: const BorderSide(color: AppColors.error),
+      ),
+    );
+  }
+
+  void _handleLogin() {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+      );
+      return;
+    }
+    context.read<AuthBloc>().add(
+          LoginEvent(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          ),
+        );
   }
 }

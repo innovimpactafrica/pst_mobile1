@@ -3,15 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/payment_success_dialog.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 class PaymentPage extends StatefulWidget {
   final TripModel trip;
 
-  const PaymentPage({
-    super.key,
-    required this.trip,
-  });
+  const PaymentPage({super.key, required this.trip});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -129,7 +126,10 @@ class _PaymentPageState extends State<PaymentPage> {
               const SizedBox(height: 24),
 
               // FORMULAIRES
-              if (_isCardPayment) _buildCardPaymentForm() else _buildMobileMoneyForm(),
+              if (_isCardPayment)
+                _buildCardPaymentForm()
+              else
+                _buildMobileMoneyForm(),
 
               const SizedBox(height: 24),
 
@@ -139,7 +139,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 child: ElevatedButton(
                   onPressed: _processPayment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
+                    backgroundColor: AppColors.success,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -181,10 +181,7 @@ class _PaymentPageState extends State<PaymentPage> {
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600),
         ),
         Text(
           value,
@@ -209,7 +206,9 @@ class _PaymentPageState extends State<PaymentPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF5B4FC7).withOpacity(0.1) : Colors.grey.shade100,
+          color: isSelected
+              ? const Color(0xFF5B4FC7).withValues(alpha: 0.1)
+              : Colors.grey.shade100,
           border: Border.all(
             color: isSelected ? const Color(0xFF5B4FC7) : Colors.grey.shade300,
             width: 1.5,
@@ -222,7 +221,9 @@ class _PaymentPageState extends State<PaymentPage> {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? const Color(0xFF5B4FC7) : Colors.grey.shade600,
+              color: isSelected
+                  ? const Color(0xFF5B4FC7)
+                  : Colors.grey.shade600,
             ),
             const SizedBox(width: 8),
             Text(
@@ -230,7 +231,9 @@ class _PaymentPageState extends State<PaymentPage> {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? const Color(0xFF5B4FC7) : Colors.grey.shade600,
+                color: isSelected
+                    ? const Color(0xFF5B4FC7)
+                    : Colors.grey.shade600,
               ),
             ),
           ],
@@ -272,7 +275,10 @@ class _PaymentPageState extends State<PaymentPage> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           style: GoogleFonts.inter(fontSize: 14),
         ),
@@ -315,7 +321,10 @@ class _PaymentPageState extends State<PaymentPage> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           style: GoogleFonts.inter(fontSize: 14),
         ),
@@ -363,7 +372,10 @@ class _PaymentPageState extends State<PaymentPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                     style: GoogleFonts.inter(fontSize: 14),
                   ),
@@ -409,7 +421,10 @@ class _PaymentPageState extends State<PaymentPage> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
                     style: GoogleFonts.inter(fontSize: 14),
                   ),
@@ -447,7 +462,11 @@ class _PaymentPageState extends State<PaymentPage> {
           children: [
             _buildProviderButton('Wave', 'assets/images/2.png', 'wave'),
             _buildProviderButton('Yas money', 'assets/images/3.png', 'yas'),
-            _buildProviderButton('Orange money', 'assets/images/4.png', 'orange'),
+            _buildProviderButton(
+              'Orange money',
+              'assets/images/4.png',
+              'orange',
+            ),
             _buildProviderButton('Kay pay', 'assets/images/5.png', 'kpay'),
           ],
         ),
@@ -475,12 +494,12 @@ class _PaymentPageState extends State<PaymentPage> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
-            BoxShadow(
-              color: const Color(0xFF5B4FC7).withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ]
+                  BoxShadow(
+                    color: const Color(0xFF5B4FC7).withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : [],
         ),
         child: Column(
@@ -489,10 +508,7 @@ class _PaymentPageState extends State<PaymentPage> {
           children: [
             Flexible(
               child: Container(
-                constraints: const BoxConstraints(
-                  maxWidth: 50,
-                  maxHeight: 50,
-                ),
+                constraints: const BoxConstraints(maxWidth: 50, maxHeight: 50),
                 child: Image.asset(
                   imagePath,
                   fit: BoxFit.contain,
@@ -523,7 +539,6 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
     );
   }
-
 
   void _processPayment() {
     // Validation basique
@@ -570,7 +585,10 @@ class _PaymentPageState extends State<PaymentPage> {
 // Formatter pour le numéro de carte (1234 5678 9012 3456)
 class _CardNumberFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final text = newValue.text.replaceAll(' ', '');
     final buffer = StringBuffer();
 
@@ -591,7 +609,10 @@ class _CardNumberFormatter extends TextInputFormatter {
 // Formatter pour la date d'expiration (MM/AA)
 class _ExpiryDateFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     final text = newValue.text.replaceAll('/', '');
     final buffer = StringBuffer();
 

@@ -6,7 +6,7 @@ import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
 import '../../data/models/group_model.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class JoinGroupModal extends StatelessWidget {
   final GroupModel group;
@@ -24,242 +24,260 @@ class JoinGroupModal extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Groupe rejoint !', style: GoogleFonts.inter()),
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.success,
               ),
             );
           }
         },
         builder: (context, state) {
           return Padding(
-              padding: EdgeInsets.only(
+            padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-          decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-          ),
-          ),
-          child: SafeArea(
-          child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-          // HEADER
-          Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-          Text(
-          'Rejoindre un groupe',
-          style: GoogleFonts.inter(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          ),
-          ),
-          IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          ),
-          ],
-          ),
+            ),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // HEADER
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Rejoindre un groupe',
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
 
-          const SizedBox(height: 32),
+                      const SizedBox(height: 32),
 
-          // AVATAR GRAND
-          Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-          color: AppColors.primaryGreen.withOpacity(0.1),
-          shape: BoxShape.circle,
-          ),
-          child: Center(
-          child: Text(
-          group.initial,
-          style: GoogleFonts.inter(
-          fontSize: 36,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryGreen,
-          ),
-          ),
-          ),
-          ),
+                      // AVATAR GRAND
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            group.initial,
+                            style: GoogleFonts.inter(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
+                          ),
+                        ),
+                      ),
 
-          const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-          // NOM DU GROUPE
-          Text(
-          group.name,
-          style: GoogleFonts.inter(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          ),
-          ),
+                      // NOM DU GROUPE
+                      Text(
+                        group.name,
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
 
-          const SizedBox(height: 8),
+                      const SizedBox(height: 8),
 
-          // INFO CRÉATEUR
-          Text(
-          'Créé par ${group.createdBy}, ${_formatDate(group.createdAt)}',
-          style: GoogleFonts.inter(
-          fontSize: 13,
-          color: Colors.grey.shade600,
-          ),
-          ),
+                      // INFO CRÉATEUR
+                      Text(
+                        'Créé par ${group.createdBy}, ${_formatDate(group.createdAt)}',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
 
-          // DESCRIPTION
-          if (group.description != null) ...[
-          const SizedBox(height: 20),
-          Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Text(
-          group.description!,
-          style: GoogleFonts.inter(
-          fontSize: 13,
-          color: Colors.grey.shade700,
-          height: 1.5,
-          ),
-          textAlign: TextAlign.center,
-          ),
-          ),
-          ],
+                      // DESCRIPTION
+                      if (group.description != null) ...[
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Text(
+                            group.description!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.grey.shade700,
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
 
-          const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-          // AVATARS DES MEMBRES (SUPERPOSÉS)
-          SizedBox(
-          height: 40,
-          child: Stack(
-          alignment: Alignment.center,
-          children: [
-          if (group.members.isNotEmpty)
-          Positioned(
-          left: MediaQuery.of(context).size.width / 2 - 60,
-          child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-          color: AppColors.primaryGreen.withOpacity(0.2),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          ),
-          child: Center(
-          child: Text(
-          group.members[0].displayInitials,
-          style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          ),
-          ),
-          ),
-          ),
-          ),
-          if (group.members.length > 1)
-          Positioned(
-          left: MediaQuery.of(context).size.width / 2 - 40,
-          child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-          color: Colors.orange.shade200,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          ),
-          child: Center(
-          child: Text(
-          group.members[1].displayInitials,
-          style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          ),
-          ),
-          ),
-          ),
-          ),
-          if (group.membersCount > 2)
-          Positioned(
-          left: MediaQuery.of(context).size.width / 2 - 20,
-          child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-          color: AppColors.primaryGreen.withOpacity(0.2),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          ),
-          child: Center(
-          child: Text(
-          '+${group.membersCount - 2}',
-          style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-          ),
-          ),
-          ),
-          ),
-          ),
-          ],
-          ),
-          ),
+                      // AVATARS DES MEMBRES (SUPERPOSÉS)
+                      SizedBox(
+                        height: 40,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (group.members.isNotEmpty)
+                              Positioned(
+                                left:
+                                    MediaQuery.of(context).size.width / 2 - 60,
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 3,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      group.members[0].displayInitials,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (group.members.length > 1)
+                              Positioned(
+                                left:
+                                    MediaQuery.of(context).size.width / 2 - 40,
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.shade200,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 3,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      group.members[1].displayInitials,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (group.membersCount > 2)
+                              Positioned(
+                                left:
+                                    MediaQuery.of(context).size.width / 2 - 20,
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 3,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '+${group.membersCount - 2}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
 
-          const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-          // BOUTON REJOINDRE
-          SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-          onPressed: state is GroupLoading
-          ? null
-              : () {
-          context.read<GroupBloc>().add(JoinGroupEvent(group.id));
-          },
-          style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-          ),
-          child: state is GroupLoading
-          ? const SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 2,
-          ),
-          )
-              : Text(
-          'Rejoindre le groupe',
-          style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          ),
-          ),
-          ),
-          ),
-          ],
-          ),
-          ),
-          ),
-          ),
+                      // BOUTON REJOINDRE
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: state is GroupLoading
+                              ? null
+                              : () {
+                                  context.read<GroupBloc>().add(
+                                    JoinGroupEvent(group.id),
+                                  );
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.success,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: state is GroupLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'Rejoindre le groupe',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           );
         },
       ),

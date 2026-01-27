@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+//import 'package:flutter_svg/flutter_svg.dart';
 
 import '../pages/acceuil/home.dart';
 import '../utils/HexColor.dart';
@@ -44,9 +44,9 @@ class _MainScreenState extends State<MainScreen> {
 
 class PlaceholderPage extends StatelessWidget {
   final String title;
-  
+
   const PlaceholderPage({super.key, required this.title});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,11 +59,7 @@ class PlaceholderPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               'Page $title',
@@ -99,7 +95,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),

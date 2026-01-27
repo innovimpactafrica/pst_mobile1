@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
@@ -42,9 +42,9 @@ class _AddChildModalState extends State<AddChildModal> {
         homeAddress: _addressController.text.trim(),
         schoolName: _schoolController.text.trim(),
 
-        schedule: _getDefaultSchedule(),           // utiliser 'schedule' au lieu de 'weeklySchedule'
+        schedule:
+            _getDefaultSchedule(), // utiliser 'schedule' au lieu de 'weeklySchedule'
       );
-
 
       context.read<ChildBloc>().add(AddChildEvent(child));
       Navigator.pop(context);
@@ -62,7 +62,6 @@ class _AddChildModalState extends State<AddChildModal> {
       'Dim': DaySchedule(isOpen: false),
     };
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +181,7 @@ class _AddChildModalState extends State<AddChildModal> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primaryGreen, width: 2),
+              borderSide: BorderSide(color: AppColors.success, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -207,7 +206,7 @@ class _AddChildModalState extends State<AddChildModal> {
       child: ElevatedButton(
         onPressed: _handleSubmit,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.success,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

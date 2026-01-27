@@ -33,7 +33,7 @@ class _PaymentModalState extends State<PaymentModal> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -63,7 +63,10 @@ class _PaymentModalState extends State<PaymentModal> {
                         icon: const Icon(Icons.close, color: Colors.grey),
                         onPressed: () {
                           Navigator.pop(context);
-                          if (widget.onClose != null) widget.onClose!(); // ✅ notifier MdpOubliePage
+                          if (widget.onClose != null){
+                                 widget.onClose!(); // ✅ notifier MdpOubliePage
+                          }
+                           
                         },
                       ),
                     ],
@@ -85,20 +88,29 @@ class _PaymentModalState extends State<PaymentModal> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Abonnement Annuelle",
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600)),
-                            Text("Facturation annuelle",
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: HexColor('#6B7280'))),
+                            const Text(
+                              "Abonnement Annuelle",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              "Facturation annuelle",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: HexColor('#6B7280'),
+                              ),
+                            ),
                           ],
                         ),
-                        Text("29.900 F cfa",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: HexColor('#2F2884'))),
+                        Text(
+                          "29.900 F cfa",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: HexColor('#2F2884'),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -111,18 +123,23 @@ class _PaymentModalState extends State<PaymentModal> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => setState(() => isCard = true),
-                          icon: SvgPicture.asset('assets/icons/7.svg', width: 18),
+                          icon: SvgPicture.asset(
+                            'assets/icons/7.svg',
+                            width: 18,
+                          ),
                           label: const Text("Carte bancaire"),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: isCard
                                 ? HexColor('#F3F0FF')
                                 : Colors.white,
                             side: BorderSide(
-                                color: isCard
-                                    ? HexColor('#2F2884')
-                                    : HexColor('#CBD5E1')),
+                              color: isCard
+                                  ? HexColor('#2F2884')
+                                  : HexColor('#CBD5E1'),
+                            ),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ),
@@ -137,11 +154,13 @@ class _PaymentModalState extends State<PaymentModal> {
                                 ? HexColor('#F3F0FF')
                                 : Colors.white,
                             side: BorderSide(
-                                color: !isCard
-                                    ? HexColor('#2F2884')
-                                    : HexColor('#CBD5E1')),
+                              color: !isCard
+                                  ? HexColor('#2F2884')
+                                  : HexColor('#CBD5E1'),
+                            ),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ),
@@ -151,10 +170,7 @@ class _PaymentModalState extends State<PaymentModal> {
                   const SizedBox(height: 25),
 
                   // === Contenu dynamique ===
-                  if (isCard)
-                    _buildCardForm()
-                  else
-                    _buildMobileMoney(),
+                  if (isCard) _buildCardForm() else _buildMobileMoney(),
 
                   const SizedBox(height: 25),
 
@@ -177,30 +193,30 @@ class _PaymentModalState extends State<PaymentModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Nom sur la carte",
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text(
+          "Nom sur la carte",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 6),
         TextField(
           decoration: InputDecoration(
             hintText: "Lamine wade",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
 
         const SizedBox(height: 16),
 
-        const Text("Numéro de carte",
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        const Text(
+          "Numéro de carte",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 6),
         TextField(
           decoration: InputDecoration(
             hintText: "1234 5678 9012 3456",
             prefixIcon: const Icon(Icons.credit_card),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
 
@@ -212,8 +228,10 @@ class _PaymentModalState extends State<PaymentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Date d’expiration",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Date d’expiration",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextField(
                     decoration: InputDecoration(
@@ -231,8 +249,10 @@ class _PaymentModalState extends State<PaymentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("CVV",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    "CVV",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextField(
                     decoration: InputDecoration(

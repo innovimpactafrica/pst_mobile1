@@ -1,8 +1,8 @@
-/// States pour le profil utilisateur
-/// Chemin: lib/parents/profil/domain/bloc/profil_state.dart
+// States pour le profil utilisateur
+// Chemin: lib/parents/profil/domain/bloc/profil_state.dart
 
 import 'package:equatable/equatable.dart';
-import '../../data/models/ user_model.dart';
+import 'package:private_school/core/models/user_model.dart';
 
 abstract class ProfilState extends Equatable {
   @override

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/profil_bloc.dart';
 import '../../domain/bloc/profil_event.dart';
 import '../../domain/bloc/profil_state.dart';
 
+/// Personal information page
+/// Allows users to view and edit their profile information
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
 
@@ -17,7 +20,7 @@ class PersonalInfoPage extends StatefulWidget {
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
   bool _isEditMode = false;
 
-  // Controllers pour les champs éditables
+  // Controllers for editable fields
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   late TextEditingController _phoneController;
@@ -47,16 +50,16 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   void _initializeControllers(ProfilLoaded state) {
     _firstNameController.text = state.user.firstName;
     _lastNameController.text = state.user.lastName;
-    _phoneController.text = state.user.phone;
+    _phoneController.text = state.user.phone ?? '';
     _emailController.text = state.user.email;
-    _addressController.text = state.user.address;
+    _addressController.text = state.user.address ?? '';
   }
 
   Future<void> _pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
 
-      // Demander à l'utilisateur de choisir entre caméra et galerie
+      // Ask user to choose between camera and gallery
       final source = await showModalBottomSheet<ImageSource>(
         context: context,
         builder: (context) => SafeArea(
@@ -81,10 +84,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         final XFile? image = await picker.pickImage(source: source);
 
         if (image != null && mounted) {
-          // Envoyer l'événement pour mettre à jour la photo
+          // Send event to update photo
           context.read<ProfilBloc>().add(
-            UpdateProfilePhotoFromPathEvent(image.path),
-          );
+                UpdateProfilePhotoFromPathEvent(image.path),
+              );
         }
       }
     } catch (e) {
@@ -92,7 +95,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la sélection de l\'image: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -100,42 +103,46 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }
 
   void _saveChanges() {
-    // Envoyer l'événement pour mettre à jour le profil
+    // Send event to update profile
     context.read<ProfilBloc>().add(
-      UpdateUserFieldsEvent(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        address: _addressController.text.trim(),
-      ),
-    );
+          UpdateUserFieldsEvent(
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            email: _emailController.text.trim(),
+            address: _addressController.text.trim(),
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textWhite,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Informations personnelles',
           style: GoogleFonts.inter(
-            fontSize: 18,
+            fontSize: AppConstants.fontSizeXL,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppColors.textWhite,
           ),
         ),
         centerTitle: true,
         actions: [
           if (_isEditMode)
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close, color: AppColors.textWhite),
               onPressed: () {
                 setState(() {
                   _isEditMode = false;
@@ -150,7 +157,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Profil mis à jour avec succès'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
             setState(() {
@@ -162,7 +169,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Photo mise à jour avec succès'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
           }
@@ -171,7 +178,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }
@@ -179,7 +186,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         child: BlocBuilder<ProfilBloc, ProfilState>(
           builder: (context, state) {
             if (state is ProfilLoading || state is ProfilUpdating) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
 
             if (state is PhotoUploading) {
@@ -187,8 +196,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
+                    CircularProgressIndicator(color: AppColors.primary),
+                    SizedBox(height: AppConstants.spacingXL),
                     Text('Téléchargement de la photo...'),
                   ],
                 ),
@@ -196,31 +205,36 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             }
 
             if (state is ProfilLoaded) {
-              // Initialiser les controllers si on entre en mode édition
+              final user = state.user;
+
+              // Initialize controllers when entering edit mode
               if (_isEditMode && _firstNameController.text.isEmpty) {
                 _initializeControllers(state);
               }
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
                 child: Column(
                   children: [
-                    // PHOTO DE PROFIL
+                    // Profile photo
                     Center(
                       child: Stack(
                         children: [
                           CircleAvatar(
                             radius: 60,
-                            backgroundColor: Colors.grey.shade200,
-                            backgroundImage: AssetImage(
-                              'assets/images/${state.user.photo}',
-                            ),
+                            backgroundColor: AppColors.grey200,
+                            backgroundImage: user.photo != null &&
+                                    user.photo!.isNotEmpty
+                                ? AssetImage('assets/images/${user.photo}')
+                                : null,
                             onBackgroundImageError: (_, __) {},
-                            child: Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Colors.grey.shade600,
-                            ),
+                            child: user.photo == null || user.photo!.isEmpty
+                                ? Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: AppColors.grey600,
+                                  )
+                                : null,
                           ),
                           Positioned(
                             bottom: 0,
@@ -230,16 +244,16 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               child: Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryGreen,
+                                  color: AppColors.success,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     width: 3,
                                   ),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
-                                  color: Colors.white,
+                                  color: AppColors.textWhite,
                                   size: 20,
                                 ),
                               ),
@@ -249,44 +263,44 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppConstants.spacingXXXL),
 
-                    // CHAMPS
+                    // Fields
                     _buildField(
                       'Prénom',
                       _firstNameController,
-                      state.user.firstName,
+                      user.firstName,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppConstants.spacingXL),
                     _buildField(
                       'Nom',
                       _lastNameController,
-                      state.user.lastName,
+                      user.lastName,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppConstants.spacingXL),
                     _buildField(
                       'Téléphone',
                       _phoneController,
-                      state.user.phone,
+                      user.phone ?? 'Non renseigné',
                       keyboardType: TextInputType.phone,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppConstants.spacingXL),
                     _buildField(
                       'Email',
                       _emailController,
-                      state.user.email,
+                      user.email,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppConstants.spacingXL),
                     _buildField(
                       'Adresse',
                       _addressController,
-                      state.user.address,
+                      user.address ?? 'Non renseignée',
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppConstants.spacingXXXL),
 
-                    // BOUTON
+                    // Button
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -302,18 +316,20 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: AppColors.success,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.radiusL,
+                            ),
                           ),
                           elevation: 0,
                         ),
                         child: Text(
                           _isEditMode ? 'Enregistrer' : 'Modifier',
                           style: GoogleFonts.inter(
-                            fontSize: 16,
+                            fontSize: AppConstants.fontSizeL,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppColors.textWhite,
                           ),
                         ),
                       ),
@@ -323,7 +339,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               );
             }
 
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
           },
         ),
       ),
@@ -331,60 +349,58 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }
 
   Widget _buildField(
-      String label,
-      TextEditingController controller,
-      String value, {
-        TextInputType? keyboardType,
-      }) {
+    String label,
+    TextEditingController controller,
+    String value, {
+    TextInputType? keyboardType,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 13,
+            fontSize: AppConstants.fontSizeS + 1,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade600,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppConstants.spacingS),
         Container(
           width: double.infinity,
           padding: EdgeInsets.symmetric(
-            horizontal: 16,
+            horizontal: AppConstants.spacingXL,
             vertical: _isEditMode ? 0 : 14,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
             border: Border.all(
-              color: _isEditMode
-                  ? AppColors.primaryGreen
-                  : Colors.grey.shade300,
+              color: _isEditMode ? AppColors.success : AppColors.grey300,
             ),
           ),
           child: _isEditMode
               ? TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 14),
-            ),
-          )
+                  controller: controller,
+                  keyboardType: keyboardType,
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 14),
+                  ),
+                )
               : Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
         ),
       ],
     );

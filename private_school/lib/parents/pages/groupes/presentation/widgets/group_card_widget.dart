@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/group_model.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class GroupCardWidget extends StatelessWidget {
   final GroupModel group;
@@ -27,7 +27,7 @@ class GroupCardWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -40,7 +40,7 @@ class GroupCardWidget extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -49,7 +49,7 @@ class GroupCardWidget extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryGreen,
+                    color: AppColors.success,
                   ),
                 ),
               ),
@@ -84,11 +84,7 @@ class GroupCardWidget extends StatelessWidget {
 
             // CHEVRON
             if (!isAvailable)
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade400,
-                size: 24,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 24),
           ],
         ),
       ),

@@ -1,5 +1,5 @@
-/// BLoC d'authentification
-/// Chemin: lib/parents/authentification/domain/bloc/auth_bloc.dart
+// BLoC d'authentification
+// Chemin: lib/parents/authentification/domain/bloc/auth_bloc.dart
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../ data/repositories/auth_repository.dart';

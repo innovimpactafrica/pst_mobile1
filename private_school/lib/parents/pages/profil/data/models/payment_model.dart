@@ -1,6 +1,6 @@
 
-/// Payment Model
-/// Path: lib/parents/profil/data/models/payment_model.dart
+// Payment Model
+// Path: lib/parents/profil/data/models/payment_model.dart
 
 class PaymentModel {
   final String id;

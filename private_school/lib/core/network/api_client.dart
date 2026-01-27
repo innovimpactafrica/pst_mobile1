@@ -1,10 +1,10 @@
-/// Client API avec Dio et gestion automatique du JWT
-/// Chemin: lib/core/network/api_client.dart
+// API client with Dio and automatic JWT management
+// Path: lib/core/network/api_client.dart
 
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../storage/secure_storage.dart';
-import '../utils/api_constants.dart';
+import '../utils/base_url.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -16,36 +16,32 @@ class ApiClient {
 
   Dio get dio => _dio;
 
-  /// Initialiser le client API
   Future<void> init() async {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: ApiConstants.connectTimeout,
-        receiveTimeout: ApiConstants.receiveTimeout,
-         headers: {
-          'Content-Type': ApiConstants.contentType,
-          'Accept': ApiConstants.contentType,
+        baseUrl: BaseUrl.current,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
       ),
     );
 
-    //  Intercepteur pour ajouter automatiquement le token JWT
+    // Add JWT token automatically to requests
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Ajouter le token à chaque requête
           final token = await _storage.getAccessToken();
           if (token != null && token.isNotEmpty) {
-            options.headers[ApiConstants.authorization] = 'Bearer $token';
+            options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },
         onError: (error, handler) async {
-          // Gérer l'expiration du token (401)
+          // Handle token expiration
           if (error.response?.statusCode == 401) {
-            // TODO: Implémenter le refresh token si nécessaire
-            // Pour l'instant, on redirige vers la page de connexion
             await _storage.clearAll();
           }
           return handler.next(error);
@@ -53,7 +49,7 @@ class ApiClient {
       ),
     );
 
-    //  Logger pour debug (affiche les requêtes dans la console)
+    // Logger for debugging
     _dio.interceptors.add(
       PrettyDioLogger(
         requestHeader: true,
@@ -67,12 +63,11 @@ class ApiClient {
     );
   }
 
-  /// GET request
   Future<Response> get(
-      String path, {
-        Map<String, dynamic>? queryParameters,
-        Options? options,
-      }) async {
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
     try {
       return await _dio.get(
         path,
@@ -84,13 +79,12 @@ class ApiClient {
     }
   }
 
-  /// POST request
   Future<Response> post(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-        Options? options,
-      }) async {
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
     try {
       return await _dio.post(
         path,
@@ -103,13 +97,12 @@ class ApiClient {
     }
   }
 
-  /// PUT request
   Future<Response> put(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-        Options? options,
-      }) async {
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
     try {
       return await _dio.put(
         path,
@@ -122,13 +115,12 @@ class ApiClient {
     }
   }
 
-  /// DELETE request
   Future<Response> delete(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-        Options? options,
-      }) async {
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
     try {
       return await _dio.delete(
         path,
@@ -141,13 +133,12 @@ class ApiClient {
     }
   }
 
-  /// PATCH request
   Future<Response> patch(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-        Options? options,
-      }) async {
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
     try {
       return await _dio.patch(
         path,
@@ -160,44 +151,60 @@ class ApiClient {
     }
   }
 
-  /// Gérer les erreurs
-  Exception _handleError(DioException error) {
+  // Clean error handling without nested exceptions
+  String _handleError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return Exception('Délai de connexion dépassé');
-
+        return 'Délai de connexion dépassé';
+        
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        final message = error.response?.data['message'] ?? 'Erreur serveur';
-
+        final responseData = error.response?.data;
+        
+        // Extract error message from response
+        String message = 'Erreur serveur';
+        
+        if (responseData is Map<String, dynamic>) {
+          message = responseData['error'] ?? 
+                    responseData['message'] ?? 
+                    responseData['msg'] ?? 
+                    'Erreur serveur';
+        } else if (responseData is String) {
+          message = responseData;
+        }
+        
         switch (statusCode) {
           case 400:
-            return Exception('Requête invalide: $message');
+            return 'Requête invalide: $message';
           case 401:
-            return Exception('Non autorisé: $message');
+            return 'Non autorisé: $message';
           case 403:
-            return Exception('Accès interdit: $message');
+            return 'Accès interdit: $message';
           case 404:
-            return Exception('Ressource non trouvée: $message');
+            // User-friendly message for not found errors
+            if (message.contains('User not found')) {
+              return 'Email ou mot de passe incorrect';
+            }
+            return 'Ressource introuvable: $message';
           case 500:
-            return Exception('Erreur serveur: $message');
+            return 'Erreur serveur: $message';
           default:
-            return Exception('Erreur: $message');
+            return message;
         }
-
+        
       case DioExceptionType.cancel:
-        return Exception('Requête annulée');
-
+        return 'Requête annulée';
+        
       case DioExceptionType.unknown:
         if (error.message?.contains('SocketException') ?? false) {
-          return Exception('Pas de connexion Internet');
+          return 'Pas de connexion internet';
         }
-        return Exception('Erreur inconnue: ${error.message}');
-
+        return 'Erreur inconnue: ${error.message}';
+        
       default:
-        return Exception('Erreur: ${error.message}');
+        return 'Erreur: ${error.message}';
     }
   }
 }

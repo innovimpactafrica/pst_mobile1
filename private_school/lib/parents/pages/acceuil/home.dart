@@ -1,8 +1,10 @@
+// Home page for parents - Fixed import
+// Path: lib/parents/pages/acceuil/home.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
@@ -11,20 +13,20 @@ import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart
 import '../../widgets/main_layout.dart';
 import '../trajets/presentation/pages/trip_detail_page.dart';
 import 'discussion.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/parents/pages/acceuil/widgets/report_problem_modal.dart';
 import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_card_widget.dart';
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // BlocProvider : Fournit le BLoC à tout l'arbre de widgets
     return BlocProvider(
-      create: (context) => HomeBloc(repository: TripRepository())
-        ..add(LoadDriversEvent()), // Déclenche le chargement au démarrage
+      create: (context) =>
+          HomeBloc(repository: TripRepository())..add(LoadDriversEvent()),
       child: const HomePageContent(),
     );
   }
@@ -47,20 +49,19 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   void _openReportProblem(BuildContext context) {
-    showReportProblemModal(context);
+    // Use the modal directly with showModalBottomSheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ReportProblemModal(),
+    );
   }
-
-
- /* void _onBottomNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }*/
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryGreen,
+      backgroundColor: AppColors.success,
       body: SafeArea(
         child: Stack(
           children: [
@@ -70,18 +71,14 @@ class _HomePageContentState extends State<HomePageContent> {
                 Expanded(
                   child: Stack(
                     children: [
-                      // CARTE EN BACKGROUND
                       _buildMapBackground(context),
-                      // CONTENU PAR-DESSUS LA CARTE
                       Column(
                         children: [
                           _buildSearchBar(),
                           const Spacer(),
-                          // BlocBuilder : Reconstruit le widget selon l'état du BLoC
                           BlocBuilder<HomeBloc, HomeState>(
                             builder: (context, state) {
                               if (state is HomeLoading) {
-                                // Affiche un loader pendant le chargement
                                 return const SizedBox(
                                   height: 280,
                                   child: Center(
@@ -91,10 +88,8 @@ class _HomePageContentState extends State<HomePageContent> {
                                   ),
                                 );
                               } else if (state is HomeLoaded) {
-                                // Affiche la liste des chauffeurs
                                 return _buildTripCardsSection(state.trips);
                               } else if (state is HomeError) {
-                                // Affiche un message d'erreur
                                 return SizedBox(
                                   height: 280,
                                   child: Center(
@@ -105,7 +100,6 @@ class _HomePageContentState extends State<HomePageContent> {
                                   ),
                                 );
                               }
-                              // État initial
                               return const SizedBox(height: 280);
                             },
                           ),
@@ -127,9 +121,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Widget _buildMapBackground(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-      ),
+      decoration: BoxDecoration(color: Colors.grey.shade200),
       child: Stack(
         children: [
           Center(
@@ -148,11 +140,11 @@ class _HomePageContentState extends State<HomePageContent> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primaryBlue, width: 3),
+                border: Border.all(color: AppColors.primary, width: 3),
               ),
               child: Icon(
                 Icons.location_on,
-                color: AppColors.primaryBlue,
+                color: AppColors.primary,
                 size: 20,
               ),
             ),
@@ -175,7 +167,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 borderRadius: BorderRadius.circular(100),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -208,7 +200,7 @@ class _HomePageContentState extends State<HomePageContent> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -224,9 +216,7 @@ class _HomePageContentState extends State<HomePageContent> {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      decoration: BoxDecoration(
-        color: AppColors.primaryGreen,
-      ),
+      decoration: BoxDecoration(color: AppColors.success),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -245,7 +235,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       return Icon(
                         Icons.person,
                         size: 32,
-                        color: AppColors.primaryGreen,
+                        color: AppColors.success,
                       );
                     },
                   ),
@@ -258,7 +248,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   Text(
                     "Bonjour,",
                     style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                     ),
                   ),
@@ -348,7 +338,6 @@ class _HomePageContentState extends State<HomePageContent> {
               child: TripCardWidget(
                 trip: trips[index],
                 onTap: () {
-                  // Navigation vers TripDetailPage
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -364,8 +353,6 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
-
-
   Widget _buildBottomNavigationBar() {
     return Positioned(
       left: 0,
@@ -377,7 +364,7 @@ class _HomePageContentState extends State<HomePageContent> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -387,42 +374,52 @@ class _HomePageContentState extends State<HomePageContent> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(icon: Icons.home_rounded, label: 'Accueil', index: 0),
-            _buildNavItem(icon: Icons.people_rounded, label: 'Enfants', index: 1),
-            _buildNavItem(icon: Icons.route_rounded, label: 'Mes trajets', index: 2),
-            _buildNavItem(icon: Icons.groups_rounded, label: 'Groupes', index: 3),
-            _buildNavItem(icon: Icons.person_rounded, label: 'Profil', index: 4),
+            _buildNavItem(
+              icon: Icons.people_rounded,
+              label: 'Enfants',
+              index: 1,
+            ),
+            _buildNavItem(
+              icon: Icons.route_rounded,
+              label: 'Mes trajets',
+              index: 2,
+            ),
+            _buildNavItem(
+              icon: Icons.groups_rounded,
+              label: 'Groupes',
+              index: 3,
+            ),
+            _buildNavItem(
+              icon: Icons.person_rounded,
+              label: 'Profil',
+              index: 4,
+            ),
           ],
         ),
       ),
     );
   }
 
-  // 1️⃣ La fonction de navigation / sélection
   void _onBottomNavTap(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
     if (index == 1) {
-      // Navigation vers EnfantsPage
-
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const MainLayout(initialIndex: 1), // 1 = Enfants
+          builder: (_) => const MainLayout(initialIndex: 1),
         ),
       );
     }
-
-    // Si tu veux ajouter d'autres pages pour d'autres index, tu peux le faire ici
   }
-
 
   Widget _buildNavItem({
     required IconData icon,
     required String label,
     required int index,
-   }) {
+  }) {
     final bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => _onBottomNavTap(index),
@@ -434,7 +431,7 @@ class _HomePageContentState extends State<HomePageContent> {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primaryGreen : Colors.grey.shade500,
+              color: isSelected ? AppColors.success : Colors.grey.shade500,
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -443,7 +440,7 @@ class _HomePageContentState extends State<HomePageContent> {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? AppColors.primaryGreen : Colors.grey.shade600,
+                color: isSelected ? AppColors.success : Colors.grey.shade600,
               ),
             ),
           ],
@@ -458,18 +455,14 @@ class _HomePageContentState extends State<HomePageContent> {
       bottom: 90,
       child: FloatingActionButton(
         onPressed: () => _openReportProblem(context),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.success,
         elevation: 4,
         child: SvgPicture.asset(
           'assets/icons/13.svg',
           width: 28,
           height: 28,
-          colorFilter: const ColorFilter.mode(
-            Colors.white,
-            BlendMode.srcIn,
-          ),
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
         ),
-
       ),
     );
   }

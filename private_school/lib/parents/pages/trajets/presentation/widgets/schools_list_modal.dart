@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/school_model.dart';
-import '../../../../utils/app_colors.dart';
+import '../../../../../core/utils/app_colors.dart';
 
 class SchoolsListModal extends StatelessWidget {
   final List<SchoolModel> schools;
 
-  const SchoolsListModal({
-    super.key,
-    required this.schools,
-  });
+  const SchoolsListModal({super.key, required this.schools});
 
   @override
   Widget build(BuildContext context) {
@@ -63,34 +60,35 @@ class SchoolsListModal extends StatelessWidget {
           Expanded(
             child: schools.isEmpty
                 ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.school_outlined,
-                    size: 64,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucune école',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.school_outlined,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aucune école',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            )
+                  )
                 : ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: schools.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final school = schools[index];
-                return _buildSchoolItem(school);
-              },
-            ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: schools.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final school = schools[index];
+                      return _buildSchoolItem(school);
+                    },
+                  ),
           ),
 
           const SizedBox(height: 20),
@@ -104,7 +102,7 @@ class SchoolsListModal extends StatelessWidget {
     final colors = [
       Colors.orange,
       Colors.blue,
-      AppColors.primaryGreen,
+      AppColors.success,
       Colors.purple,
     ];
     final colorIndex = schools.indexOf(school) % colors.length;
@@ -124,31 +122,23 @@ class SchoolsListModal extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: school.icon.isNotEmpty
                 ? ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/${school.icon}',
-                width: 48,
-                height: 48,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.school,
-                    color: iconColor,
-                    size: 24,
-                  );
-                },
-              ),
-            )
-                : Icon(
-              Icons.school,
-              color: iconColor,
-              size: 24,
-            ),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/images/${school.icon}',
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(Icons.school, color: iconColor, size: 24);
+                      },
+                    ),
+                  )
+                : Icon(Icons.school, color: iconColor, size: 24),
           ),
 
           const SizedBox(width: 12),

@@ -1,43 +1,42 @@
-/// Service pour gérer les appels API du profil parent
-/// Chemin: lib/parents/profil/data/services/user_service.dart
-
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
-import '../models/ user_model.dart';
+import '../../../../../core/models/user_model.dart';
 
-
+/// Service for managing parent profile API calls
+/// Handles profile retrieval, updates, and photo management
 class UserService {
   final ApiClient _apiClient = ApiClient();
 
-  /// ✅ Récupérer les informations du compte parent connecté
+  /// Fetch current parent account information
   /// Endpoint: GET /api/parents/account
   Future<UserModel> fetchCurrentUser() async {
     try {
-      print('🔍 Fetching current user profile from API...');
+      debugPrint('🔍 [UserService] Fetching current user profile from API...');
 
-      final response = await _apiClient.get(ApiConstants.account);
+      final response = await _apiClient.get(ApiConstants.parentAccount);
 
-      print('✅ Response received: ${response.statusCode}');
-      print('📦 Data: ${response.data}');
+      debugPrint('✅ [UserService] Response received: ${response.statusCode}');
+      debugPrint('📦 [UserService] Data: ${response.data}');
 
-      // L'API peut retourner soit l'objet direct, soit { data: {...} }
+      // API can return either direct object or { data: {...} }
       final userData = response.data is Map
           ? (response.data['data'] ?? response.data)
           : response.data;
 
       final user = UserModel.fromJson(userData as Map<String, dynamic>);
 
-      print('✅ User profile loaded: ${user.fullName}');
+      debugPrint('✅ [UserService] User profile loaded: ${user.fullName}');
       return user;
     } catch (e) {
-      print('❌ Error fetching user profile: $e');
-      throw Exception('Impossible de charger le profil: $e');
+      debugPrint('❌ [UserService] Error fetching user profile: $e');
+      throw Exception('Unable to load profile: $e');
     }
   }
 
-  /// ✅ Mettre à jour les informations personnelles
+  /// Update personal information
   /// Endpoint: PUT /api/parents/account
   Future<UserModel> updateUserProfile({
     String? firstName,
@@ -47,10 +46,10 @@ class UserService {
     String? address,
   }) async {
     try {
-      print('📝 Updating user profile...');
+      debugPrint('📝 [UserService] Updating user profile...');
 
       final response = await _apiClient.put(
-        ApiConstants.account,
+        ApiConstants.parentAccount,
         data: {
           if (firstName != null) 'firstName': firstName,
           if (lastName != null) 'lastName': lastName,
@@ -60,7 +59,7 @@ class UserService {
         },
       );
 
-      print('✅ Profile updated successfully');
+      debugPrint('✅ [UserService] Profile updated successfully');
 
       final userData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -68,18 +67,18 @@ class UserService {
 
       return UserModel.fromJson(userData as Map<String, dynamic>);
     } catch (e) {
-      print('❌ Error updating profile: $e');
-      throw Exception('Impossible de mettre à jour le profil: $e');
+      debugPrint('❌ [UserService] Error updating profile: $e');
+      throw Exception('Unable to update profile: $e');
     }
   }
 
-  /// ✅ Modifier la photo de profil
+  /// Update profile photo
   /// Endpoint: PUT /api/parents/account/photo
   Future<String> updateProfilePhoto(File photoFile) async {
     try {
-      print('📸 Uploading profile photo...');
+      debugPrint('📸 [UserService] Uploading profile photo...');
 
-      // Créer un FormData pour envoyer le fichier
+      // Create FormData to send the file
       final formData = FormData.fromMap({
         'photo': await MultipartFile.fromFile(
           photoFile.path,
@@ -88,67 +87,69 @@ class UserService {
       });
 
       final response = await _apiClient.put(
-        ApiConstants.accountPhoto,
+        ApiConstants.parentAccountPhoto,
         data: formData,
       );
 
-      print('✅ Photo uploaded successfully');
+      debugPrint('✅ [UserService] Photo uploaded successfully');
 
-      // L'API retourne probablement l'URL de la photo
+      // API probably returns the photo URL
       final photoUrl = response.data is Map
-          ? (response.data['photoUrl'] ?? response.data['photo'] ?? response.data['url'])
+          ? (response.data['photoUrl'] ??
+              response.data['photo'] ??
+              response.data['url'])
           : response.data;
 
       return photoUrl.toString();
     } catch (e) {
-      print('❌ Error uploading photo: $e');
-      throw Exception('Impossible de télécharger la photo: $e');
+      debugPrint('❌ [UserService] Error uploading photo: $e');
+      throw Exception('Unable to upload photo: $e');
     }
   }
 
-  /// ✅ Modifier la photo de profil (depuis un chemin de fichier)
+  /// Update profile photo from file path
   Future<String> updateProfilePhotoFromPath(String photoPath) async {
     try {
       final file = File(photoPath);
       if (!await file.exists()) {
-        throw Exception('Le fichier n\'existe pas');
+        throw Exception('File does not exist');
       }
       return await updateProfilePhoto(file);
     } catch (e) {
-      print('❌ Error updating photo from path: $e');
-      throw Exception('Impossible de mettre à jour la photo: $e');
+      debugPrint('❌ [UserService] Error updating photo from path: $e');
+      throw Exception('Unable to update photo: $e');
     }
   }
 
-  /// ✅ Supprimer la photo de profil
+  /// Delete profile photo
   /// Endpoint: DELETE /api/parents/account/photo
   Future<void> deleteProfilePhoto() async {
     try {
-      print('🗑️ Deleting profile photo...');
+      debugPrint('🗑️ [UserService] Deleting profile photo...');
 
-      await _apiClient.delete(ApiConstants.accountPhoto);
+      await _apiClient.delete(ApiConstants.parentAccountPhoto);
 
-      print('✅ Photo deleted successfully');
+      debugPrint('✅ [UserService] Photo deleted successfully');
     } catch (e) {
-      print('❌ Error deleting photo: $e');
-      throw Exception('Impossible de supprimer la photo: $e');
+      debugPrint('❌ [UserService] Error deleting photo: $e');
+      throw Exception('Unable to delete photo: $e');
     }
   }
 
-  /// ✅ Déconnexion
+  /// Logout
   /// Endpoint: POST /api/auth/logout
   Future<void> logout() async {
     try {
-      print('👋 Logging out...');
+      debugPrint('👋 [UserService] Logging out...');
 
       await _apiClient.post(ApiConstants.logout);
 
-      print('✅ Logged out successfully');
+      debugPrint('✅ [UserService] Logged out successfully');
     } catch (e) {
-      print('❌ Error logging out: $e');
-      // Ne pas throw d'exception pour la déconnexion
-      // On veut déconnecter l'utilisateur même si l'API échoue
-      print('⚠️ Continuing with local logout despite API error');
+      debugPrint('❌ [UserService] Error logging out: $e');
+      // Don't throw exception for logout
+      // We want to log out the user even if the API fails
+      debugPrint('⚠️ [UserService] Continuing with local logout despite API error');
     }
   }
 }

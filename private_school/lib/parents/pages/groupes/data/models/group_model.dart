@@ -22,27 +22,29 @@ class GroupModel {
   });
 
   // Factory pour créer depuis JSON (API)
-  factory GroupModel.fromJson(Map<String, dynamic> json) {
-    return GroupModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      createdBy: json['created_by'] ?? '',
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : DateTime.now(),
-      membersCount: json['members_count'] ?? 0,
-      members: (json['members'] as List<dynamic>?)
-          ?.map((m) => GroupMember.fromJson(m))
-          .toList() ??
-          [],
-      plannings: (json['plannings'] as List<dynamic>?)
-          ?.map((p) => Planning.fromJson(p))
-          .toList() ??
-          [],
-      description: json['description'],
-      avatar: json['avatar'],
-    );
-  }
+ factory GroupModel.fromJson(Map<String, dynamic> json) {
+  return GroupModel(
+    id: json['id']?.toString() ?? '',  
+    name: json['name'] ?? '',
+    createdBy: json['creator_id']?.toString() ?? json['created_by'] ?? '',  
+    createdAt: json['created_at'] != null
+        ? DateTime.parse(json['created_at'])
+        : DateTime.now(),
+    membersCount: json['members_count'] is String 
+        ? int.parse(json['members_count'])  
+        : json['members_count'] ?? 0,
+    members: (json['members'] as List<dynamic>?)
+        ?.map((m) => GroupMember.fromJson(m))
+        .toList() ??
+        [],
+    plannings: (json['plannings'] as List<dynamic>?)
+        ?.map((p) => Planning.fromJson(p))
+        .toList() ??
+        [],
+    description: json['description'],
+    avatar: json['avatar'],
+  );
+}
 
   // Conversion vers JSON (pour l'API)
   Map<String, dynamic> toJson() {

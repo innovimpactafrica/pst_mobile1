@@ -5,7 +5,7 @@ import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
 import '../../data/repositories/group_repository.dart';
-import 'package:private_school/parents/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class CreateGroupModal extends StatefulWidget {
   const CreateGroupModal({super.key});
@@ -57,17 +57,14 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                   'Groupe créé avec succès',
                   style: GoogleFonts.inter(),
                 ),
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.success,
               ),
             );
           }
           if (state is GroupError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  state.message,
-                  style: GoogleFonts.inter(),
-                ),
+                content: Text(state.message, style: GoogleFonts.inter()),
                 backgroundColor: Colors.red,
               ),
             );
@@ -147,7 +144,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.primaryGreen),
+                            borderSide: BorderSide(color: AppColors.success),
                           ),
                         ),
                         validator: (value) {
@@ -191,7 +188,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.primaryGreen),
+                            borderSide: BorderSide(color: AppColors.success),
                           ),
                         ),
                       ),
@@ -202,9 +199,11 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : () => _createGroup(context),
+                          onPressed: isLoading
+                              ? null
+                              : () => _createGroup(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
+                            backgroundColor: AppColors.success,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -214,20 +213,20 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                           ),
                           child: isLoading
                               ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(
-                            'Créer',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                                  'Créer',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

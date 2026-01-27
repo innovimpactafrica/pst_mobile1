@@ -1,7 +1,7 @@
-/// Repository d'authentification - Logique métier
-/// Chemin: lib/parents/authentification/data/repositories/auth_repository.dart
-
-import '../models/user_model.dart';
+// Repository d'authentification - Logique métier
+// Chemin: lib/parents/authentification/data/repositories/auth_repository.dart
+import 'package:flutter/foundation.dart';
+import 'package:private_school/core/models/user_model.dart';
 import '../services/auth_service.dart';
 
 class AuthRepository {
@@ -22,7 +22,7 @@ class AuthRepository {
         email: email,
       );
     } catch (e) {
-      print('❌ Repository: Register failed - $e');
+      debugPrint('❌ Repository: Register failed - $e');
       throw Exception('Inscription échouée: $e');
     }
   }
@@ -33,12 +33,9 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      return await _authService.loginParent(
-        email: email,
-        password: password,
-      );
+      return await _authService.loginParent(email: email, password: password);
     } catch (e) {
-      print('❌ Repository: Login failed - $e');
+      debugPrint('❌ Repository: Login failed - $e');
       throw Exception('Connexion échouée: $e');
     }
   }
@@ -51,19 +48,17 @@ class AuthRepository {
     try {
       return await _authService.verifyOtp(email: email, otp: otp);
     } catch (e) {
-      print('❌ Repository: OTP verification failed - $e');
+      debugPrint('❌ Repository: OTP verification failed - $e');
       throw Exception('Vérification échouée: $e');
     }
   }
 
   /// Mot de passe oublié
-  Future<Map<String, dynamic>> forgotPassword({
-    required String email,
-  }) async {
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
       return await _authService.forgotPassword(email: email);
     } catch (e) {
-      print('❌ Repository: Forgot password failed - $e');
+      debugPrint('❌ Repository: Forgot password failed - $e');
       throw Exception('Erreur: $e');
     }
   }
@@ -81,7 +76,7 @@ class AuthRepository {
         newPassword: newPassword,
       );
     } catch (e) {
-      print('❌ Repository: Reset password failed - $e');
+      debugPrint('❌ Repository: Reset password failed - $e');
       throw Exception('Réinitialisation échouée: $e');
     }
   }
@@ -91,7 +86,7 @@ class AuthRepository {
     try {
       await _authService.logout();
     } catch (e) {
-      print('❌ Repository: Logout failed - $e');
+      debugPrint('❌ Repository: Logout failed - $e');
       throw Exception('Déconnexion échouée: $e');
     }
   }
@@ -101,7 +96,7 @@ class AuthRepository {
     try {
       return await _authService.getCurrentUser();
     } catch (e) {
-      print('❌ Repository: Get user failed - $e');
+      debugPrint('❌ Repository: Get user failed - $e');
       throw Exception('Impossible de récupérer l\'utilisateur: $e');
     }
   }
