@@ -1,12 +1,10 @@
-// Main layout for driver interface with bottom navigation
+// Main layout with bottom navigation - UPDATED
 // Path: lib/chauffeurs/widgets/main_layout.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
-import 'package:private_school/parents/pages/profil/presentation/pages/profil_page.dart';
+import 'package:private_school/chauffeurs/pages/profil/presentation/pages/profile_main_page.dart';
+
 import 'package:private_school/parents/pages/trajets/presentation/pages/trajets_page.dart';
 import '../pages/abonnement/presentation/pages/abonnement_page.dart';
 import 'bottom_nav_bar.dart';
@@ -48,36 +46,28 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        children: [
-          // Index 0 - Dashboard
-          BlocProvider(
-            create: (context) => DashboardBloc(
-              repository: DashboardRepository(),
-            ),
-            child: const DashboardPage(),
-          ),
-          // Index 1 - Trajets
-          const TrajetsPage(),
-          // Index 2 - Abonnement
-          const AbonnementPage(),
-          // Index 3 - Profil
-          const ProfilPage(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onNavTap,
-      ),
-    );
-  }
+ @override
+Widget build(BuildContext context) {
+  return Scaffold( // <--- On retire le MultiBlocProvider d'ici !
+    body: PageView(
+      controller: _pageController,
+      physics: const NeverScrollableScrollPhysics(),
+      onPageChanged: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      children: const [
+        DashboardPage(),
+        TrajetsPage(),
+        AbonnementPage(),
+        ProfileMainPage(), // Cette page utilisera maintenant le Bloc global
+      ],
+    ),
+    bottomNavigationBar: BottomNavBar(
+      currentIndex: _currentIndex,
+      onTap: _onNavTap,
+    ),
+  );
+}
 }

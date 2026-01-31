@@ -1,65 +1,59 @@
-class DocumentModel {
-  final String id;
-  final String name;
-  final String type; // 'license' or 'id_card'
-  final String? fileUrl;
-  final int? fileSizeKB;
-  final DateTime? uploadedAt;
-  final bool isVerified;
+/// Driver information section from API
+/// UPDATED to include document fields
+class DriverInfo {
+  final int id;
+  final String status;
+  final String? photoProfile;
+  final String? licenseDocument;  // NEW: Permis de conduire
+  final String? idDocument;       // NEW: CNI/Passeport
+  final String? vehiclePhoto;     // NEW: Photo du véhicule
 
-  DocumentModel({
+  DriverInfo({
     required this.id,
-    required this.name,
-    required this.type,
-    this.fileUrl,
-    this.fileSizeKB,
-    this.uploadedAt,
-    this.isVerified = false,
+    required this.status,
+    this.photoProfile,
+    this.licenseDocument,
+    this.idDocument,
+    this.vehiclePhoto,
   });
 
-  factory DocumentModel.fromJson(Map<String, dynamic> json) {
-    return DocumentModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      name: json['name'] ?? json['nom'] ?? '',
-      type: json['type'] ?? '',
-      fileUrl: json['fileUrl'] ?? json['url'],
-      fileSizeKB: json['fileSizeKB'] ?? json['tailleFichier'],
-      uploadedAt: json['uploadedAt'] != null 
-          ? DateTime.parse(json['uploadedAt'])
-          : null,
-      isVerified: json['isVerified'] ?? json['verifie'] ?? false,
+  factory DriverInfo.fromJson(Map<String, dynamic> json) {
+    return DriverInfo(
+      id: json['id'] ?? 0,
+      status: json['status'] ?? '',
+      photoProfile: json['photo_profil'],
+      licenseDocument: json['license_document'],
+      idDocument: json['id_document'],
+      vehiclePhoto: json['vehicle_photo'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'type': type,
-      'fileUrl': fileUrl,
-      'fileSizeKB': fileSizeKB,
-      'uploadedAt': uploadedAt?.toIso8601String(),
-      'isVerified': isVerified,
+      'status': status,
+      if (photoProfile != null) 'photo_profil': photoProfile,
+      if (licenseDocument != null) 'license_document': licenseDocument,
+      if (idDocument != null) 'id_document': idDocument,
+      if (vehiclePhoto != null) 'vehicle_photo': vehiclePhoto,
     };
   }
 
-  String get formattedSize {
-    if (fileSizeKB == null) return '';
-    if (fileSizeKB! < 1024) {
-      return '$fileSizeKB Ko';
-    } else {
-      return '${(fileSizeKB! / 1024).toStringAsFixed(1)} Mo';
-    }
-  }
-
-  String get displayName {
-    switch (type) {
-      case 'license':
-        return 'Permis de conduire';
-      case 'id_card':
-        return 'CNI/Passeport';
-      default:
-        return name;
-    }
+  DriverInfo copyWith({
+    int? id,
+    String? status,
+    String? photoProfile,
+    String? licenseDocument,
+    String? idDocument,
+    String? vehiclePhoto,
+  }) {
+    return DriverInfo(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      photoProfile: photoProfile ?? this.photoProfile,
+      licenseDocument: licenseDocument ?? this.licenseDocument,
+      idDocument: idDocument ?? this.idDocument,
+      vehiclePhoto: vehiclePhoto ?? this.vehiclePhoto,
+    );
   }
 }

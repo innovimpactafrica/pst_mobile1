@@ -1,108 +1,166 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+
+
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/driver_profile_model.dart';
 
-/// Driver profile service
-/// Handles API calls for driver profile operations
+/// Service for driver profile API calls
 class DriverProfileService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Fetch driver profile from API
-  /// GET /api/drivers/profile
-  /// Returns: { success: true, data: { personal, driver, vehicle } }
+  /// Fetch driver profile from API (alias for getProfile)
   Future<DriverProfileModel> fetchProfile() async {
+    return await getProfile();
+  }
+
+  /// Get driver profile from API
+  Future<DriverProfileModel> getProfile() async {
     try {
       debugPrint('🔍 [DriverProfileService] Fetching driver profile...');
-
       final response = await _apiClient.get(ApiConstants.driverProfile);
-
       debugPrint('✅ [DriverProfileService] Profile fetched successfully');
       debugPrint('📦 [DriverProfileService] Response: ${response.data}');
 
-      // Extract data from response
-      final responseData = response.data;
-
-      // API returns: { success: true, data: { personal, driver, vehicle } }
-      final profileData =
-          responseData is Map && responseData.containsKey('data')
-              ? responseData['data']
-              : responseData;
-
-      return DriverProfileModel.fromJson(profileData as Map<String, dynamic>);
+      if (response.data['success'] == true && response.data['data'] != null) {
+        return DriverProfileModel.fromJson(response.data['data']);
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } on DioException catch (e) {
+      debugPrint('❌ [DriverProfileService] DioException: ${e.message}');
+      throw Exception(_handleError(e));
     } catch (e) {
-      debugPrint('❌ [DriverProfileService] Error fetching profile: $e');
-      throw Exception('Unable to load driver profile: $e');
+      debugPrint('❌ [DriverProfileService] Error: $e');
+      throw Exception('Failed to load profile: $e');
     }
   }
 
-  /// Update driver profile
-  /// PUT /api/drivers/profile
+  /// Update driver profile with FormData (supports file upload)
+  /// ⚠️ IMPORTANT: Cet endpoint gère UNIQUEMENT les infos personnelles (nom, téléphone, adresse, photo_profil)
+  /// Pour véhicule et documents, utiliser updateDriverById()
+  Future<DriverProfileModel> updateProfileWithPhoto(FormData formData) async {
+    try {
+      debugPrint(
+        '📝 [DriverProfileService] Updating driver profile with photo...',
+      );
+      debugPrint('📦 [DriverProfileService] FormData fields: ${formData.fields}');
+      
+      final response = await _apiClient.put(
+        ApiConstants.driverProfile,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      
+      debugPrint('✅ [DriverProfileService] Profile updated successfully');
+      debugPrint('📦 [DriverProfileService] Response: ${response.data}');
+
+      if (response.data['success'] == true) {
+        debugPrint('🔄 [DriverProfileService] Reloading complete profile...');
+        return await getProfile();
+      } else {
+        throw Exception(
+          response.data['message'] ?? 'Erreur lors de la mise à jour',
+        );
+      }
+    } on DioException catch (e) {
+      debugPrint(
+        '❌ [DriverProfileService] Error updating profile: ${e.message}',
+      );
+      throw Exception(_handleError(e));
+    } catch (e) {
+      debugPrint('❌ [DriverProfileService] Error: $e');
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
+/// 🆕 NEW: Update driver by ID using ADMIN endpoint
+/// ✅ Utilisé pour: véhicule (vehicle_brand, vehicle_color, vehicle_plate, capacity, vehicle_photo)
+/// ✅ Utilisé pour: documents (license_document, id_document)
+/// ⚠️ NE PAS utiliser pour infos personnelles (nom, téléphone, adresse)
+Future<DriverProfileModel> updateDriverById({
+  required String driverId,
+  required FormData formData,
+}) async {
+  try {
+    debugPrint(
+      '🔧 [DriverProfileService] Updating driver via ADMIN endpoint...',
+    );
+    debugPrint('👤 [DriverProfileService] Driver ID: $driverId');
+    debugPrint('📦 [DriverProfileService] FormData fields: ${formData.fields}');
+    debugPrint('📎 [DriverProfileService] FormData files: ${formData.files.length} file(s)');
+    
+    final response = await _apiClient.put(
+      ApiConstants.updateDriverById(driverId),
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    
+    debugPrint('✅ [DriverProfileService] Driver updated successfully');
+    debugPrint('📦 [DriverProfileService] Response: ${response.data}');
+
+    // 🔧 CORRECTION: Le backend retourne directement l'objet, pas {success: true, data: {...}}
+    // On vérifie juste que la réponse contient un ID
+    if (response.data != null && response.data['id'] != null) {
+      debugPrint('🔄 [DriverProfileService] Reloading complete profile...');
+      return await getProfile();
+    } else {
+      throw Exception('Réponse invalide du serveur');
+    }
+  } on DioException catch (e) {
+    debugPrint(
+      '❌ [DriverProfileService] Error updating driver: ${e.message}',
+    );
+    if (e.response != null) {
+      debugPrint('📦 [DriverProfileService] Error response: ${e.response!.data}');
+    }
+    throw Exception(_handleError(e));
+  } catch (e) {
+    debugPrint('❌ [DriverProfileService] Error: $e');
+    throw Exception('Failed to update driver: $e');
+  }
+}
+
+  /// Update driver profile (without file upload)
   Future<DriverProfileModel> updateProfile({
-    String? firstName,
-    String? lastName,
-    String? phone,
-    String? email,
-    String? address,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String address,
   }) async {
     try {
-      debugPrint('📝 [DriverProfileService] Updating driver profile...');
+      final formData = FormData.fromMap({
+        'first_name': firstName,
+        'last_name': lastName,
+        'phone': phone,
+        'address': address,
+      });
 
       final response = await _apiClient.put(
         ApiConstants.driverProfile,
-        data: {
-          if (firstName != null) 'first_name': firstName,
-          if (lastName != null) 'last_name': lastName,
-          if (phone != null) 'phone': phone,
-          if (email != null) 'email': email,
-          if (address != null) 'address': address,
-        },
+        data: formData,
       );
 
-      debugPrint('✅ [DriverProfileService] Profile updated successfully');
-
-      final responseData = response.data;
-      final profileData =
-          responseData is Map && responseData.containsKey('data')
-              ? responseData['data']
-              : responseData;
-
-      return DriverProfileModel.fromJson(profileData as Map<String, dynamic>);
+      if (response.data['success'] == true) {
+        debugPrint('✅ Mise à jour réussie, rechargement du profil complet...');
+        return await getProfile();
+      } else {
+        throw Exception(response.data['message'] ?? 'Erreur de mise à jour');
+      }
     } catch (e) {
-      debugPrint('❌ [DriverProfileService] Error updating profile: $e');
-      throw Exception('Unable to update driver profile: $e');
+      throw Exception('Failed to update profile: $e');
     }
   }
 
-  /// Update profile photo
-  /// PUT /api/drivers/profile/photo (endpoint to be confirmed)
-  Future<DriverProfileModel> updateProfilePhoto(File photo) async {
-    try {
-      debugPrint('📸 [DriverProfileService] Uploading profile photo...');
-
-      // This would need multipart/form-data upload
-      // Implementation depends on your API requirements
-      throw UnimplementedError('Photo upload not yet implemented');
-    } catch (e) {
-      debugPrint('❌ [DriverProfileService] Error uploading photo: $e');
-      rethrow;
+  String _handleError(DioException e) {
+    if (e.response != null) {
+      final data = e.response!.data;
+      if (data is Map<String, dynamic>) {
+        return data['message'] ?? data['error'] ?? 'Une erreur est survenue';
+      }
+      return 'Erreur serveur: ${e.response!.statusMessage}';
     }
-  }
-
-  /// Delete profile photo
-  /// DELETE /api/drivers/profile/photo (endpoint to be confirmed)
-  Future<void> deleteProfilePhoto() async {
-    try {
-      debugPrint('🗑️ [DriverProfileService] Deleting profile photo...');
-
-      // Check if endpoint exists in your API
-      // await _apiClient.delete(ApiConstants.driverProfilePhoto);
-
-      throw UnimplementedError('Photo delete not yet implemented');
-    } catch (e) {
-      debugPrint('❌ [DriverProfileService] Error deleting photo: $e');
-      rethrow;
-    }
+    return 'Erreur de connexion';
   }
 }

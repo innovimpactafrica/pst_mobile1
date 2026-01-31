@@ -65,11 +65,47 @@ class AppConstants {
   static const double modalHandleWidth = 40.0;
   static const double modalHandleHeight = 4.0;
 
+  // File Upload
+  static const int maxFileSizeKB = 10240; // 10 MB
+  static const List<String> allowedDocumentExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+
   // Labels - General
   static const String labelRetry = "Réessayer";
   static const String labelToday = "Aujourd'hui";
   static const String labelTomorrow = "Demain";
   static const String labelViewAll = "Voir plus";
+
+  // Labels - Documents
+  static const String labelDocuments = 'Mes Documents';
+  static const String labelLicense = 'Permis de conduire';
+  static const String labelIdCard = 'CNI/Passeport';
+  static const String labelUpdate = 'Mettre à jour les documents';
+  static const String labelValidated = 'Validé ✓';
+  static const String labelCurrentDocument = 'Document actuel';
+  static const String labelChooseFile = 'Choisissez un fichier';
+  static const String labelBrowse = 'Parcourir';
+  static const String labelChangeFile = 'Changer le fichier';
+  static const String labelReplaceFile = 'Remplacer le fichier';
+  static const String labelFormats = 'Formats: JPEG, PNG, PDF jusqu\'à 10 Mo';
+  static const String labelInfoMessage = 'Vous pouvez mettre à jour vos documents existants';
+
+  // Labels - Vehicle
+  static const String labelVehicle = 'Mon Véhicule';
+  static const String labelBrand = 'Marque du véhicule';
+  static const String labelColor = 'Couleur';
+  static const String labelPlate = 'Plaque d\'immatriculation';
+  static const String labelCapacity = 'Nombre de places';
+  static const String labelEdit = 'Modifier les informations';
+  static const String labelSave = 'Enregistrer les modifications';
+  static const String labelCancel = 'Annuler';
+  static const String labelTakePhoto = 'Prendre une photo';
+  static const String labelGallery = 'Galerie';
+
+  // Hints - Vehicle
+  static const String hintBrand = 'Ex: Toyota';
+  static const String hintColor = 'Ex: Blanc';
+  static const String hintPlate = 'Ex: DK-XXXX-XX';
+  static const String hintCapacity = 'Ex: 4';
 
   // Labels - Trips
   static const String labelMyTrips = "Mes trajets";
@@ -85,10 +121,9 @@ class AppConstants {
   static const String labelReject = "Rejeter";
   static const String labelStartTrip = "Démarrer le trajet";
   static const String labelCancelTrip = "Annuler le trajet";
-  static const String labelNoPassengers = "Aucun passager";              
-  static const String labelSchoolNotSpecified = "École non spécifiée"; 
-   static const String labelNoSchools = "Aucune école"; 
-  
+  static const String labelNoPassengers = "Aucun passager";
+  static const String labelSchoolNotSpecified = "École non spécifiée";
+  static const String labelNoSchools = "Aucune école";
 
   // Labels - Dashboard
   static const String labelHome = "Accueil";
@@ -108,6 +143,11 @@ class AppConstants {
   static const String labelSubscriptionExpired = "Expiré";
   static const String labelDaysRemaining = "jours restants";
 
+  // Labels - Navigation
+  static const String labelTransactions = "Transactions";
+  static const String labelStart = "Commencer";
+  static const String labelNotifications = "Notifications";
+
   // Status
   static const String statusPending = "pending";
   static const String statusActive = "active";
@@ -115,13 +155,30 @@ class AppConstants {
   static const String statusCompleted = "completed";
   static const String statusCanceled = "canceled";
 
-  // Success messages
+  // Success messages - Documents
+  static const String successFileSelected = 'Fichier sélectionné avec succès';
+  static const String successUpload = 'Documents mis à jour avec succès';
+
+  // Success messages - Vehicle
+  static const String successVehicleUpdate = 'Véhicule mis à jour avec succès !';
+
+  // Success messages - Trips
   static const String successTripAccepted = "Trajet accepté avec succès";
   static const String successTripStarted = "Trajet démarré";
   static const String successTripCompleted = "Trajet terminé";
   static const String successTripCanceled = "Trajet annulé";
 
-  // Error messages
+  // Error messages - Documents
+  static const String errorFileTooBig = 'Le fichier est trop volumineux. Maximum 10 Mo.';
+  static const String errorPickFile = 'Erreur lors de la sélection du fichier';
+  static const String errorNoFile = 'Veuillez sélectionner au moins un document à mettre à jour';
+  static const String errorUpload = 'Erreur lors de l\'upload';
+  static const String errorNoDriverId = 'Erreur: ID du chauffeur introuvable';
+
+  // Error messages - General
+  static const String errorUpdate = 'Erreur';
+
+  // Error messages - Trips
   static const String errorLoadTrips = "Failed to load trips";
   static const String errorCreateTrip = "Failed to create trip";
   static const String errorStartTrip = "Failed to start trip";
@@ -129,15 +186,10 @@ class AppConstants {
   static const String errorCancelTrip = "Failed to cancel trip";
 
   // Assets
-static const String welcomeBackgroundImage = 'assets/images/1.png';
+  static const String welcomeBackgroundImage = 'assets/images/1.png';
 
-// Labels
-static const String labelStart = "Commencer";
-static const String welcomeTitle1 = "Bienvenue sur Private";
-static const String welcomeTitle2 = "School Transport";
-static const String welcomeDescription = "Votre partenaire de confiance pour le confort et la ponctualité au service des élèves.";
-
-// Labels - Navigation
-static const String labelTransactions = "Transactions";
-
+  // Welcome
+  static const String welcomeTitle1 = "Bienvenue sur Private";
+  static const String welcomeTitle2 = "School Transport";
+  static const String welcomeDescription = "Votre partenaire de confiance pour le confort et la ponctualité au service des élèves.";
 }

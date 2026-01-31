@@ -47,6 +47,10 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
   password: event.password,
   licenseNumber: event.licenseNumber,
   vehicleType: event.vehicleType,
+  vehicleColor: event.vehicleColor,   
+  licenseFile: event.licenseFile,     
+  idCardFile: event.idCardFile,       
+  vehicleFile: event.vehicleFile,
 );
 
 emit(DriverOTPSent(event.phone));

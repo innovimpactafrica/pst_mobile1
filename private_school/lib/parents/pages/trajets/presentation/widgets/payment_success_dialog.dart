@@ -45,7 +45,7 @@ class PaymentSuccessDialog extends StatelessWidget {
 
             // MESSAGE
             Text(
-              'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+              'Lorem Ipsum is simply dummy text of the debugPrinting and typesetting industry.',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: Colors.grey.shade600,

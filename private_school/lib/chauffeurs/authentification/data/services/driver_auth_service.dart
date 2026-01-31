@@ -2,6 +2,9 @@
 // Path: lib/chauffeurs/authentification/data/services/driver_auth_service.dart
 
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
+
 import '../../../../core/network/api_client.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../models/driver_model.dart';
@@ -18,7 +21,7 @@ class DriverAuthService {
     final response = await _apiClient.post(
       '/api/auth/login/driver',
       data: {
-        'email': phone,  // API expects "email" field
+        'email': phone, // API expects "email" field
         'password': password,
       },
     );
@@ -28,8 +31,7 @@ class DriverAuthService {
         : {'data': response.data};
 
     // Handle different API response formats
-    final accessToken =
-        responseData['accessToken'] ?? responseData['token'];
+    final accessToken = responseData['accessToken'] ?? responseData['token'];
     final refreshToken = responseData['refreshToken'];
     final userData =
         responseData['driver'] ?? responseData['user'] ?? responseData['data'];
@@ -51,10 +53,7 @@ class DriverAuthService {
     // Create DriverModel from JSON
     final driver = DriverModel.fromJson(userData as Map<String, dynamic>);
 
-    return {
-      'token': accessToken,
-      'driver': driver,
-    };
+    return {'token': accessToken, 'driver': driver};
   }
 
   Future<Map<String, dynamic>> register({
@@ -65,68 +64,76 @@ class DriverAuthService {
     required String password,
     String? licenseNumber,
     String? vehicleType,
+    String? vehicleColor,
+    File? licenseFile,
+    File? idCardFile,
+    File? vehicleFile,
   }) async {
-    final response = await _apiClient.post(
-      '/api/auth/register-driver',
-      data: {
+    try {
+      final Map<String, dynamic> dataMap = {
         'firstName': firstName,
         'lastName': lastName,
         'phone': phone,
         'email': email,
         'password': password,
-        if (licenseNumber != null) 'licenseNumber': licenseNumber,
-        if (vehicleType != null) 'vehicleType': vehicleType,
-      },
-    );
+        'licenseNumber': licenseNumber,
+        'vehicleType': vehicleType,
+        'vehicleColor': vehicleColor,
+      };
 
-    final responseData = response.data is Map
-        ? response.data
-        : {'data': response.data};
+      if (licenseFile != null) {
+        dataMap['licensePhoto'] = await MultipartFile.fromFile(
+          licenseFile.path,
+          filename: 'license.jpg',
+        );
+      }
+      if (idCardFile != null) {
+        dataMap['idCardPhoto'] = await MultipartFile.fromFile(
+          idCardFile.path,
+          filename: 'idcard.jpg',
+        );
+      }
+      if (vehicleFile != null) {
+        dataMap['vehiclePhoto'] = await MultipartFile.fromFile(
+          vehicleFile.path,
+          filename: 'vehicle.jpg',
+        );
+      }
 
-    final accessToken =
-        responseData['accessToken'] ?? responseData['token'];
-    final refreshToken = responseData['refreshToken'];
-    final userData =
-        responseData['driver'] ?? responseData['user'] ?? responseData['data'];
+      final formData = FormData.fromMap(dataMap);
+      final response = await _apiClient.post(
+        '/api/auth/register-driver',
+        data: formData,
+      );
 
-    if (accessToken != null) {
-      await _storage.saveAccessToken(accessToken);
+      final responseData = response.data is Map
+          ? response.data
+          : {'data': response.data};
+      final accessToken = responseData['accessToken'] ?? responseData['token'];
+      final userData =
+          responseData['driver'] ??
+          responseData['user'] ??
+          responseData['data'];
+
+      if (accessToken != null) await _storage.saveAccessToken(accessToken);
+      if (userData != null) await _storage.saveUserData(jsonEncode(userData));
+
+      final driver = DriverModel.fromJson(userData as Map<String, dynamic>);
+      return {'token': accessToken, 'driver': driver};
+    } catch (e) {
+      rethrow;
     }
-
-    if (refreshToken != null) {
-      await _storage.saveRefreshToken(refreshToken);
-    }
-
-    if (userData != null) {
-      await _storage.saveUserData(jsonEncode(userData));
-    }
-
-    final driver = DriverModel.fromJson(userData as Map<String, dynamic>);
-
-    return {
-      'token': accessToken,
-      'driver': driver,
-    };
   }
 
-  Future<void> verifyOTP({
-    required String phone,
-    required String otp,
-  }) async {
+  Future<void> verifyOTP({required String phone, required String otp}) async {
     await _apiClient.post(
       '/api/auth/verify-otp',
-      data: {
-        'phone': phone,
-        'otp': otp,
-      },
+      data: {'phone': phone, 'otp': otp},
     );
   }
 
   Future<void> forgotPassword({required String phone}) async {
-    await _apiClient.post(
-      '/api/auth/forgot-password',
-      data: {'phone': phone},
-    );
+    await _apiClient.post('/api/auth/forgot-password', data: {'phone': phone});
   }
 
   Future<void> resetPassword({
@@ -136,11 +143,7 @@ class DriverAuthService {
   }) async {
     await _apiClient.post(
       '/api/auth/reset-password',
-      data: {
-        'phone': phone,
-        'otp': otp,
-        'newPassword': newPassword,
-      },
+      data: {'phone': phone, 'otp': otp, 'newPassword': newPassword},
     );
   }
 

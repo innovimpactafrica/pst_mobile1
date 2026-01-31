@@ -96,8 +96,8 @@ class UserService {
       // API probably returns the photo URL
       final photoUrl = response.data is Map
           ? (response.data['photoUrl'] ??
-              response.data['photo'] ??
-              response.data['url'])
+                response.data['photo'] ??
+                response.data['url'])
           : response.data;
 
       return photoUrl.toString();
@@ -149,7 +149,9 @@ class UserService {
       debugPrint('❌ [UserService] Error logging out: $e');
       // Don't throw exception for logout
       // We want to log out the user even if the API fails
-      debugPrint('⚠️ [UserService] Continuing with local logout despite API error');
+      debugPrint(
+        '⚠️ [UserService] Continuing with local logout despite API error',
+      );
     }
   }
 }

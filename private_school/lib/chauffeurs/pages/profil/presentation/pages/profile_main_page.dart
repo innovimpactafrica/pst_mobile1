@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
+import '../../../../../core/utils/image_url_helper.dart';
 import '../../domain/bloc/driver_profile_bloc.dart';
 import '../../domain/bloc/driver_profile_event.dart';
 import '../../domain/bloc/driver_profile_state.dart';
 import 'personal_info_page.dart';
 import 'vehicle_info_page.dart';
 import 'documents_page.dart';
-import 'notifications_page.dart';
 import 'payment_history_page.dart';
 import 'reports_page.dart';
+
+// ← AJOUTER CET IMPORT
+import '../../../dashboard/domain/bloc/notification_bloc.dart';
+import '../../../dashboard/domain/bloc/notification_state.dart';
 
 /// Driver profile main page
 /// Displays driver information and menu options
@@ -33,7 +38,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary, // Purple header background
+      backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Column(
           children: [
@@ -159,7 +164,11 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                         .withValues(alpha: 0.1),
                                     backgroundImage: profile.photo != null &&
                                             profile.photo!.isNotEmpty
-                                        ? NetworkImage(profile.photo!)
+                                        ? NetworkImage(
+                                            ImageUrlHelper.getFullImageUrl(
+                                              profile.photo!,
+                                            ),
+                                          )
                                         : null,
                                     child: profile.photo == null ||
                                             profile.photo!.isEmpty
@@ -302,25 +311,16 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) =>
-                                              const DocumentsPage(),
+                                             DocumentsPage(profile: profile),
                                         ),
                                       );
                                     },
                                   ),
                                   _buildDivider(),
-                                  _buildMenuItem(
-                                    icon: Icons.notifications_outlined,
-                                    title: 'Notifications',
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const NotificationsPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                  
+                                  // ← REMPLACER CE BLOC PAR LA VERSION AVEC BADGE
+                                  _buildNotificationMenuItem(),
+                                  
                                   _buildDivider(),
                                   _buildMenuItem(
                                     icon: Icons.payment_outlined,
@@ -415,6 +415,103 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
           ],
         ),
       ),
+    );
+  }
+
+  // ← NOUVELLE MÉTHODE: Bouton Notifications avec badge
+  Widget _buildNotificationMenuItem() {
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, state) {
+        int unreadCount = 0;
+
+        if (state is NotificationLoaded) {
+          unreadCount = state.unreadCount;
+        }
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const NotificationsPage(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingXL,
+              vertical: AppConstants.spacingL,
+            ),
+            child: Row(
+              children: [
+                // Icon with colored background
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.success,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: AppConstants.spacingL),
+
+                // Title
+                Expanded(
+                  child: Text(
+                    'Notifications',
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeL,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+
+                // Badge + Chevron
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Badge rouge si notifications non lues
+                    if (unreadCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: AppConstants.fontSizeS,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

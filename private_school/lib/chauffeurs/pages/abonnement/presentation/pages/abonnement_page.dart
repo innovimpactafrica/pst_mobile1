@@ -8,7 +8,6 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/subscription_bloc.dart';
 import '../../domain/bloc/subscription_event.dart';
 import '../../domain/bloc/subscription_state.dart';
-import '../../data/services/subscription_service.dart';
 import '../../data/models/subscription_model.dart';
 import '../widgets/subscription_card.dart';
 import '../widgets/current_subscription_card.dart';
@@ -47,11 +46,12 @@ class _AbonnementPageState extends State<AbonnementPage> {
             Expanded(
               child: BlocListener<SubscriptionBloc, SubscriptionState>(
                 listener: (context, state) {
-                  if (state is CurrentSubscriptionLoaded) {
-                    setState(() {
-                      _currentSubscription = state.subscription;
-                    });
-                  } else if (state is SubscriptionActive) {
+                 if (state is CurrentSubscriptionLoaded) {
+                 debugPrint("Abonnement reçu: ${state.subscription?.plan}");
+                 setState(() {
+                 _currentSubscription = state.subscription;
+                });
+                } else if (state is SubscriptionActive) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: const Text('Abonnement activé avec succès !'),

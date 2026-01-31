@@ -1,7 +1,6 @@
 
 import 'package:equatable/equatable.dart';
 import '../../data/models/subscription_model.dart';
-import '../../data/services/subscription_service.dart';
 
 abstract class SubscriptionState extends Equatable {
   @override

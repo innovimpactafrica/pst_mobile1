@@ -1,6 +1,8 @@
 // Driver authentication repository
 // Path: lib/chauffeurs/authentification/data/repositories/driver_auth_repository.dart
 
+import 'dart:io';
+
 import '../../../../core/storage/secure_storage.dart';
 import '../models/driver_model.dart';
 import '../services/driver_auth_service.dart';
@@ -29,6 +31,10 @@ class DriverAuthRepository {
     required String password,
     String? licenseNumber,
     String? vehicleType,
+    String? vehicleColor, 
+    File? licenseFile,    
+    File? idCardFile,     
+    File? vehicleFile,    
   }) async {
     final result = await _authService.register(
       firstName: firstName,
@@ -38,6 +44,10 @@ class DriverAuthRepository {
       password: password,
       licenseNumber: licenseNumber,
       vehicleType: vehicleType,
+      vehicleColor: vehicleColor,
+      licenseFile: licenseFile,
+      idCardFile: idCardFile,
+      vehicleFile: vehicleFile,
     );
     return result['driver'] as DriverModel;
   }

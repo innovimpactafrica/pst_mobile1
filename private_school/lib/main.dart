@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:private_school/chauffeurs/pages/abonnement/data/services/subscription_service.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_bloc.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
 import 'package:private_school/chauffeurs/pages/trajets/presentation/pages/trip_page.dart';
@@ -23,17 +26,24 @@ import 'package:private_school/parents/pages/enfants/domain/bloc/child_bloc.dart
 import 'package:private_school/parents/authentification/domain/bloc/auth_bloc.dart';
 
 // Driver imports
-import 'package:private_school/chauffeurs/pages/authentification/connexion.dart' as driver_auth;
-import 'package:private_school/chauffeurs/pages/authentification/inscription.dart' as driver_auth;
-import 'package:private_school/chauffeurs/pages/authentification/mdp_oublie.dart' as driver_auth;
-//import 'package:private_school/chauffeurs/pages/authentification/verification.dart' as driver_auth;
-//import 'package:private_school/chauffeurs/pages/authentification/creer_mdp.dart' as driver_auth;
+import 'package:private_school/chauffeurs/pages/authentification/connexion.dart'
+    as driver_auth;
+import 'package:private_school/chauffeurs/pages/authentification/inscription.dart'
+    as driver_auth;
+import 'package:private_school/chauffeurs/pages/authentification/mdp_oublie.dart'
+    as driver_auth;
+
 import 'package:private_school/chauffeurs/authentification/domain/bloc/driver_auth_bloc.dart';
 import 'package:private_school/chauffeurs/authentification/data/repositories/driver_auth_repository.dart';
 
 import 'package:private_school/chauffeurs/pages/abonnement/domain/bloc/subscription_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/repositories/subscription_repository.dart';
 
+import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_bloc.dart';
+import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_profile_repository.dart';
+
+import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
+import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,37 +59,39 @@ void main() async {
     MultiBlocProvider(
       providers: [
         // Parent BLoCs
-        BlocProvider<ChildBloc>(
-          create: (context) => ChildBloc(),
-        ),
-        BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(),
-        ),
+        BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
+        BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
 
         // Driver BLoCs
         BlocProvider<DriverAuthBloc>(
-          create: (context) => DriverAuthBloc(
-            repository: DriverAuthRepository(),
-          ),
+          create: (context) =>
+              DriverAuthBloc(repository: DriverAuthRepository()),
         ),
         BlocProvider(
-  create: (context) => DashboardBloc(
-    repository: DashboardRepository(),
-  ),
-  child: const DashboardPage(),
-),
+          create: (context) => DashboardBloc(repository: DashboardRepository()),
+          child: const DashboardPage(),
+        ),
         BlocProvider<SubscriptionBloc>(
-      create: (context) => SubscriptionBloc(
-        repository: SubscriptionRepository(),
-      ),
-    ),
-   
-BlocProvider(
-  create: (context) => TripBloc(
-    repository: TripRepository(),
-  ),
-  child: const TripPage(),
-)
+        create: (context) => SubscriptionBloc(
+        repository: SubscriptionRepository(SubscriptionService()),
+        ),
+        ),
+
+        BlocProvider(
+          create: (context) => TripBloc(repository: TripRepository()),
+          child: const TripPage(),
+        ),
+        BlocProvider<DriverProfileBloc>(
+            create: (context) => DriverProfileBloc(
+            repository: DriverProfileRepository(),
+            )..add(LoadDriverProfileEvent()),
+          ),
+        BlocProvider(
+          create: (_) => NotificationBloc(
+            repository: NotificationRepository(),
+          )..add(const LoadNotificationsEvent()), // Charge les notifications au démarrage
+        ),
+
       ],
       child: const MyApp(),
     ),

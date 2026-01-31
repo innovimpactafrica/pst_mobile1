@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
+import '../../../../../core/utils/image_url_helper.dart'; // 🔧 AJOUT
 import '../../data/models/driver_profile_model.dart';
 import '../../domain/bloc/driver_profile_bloc.dart';
 import '../../domain/bloc/driver_profile_event.dart';
@@ -22,6 +25,7 @@ class PersonalInfoPage extends StatefulWidget {
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
   bool _isEditMode = false;
+  File? _selectedImage;
 
   // Controllers for editable fields
   late TextEditingController _firstNameController;
@@ -83,11 +87,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         final XFile? image = await picker.pickImage(source: source);
 
         if (image != null && mounted) {
-          // Photo upload not yet implemented
+          setState(() {
+            _selectedImage = File(image.path);
+          });
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Upload de photo pas encore implémenté'),
-              backgroundColor: AppColors.warning,
+              content: Text('Photo sélectionnée. Cliquez sur "Mettre à jour" pour sauvegarder.'),
+              backgroundColor: AppColors.success,
             ),
           );
         }
@@ -104,15 +111,37 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     }
   }
 
-  void _saveChanges() {
-    context.read<DriverProfileBloc>().add(
-          UpdateDriverProfileEvent(
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            phone: _phoneController.text.trim(),
-            address: _addressController.text.trim(),
+  void _saveChanges() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Envoi des données...'), duration: Duration(seconds: 1)),
+    );
+
+    final formDataMap = {
+      'first_name': _firstNameController.text.trim(),
+      'last_name': _lastNameController.text.trim(),
+      'phone': _phoneController.text.trim(),
+      'address': _addressController.text.trim(),
+    };
+
+    final formData = FormData.fromMap(formDataMap);
+
+    if (_selectedImage != null) {
+      formData.files.add(
+        MapEntry(
+          'photo_profil',
+          await MultipartFile.fromFile(
+            _selectedImage!.path,
+            filename: 'profile.jpg',
           ),
-        );
+        ),
+      );
+    }
+
+    if (!mounted) return;
+    context.read<DriverProfileBloc>().add(
+      UpdateDriverProfileWithPhotoEvent(formData: formData),
+    );
   }
 
   @override
@@ -146,6 +175,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               onPressed: () {
                 setState(() {
                   _isEditMode = false;
+                  _selectedImage = null;
                 });
               },
             ),
@@ -154,21 +184,24 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       body: BlocListener<DriverProfileBloc, DriverProfileState>(
         listener: (context, state) {
           if (state is DriverProfileUpdated) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Profil mis à jour avec succès'),
+                content: Text('✅ Profil mis à jour avec succès'),
                 backgroundColor: AppColors.success,
               ),
             );
             setState(() {
               _isEditMode = false;
+              _selectedImage = null;
             });
           }
 
           if (state is DriverProfileError) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text('❌ ${state.message}'),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -202,13 +235,17 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor:
-                              AppColors.primary.withValues(alpha: 0.1),
-                          backgroundImage: profile.photo != null &&
-                                  profile.photo!.isNotEmpty
-                              ? NetworkImage(profile.photo!)
-                              : null,
-                          child: profile.photo == null || profile.photo!.isEmpty
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                          // 🔧 CORRECTION: Utiliser le helper pour les URLs
+                          backgroundImage: _selectedImage != null
+                              ? FileImage(_selectedImage!)
+                              : (profile.photo != null && profile.photo!.isNotEmpty
+                                  ? NetworkImage(
+                                      ImageUrlHelper.getFullImageUrl(profile.photo!),
+                                    )
+                                  : null),
+                          child: _selectedImage == null &&
+                                  (profile.photo == null || profile.photo!.isEmpty)
                               ? Text(
                                   profile.initials,
                                   style: GoogleFonts.inter(
@@ -269,14 +306,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   ),
                   const SizedBox(height: AppConstants.spacingXL),
                   _buildField(
-                    'Email',
-                    TextEditingController(text: profile.email),
-                    profile.email,
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: false, // Email is read-only
-                  ),
-                  const SizedBox(height: AppConstants.spacingXL),
-                  _buildField(
                     'Adresse',
                     _addressController,
                     profile.address ?? 'Non renseignée',
@@ -289,33 +318,43 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_isEditMode) {
-                          _saveChanges();
-                        } else {
-                          setState(() {
-                            _isEditMode = true;
-                            _initializeControllers(profile);
-                          });
-                        }
-                      },
+                      onPressed: (state is DriverProfileUpdating)
+                          ? null
+                          : () {
+                              if (_isEditMode) {
+                                _saveChanges();
+                              } else {
+                                setState(() {
+                                  _isEditMode = true;
+                                  _initializeControllers(profile);
+                                });
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.radiusL,
-                          ),
+                          borderRadius: BorderRadius.circular(AppConstants.radiusL),
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
-                        _isEditMode ? 'Enregistrer' : 'Modifier',
-                        style: GoogleFonts.inter(
-                          fontSize: AppConstants.fontSizeL,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textWhite,
-                        ),
-                      ),
+                      child: (state is DriverProfileUpdating)
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: AppColors.textWhite,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              _isEditMode ? 'Mettre à jour' : 'Modifier',
+                              style: GoogleFonts.inter(
+                                fontSize: AppConstants.fontSizeL,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textWhite,
+                              ),
+                            ),
                     ),
                   ),
                 ],

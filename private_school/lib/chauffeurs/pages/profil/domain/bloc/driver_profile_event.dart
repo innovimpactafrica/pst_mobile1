@@ -1,34 +1,56 @@
-// Driver profile events
-// Path: lib/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart
+import 'package:equatable/equatable.dart';
+import 'package:dio/dio.dart';
 
-import 'dart:io';
+/// Base event class for driver profile
+abstract class DriverProfileEvent extends Equatable {
+  const DriverProfileEvent();
+  
+  @override
+  List<Object?> get props => [];
+}
 
-abstract class DriverProfileEvent {}
-
+/// Event to load driver profile
 class LoadDriverProfileEvent extends DriverProfileEvent {}
 
+/// Event to update driver profile (simple text fields) - Infos personnelles
 class UpdateDriverProfileEvent extends DriverProfileEvent {
-  final String? firstName;
-  final String? lastName;
-  final String? phone;
-  final String? email;
-  final String? address;
+  final String firstName;
+  final String lastName;
+  final String phone;
+  final String address;
 
-  UpdateDriverProfileEvent({
-    this.firstName,
-    this.lastName,
-    this.phone,
-    this.email,
-    this.address,
+  const UpdateDriverProfileEvent({
+    required this.firstName,
+    required this.lastName,
+    required this.phone,
+    required this.address,
   });
+
+  @override
+  List<Object?> get props => [firstName, lastName, phone, address];
 }
 
-class UpdateDriverProfilePhotoEvent extends DriverProfileEvent {
-  final File photoFile;
+/// Event to update driver profile with photo (FormData) - Infos personnelles + photo_profil
+/// ⚠️ Pour véhicule et documents, utiliser UpdateDriverByIdEvent
+class UpdateDriverProfileWithPhotoEvent extends DriverProfileEvent {
+  final FormData formData;
 
-  UpdateDriverProfilePhotoEvent(this.photoFile);
+  const UpdateDriverProfileWithPhotoEvent({required this.formData});
+
+  @override
+  List<Object?> get props => [formData];
 }
 
-class DeleteDriverProfilePhotoEvent extends DriverProfileEvent {}
 
-class RefreshDriverProfileEvent extends DriverProfileEvent {}
+class UpdateDriverByIdEvent extends DriverProfileEvent {
+  final String driverId;
+  final FormData formData;
+
+  const UpdateDriverByIdEvent({
+    required this.driverId,
+    required this.formData,
+  });
+
+  @override
+  List<Object?> get props => [driverId, formData];
+}

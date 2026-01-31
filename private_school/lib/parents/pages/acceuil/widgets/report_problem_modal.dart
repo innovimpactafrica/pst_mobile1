@@ -48,7 +48,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       if (image != null) {
         final file = File(image.path);
         final fileSize = await file.length();
-        
+
         // Check file size (10 MB limit)
         if (fileSize > 10 * 1024 * 1024) {
           if (!mounted) return;
@@ -78,7 +78,8 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
 
   Future<void> _submit() async {
     // Validation
-    if (_selectedProblemType == null || _descriptionController.text.trim().isEmpty) {
+    if (_selectedProblemType == null ||
+        _descriptionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez remplir tous les champs obligatoires'),
@@ -94,7 +95,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
 
     try {
       // Call API: POST /api/incidents
-      final response = await _apiClient.post(
+      await _apiClient.post(
         '/api/incidents',
         data: {
           'type': _selectedProblemType,
@@ -107,7 +108,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       if (!mounted) return;
 
       Navigator.pop(context);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Votre incident a été signalé avec succès'),
@@ -116,14 +117,14 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       );
     } catch (e) {
       if (!mounted) return;
-      
+
       String errorMessage = e.toString();
-      
+
       // Clean error message
       if (errorMessage.contains('Exception:')) {
         errorMessage = errorMessage.replaceAll('Exception:', '').trim();
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $errorMessage'),
@@ -224,17 +225,12 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
               value: _selectedProblemType,
               hint: const Text(
                 'Sélectionner',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
               isExpanded: true,
               icon: const Icon(Icons.keyboard_arrow_down),
               items: _problemTypes.map((String type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type),
-                );
+                return DropdownMenuItem<String>(value: type, child: Text(type));
               }).toList(),
               onChanged: (String? newValue) {
                 setState(() {
@@ -285,9 +281,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-              ),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
           ),
         ),
@@ -308,7 +302,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
           ),
         ),
         const SizedBox(height: 12),
-        
+
         if (_attachedFile != null)
           Container(
             padding: const EdgeInsets.all(12),

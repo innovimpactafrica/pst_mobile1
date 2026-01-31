@@ -27,8 +27,12 @@ class _VerificationState extends State<Verification> {
 
   @override
   void dispose() {
-    for (var c in _controllers) c.dispose();
-    for (var f in _focusNodes) f.dispose();
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
     _timer?.cancel();
     super.dispose();
   }
@@ -68,6 +72,7 @@ class _VerificationState extends State<Verification> {
       );
 
       Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+        if (!mounted) return;
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PasswordCreationPage()),

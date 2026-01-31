@@ -12,6 +12,7 @@ class DriverModel {
   final String role;
   final String? licenseNumber;
   final String? vehicleType;
+  final String? vehicleColor; 
   final bool isActive;
 
   DriverModel({
@@ -25,6 +26,7 @@ class DriverModel {
     this.role = 'driver',
     this.licenseNumber,
     this.vehicleType,
+    this.vehicleColor,
     this.isActive = true,
   });
 
@@ -36,34 +38,28 @@ class DriverModel {
     return (firstInitial + lastInitial).toUpperCase();
   }
 
-  factory DriverModel.fromJson(Map<String, dynamic> json) {
-    // Handle case where API returns "name" instead of firstName/lastName
+ factory DriverModel.fromJson(Map<String, dynamic> json) {
+    // 1. Logique pour le nom et le prénom (Déjà robuste)
     String firstName = '';
     String lastName = '';
     
     if (json.containsKey('name') && json['name'] != null) {
       final nameValue = json['name'].toString().trim();
-      
       if (nameValue.isNotEmpty) {
-        // Split full name like "Moussa Ndiaye" into firstName and lastName
         final nameParts = nameValue.split(RegExp(r'\s+'));
-        
         if (nameParts.isNotEmpty) {
           firstName = nameParts.first;
-          
-          // Join remaining parts as lastName (handles 3+ names)
           if (nameParts.length > 1) {
             lastName = nameParts.skip(1).join(' ');
           }
         }
       }
     } else if (json.containsKey('firstName') || json.containsKey('prenom')) {
-      // If API returns firstName/lastName separately
       firstName = (json['firstName'] ?? json['prenom'] ?? '').toString().trim();
       lastName = (json['lastName'] ?? json['nom'] ?? '').toString().trim();
     }
 
-    // Fallback: if still empty, use email username
+    // Fallback email si le nom est vide
     if (firstName.isEmpty && json.containsKey('email') && json['email'] != null) {
       final email = json['email'].toString();
       final emailParts = email.split('@');
@@ -72,8 +68,12 @@ class DriverModel {
       }
     }
 
+    // 2. Extraction des données du véhicule 
+    // On récupère l'objet 'vehicle' s'il existe
+    final vehicleData = json['vehicle'] as Map<String, dynamic>?;
+
+    
     return DriverModel(
-      // Convert ID to string (API may return number or string)
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       firstName: firstName,
       lastName: lastName,
@@ -82,9 +82,24 @@ class DriverModel {
       address: json['address']?.toString() ?? json['adresse']?.toString(),
       photo: json['photo']?.toString(),
       role: (json['role'] ?? 'driver').toString(),
-      licenseNumber: json['licenseNumber']?.toString() ?? json['numeroPermis']?.toString(),
-      vehicleType: json['vehicleType']?.toString() ?? json['typeVehicule']?.toString(),
       isActive: json['isActive'] ?? json['actif'] ?? true,
+      
+     
+      licenseNumber: vehicleData?['plate']?.toString() ?? 
+                     vehicleData?['licenseNumber']?.toString() ?? 
+                     json['licenseNumber']?.toString() ?? 
+                     json['numeroPermis']?.toString(),
+      
+
+      vehicleType: vehicleData?['brand']?.toString() ?? 
+                   vehicleData?['model']?.toString() ?? 
+                   json['vehicleType']?.toString() ?? 
+                   json['typeVehicule']?.toString(),
+
+      
+      vehicleColor: vehicleData?['color']?.toString() ?? 
+                    json['vehicleColor']?.toString() ??
+                    json['couleur']?.toString(),
     );
   }
 

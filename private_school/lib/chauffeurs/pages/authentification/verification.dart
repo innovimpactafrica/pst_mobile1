@@ -153,11 +153,10 @@ class _VerificationState extends State<Verification> {
             ),
           );
 
-          // ✅ Fixed: Check mounted before using context after async gap
-          Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+          // ✅ Fixed: Use Timer instead of Future.delayed to avoid async gap
+          final otp = _controllers.map((c) => c.text).join();
+          Timer(const Duration(seconds: 1, milliseconds: 500), () {
             if (!mounted) return;
-
-            final otp = _controllers.map((c) => c.text).join();
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(

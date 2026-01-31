@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 abstract class DriverAuthEvent {}
 
 class DriverLoginEvent extends DriverAuthEvent {
@@ -19,6 +21,10 @@ class DriverRegisterEvent extends DriverAuthEvent {
   final String password;
   final String? licenseNumber;
   final String? vehicleType;
+  final String? vehicleColor;  // AJOUT
+  final File? licenseFile;     // AJOUT
+  final File? idCardFile;      // AJOUT
+  final File? vehicleFile;     // AJOUT
 
   DriverRegisterEvent({
     required this.firstName,
@@ -28,6 +34,10 @@ class DriverRegisterEvent extends DriverAuthEvent {
     required this.password,
     this.licenseNumber,
     this.vehicleType,
+    this.vehicleColor,
+    this.licenseFile,
+    this.idCardFile,
+    this.vehicleFile,
   });
 }
 

@@ -1,9 +1,11 @@
 
 
+
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/repositories/trip_repository.dart';
-import 'trip_event.dart';
-import 'trip_state.dart';
+import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart';
+import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_event.dart';
+import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_state.dart';
 
 class TripBloc extends Bloc<TripEvent, TripState> {
   final TripRepository repository;

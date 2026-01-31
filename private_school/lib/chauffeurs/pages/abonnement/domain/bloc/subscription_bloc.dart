@@ -1,5 +1,6 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 import '../../data/repositories/subscription_repository.dart';
 import 'subscription_event.dart';
 import 'subscription_state.dart';
@@ -97,21 +98,23 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   Future<void> _onAddPaymentMethod(
-    AddPaymentMethodEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
-    try {
-      final method = await repository.addPaymentMethod(
-        type: event.type,
-        cardNumber: event.cardNumber,
-        phoneNumber: event.phoneNumber,
-      );
-      emit(PaymentMethodAdded(method));
-      add(LoadPaymentMethodsEvent());
-    } catch (e) {
-      emit(SubscriptionError(e.toString()));
-    }
+  AddPaymentMethodEvent event,
+  Emitter<SubscriptionState> emit,
+) async {
+  try { // <--- Ton try commence ici
+    await repository.addPaymentMethod(
+      type: event.type,
+      cardNumber: event.cardNumber,
+      phoneNumber: event.phoneNumber,
+    );
+    
+    emit(PaymentMethodAdded(PaymentMethod(id: '', type: event.type))); 
+    add(LoadPaymentMethodsEvent());
+
+  } catch (e) { // <--- C'EST CETTE PARTIE QUI MANQUE (le catch)
+    emit(SubscriptionError(e.toString()));
   }
+}
 
   Future<void> _onSetDefault(
     SetDefaultPaymentMethodEvent event,

@@ -1,242 +1,323 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:private_school/chauffeurs/pages/profil/data/models/vehicle_model.dart';
+import 'dart:io';
+
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
+import '../../../../../core/utils/image_url_helper.dart';
 import '../../data/models/driver_profile_model.dart';
+import '../../../profil/domain/bloc/driver_profile_bloc.dart';
+import '../../../profil/domain/bloc/driver_profile_event.dart';
+import '../../../profil/domain/bloc/driver_profile_state.dart';
+import '../widgets/custom_text_field.dart';
+import '../widgets/primary_button.dart';
 
-/// Vehicle information page for drivers
-/// Displays vehicle details (read-only from API)
-class VehicleInfoPage extends StatelessWidget {
+class VehicleInfoPage extends StatefulWidget {
   final DriverProfileModel profile;
 
   const VehicleInfoPage({super.key, required this.profile});
 
   @override
-  Widget build(BuildContext context) {
-    final vehicle = profile.vehicle;
+  State<VehicleInfoPage> createState() => _VehicleInfoPageState();
+}
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textWhite,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Informations du véhicule',
-          style: GoogleFonts.inter(
-            fontSize: AppConstants.fontSizeXL,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textWhite,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
+class _VehicleInfoPageState extends State<VehicleInfoPage> {
+  bool _isEditMode = false;
+  File? _selectedVehicleImage;
+
+  late TextEditingController _brandController;
+  late TextEditingController _colorController;
+  late TextEditingController _plateController;
+  late TextEditingController _capacityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _brandController = TextEditingController();
+    _colorController = TextEditingController();
+    _plateController = TextEditingController();
+    _capacityController = TextEditingController();
+    _initializeControllers();
+  }
+
+  @override
+  void dispose() {
+    _brandController.dispose();
+    _colorController.dispose();
+    _plateController.dispose();
+    _capacityController.dispose();
+    super.dispose();
+  }
+
+  void _initializeControllers() {
+    final vehicle = widget.profile.vehicle;
+    _brandController.text = vehicle?.brand ?? '';
+    _colorController.text = vehicle?.color ?? '';
+    _plateController.text = vehicle?.plate ?? '';
+    _capacityController.text = vehicle?.capacity?.toString() ?? '';
+  }
+
+  Future<void> _pickVehicleImage() async {
+    final ImagePicker picker = ImagePicker();
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Vehicle photo placeholder
-            Center(
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(
-                    AppConstants.radiusXL - 8,
-                  ),
-                ),
-                child: vehicle?.photo != null && vehicle!.photo!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusXL - 8,
-                        ),
-                        child: Image.network(
-                          vehicle.photo!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
-                              Icons.directions_car,
-                              size: 64,
-                              color: AppColors.primary,
-                            );
-                          },
-                        ),
-                      )
-                    : const Icon(
-                        Icons.directions_car,
-                        size: 64,
-                        color: AppColors.primary,
-                      ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text(AppConstants.labelTakePhoto),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text(AppConstants.labelGallery),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source != null) {
+      final XFile? image = await picker.pickImage(source: source);
+      if (image != null) {
+        setState(() => _selectedVehicleImage = File(image.path));
+      }
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    final Map<String, dynamic> data = {};
+
+    if (_brandController.text.trim().isNotEmpty) {
+      data['vehicle_brand'] = _brandController.text.trim();
+    }
+    if (_colorController.text.trim().isNotEmpty) {
+      data['vehicle_color'] = _colorController.text.trim();
+    }
+    if (_plateController.text.trim().isNotEmpty) {
+      data['vehicle_plate'] = _plateController.text.trim();
+    }
+    
+    final int? capacity = int.tryParse(_capacityController.text.trim());
+    if (capacity != null) {
+      data['capacity'] = capacity;
+    }
+
+    try {
+      final FormData formData = FormData.fromMap(data);
+
+      if (_selectedVehicleImage != null) {
+        formData.files.add(MapEntry(
+          'vehicle_photo',
+          await MultipartFile.fromFile(_selectedVehicleImage!.path),
+        ));
+      }
+
+      final String driverId = widget.profile.driver.id.toString();
+
+      if (driverId.isEmpty) {
+        _showSnackBar(AppConstants.errorNoDriverId, isError: true);
+        return;
+      }
+
+      if (!mounted) return;
+
+      context.read<DriverProfileBloc>().add(
+        UpdateDriverByIdEvent(driverId: driverId, formData: formData),
+      );
+    } catch (e) {
+      _showSnackBar('${AppConstants.errorUpdate} : $e', isError: true);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = true}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DriverProfileBloc, DriverProfileState>(
+      builder: (context, state) {
+        final DriverProfileModel profile =
+            state is DriverProfileLoaded ? state.profile : widget.profile;
+
+        final vehicle = profile.vehicle;
+
+        return BlocListener<DriverProfileBloc, DriverProfileState>(
+          listener: (context, state) {
+            if (state is DriverProfileUpdated) {
+              setState(() {
+                _isEditMode = false;
+                _selectedVehicleImage = null;
+                _initializeControllers();
+              });
+              _showSnackBar(AppConstants.successVehicleUpdate, isError: false);
+            } else if (state is DriverProfileError) {
+              _showSnackBar(state.message);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(
+              backgroundColor: AppColors.primary,
+              title: const Text(
+                AppConstants.labelVehicle,
+                style: TextStyle(color: Colors.white),
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-
-            const SizedBox(height: AppConstants.spacingXXXL),
-
-            // Vehicle information message
-            if (vehicle == null)
-              Center(
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 64,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: AppConstants.spacingL),
-                    Text(
-                      'Aucun véhicule enregistré',
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeXL,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.spacingS),
-                    Text(
-                      'Veuillez contacter l\'administration\npour enregistrer votre véhicule',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeM,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else ...[
-              // Vehicle brand
-              _buildInfoField(
-                'Marque du véhicule',
-                vehicle.brand ?? 'Non renseigné',
-                Icons.local_shipping_outlined,
-              ),
-              const SizedBox(height: AppConstants.spacingXL),
-
-              // Vehicle color
-              _buildInfoField(
-                'Couleur du véhicule',
-                vehicle.color ?? 'Non renseigné',
-                Icons.color_lens_outlined,
-              ),
-              const SizedBox(height: AppConstants.spacingXL),
-
-              // Vehicle plate
-              _buildInfoField(
-                'Immatriculation du véhicule',
-                vehicle.plate ?? 'Non renseigné',
-                Icons.credit_card_outlined,
-              ),
-              const SizedBox(height: AppConstants.spacingXL),
-
-              // Vehicle capacity
-              _buildInfoField(
-                'Nombre de places',
-                vehicle.capacity != null
-                    ? '${vehicle.capacity} places'
-                    : 'Non renseigné',
-                Icons.event_seat_outlined,
-              ),
-              const SizedBox(height: AppConstants.spacingXL),
-
-              // Vehicle type (if available)
-              if (vehicle.type != null && vehicle.type!.isNotEmpty)
-                _buildInfoField(
-                  'Type de véhicule',
-                  vehicle.type!,
-                  Icons.category_outlined,
-                ),
-            ],
-
-            const SizedBox(height: AppConstants.spacingXXXL),
-
-            // Info message
-            Container(
-              padding: const EdgeInsets.all(AppConstants.spacingXL),
-              decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                border: Border.all(
-                  color: AppColors.info.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppConstants.spacingXXL),
+              child: Column(
                 children: [
-                  const Icon(
-                    Icons.info_outline,
-                    color: AppColors.info,
-                    size: 24,
+                  _buildVehiclePhoto(vehicle),
+                  const SizedBox(height: AppConstants.spacingXXXL),
+                  CustomTextField(
+                    label: AppConstants.labelBrand,
+                    controller: _brandController,
+                    readOnly: !_isEditMode,
+                    hintText: AppConstants.hintBrand,
                   ),
-                  const SizedBox(width: AppConstants.spacingL),
-                  Expanded(
-                    child: Text(
-                      'Pour modifier les informations du véhicule, veuillez contacter l\'administration.',
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeS + 1,
-                        color: AppColors.textPrimary,
+                  const SizedBox(height: AppConstants.spacingM),
+                  CustomTextField(
+                    label: AppConstants.labelColor,
+                    controller: _colorController,
+                    readOnly: !_isEditMode,
+                    hintText: AppConstants.hintColor,
+                  ),
+                  const SizedBox(height: AppConstants.spacingM),
+                  CustomTextField(
+                    label: AppConstants.labelPlate,
+                    controller: _plateController,
+                    readOnly: !_isEditMode,
+                    hintText: AppConstants.hintPlate,
+                  ),
+                  const SizedBox(height: AppConstants.spacingM),
+                  CustomTextField(
+                    label: AppConstants.labelCapacity,
+                    controller: _capacityController,
+                    readOnly: !_isEditMode,
+                    keyboardType: TextInputType.number,
+                    hintText: AppConstants.hintCapacity,
+                  ),
+                  const SizedBox(height: 40),
+                  BlocBuilder<DriverProfileBloc, DriverProfileState>(
+                    builder: (context, state) {
+                      return PrimaryButton(
+                        text: _isEditMode
+                            ? AppConstants.labelSave
+                            : AppConstants.labelEdit,
+                        isLoading: state is DriverProfileUpdating,
+                        onPressed: () {
+                          if (_isEditMode) {
+                            _saveChanges();
+                          } else {
+                            setState(() => _isEditMode = true);
+                          }
+                        },
+                      );
+                    },
+                  ),
+                  if (_isEditMode)
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isEditMode = false;
+                          _initializeControllers();
+                          _selectedVehicleImage = null;
+                        });
+                      },
+                      child: const Text(
+                        AppConstants.labelCancel,
+                        style: TextStyle(color: Colors.red),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildInfoField(String label, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: AppColors.primary,
-            ),
-            const SizedBox(width: AppConstants.spacingS),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeS + 1,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+  Widget _buildVehiclePhoto(VehicleModel? vehicle) {
+  return GestureDetector(
+    onTap: _isEditMode ? _pickVehicleImage : null,
+    child: Center(
+      child: Stack(
+        children: [
+          Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: AppConstants.spacingS),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.spacingXL,
-            vertical: 14,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-            border: Border.all(color: AppColors.grey300),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: AppConstants.fontSizeL - 1,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              child: _selectedVehicleImage != null
+                  // 1. Si on vient de choisir une image sur le téléphone
+                  ? Image.file(
+                      _selectedVehicleImage!,
+                      fit: BoxFit.cover,
+                    )
+                  : (vehicle?.photo != null && vehicle!.photo!.isNotEmpty)
+                      // 2. Si l'image vient du serveur (même si c'est un chemin relatif)
+                      ? Image.network(
+                          ImageUrlHelper.getFullImageUrl(vehicle.photo!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.directions_car, size: 50, color: AppColors.primary),
+                        )
+                      // 3. Image par défaut si aucune photo n'existe
+                      : const Icon(
+                          Icons.directions_car,
+                          size: 50,
+                          color: AppColors.primary,
+                        ),
             ),
           ),
-        ),
-      ],
-    );
-  }
+          if (_isEditMode)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(AppConstants.radiusM),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: AppConstants.iconSizeS,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
 }

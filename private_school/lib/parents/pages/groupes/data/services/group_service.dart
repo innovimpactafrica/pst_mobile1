@@ -28,7 +28,9 @@ class GroupService {
           .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      debugPrint('✅ [GroupService] ${groups.length} groups loaded successfully');
+      debugPrint(
+        '✅ [GroupService] ${groups.length} groups loaded successfully',
+      );
       return groups;
     } catch (e) {
       debugPrint('❌ [GroupService] Error fetching groups: $e');
@@ -133,11 +135,7 @@ class GroupService {
 
       final response = await _apiClient.put(
         ApiConstants.carpoolGroups,
-        data: {
-          'groupId': groupId,
-          'name': name,
-          'description': description,
-        },
+        data: {'groupId': groupId, 'name': name, 'description': description},
       );
 
       debugPrint('✅ [GroupService] Group updated successfully');
@@ -183,11 +181,7 @@ class GroupService {
 
       await _apiClient.post(
         ApiConstants.carpoolInvitations,
-        data: {
-          'groupId': groupId,
-          'email': email,
-          'phone': phone,
-        },
+        data: {'groupId': groupId, 'email': email, 'phone': phone},
       );
 
       debugPrint('✅ [GroupService] Invitation sent successfully');
@@ -231,10 +225,7 @@ class GroupService {
 
       await _apiClient.put(
         ApiConstants.carpoolInvitations,
-        data: {
-          'invitationId': invitationId,
-          'accept': accept,
-        },
+        data: {'invitationId': invitationId, 'accept': accept},
       );
 
       debugPrint('✅ [GroupService] Response sent successfully');
@@ -359,14 +350,13 @@ class GroupService {
     required String reason,
   }) async {
     try {
-      debugPrint('🔄 [GroupService] Proposing exchange for planning: $planningId');
+      debugPrint(
+        '🔄 [GroupService] Proposing exchange for planning: $planningId',
+      );
 
       await _apiClient.post(
         ApiConstants.carpoolConduite,
-        data: {
-          'planningId': planningId,
-          'reason': reason,
-        },
+        data: {'planningId': planningId, 'reason': reason},
       );
 
       debugPrint('✅ [GroupService] Exchange proposed successfully');
@@ -382,7 +372,9 @@ class GroupService {
     String groupId,
   ) async {
     try {
-      debugPrint('🔍 [GroupService] Fetching exchange proposals for group: $groupId');
+      debugPrint(
+        '🔍 [GroupService] Fetching exchange proposals for group: $groupId',
+      );
 
       final response = await _apiClient.get(
         ApiConstants.carpoolConduite,
@@ -413,10 +405,7 @@ class GroupService {
 
       await _apiClient.put(
         ApiConstants.carpoolConduite,
-        data: {
-          'proposalId': proposalId,
-          'accept': accept,
-        },
+        data: {'proposalId': proposalId, 'accept': accept},
       );
 
       debugPrint('✅ [GroupService] Response sent successfully');

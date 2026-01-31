@@ -1,4 +1,41 @@
+// 1. CLASSE POUR LES OFFRES (MENSUELL/ANNUEL)
+class SubscriptionPlan {
+  final String id;
+  final String name;
+  final double price;
+  final int durationDays;
+  final List<String> features;
 
+  SubscriptionPlan({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.durationDays,
+    this.features = const [],
+  });
+
+  factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
+    return SubscriptionPlan(
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      name: json['name'] ?? json['nom'] ?? 'Plan',
+      price: (json['price'] ?? json['prix'] ?? 0).toDouble(),
+      durationDays: json['durationDays'] ?? json['dureejours'] ?? 30,
+      features: json['features'] != null 
+          ? List<String>.from(json['features']) 
+          : [],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'price': price,
+    'durationDays': durationDays,
+    'features': features,
+  };
+}
+
+// 2. CLASSE POUR L'ABONNEMENT ACTUEL DU CHAUFFEUR
 class SubscriptionModel {
   final String id;
   final String driverId;
@@ -32,24 +69,24 @@ class SubscriptionModel {
   bool get isExpired => daysRemaining == 0;
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json; 
+    
     return SubscriptionModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      driverId: json['driverId'] ?? json['chauffeurId'] ?? '',
-      plan: json['plan'] ?? json['formule'] ?? '',
-      price: (json['price'] ?? json['prix'] ?? 0).toDouble(),
-      startDate: json['startDate'] != null
-          ? DateTime.parse(json['startDate'])
-          : DateTime.now(),
-      expiryDate: json['expiryDate'] != null
-          ? DateTime.parse(json['expiryDate'])
+      id: data['_id']?.toString() ?? data['id']?.toString() ?? '',
+      driverId: data['driver_id']?.toString() ?? data['chauffeur_id']?.toString() ?? '',
+      plan: data['plan'] ?? data['formule'] ?? data['libelle'] ?? 'Plan Standard',
+      price: (data['price'] ?? data['prix'] ?? 0).toDouble(),
+      startDate: data['startDate'] != null 
+          ? DateTime.parse(data['startDate']) 
+          : (data['date_creation'] != null ? DateTime.parse(data['date_creation']) : DateTime.now()),
+      expiryDate: data['expiryDate'] != null 
+          ? DateTime.parse(data['expiryDate']) 
           : DateTime.now().add(const Duration(days: 30)),
-      isActive: json['isActive'] ?? json['actif'] ?? false,
-      status: json['status'] ?? json['statut'] ?? 'active',
-      paymentMethods: json['paymentMethods'] != null
-          ? (json['paymentMethods'] as List)
-              .map((pm) => PaymentMethod.fromJson(pm))
-              .toList()
-          : [],
+      isActive: data['isActive'] ?? (data['statut'] == 'active') ?? false,
+      status: data['status'] ?? data['statut'] ?? 'active',
+      paymentMethods: data['paymentMethods'] != null
+          ? (data['paymentMethods'] as List).map((pm) => PaymentMethod.fromJson(pm)).toList()
+          : const [],
     );
   }
 
@@ -68,6 +105,7 @@ class SubscriptionModel {
   }
 }
 
+// 3. CLASSE POUR LES MOYENS DE PAIEMENT
 class PaymentMethod {
   final String id;
   final String type;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
@@ -11,11 +10,10 @@ import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
 import '../widgets/trip_card_widget.dart';
 import '../widgets/trip_detail_modal.dart';
+import 'create_trip_page.dart';
 
-/// Main trips page with upcoming and history tabs
-/// Location: lib/features/trajets/presentation/pages/trip_page.dart
 class TripPage extends StatefulWidget {
- const TripPage({super.key});
+  const TripPage({super.key});
 
   @override
   State<TripPage> createState() => _TripPageState();
@@ -29,7 +27,11 @@ class _TripPageState extends State<TripPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    context.read<TripBloc>().add(LoadTripsEvent());
+    
+    // Charger les trajets
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TripBloc>().add(LoadTripsEvent());
+    });
   }
 
   @override
@@ -41,11 +43,12 @@ class _TripPageState extends State<TripPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primary, // ← Bleu violet (0xFF2E3B82)
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
+            const SizedBox(height: AppConstants.spacingXXL),
             _buildTabBar(),
             Expanded(child: _buildTripsList()),
           ],
@@ -57,38 +60,53 @@ class _TripPageState extends State<TripPage>
 
   Widget _buildHeader() {
     return Padding(
-      padding:  EdgeInsets.all(AppConstants.spacingXL),
-      child:  Text(
-        AppConstants.labelMyTrips,
-        style: TextStyle(
-          color: AppColors.textWhite,
-          fontSize: AppConstants.fontSizeXXXL,
-          fontWeight: FontWeight.bold,
-        ),
+      padding: const EdgeInsets.all(AppConstants.spacingXXL),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              AppConstants.labelMyTrips,
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTabBar() {
     return Container(
-      margin:  EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXXL),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-       color: AppColors.whiteOpacity20,
-        borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(25),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          color: AppColors.textWhite,
-          borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(25),
         ),
         labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textWhite,
+        unselectedLabelColor: Colors.white,
+        labelStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
-        tabs:  [
-          Tab(text: AppConstants.labelUpcoming),
-          Tab(text: AppConstants.labelHistory),
+        tabs: const [
+          Tab(text: 'À venir'),
+          Tab(text: 'Historique'),
         ],
       ),
     );
@@ -96,54 +114,65 @@ class _TripPageState extends State<TripPage>
 
   Widget _buildTripsList() {
     return Container(
-      margin:  EdgeInsets.only(top: AppConstants.spacingXL),
-      decoration:  BoxDecoration(
-        color: AppColors.textWhite,
+      margin: const EdgeInsets.only(top: AppConstants.spacingXXL),
+      decoration: const BoxDecoration(
+        color: AppColors.backgroundLight,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppConstants.radiusXXL),
-          topRight: Radius.circular(AppConstants.radiusXXL),
+          topLeft: Radius.circular(AppConstants.radiusXL),
+          topRight: Radius.circular(AppConstants.radiusXL),
         ),
       ),
       child: BlocBuilder<TripBloc, TripState>(
         builder: (context, state) {
+          debugPrint('🔍 [TripPage] Current state: ${state.runtimeType}');
+
           if (state is TripLoading) {
-            return  Center(
+            return const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
           if (state is TripError) {
+            debugPrint('❌ [TripPage] Error: ${state.message}');
             return _buildErrorState(state.message);
           }
 
           if (state is TripsLoaded) {
-            return TabBarView(
-              controller: _tabController,
-              children: [
-                _buildUpcomingTrips(state.trips),
-                _buildHistoryTrips(state.trips),
-              ],
-            );
+            debugPrint('✅ [TripPage] Trips loaded: ${state.trips.length}');
+            return _buildTabBarViewContent(state.trips);
           }
 
-          return const SizedBox.shrink();
+          // État initial
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
         },
       ),
     );
   }
 
+  Widget _buildTabBarViewContent(List<TripModel> trips) {
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildUpcomingTrips(trips),
+        _buildHistoryTrips(trips),
+      ],
+    );
+  }
+
   Widget _buildUpcomingTrips(List<TripModel> trips) {
     final upcomingTrips = trips
-        .where(
-          (trip) =>
-              trip.status == AppConstants.statusPending ||
-              trip.status == AppConstants.statusActive ||
-              trip.status == AppConstants.statusStarted,
-        )
+        .where((trip) =>
+            trip.status == 'pending' ||
+            trip.status == 'active' ||
+            trip.status == 'started')
         .toList();
 
+    debugPrint('📊 [TripPage] Upcoming trips: ${upcomingTrips.length}');
+
     if (upcomingTrips.isEmpty) {
-      return _buildEmptyState(AppConstants.labelNoUpcomingTrips);
+      return _buildEmptyState('Aucun trajet à venir');
     }
 
     return RefreshIndicator(
@@ -152,7 +181,7 @@ class _TripPageState extends State<TripPage>
         context.read<TripBloc>().add(RefreshTripsEvent());
       },
       child: ListView.builder(
-        padding:  EdgeInsets.all(AppConstants.spacingXL),
+        padding: const EdgeInsets.all(AppConstants.spacingXXL),
         itemCount: upcomingTrips.length,
         itemBuilder: (context, index) {
           return TripCardWidget(
@@ -166,15 +195,14 @@ class _TripPageState extends State<TripPage>
 
   Widget _buildHistoryTrips(List<TripModel> trips) {
     final historyTrips = trips
-        .where(
-          (trip) =>
-              trip.status == AppConstants.statusCompleted ||
-              trip.status == AppConstants.statusCanceled,
-        )
+        .where((trip) =>
+            trip.status == 'completed' || trip.status == 'canceled')
         .toList();
 
+    debugPrint('📊 [TripPage] History trips: ${historyTrips.length}');
+
     if (historyTrips.isEmpty) {
-      return _buildEmptyState(AppConstants.labelNoHistory);
+      return _buildEmptyState('Aucun historique');
     }
 
     return RefreshIndicator(
@@ -183,7 +211,7 @@ class _TripPageState extends State<TripPage>
         context.read<TripBloc>().add(RefreshTripsEvent());
       },
       child: ListView.builder(
-        padding:  EdgeInsets.all(AppConstants.spacingXL),
+        padding: const EdgeInsets.all(AppConstants.spacingXXL),
         itemCount: historyTrips.length,
         itemBuilder: (context, index) {
           return TripCardWidget(
@@ -202,13 +230,13 @@ class _TripPageState extends State<TripPage>
         children: [
           Icon(
             Icons.inbox_outlined,
-            size: AppConstants.iconSizeXXXL + AppConstants.spacingL,
+            size: 64,
             color: AppColors.grey400,
           ),
-          const SizedBox(height: AppConstants.spacingL),
+          const SizedBox(height: AppConstants.spacingM),
           Text(
             message,
-            style:  TextStyle(
+            style: const TextStyle(
               fontSize: AppConstants.fontSizeL,
               color: AppColors.textSecondary,
             ),
@@ -220,38 +248,60 @@ class _TripPageState extends State<TripPage>
 
   Widget _buildErrorState(String message) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-           Icon(
-            Icons.error_outline,
-            size: AppConstants.iconSizeXXXL,
-            color: AppColors.error,
-          ),
-          SizedBox(height: AppConstants.spacingL),
-          Text(
-            message,
-            style:  TextStyle(
-              fontSize: AppConstants.fontSizeL,
-              color: AppColors.textSecondary,
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.spacingXXL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppColors.error,
             ),
-            textAlign: TextAlign.center,
-          ),
-           SizedBox(height: AppConstants.spacingL),
-          ElevatedButton(
-            onPressed: () => context.read<TripBloc>().add(LoadTripsEvent()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusM),
+            const SizedBox(height: AppConstants.spacingM),
+            Text(
+              'Erreur lors du chargement',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
-            child:  Text(
-              AppConstants.labelRetry,
-              style: TextStyle(color: AppColors.textWhite),
+            const SizedBox(height: AppConstants.spacingS),
+            Text(
+              message,
+              style: const TextStyle(
+                fontSize: AppConstants.fontSizeM,
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+            const SizedBox(height: AppConstants.spacingXXL),
+            ElevatedButton(
+              onPressed: () {
+                context.read<TripBloc>().add(LoadTripsEvent());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                ),
+              ),
+              child: const Text(
+                AppConstants.labelRetry,
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -259,10 +309,22 @@ class _TripPageState extends State<TripPage>
   Widget _buildFloatingButton() {
     return FloatingActionButton(
       onPressed: () {
-        // Navigate to create trip page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value: context.read<TripBloc>(),
+              child: const CreateTripPage(),
+            ),
+          ),
+        );
       },
       backgroundColor: AppColors.primary,
-      child:  Icon(Icons.add, color: AppColors.textWhite),
+      child: const Icon(
+        Icons.add,
+        color: AppColors.white,
+        size: 28,
+      ),
     );
   }
 

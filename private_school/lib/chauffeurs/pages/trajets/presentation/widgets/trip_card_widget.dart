@@ -4,29 +4,32 @@ import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
 
-/// Reusable trip card widget
-/// Location: lib/features/trajets/presentation/widgets/trip_card_widget.dart
+
 class TripCardWidget extends StatelessWidget {
   final TripModel trip;
   final VoidCallback onTap;
 
-  const TripCardWidget({super.key, required this.trip, required this.onTap});
+  const TripCardWidget({
+    super.key,
+    required this.trip,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: AppConstants.spacingL),
-        padding: EdgeInsets.all(AppConstants.spacingL),
+        margin: const EdgeInsets.only(bottom: AppConstants.spacingL),
+        padding: const EdgeInsets.all(AppConstants.spacingL),
         decoration: BoxDecoration(
-          color: AppColors.textWhite,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(AppConstants.radiusL),
           boxShadow: [
             BoxShadow(
               color: AppColors.blackOpacity05,
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: AppConstants.spacingS,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -34,9 +37,9 @@ class TripCardWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            SizedBox(height: AppConstants.spacingM),
+            const SizedBox(height: AppConstants.spacingL),
             _buildRoute(),
-            SizedBox(height: AppConstants.spacingM),
+            const SizedBox(height: AppConstants.spacingL),
             _buildFooter(),
           ],
         ),
@@ -48,18 +51,19 @@ class TripCardWidget extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(AppConstants.spacingS),
+          padding: const EdgeInsets.all(AppConstants.spacingS + 2),
           decoration: BoxDecoration(
-            color: AppColors.backgroundLight,
-            borderRadius: BorderRadius.circular(AppConstants.radiusS),
+            color: AppColors.successBackground,
+            borderRadius: BorderRadius.circular(AppConstants.radiusM),
           ),
-          child: Icon(
-            Icons.calendar_today,
+          child: const Icon(
+            Icons.calendar_today_outlined,
             size: AppConstants.iconSizeM,
-            color: AppColors.primary,
+            color: AppColors.success,
           ),
         ),
-        SizedBox(width: AppConstants.spacingM),
+        const SizedBox(width: AppConstants.spacingM),
+        
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,20 +72,22 @@ class TripCardWidget extends StatelessWidget {
                 _formatDate(trip.date),
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeL,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 '${trip.passengers.length} passagers',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeM,
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeS,
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
           ),
         ),
+        
         _buildStatusBadge(),
       ],
     );
@@ -93,18 +99,21 @@ class TripCardWidget extends StatelessWidget {
         _buildLocationRow(
           icon: Icons.radio_button_checked,
           location: trip.startLocation ?? 'Point de départ',
-          iconColor: AppColors.locationStart,
+          iconColor: AppColors.primary,
         ),
+        
         Container(
-          margin: EdgeInsets.only(left: AppConstants.spacingM),
-          height: AppConstants.spacingXL,
-          width: 2,
-          color: AppColors.grey300,
+          margin: const EdgeInsets.only(left: AppConstants.spacingS + 2),
+          height: AppConstants.spacingXXL,
+          child: CustomPaint(
+            painter: DottedLinePainter(color: AppColors.grey300),
+          ),
         ),
+        
         _buildLocationRow(
           icon: Icons.location_on,
           location: trip.destination,
-          iconColor: AppColors.locationDestination,
+          iconColor: AppColors.error,
         ),
       ],
     );
@@ -117,15 +126,18 @@ class TripCardWidget extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon, color: iconColor, size: AppConstants.iconSizeL),
-        SizedBox(width: AppConstants.spacingM),
+        Icon(icon, color: iconColor, size: AppConstants.iconSizeM),
+        const SizedBox(width: AppConstants.spacingM),
         Expanded(
           child: Text(
             location,
             style: const TextStyle(
               fontSize: AppConstants.fontSizeM,
               color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -133,9 +145,11 @@ class TripCardWidget extends StatelessWidget {
   }
 
   Widget _buildFooter() {
+    final schoolCount = trip.schools.length;
+    
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingM,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingL,
         vertical: AppConstants.spacingXS + 2,
       ),
       decoration: BoxDecoration(
@@ -143,11 +157,11 @@ class TripCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppConstants.radiusXL),
       ),
       child: Text(
-        '${trip.availableSeats} écoles desservies',
-        style: TextStyle(
+        '$schoolCount ${schoolCount > 1 ? "écoles desservies" : "école desservie"}',
+        style: const TextStyle(
           fontSize: AppConstants.fontSizeS,
           color: AppColors.success,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -157,8 +171,8 @@ class TripCardWidget extends StatelessWidget {
     final statusConfig = _getStatusConfig();
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingM,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingL,
         vertical: AppConstants.spacingXS + 2,
       ),
       decoration: BoxDecoration(
@@ -169,14 +183,14 @@ class TripCardWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: AppConstants.spacingS,
-            height: AppConstants.spacingS,
+            width: AppConstants.spacingXS + 2,
+            height: AppConstants.spacingXS + 2,
             decoration: BoxDecoration(
               color: statusConfig['textColor'],
               shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: AppConstants.spacingXS + 2),
+          const SizedBox(width: AppConstants.spacingXS + 2),
           Text(
             statusConfig['label'],
             style: TextStyle(
@@ -199,27 +213,32 @@ class TripCardWidget extends StatelessWidget {
           'label': 'En attente',
         };
       case AppConstants.statusActive:
+        return {
+          'bgColor': AppColors.statusActiveBg,
+          'textColor': AppColors.statusActive,
+          'label': 'Accepté',
+        };
       case AppConstants.statusStarted:
         return {
           'bgColor': AppColors.statusStartedBg,
           'textColor': AppColors.statusStarted,
-          'label': 'En cours',
+          'label': 'Terminé',
         };
       case AppConstants.statusCompleted:
         return {
           'bgColor': AppColors.statusCompletedBg,
-          'textColor': AppColors.success,
+          'textColor': AppColors.statusCompleted,
           'label': 'Terminé',
         };
       case AppConstants.statusCanceled:
         return {
           'bgColor': AppColors.statusCanceledBg,
-          'textColor': AppColors.error,
+          'textColor': AppColors.statusCanceled,
           'label': 'Annulé',
         };
       default:
         return {
-          'bgColor': AppColors.imagePlaceholder,
+          'bgColor': AppColors.grey200,
           'textColor': AppColors.grey700,
           'label': trip.status,
         };
@@ -227,17 +246,37 @@ class TripCardWidget extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final tripDate = DateTime(date.year, date.month, date.day);
+    return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+  }
+}
 
-    if (tripDate == today) {
-      return AppConstants.labelToday;
-    } else if (tripDate == tomorrow) {
-      return AppConstants.labelTomorrow;
-    } else {
-      return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+/// Custom painter for dotted line between departure and destination
+class DottedLinePainter extends CustomPainter {
+  final Color color;
+
+  DottedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    const dashHeight = AppConstants.spacingXS;
+    const dashSpace = AppConstants.spacingXS;
+    double startY = 0;
+
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(0, startY),
+        Offset(0, startY + dashHeight),
+        paint,
+      );
+      startY += dashHeight + dashSpace;
     }
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -104,6 +104,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
               onTap: () {
                 setState(() => usePhone = false);
                 Future.delayed(const Duration(milliseconds: 100), () {
+                  if (!mounted) return;
                   _showSubscriptionModal(context);
                 });
               },

@@ -18,20 +18,24 @@ class ChildDetailsModal extends StatelessWidget {
   void _showEditModal(BuildContext context) {
     Navigator.pop(context); // Fermer le modal actuel
     Future.delayed(const Duration(milliseconds: 300), () {
-      ModalHelper.showSlideModal(
-        context: context,
-        child: EditChildModal(child: child),
-      );
+      if (context.mounted) {
+        ModalHelper.showSlideModal(
+          context: context,
+          child: EditChildModal(child: child),
+        );
+      }
     });
   }
 
   void _showScheduleModal(BuildContext context) {
     Navigator.pop(context); // Fermer le modal actuel
     Future.delayed(const Duration(milliseconds: 300), () {
-      ModalHelper.showSlideModal(
-        context: context,
-        child: ChildScheduleModal(child: child),
-      );
+      if (context.mounted) {
+        ModalHelper.showSlideModal(
+          context: context,
+          child: ChildScheduleModal(child: child),
+        );
+      }
     });
   }
 

@@ -232,7 +232,7 @@ class _ReportsPageState extends State<ReportsPage> {
         borderRadius: BorderRadius.circular(AppConstants.spacingL),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackOpacity03,
+            color: AppColors.blackOpacity05,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

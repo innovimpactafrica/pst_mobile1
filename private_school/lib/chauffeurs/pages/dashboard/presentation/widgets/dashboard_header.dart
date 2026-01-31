@@ -1,11 +1,20 @@
+// Dashboard header with navigation
+// Path: lib/chauffeurs/pages/dashboard/presentation/widgets/dashboard_header.dart
+// Follows Innov & Impact Africa Flutter Coding Guidelines:
+// - Uses BLoC for state management
+// - No direct data passing via props
+// - Proper separation of concerns
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_state.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/core/utils/app_colors.dart';
-import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
+import '../pages/messagerie_page.dart';
 
-
-/// Dashboard header with driver profile info
-/// Location: lib/features/dashboard/presentation/widgets/dashboard_header.dart
 class DashboardHeader extends StatelessWidget {
   final DriverProfileModel? profile;
   final bool isLoading;
@@ -19,22 +28,20 @@ class DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppConstants.spacingXL),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          // Profile Image
           _buildProfileImage(),
-          const SizedBox(width: AppConstants.spacingM),
-          // Greeting and Name
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppConstants.labelGreeting,
+                  'Bonjour,',
                   style: TextStyle(
                     color: AppColors.white.withValues(alpha: 0.8),
-                    fontSize: AppConstants.fontSizeM,
+                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -43,36 +50,32 @@ class DashboardHeader extends StatelessWidget {
                         width: 120,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: AppColors.whiteOpacity20,
-                          borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                          color: AppColors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       )
                     : Text(
                         profile?.fullName ?? 'Chauffeur',
                         style: const TextStyle(
                           color: AppColors.white,
-                          fontSize: AppConstants.fontSizeXL,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
               ],
             ),
           ),
-          // Notification and Message Icons
           _buildIconButton(
             icon: Icons.chat_bubble_outline,
             onTap: () {
-              // Navigate to messages
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MessageriePage()),
+              );
             },
           ),
-          const SizedBox(width: AppConstants.spacingS),
-          _buildIconButton(
-            icon: Icons.notifications_outlined,
-            badge: true,
-            onTap: () {
-              // Navigate to notifications
-            },
-          ),
+          const SizedBox(width: 8),
+          _buildNotificationButton(context),
         ],
       ),
     );
@@ -81,35 +84,42 @@ class DashboardHeader extends StatelessWidget {
   Widget _buildProfileImage() {
     if (isLoading) {
       return Container(
-        width: AppConstants.avatarSizeL,
-        height: AppConstants.avatarSizeL,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.whiteOpacity20,
+          color: AppColors.white.withValues(alpha: 0.2),
         ),
       );
     }
 
+    final imageUrl = profile?.photo != null && profile!.photo!.isNotEmpty
+        ? ImageUrlHelper.getFullImageUrl(profile!.photo!)
+        : null;
+
     return Container(
-      width: AppConstants.avatarSizeL,
-      height: AppConstants.avatarSizeL,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.whiteOpacity20,
-        image: profile?.photo != null
+        color: AppColors.white.withValues(alpha: 0.2),
+        image: imageUrl != null
             ? DecorationImage(
-                image: NetworkImage(profile!.photo!),
+                image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
+                onError: (exception, stackTrace) {
+                  // Silently handle error - will show initials
+                },
               )
             : null,
       ),
-      child: profile?.photo == null
+      child: imageUrl == null
           ? Center(
               child: Text(
                 profile?.initials ?? 'CH',
                 style: const TextStyle(
                   color: AppColors.white,
-                  fontSize: AppConstants.fontSizeXL,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -120,7 +130,6 @@ class DashboardHeader extends StatelessWidget {
 
   Widget _buildIconButton({
     required IconData icon,
-    bool badge = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -129,34 +138,86 @@ class DashboardHeader extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: AppColors.whiteOpacity20,
-          borderRadius: BorderRadius.circular(AppConstants.radiusM),
+          color: AppColors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Stack(
-          children: [
-            Center(
-              child: Icon(
-                icon,
-                color: AppColors.white,
-                size: AppConstants.iconSizeM,
-              ),
-            ),
-            if (badge)
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-          ],
+        child: Center(
+          child: Icon(
+            icon,
+            color: AppColors.white,
+            size: 22,
+          ),
         ),
       ),
+    );
+  }
+
+  /// Notification button with BLoC integration
+  /// Reads notification count from NotificationBloc state
+  Widget _buildNotificationButton(BuildContext context) {
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, state) {
+        int unreadCount = 0;
+        
+        if (state is NotificationLoaded) {
+          unreadCount = state.unreadCount;
+        }
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const NotificationsPage(),
+              ),
+            );
+          },
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Stack(
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.white,
+                    size: 22,
+                  ),
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        unreadCount > 9 ? '9+' : '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

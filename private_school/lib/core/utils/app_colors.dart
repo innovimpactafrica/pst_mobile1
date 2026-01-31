@@ -12,30 +12,31 @@ class AppColors {
   
   // Background colors
   static const Color background = Color(0xFFF5F5F5);
-  static const Color backgroundLight = Color(0xFFF0F2FF); // ✅ AJOUTÉ
+  static const Color backgroundLight = Color(0xFFF9FAFB);
   static const Color surface = Colors.white;
   static const Color imagePlaceholder = Color(0xFFEEEEEE);
   static const Color white = Colors.white;
   static const Color cardBackground = Color(0xFFF0F0F0);
-  
+   
   // Text colors
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
+  static const Color textPrimary = Color(0xFF1F2937);
+  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color textTertiary = Color(0xFF9CA3AF);
   static const Color textGrey = Color(0xFF9E9E9E);
   static const Color textWhite = Colors.white;
   
   // Status colors
   static const Color success = Color(0xFF4CAF50);
+  static const Color successLight = Color(0xFFF0FDF4);
+  static const Color successDark = Color(0xFF388E3C);
+  
   static const Color warning = Color(0xFFFF9800);
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
   
-  static const Color successLight = Color(0xFFC8E6C9);
-  static const Color successDark = Color(0xFF388E3C);
-  
   // Status backgrounds
   static const Color statusPendingBg = Color(0xFFFFF3E0);
-  static const Color statusActiveBg = Color(0xFFE3F2FD);    // ✅ AJOUTÉ
+  static const Color statusActiveBg = Color(0xFFE3F2FD);
   static const Color statusStartedBg = Color(0xFFE3F2FD);
   static const Color statusCompletedBg = Color(0xFFE8F5E9);
   static const Color statusCanceledBg = Color(0xFFFFEBEE);
@@ -47,6 +48,7 @@ class AppColors {
   
   // Border colors
   static const Color border = Color(0xFFE0E0E0);
+  static const Color borderLight = Color(0xFFE5E7EB);
   static const Color grey200 = Color(0xFFE0E0E0);
   static const Color grey300 = Color(0xFFE0E0E0);
   static const Color grey400 = Color(0xFFBDBDBD);

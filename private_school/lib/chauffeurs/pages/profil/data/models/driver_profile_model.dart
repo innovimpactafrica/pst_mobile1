@@ -146,15 +146,23 @@ class PersonalInfo {
 }
 
 /// Driver information section from API
+/// Driver information section from API
+/// UPDATED: Added document fields (license_document, id_document, vehicle_photo)
 class DriverInfo {
   final int id;
   final String status;
   final String? photoProfile;
+  final String? licenseDocument;  // NEW: Permis de conduire
+  final String? idDocument;       // NEW: CNI/Passeport
+  final String? vehiclePhoto;     // NEW: Photo du véhicule
 
   DriverInfo({
     required this.id,
     required this.status,
     this.photoProfile,
+    this.licenseDocument,
+    this.idDocument,
+    this.vehiclePhoto,
   });
 
   factory DriverInfo.fromJson(Map<String, dynamic> json) {
@@ -162,6 +170,9 @@ class DriverInfo {
       id: json['id'] ?? 0,
       status: json['status'] ?? '',
       photoProfile: json['photo_profil'],
+      licenseDocument: json['license_document'],
+      idDocument: json['id_document'],
+      vehiclePhoto: json['vehicle_photo'],
     );
   }
 
@@ -170,6 +181,9 @@ class DriverInfo {
       'id': id,
       'status': status,
       if (photoProfile != null) 'photo_profil': photoProfile,
+      if (licenseDocument != null) 'license_document': licenseDocument,
+      if (idDocument != null) 'id_document': idDocument,
+      if (vehiclePhoto != null) 'vehicle_photo': vehiclePhoto,
     };
   }
 
@@ -177,11 +191,17 @@ class DriverInfo {
     int? id,
     String? status,
     String? photoProfile,
+    String? licenseDocument,
+    String? idDocument,
+    String? vehiclePhoto,
   }) {
     return DriverInfo(
       id: id ?? this.id,
       status: status ?? this.status,
       photoProfile: photoProfile ?? this.photoProfile,
+      licenseDocument: licenseDocument ?? this.licenseDocument,
+      idDocument: idDocument ?? this.idDocument,
+      vehiclePhoto: vehiclePhoto ?? this.vehiclePhoto,
     );
   }
 }

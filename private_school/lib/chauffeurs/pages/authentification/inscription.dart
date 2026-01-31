@@ -103,6 +103,10 @@ class _InscriptionPageState extends State<InscriptionPage> {
         password: _passwordController.text.trim(),
         licenseNumber: _plateController.text.trim(),
         vehicleType: _brandController.text.trim(),
+        vehicleColor: _colorController.text.trim(),  
+        licenseFile: _licenseFile,                   
+        idCardFile: _idCardFile,                     
+        vehicleFile: _vehiclePhotoFile,              
       ),
     );
   }
@@ -250,7 +254,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
           const SizedBox(height: 16),
           _buildTextField(
             'Numéro de téléphone',
-            'Ex: 77 123 45 67',
+            'Ex: +221771234567',
             _phoneController,
             keyboardType: TextInputType.phone,
           ),
