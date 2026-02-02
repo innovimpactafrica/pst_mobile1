@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/services/subscription_service.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
@@ -9,7 +11,6 @@ import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/das
 import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
-import 'package:private_school/chauffeurs/pages/trajets/presentation/pages/trip_page.dart';
 import 'package:private_school/core/network/api_client.dart';
 import 'package:private_school/pages/role_selection_page.dart';
 
@@ -44,13 +45,15 @@ import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_
 
 import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
 import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
+// ✅ AJOUTER
+import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize French locale for date formatting
   await initializeDateFormatting('fr_FR', null);
-
+  await EasyLocalization.ensureInitialized();
   // Initialize API Client
   await ApiClient().init();
   debugPrint('✅ API Client initialized');
@@ -69,29 +72,26 @@ void main() async {
         ),
         BlocProvider(
           create: (context) => DashboardBloc(repository: DashboardRepository()),
-          child: const DashboardPage(),
         ),
         BlocProvider<SubscriptionBloc>(
-        create: (context) => SubscriptionBloc(
-        repository: SubscriptionRepository(SubscriptionService()),
+          create: (context) => SubscriptionBloc(
+            repository: SubscriptionRepository(SubscriptionService()),
+          ),
         ),
-        ),
-
         BlocProvider(
           create: (context) => TripBloc(repository: TripRepository()),
-          child: const TripPage(),
         ),
         BlocProvider<DriverProfileBloc>(
-            create: (context) => DriverProfileBloc(
+          create: (context) => DriverProfileBloc(
             repository: DriverProfileRepository(),
-            )..add(LoadDriverProfileEvent()),
-          ),
+          )..add(LoadDriverProfileEvent()),
+        ),
         BlocProvider(
           create: (_) => NotificationBloc(
             repository: NotificationRepository(),
-          )..add(const LoadNotificationsEvent()), // Charge les notifications au démarrage
+          )..add(const LoadNotificationsEvent()),
         ),
-
+        BlocProvider(create: (_) => ReportBloc()),
       ],
       child: const MyApp(),
     ),
@@ -106,6 +106,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Private School Transport',
       debugShowCheckedModeBanner: false,
+      
+      // ✅ AJOUT DES LOCALES FRANÇAISES POUR CORRIGER L'ERREUR
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr', 'FR'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('fr', 'FR'),
+      
       initialRoute: '/',
       routes: {
         // Startup routes
@@ -133,7 +146,7 @@ class MyApp extends StatelessWidget {
         '/verification': (context) => const Verification(),
         '/password': (context) => const MdpOubliePage(),
         '/dashboard': (context) => const HomePage(),
-        '/role-selection': (context) => const RoleSelectionPage(), // ✅ NOUVEAU
+        '/role-selection': (context) => const RoleSelectionPage(),
       },
     );
   }

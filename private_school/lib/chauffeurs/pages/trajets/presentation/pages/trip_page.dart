@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/chauffeurs/pages/trajets/presentation/pages/create_trip_page.dart';
 
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
 import '../../data/models/trip_model.dart';
+
 import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
 import '../widgets/trip_card_widget.dart';
 import '../widgets/trip_detail_modal.dart';
-import 'create_trip_page.dart';
+
 
 class TripPage extends StatefulWidget {
   const TripPage({super.key});
@@ -43,7 +45,7 @@ class _TripPageState extends State<TripPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary, // ← Bleu violet (0xFF2E3B82)
+      backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Column(
           children: [
@@ -139,6 +141,12 @@ class _TripPageState extends State<TripPage>
 
           if (state is TripsLoaded) {
             debugPrint('✅ [TripPage] Trips loaded: ${state.trips.length}');
+            
+            // ✅ DEBUG: Afficher tous les statuts
+            for (var trip in state.trips) {
+              debugPrint('🚗 [TripPage] Trip ${trip.id}: status="${trip.status}"');
+            }
+            
             return _buildTabBarViewContent(state.trips);
           }
 
@@ -162,14 +170,17 @@ class _TripPageState extends State<TripPage>
   }
 
   Widget _buildUpcomingTrips(List<TripModel> trips) {
+    // ✅ CORRECTION: Ajouter 'in_progress' au filtre
     final upcomingTrips = trips
         .where((trip) =>
             trip.status == 'pending' ||
             trip.status == 'active' ||
-            trip.status == 'started')
+            trip.status == 'started' ||
+            trip.status == 'in_progress')  // ← AJOUTÉ !
         .toList();
 
     debugPrint('📊 [TripPage] Upcoming trips: ${upcomingTrips.length}');
+    debugPrint('📊 [TripPage] Upcoming statuses: ${upcomingTrips.map((t) => t.status).toList()}');
 
     if (upcomingTrips.isEmpty) {
       return _buildEmptyState('Aucun trajet à venir');
@@ -309,19 +320,19 @@ class _TripPageState extends State<TripPage>
   Widget _buildFloatingButton() {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: context.read<TripBloc>(),
-              child: const CreateTripPage(),
-            ),
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => BlocProvider.value(
+            value: context.read<TripBloc>(),
+            child: const CreateTripModal(),
           ),
         );
       },
       backgroundColor: AppColors.primary,
       child: const Icon(
-        Icons.add,
+        Icons.route,
         color: AppColors.white,
         size: 28,
       ),
@@ -333,7 +344,10 @@ class _TripPageState extends State<TripPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => TripDetailModal(trip: trip),
+      builder: (context) => BlocProvider.value(
+        value: context.read<TripBloc>(),
+        child: TripDetailModal(trip: trip),
+      ),
     );
   }
 }

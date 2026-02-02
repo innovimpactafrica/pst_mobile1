@@ -1,24 +1,22 @@
-
-
 abstract class TripEvent {}
 
 class LoadTripsEvent extends TripEvent {}
 
 class CreateTripEvent extends TripEvent {
-  final String destination;
-  final String? startLocation;
-  final DateTime date;
-  final String time;
-  final int totalSeats;
-  final double? price;
+  final String startPoint;
+  final String endPoint;
+  final DateTime departureTime;
+  final int capacityMax;
+  final int schoolId;
+  final bool isRecurring;
 
   CreateTripEvent({
-    required this.destination,
-    this.startLocation,
-    required this.date,
-    required this.time,
-    required this.totalSeats,
-    this.price,
+    required this.startPoint,
+    required this.endPoint,
+    required this.departureTime,
+    required this.capacityMax,
+    required this.schoolId,
+    this.isRecurring = false,
   });
 }
 

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/models/trip_model.dart';
 import 'package:private_school/core/network/api_client.dart';
@@ -11,16 +12,25 @@ class TripService {
       
       final response = await _apiClient.get('/api/drivers/trips');
       
-      debugPrint('🚗 [TripService] Response received');
+      debugPrint('🚗 [TripService] ========================================');
+      debugPrint('🚗 [TripService] RESPONSE RECEIVED');
+      debugPrint('🚗 [TripService] ========================================');
       debugPrint('🚗 [TripService] Response type: ${response.data.runtimeType}');
-      debugPrint('🚗 [TripService] Response data: ${response.data}');
+      
+      // Afficher la réponse complète formatée
+      try {
+        final prettyJson = JsonEncoder.withIndent('  ').convert(response.data);
+        debugPrint('🚗 [TripService] Full response:\n$prettyJson');
+      } catch (e) {
+        debugPrint('🚗 [TripService] Response data: ${response.data}');
+      }
       
       // Extraire les données selon la structure de la réponse
       final List<dynamic> tripsData = response.data is List
           ? response.data
           : response.data['data'] ?? response.data['trips'] ?? [];
       
-      debugPrint('🚗 [TripService] Trips count: ${tripsData.length}');
+      debugPrint('🚗 [TripService] Total trips count: ${tripsData.length}');
       
       final trips = tripsData
           .map((json) => TripModel.fromJson(json as Map<String, dynamic>))
@@ -29,48 +39,60 @@ class TripService {
       debugPrint('✅ [TripService] ${trips.length} trips parsed successfully');
       
       return trips;
-    } catch (e) {
-      debugPrint('❌ [TripService] Error fetching trips: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ [TripService] ERROR FETCHING TRIPS');
+      debugPrint('❌ [TripService] Error: $e');
+      debugPrint('❌ [TripService] Stack trace: $stackTrace');
       throw Exception('Failed to load trips: $e');
     }
   }
 
   Future<TripModel> createTrip({
-    required String destination,
-    String? startLocation,
-    required DateTime date,
-    required String time,
-    required int totalSeats,
-    double? price,
+    required String startPoint,
+    required String endPoint,
+    required DateTime departureTime,
+    required int capacityMax,
+    required int schoolId,
+    bool isRecurring = false,
   }) async {
     try {
-      debugPrint('🚗 [TripService] Creating trip...');
-      debugPrint('🚗 [TripService] Destination: $destination');
-      debugPrint('🚗 [TripService] Date: ${date.toIso8601String()}');
-      debugPrint('🚗 [TripService] Time: $time');
-      debugPrint('🚗 [TripService] Total seats: $totalSeats');
+      debugPrint('🚗 [TripService] ========================================');
+      debugPrint('🚗 [TripService] CREATING TRIP');
+      debugPrint('🚗 [TripService] ========================================');
+      debugPrint('🚗 [TripService] Start point: $startPoint');
+      debugPrint('🚗 [TripService] End point: $endPoint');
+      debugPrint('🚗 [TripService] Departure time: ${departureTime.toIso8601String()}');
+      debugPrint('🚗 [TripService] Capacity max: $capacityMax');
+      debugPrint('🚗 [TripService] School ID: $schoolId');
+      debugPrint('🚗 [TripService] Is recurring: $isRecurring');
+      
+      final requestData = {
+        'start_point': startPoint,
+        'end_point': endPoint,
+        'departure_time': departureTime.toIso8601String(),
+        'capacity_max': capacityMax,
+        'school_id': schoolId,
+        'is_recurring': isRecurring,
+      };
+      
+      debugPrint('🚗 [TripService] Request data: $requestData');
       
       final response = await _apiClient.post(
         '/api/drivers/trips',
-        data: {
-          'destination': destination,
-          if (startLocation != null) 'startLocation': startLocation,
-          'date': date.toIso8601String(),
-          'time': time,
-          'totalSeats': totalSeats,
-          if (price != null) 'price': price,
-        },
+        data: requestData,
       );
       
       debugPrint('✅ [TripService] Trip created successfully');
+      debugPrint('🚗 [TripService] Response: ${response.data}');
       
       final tripData = response.data is Map
           ? (response.data['data'] ?? response.data)
           : response.data;
       
       return TripModel.fromJson(tripData as Map<String, dynamic>);
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ [TripService] Error creating trip: $e');
+      debugPrint('❌ [TripService] Stack trace: $stackTrace');
       throw Exception('Failed to create trip: $e');
     }
   }

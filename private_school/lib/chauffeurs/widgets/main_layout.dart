@@ -4,8 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:private_school/chauffeurs/pages/profil/presentation/pages/profile_main_page.dart';
-
-import 'package:private_school/parents/pages/trajets/presentation/pages/trajets_page.dart';
+import 'package:private_school/chauffeurs/pages/trajets/presentation/pages/trip_page.dart';
 import '../pages/abonnement/presentation/pages/abonnement_page.dart';
 import 'bottom_nav_bar.dart';
 
@@ -59,7 +58,7 @@ Widget build(BuildContext context) {
       },
       children: const [
         DashboardPage(),
-        TrajetsPage(),
+        TripPage(),
         AbonnementPage(),
         ProfileMainPage(), // Cette page utilisera maintenant le Bloc global
       ],

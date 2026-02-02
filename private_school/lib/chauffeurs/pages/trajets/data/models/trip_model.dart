@@ -12,7 +12,7 @@ class TripModel {
   final double? price;
   final String status;
   final List<Passenger> passengers;
-  final List<SchoolModel> schools; // ✅ AJOUTÉ
+  final List<SchoolModel> schools;
   final DateTime? startedAt;
   final DateTime? completedAt;
   final String? cancelReason;
@@ -29,44 +29,118 @@ class TripModel {
     this.price,
     this.status = 'pending',
     this.passengers = const [],
-    this.schools = const [], // ✅ AJOUTÉ
+    this.schools = const [],
     this.startedAt,
     this.completedAt,
     this.cancelReason,
   });
 
-  bool get isActive => status == 'active' || status == 'started';
+  bool get isActive => status == 'active' || status == 'started' || status == 'in_progress';
   bool get isCompleted => status == 'completed';
   bool get isCanceled => status == 'canceled';
   bool get isPending => status == 'pending';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
+    // Helper pour convertir n'importe quel type en String
+    String toString(dynamic value, [String defaultValue = '']) {
+      if (value == null) return defaultValue;
+      return value.toString();
+    }
+
+    // Helper pour convertir en int
+    int toInt(dynamic value, [int defaultValue = 0]) {
+      if (value == null) return defaultValue;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? defaultValue;
+      if (value is num) return value.toInt();
+      return defaultValue;
+    }
+
+    // Helper pour parser DateTime
+    DateTime parseDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is DateTime) return value;
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (e) {
+          return DateTime.now();
+        }
+      }
+      return DateTime.now();
+    }
+
+    // Parser le temps depuis departure_time ou time
+    String parseTime(Map<String, dynamic> json) {
+      if (json['time'] != null) return json['time'] as String;
+      if (json['heure'] != null) return json['heure'] as String;
+      
+      // Si departure_time existe, extraire l'heure
+      if (json['departure_time'] != null) {
+        final departureTime = parseDate(json['departure_time']);
+        return '${departureTime.hour.toString().padLeft(2, '0')}:${departureTime.minute.toString().padLeft(2, '0')}';
+      }
+      
+      return '00:00';
+    }
+
     return TripModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      driverId: json['driverId'] ?? json['chauffeurId'] ?? '',
-      destination: json['destination'] ?? '',
-      startLocation: json['startLocation'] ?? json['lieuDepart'],
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
-      time: json['time'] ?? json['heure'] ?? '',
-      totalSeats: json['totalSeats'] ?? json['placesTotal'] ?? 0,
-      availableSeats: json['availableSeats'] ?? json['placesDisponibles'] ?? 0,
+      // Convertir id (int ou String) en String
+      id: toString(json['id'] ?? json['_id']),
+      
+      // Convertir driver_id (int) en String
+      driverId: toString(json['driver_id'] ?? json['driverId'] ?? json['chauffeurId']),
+      
+      // Destination (end_point ou destination)
+      destination: json['end_point'] ?? json['destination'] ?? '',
+      
+      // Start location (start_point ou startLocation)
+      startLocation: json['start_point'] ?? json['startLocation'] ?? json['lieuDepart'],
+      
+      // Date (departure_time ou date)
+      date: parseDate(json['departure_time'] ?? json['date'] ?? json['created_at']),
+      
+      // Time
+      time: parseTime(json),
+      
+      // Total seats (capacity_max ou totalSeats)
+      totalSeats: toInt(json['capacity_max'] ?? json['totalSeats'] ?? json['placesTotal']),
+      
+      // Available seats (calculé ou fourni)
+      availableSeats: toInt(
+        json['availableSeats'] ?? 
+        json['placesDisponibles'] ?? 
+        json['capacity_max'] ?? 
+        json['totalSeats'] ?? 
+        0,
+      ),
+      
+      // Price
       price: json['price'] != null ? (json['price'] as num).toDouble() : null,
-      status: json['status'] ?? json['statut'] ?? 'pending',
+      
+      // Status (normaliser in_progress → active)
+      status: (json['status'] ?? json['statut'] ?? 'pending').toString().toLowerCase(),
+      
+      // Passengers
       passengers: json['passengers'] != null
           ? (json['passengers'] as List)
               .map((p) => Passenger.fromJson(p))
               .toList()
           : [],
-      schools: json['schools'] != null // ✅ AJOUTÉ
+      
+      // Schools
+      schools: json['schools'] != null
           ? (json['schools'] as List)
               .map((s) => SchoolModel.fromJson(s))
               .toList()
           : [],
+      
+      // Dates de suivi
       startedAt: json['startedAt'] != null
-          ? DateTime.parse(json['startedAt'])
+          ? parseDate(json['startedAt'])
           : null,
       completedAt: json['completedAt'] != null
-          ? DateTime.parse(json['completedAt'])
+          ? parseDate(json['completedAt'])
           : null,
       cancelReason: json['cancelReason'] ?? json['raisonAnnulation'],
     );
@@ -85,7 +159,7 @@ class TripModel {
       'price': price,
       'status': status,
       'passengers': passengers.map((p) => p.toJson()).toList(),
-      'schools': schools.map((s) => s.toJson()).toList(), // ✅ AJOUTÉ
+      'schools': schools.map((s) => s.toJson()).toList(),
       'startedAt': startedAt?.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'cancelReason': cancelReason,
@@ -104,7 +178,7 @@ class TripModel {
     double? price,
     String? status,
     List<Passenger>? passengers,
-    List<SchoolModel>? schools, // ✅ AJOUTÉ
+    List<SchoolModel>? schools,
     DateTime? startedAt,
     DateTime? completedAt,
     String? cancelReason,
@@ -121,7 +195,7 @@ class TripModel {
       price: price ?? this.price,
       status: status ?? this.status,
       passengers: passengers ?? this.passengers,
-      schools: schools ?? this.schools, // ✅ AJOUTÉ
+      schools: schools ?? this.schools,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       cancelReason: cancelReason ?? this.cancelReason,
@@ -134,21 +208,20 @@ class Passenger {
   final String name;
   final String? phone;
   final bool isConfirmed;
-  final String? photo;           // ✅ AJOUTÉ
-  final String? school;          // ✅ AJOUTÉ
-  final String? avatarColor;     // ✅ AJOUTÉ
+  final String? photo;
+  final String? school;
+  final String? avatarColor;
 
   Passenger({
     required this.id,
     required this.name,
     this.phone,
     this.isConfirmed = false,
-    this.photo,              // ✅ AJOUTÉ
-    this.school,             // ✅ AJOUTÉ
-    this.avatarColor,        // ✅ AJOUTÉ
+    this.photo,
+    this.school,
+    this.avatarColor,
   });
 
-  // ✅ GETTER pour les initiales
   String get initials {
     final parts = name.split(' ');
     if (parts.length >= 2) {
@@ -159,13 +232,13 @@ class Passenger {
 
   factory Passenger.fromJson(Map<String, dynamic> json) {
     return Passenger(
-      id: json['_id'] ?? json['id'] ?? '',
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
       name: json['name'] ?? json['nom'] ?? '',
       phone: json['phone'] ?? json['telephone'],
       isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
-      photo: json['photo'] ?? json['image'],                    // ✅ AJOUTÉ
-      school: json['school'] ?? json['ecole'],                  // ✅ AJOUTÉ
-      avatarColor: json['avatarColor'] ?? json['couleur'],      // ✅ AJOUTÉ
+      photo: json['photo'] ?? json['image'],
+      school: json['school'] ?? json['ecole'],
+      avatarColor: json['avatarColor'] ?? json['couleur'],
     );
   }
 
@@ -175,9 +248,9 @@ class Passenger {
       'name': name,
       'phone': phone,
       'isConfirmed': isConfirmed,
-      'photo': photo,           // ✅ AJOUTÉ
-      'school': school,         // ✅ AJOUTÉ
-      'avatarColor': avatarColor, // ✅ AJOUTÉ
+      'photo': photo,
+      'school': school,
+      'avatarColor': avatarColor,
     };
   }
 }

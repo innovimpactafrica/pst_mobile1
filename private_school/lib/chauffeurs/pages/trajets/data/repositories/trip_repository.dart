@@ -1,5 +1,3 @@
-
-
 import '../models/trip_model.dart';
 import '../services/trip_service.dart';
 
@@ -15,21 +13,21 @@ class TripRepository {
   }
 
   Future<TripModel> createTrip({
-    required String destination,
-    String? startLocation,
-    required DateTime date,
-    required String time,
-    required int totalSeats,
-    double? price,
+    required String startPoint,
+    required String endPoint,
+    required DateTime departureTime,
+    required int capacityMax,
+    required int schoolId,
+    bool isRecurring = false,
   }) async {
     try {
       return await _service.createTrip(
-        destination: destination,
-        startLocation: startLocation,
-        date: date,
-        time: time,
-        totalSeats: totalSeats,
-        price: price,
+        startPoint: startPoint,
+        endPoint: endPoint,
+        departureTime: departureTime,
+        capacityMax: capacityMax,
+        schoolId: schoolId,
+        isRecurring: isRecurring,
       );
     } catch (e) {
       throw Exception('Failed to create trip: $e');

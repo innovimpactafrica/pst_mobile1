@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_event.dart';
@@ -39,12 +35,12 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     emit(TripCreating());
     try {
       final trip = await repository.createTrip(
-        destination: event.destination,
-        startLocation: event.startLocation,
-        date: event.date,
-        time: event.time,
-        totalSeats: event.totalSeats,
-        price: event.price,
+        startPoint: event.startPoint,
+        endPoint: event.endPoint,
+        departureTime: event.departureTime,
+        capacityMax: event.capacityMax,
+        schoolId: event.schoolId,
+        isRecurring: event.isRecurring,
       );
       emit(TripCreated(trip));
       add(LoadTripsEvent());

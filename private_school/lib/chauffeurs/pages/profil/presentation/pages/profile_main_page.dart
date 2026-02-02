@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
+import 'package:private_school/chauffeurs/pages/profil/presentation/pages/language_selection_page.dart';
+import 'package:private_school/chauffeurs/pages/reports/presentation/pages/reports_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../../../../core/utils/image_url_helper.dart';
@@ -12,7 +14,7 @@ import 'personal_info_page.dart';
 import 'vehicle_info_page.dart';
 import 'documents_page.dart';
 import 'payment_history_page.dart';
-import 'reports_page.dart';
+
 
 // ← AJOUTER CET IMPORT
 import '../../../dashboard/domain/bloc/notification_bloc.dart';
@@ -372,9 +374,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                         ),
                                       ],
                                     ),
-                                    onTap: () {
-                                      // Language selector to be implemented
-                                    },
+                                  onTap: () {
+                                 Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LanguageSelectionPage()),
+                                     );
+                                      },
                                   ),
                                 ],
                               ),
