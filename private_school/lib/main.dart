@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/services/subscription_service.dart';
+import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/forgot_password_page.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
@@ -27,15 +28,13 @@ import 'package:private_school/parents/pages/enfants/domain/bloc/child_bloc.dart
 import 'package:private_school/parents/authentification/domain/bloc/auth_bloc.dart';
 
 // Driver imports
-import 'package:private_school/chauffeurs/pages/authentification/connexion.dart'
+import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/connexion.dart'
     as driver_auth;
-import 'package:private_school/chauffeurs/pages/authentification/inscription.dart'
-    as driver_auth;
-import 'package:private_school/chauffeurs/pages/authentification/mdp_oublie.dart'
+import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/inscription.dart'
     as driver_auth;
 
-import 'package:private_school/chauffeurs/authentification/domain/bloc/driver_auth_bloc.dart';
-import 'package:private_school/chauffeurs/authentification/data/repositories/driver_auth_repository.dart';
+import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_bloc.dart';
+import 'package:private_school/chauffeurs/pages/authentification/data/repositories/driver_auth_repository.dart';
 
 import 'package:private_school/chauffeurs/pages/abonnement/domain/bloc/subscription_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/repositories/subscription_repository.dart';
@@ -45,7 +44,7 @@ import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_
 
 import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
 import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
-// ✅ AJOUTER
+
 import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart';
 
 void main() async {
@@ -53,47 +52,59 @@ void main() async {
 
   // Initialize French locale for date formatting
   await initializeDateFormatting('fr_FR', null);
+  
+  // 🆕 Initialize EasyLocalization
   await EasyLocalization.ensureInitialized();
+  
   // Initialize API Client
   await ApiClient().init();
   debugPrint('✅ API Client initialized');
 
   runApp(
-    MultiBlocProvider(
-      providers: [
-        // Parent BLoCs
-        BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
-        BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
-
-        // Driver BLoCs
-        BlocProvider<DriverAuthBloc>(
-          create: (context) =>
-              DriverAuthBloc(repository: DriverAuthRepository()),
-        ),
-        BlocProvider(
-          create: (context) => DashboardBloc(repository: DashboardRepository()),
-        ),
-        BlocProvider<SubscriptionBloc>(
-          create: (context) => SubscriptionBloc(
-            repository: SubscriptionRepository(SubscriptionService()),
-          ),
-        ),
-        BlocProvider(
-          create: (context) => TripBloc(repository: TripRepository()),
-        ),
-        BlocProvider<DriverProfileBloc>(
-          create: (context) => DriverProfileBloc(
-            repository: DriverProfileRepository(),
-          )..add(LoadDriverProfileEvent()),
-        ),
-        BlocProvider(
-          create: (_) => NotificationBloc(
-            repository: NotificationRepository(),
-          )..add(const LoadNotificationsEvent()),
-        ),
-        BlocProvider(create: (_) => ReportBloc()),
+    // 🆕 Wrapper EasyLocalization autour de MultiBlocProvider
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('fr'), // Français
+        Locale('en'), // Anglais
       ],
-      child: const MyApp(),
+      path: 'assets/translations', // Chemin des fichiers de traduction
+      fallbackLocale: const Locale('fr'), // Langue par défaut
+      child: MultiBlocProvider(
+        providers: [
+          // Parent BLoCs
+          BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
+          BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+
+          // Driver BLoCs
+          BlocProvider<DriverAuthBloc>(
+            create: (context) =>
+                DriverAuthBloc(repository: DriverAuthRepository()),
+          ),
+          BlocProvider(
+            create: (context) => DashboardBloc(repository: DashboardRepository()),
+          ),
+          BlocProvider<SubscriptionBloc>(
+            create: (context) => SubscriptionBloc(
+              repository: SubscriptionRepository(SubscriptionService()),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => TripBloc(repository: TripRepository()),
+          ),
+          BlocProvider<DriverProfileBloc>(
+            create: (context) => DriverProfileBloc(
+              repository: DriverProfileRepository(),
+            )..add(LoadDriverProfileEvent()),
+          ),
+          BlocProvider(
+            create: (_) => NotificationBloc(
+              repository: NotificationRepository(),
+            )..add(const LoadNotificationsEvent()),
+          ),
+          BlocProvider(create: (_) => ReportBloc()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -107,17 +118,15 @@ class MyApp extends StatelessWidget {
       title: 'Private School Transport',
       debugShowCheckedModeBanner: false,
       
-      // ✅ AJOUT DES LOCALES FRANÇAISES POUR CORRIGER L'ERREUR
-      localizationsDelegates: const [
+      // 🆕 Configuration de la localisation avec EasyLocalization
+      localizationsDelegates: [
+        ...context.localizationDelegates, // 🆕 Délégués d'EasyLocalization
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('fr', 'FR'),
-        Locale('en', 'US'),
-      ],
-      locale: const Locale('fr', 'FR'),
+      supportedLocales: context.supportedLocales, // 🆕 Depuis EasyLocalization
+      locale: context.locale, // 🆕 Langue actuelle depuis EasyLocalization
       
       initialRoute: '/',
       routes: {
@@ -136,7 +145,7 @@ class MyApp extends StatelessWidget {
         // Driver routes
         '/driver/connexion': (context) => const driver_auth.Connexion(),
         '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
-        '/driver/mdp-oublie': (context) => const driver_auth.MdpOubliePage(),
+        '/forgot-password': (context) => const ForgotPasswordPage(),
         '/driver/dashboard': (context) => const DashboardPage(),
 
         // Legacy routes (backward compatibility - redirect to parent)

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/services/driver_profile_service.dart';
+import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import '../../domain/bloc/dashboard_bloc.dart';
 import '../../domain/bloc/dashboard_event.dart';
 import '../../domain/bloc/dashboard_state.dart';
 import '../widgets/dashboard_header.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
-import 'package:private_school/chauffeurs/widgets/report_problem_modal.dart';
+
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -249,7 +252,6 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildUpcomingTripsSection(DashboardLoaded state) {
-    // ✅ CORRECTION : Utiliser upcomingTripsList au lieu de upcomingTrips (qui est un int)
     final upcomingTripsList = state.dashboard.upcomingTripsList;
 
     return Column(
@@ -780,10 +782,11 @@ class _DashboardPageState extends State<DashboardPage> {
         );
       },
       backgroundColor: AppColors.primary,
-      child: const Icon(
-        Icons.help_outline,
-        color: AppColors.white,
-        size: 28,
+      child: SvgPicture.asset(
+        'assets/icons/13.svg',
+        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+        width: 28,
+        height: 28,
       ),
     );
   }

@@ -3,10 +3,10 @@
 class ReportModel {
   final int id;
   final int userId;
-  final String type; 
-  final String category; 
+  final String type; // Type API: "incident", "litige", "securite"
+  final String category; // Catégorie affichage: "Problème de sécurité", etc.
   final String description;
-  final String status; 
+  final String status;
   final DateTime createdAt;
   final DateTime? resolvedAt;
   final String? imageUrl;
@@ -27,37 +27,43 @@ class ReportModel {
     this.vehiclePlate,
   });
 
+  /// MAPPING CORRIGÉ ✅
   factory ReportModel.fromJson(Map<String, dynamic> json) {
-  List<dynamic> docs = json['documents'] ?? [];
-  String? firstImageUrl;
-  if (docs.isNotEmpty && docs[0]['url'] != null) {
-    firstImageUrl = docs[0]['url'];
-  }
+    List<dynamic> docs = json['documents'] ?? [];
+    String? firstImageUrl;
+    if (docs.isNotEmpty && docs[0]['url'] != null) {
+      firstImageUrl = docs[0]['url'];
+    }
 
-  return ReportModel(
-    id: json['id'] ?? 0,
-    userId: json['user_id'] ?? 0,
-    type: json['type'] ?? 'incident', 
-    category: json['type_de_problem'] ?? json['category'] ?? 'Signalement', 
-    description: json['description'] ?? '',
-    status: json['status'] ?? 'En cours',
-    createdAt: json['created_at'] != null
-        ? DateTime.parse(json['created_at'])
-        : DateTime.now(),
-    resolvedAt: json['updated_at'] != null 
-        ? DateTime.parse(json['updated_at'])
-        : null,
-    imageUrl: firstImageUrl,
-    driverName: json['nom_chauffeur'], 
-    vehiclePlate: json['plaque_vehicule'],
-  );
-}
+    return ReportModel(
+      id: json['id'] ?? 0,
+      userId: json['user_id'] ?? 0,
+      
+      // ✅ CORRECTION: type_de_problem → type (pour le filtrage)
+      type: json['type_de_problem'] ?? json['type'] ?? 'incident',
+      
+      // ✅ CORRECTION: category → category (pour l'affichage)
+      category: json['category'] ?? json['type_de_problem'] ?? 'Signalement',
+      
+      description: json['description'] ?? '',
+      status: json['status'] ?? 'En cours',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      resolvedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
+      imageUrl: firstImageUrl,
+      driverName: json['nom_chauffeur'],
+      vehiclePlate: json['plaque_vehicule'],
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'user_id': userId,
-      'type': type,
+      'type_de_problem': type, // ✅ Envoi vers API
       'category': category,
       'description': description,
       'status': status,

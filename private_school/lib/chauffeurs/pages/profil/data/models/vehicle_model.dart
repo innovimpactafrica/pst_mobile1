@@ -21,18 +21,29 @@ class VehicleModel {
   /// Create from JSON (API response)
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
-      id: json['_id']?.toString() ?? json['id']?.toString(),
-      brand: json['brand']?.toString() ?? json['marque']?.toString(),
-      color: json['color']?.toString() ?? json['couleur']?.toString(),
-      plate: json['plate']?.toString() ?? 
-             json['immatriculation']?.toString() ?? 
-             json['plateNumber']?.toString(),
-      capacity: json['capacity'] ?? json['nombrePlaces'] ?? json['seats'],
-      photo: json['photo']?.toString() ?? json['image']?.toString(),
-      type: json['type']?.toString() ?? 
-            json['vehicleType']?.toString() ?? 
-            json['typeVehicule']?.toString(),
+      id: _parseToStringOrNull(json['_id'] ?? json['id']),
+      brand: _parseToStringOrNull(json['brand'] ?? json['marque']),
+      color: _parseToStringOrNull(json['color'] ?? json['couleur']),
+      plate: _parseToStringOrNull(json['plate'] ?? json['immatriculation'] ?? json['plateNumber']),
+      capacity: _parseToIntOrNull(json['capacity'] ?? json['nombrePlaces'] ?? json['seats']),
+      photo: _parseToStringOrNull(json['photo'] ?? json['image']),
+      type: _parseToStringOrNull(json['type'] ?? json['vehicleType'] ?? json['typeVehicule']),
     );
+  }
+
+  // Helper methods for safe type conversion
+  static String? _parseToStringOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value.isEmpty ? null : value;
+    return value.toString();
+  }
+
+  static int? _parseToIntOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    if (value is double) return value.toInt();
+    return null;
   }
 
   /// Convert to JSON

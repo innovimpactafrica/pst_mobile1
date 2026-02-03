@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 import '../models/report_model.dart';
 import '../services/report_service.dart';
@@ -7,64 +5,56 @@ import '../services/report_service.dart';
 class ReportRepository {
   final ReportService _service = ReportService();
 
+  /// Get all reports
   Future<List<ReportModel>> getReports() async {
-    try {
-      return await _service.fetchReports();
-    } catch (e) {
-      throw Exception('Failed to load reports: $e');
-    }
+    return await _service.fetchReports();
   }
 
+  /// Create a new report
   Future<ReportModel> createReport({
     required String type,
     required String category,
     required String description,
     List<File>? files,
   }) async {
-    try {
-      return await _service.createReport(
-        type: type,
-        category: category,
-        description: description,
-        files: files,
-      );
-    } catch (e) {
-      throw Exception('Failed to create report: $e');
-    }
+    return await _service.createReport(
+      type: type,
+      category: category,
+      description: description,
+      files: files,
+    );
   }
 
+  /// Update a report - MÉTHODE CORRIGÉE AVEC FICHIERS ✅
   Future<ReportModel> updateReport({
     required int id,
     required String type,
+    required String category,
     required String description,
+    List<File>? files,
   }) async {
-    try {
-      return await _service.updateReport(
-        id: id,
-        type: type,
-        description: description,
-      );
-    } catch (e) {
-      throw Exception('Failed to update report: $e');
-    }
+    return await _service.updateReport(
+      id: id,
+      type: type,
+      category: category,
+      description: description,
+      files: files,
+    );
   }
 
+  /// Update report status
   Future<ReportModel> updateReportStatus({
     required int id,
     required String status,
   }) async {
-    try {
-      return await _service.updateReportStatus(id: id, status: status);
-    } catch (e) {
-      throw Exception('Failed to update report: $e');
-    }
+    return await _service.updateReportStatus(
+      id: id,
+      status: status,
+    );
   }
 
+  /// Delete a report - MÉTHODE CORRIGÉE ✅
   Future<void> deleteReport(int id, int userId) async {
-    try {
-      await _service.deleteReport(id, userId);
-    } catch (e) {
-      throw Exception('Failed to delete report: $e');
-    }
+    return await _service.deleteReport(id, userId);
   }
 }

@@ -98,15 +98,35 @@ class PersonalInfo {
 
   factory PersonalInfo.fromJson(Map<String, dynamic> json) {
     return PersonalInfo(
-      id: json['id'] ?? 0,
-      firstName: json['first_name'] ?? '',
-      lastName: json['last_name'] ?? '',
-      fullName: json['full_name'] ?? '',
-      email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      address: json['address'],
-      photoProfile: json['photo_profil'],
+      id: _parseToInt(json['id']),
+      firstName: _parseToString(json['first_name']),
+      lastName: _parseToString(json['last_name']),
+      fullName: _parseToString(json['full_name']),
+      email: _parseToString(json['email']),
+      phone: _parseToString(json['phone']),
+      address: _parseToStringOrNull(json['address']),
+      photoProfile: _parseToStringOrNull(json['photo_profil']),
     );
+  }
+
+  // Helper methods for safe type conversion
+  static int _parseToInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static String _parseToString(dynamic value) {
+    if (value == null) return '';
+    if (value is String) return value;
+    return value.toString();
+  }
+
+  static String? _parseToStringOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value.isEmpty ? null : value;
+    return value.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -167,12 +187,12 @@ class DriverInfo {
 
   factory DriverInfo.fromJson(Map<String, dynamic> json) {
     return DriverInfo(
-      id: json['id'] ?? 0,
-      status: json['status'] ?? '',
-      photoProfile: json['photo_profil'],
-      licenseDocument: json['license_document'],
-      idDocument: json['id_document'],
-      vehiclePhoto: json['vehicle_photo'],
+      id: PersonalInfo._parseToInt(json['id']),
+      status: PersonalInfo._parseToString(json['status']),
+      photoProfile: PersonalInfo._parseToStringOrNull(json['photo_profil']),
+      licenseDocument: PersonalInfo._parseToStringOrNull(json['license_document']),
+      idDocument: PersonalInfo._parseToStringOrNull(json['id_document']),
+      vehiclePhoto: PersonalInfo._parseToStringOrNull(json['vehicle_photo']),
     );
   }
 

@@ -44,22 +44,22 @@ class _AbonnementPageState extends State<AbonnementPage> {
           children: [
             _buildHeader(),
             Expanded(
-              child: BlocListener<SubscriptionBloc, SubscriptionState>(
-                listener: (context, state) {
-                 if (state is CurrentSubscriptionLoaded) {
-                 debugPrint("Abonnement reçu: ${state.subscription?.plan}");
-                 setState(() {
-                 _currentSubscription = state.subscription;
-                });
-                } else if (state is SubscriptionActive) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Abonnement activé avec succès !'),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                    _loadData();
-                  }
+             child: BlocListener<SubscriptionBloc, SubscriptionState>(
+  listener: (context, state) {
+    if (state is CurrentSubscriptionLoaded) {
+      debugPrint("Abonnement reçu: ${state.subscription?.plan}");
+      setState(() {
+        _currentSubscription = state.subscription;
+      });
+    } else if (state is SubscriptionActive) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Abonnement activé avec succès !'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      _loadData();
+    }
                 },
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
@@ -108,23 +108,23 @@ class _AbonnementPageState extends State<AbonnementPage> {
     );
   }
 
-  Widget _buildCurrentSubscription() {
-    if (_currentSubscription == null) {
-      return CurrentSubscriptionCard(
-        plan: 'Aucun abonnement actif',
-        expiryDate: '-',
-        isActive: false,
-      );
-    }
-
-    final dateFormat = DateFormat('dd/MM/yyyy');
-
+ Widget _buildCurrentSubscription() {
+  if (_currentSubscription == null) {
     return CurrentSubscriptionCard(
-      plan: _currentSubscription!.plan,
-      expiryDate: dateFormat.format(_currentSubscription!.expiryDate),
-      isActive: _currentSubscription!.isActive,
+      plan: 'Aucun abonnement actif',
+      expiryDate: '-',
+      isActive: false,
     );
   }
+
+  final dateFormat = DateFormat('dd/MM/yyyy');
+
+  return CurrentSubscriptionCard(
+    plan: _currentSubscription!.plan,
+    expiryDate: dateFormat.format(_currentSubscription!.expiryDate),
+    isActive: _currentSubscription!.isActive,
+  );
+}
 
   Widget _buildPlanToggle() {
     return PlanToggle(

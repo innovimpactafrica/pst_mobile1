@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/report_repository.dart';
 import '../../data/models/report_model.dart';
@@ -106,6 +107,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
+  /// LOGIQUE DE FILTRAGE CORRIGÉE ✅
   List<ReportModel> _applyFilters(
     List<ReportModel> reports,
     String filter,
@@ -113,30 +115,35 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
   ) {
     var filtered = reports;
 
-    // Apply type filter
+    // Appliquer le filtre par type
     if (filter != 'Tous') {
       filtered = filtered.where((report) {
+        final reportType = report.type.toLowerCase();
+        
         switch (filter) {
           case 'Incident':
-            return report.type.toLowerCase() == 'incident';
+            return reportType == 'incident';
           case 'Litiges':
-            return report.type.toLowerCase() == 'litige';
+            return reportType == 'litige';
           case 'Sécurité':
-            return report.type.toLowerCase() == 'securite' ||
-                report.type.toLowerCase() == 'sécurité';
+            return reportType == 'securite' || reportType == 'sécurité';
           default:
             return true;
         }
       }).toList();
     }
 
-    // Apply search query
+    // Appliquer la recherche
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
       filtered = filtered.where((report) {
-        return report.category.toLowerCase().contains(query) ||
-            report.description.toLowerCase().contains(query) ||
-            report.status.toLowerCase().contains(query);
+        final category = report.category.toLowerCase();
+        final description = report.description.toLowerCase();
+        final status = report.status.toLowerCase();
+        
+        return category.contains(query) ||
+               description.contains(query) ||
+               status.contains(query);
       }).toList();
     }
 
@@ -159,7 +166,6 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
 
       emit(ReportCreated(newReport));
 
-     
       await Future.delayed(const Duration(milliseconds: 500));
       add(LoadReportsEvent());
     } catch (e) {
@@ -167,23 +173,24 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
- 
+  /// MODIFICATION CORRIGÉE AVEC FICHIERS ✅
   Future<void> _onUpdateReport(
     UpdateReportEvent event,
     Emitter<ReportState> emit,
   ) async {
-    emit(ReportUpdating()); // 🆕 État de chargement
+    emit(ReportUpdating());
 
     try {
       final updatedReport = await _repository.updateReport(
         id: event.id,
         type: event.type,
+        category: event.category,
         description: event.description,
+        files: event.files,
       );
 
-      emit(ReportUpdated(updatedReport)); // 🆕 État de succès
+      emit(ReportUpdated(updatedReport));
 
-      // Reload reports to reflect changes
       await Future.delayed(const Duration(milliseconds: 500));
       add(LoadReportsEvent());
     } catch (e) {
@@ -201,33 +208,38 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         status: event.status,
       );
 
-      // Reload reports
       add(RefreshReportsEvent());
     } catch (e) {
       emit(ReportError(e.toString()));
     }
   }
 
- 
+  /// SUPPRESSION CORRIGÉE AVEC LOGS ✅
   Future<void> _onDeleteReport(
     DeleteReportEvent event,
     Emitter<ReportState> emit,
   ) async {
-    emit(ReportDeleting()); // 🆕 État de chargement
+    emit(ReportDeleting());
 
     try {
-     await _repository.deleteReport(
-  event.id,
-  event.userId,
-);
+      debugPrint('═══════════════════════════════════════════════════════');
+      debugPrint('🔥 [BLOC] Suppression signalement');
+      debugPrint('📝 ID: ${event.id}');
+      debugPrint('👤 UserID: ${event.userId}');
+      debugPrint('═══════════════════════════════════════════════════════');
+      
+      await _repository.deleteReport(
+        event.id,
+        event.userId,
+      );
 
+      debugPrint('✅ [BLOC] Suppression terminée avec succès');
+      emit(ReportDeleted());
 
-      emit(ReportDeleted()); // 🆕 État de succès
-
-      // Reload reports after deletion
       await Future.delayed(const Duration(milliseconds: 500));
       add(LoadReportsEvent());
     } catch (e) {
+      debugPrint('❌ [BLOC] Erreur: $e');
       emit(ReportError(e.toString()));
     }
   }

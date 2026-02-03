@@ -15,16 +15,28 @@ class SubscriptionPlan {
   });
 
   factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
-    return SubscriptionPlan(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name'] ?? json['nom'] ?? 'Plan',
-      price: (json['price'] ?? json['prix'] ?? 0).toDouble(),
-      durationDays: json['durationDays'] ?? json['dureejours'] ?? 30,
-      features: json['features'] != null 
-          ? List<String>.from(json['features']) 
-          : [],
-    );
+  List<String> featuresList = [];
+  if (json['features'] != null) {
+    final rawFeatures = json['features'];
+    if (rawFeatures is List) {
+      for (var f in rawFeatures) {
+        if (f is Map && f['name'] != null) {
+          featuresList.add(f['name'].toString());
+        } else if (f is String) {
+          featuresList.add(f);
+        }
+      }
+    }
   }
+
+  return SubscriptionPlan(
+    id: json['id']?.toString() ?? '',
+    name: json['name'] ?? json['nom'] ?? 'Plan',
+    price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+    durationDays: json['duration_days'] ?? json['dureejours'] ?? 30,
+    features: featuresList,
+  );
+}
 
   Map<String, dynamic> toJson() => {
     'id': id,

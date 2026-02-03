@@ -1,43 +1,97 @@
-// Driver login page - Redirects to MainLayout after successful login
-// Path: lib/chauffeurs/pages/authentification/connexion.dart
+// Reset Password Page - Step 3/3
+// Path: lib/chauffeurs/pages/authentication/presentation/pages/reset_password_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/utils/app_colors.dart';
-import '../../authentification/domain/bloc/driver_auth_bloc.dart';
-import '../../authentification/domain/bloc/driver_auth_event.dart';
-import '../../authentification/domain/bloc/driver_auth_state.dart';
-import '../../widgets/main_layout.dart';
-import 'inscription.dart';
-import 'mdp_oublie.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../domain/bloc/driver_auth_bloc.dart';
+import '../../domain/bloc/driver_auth_event.dart';
+import '../../domain/bloc/driver_auth_state.dart';
 
-class Connexion extends StatefulWidget {
-  const Connexion({super.key});
+class ResetPasswordPage extends StatefulWidget {
+  final String contact;
+  final String otp;
+
+  const ResetPasswordPage({
+    super.key,
+    required this.contact,
+    required this.otp,
+  });
 
   @override
-  State<Connexion> createState() => _ConnexionState();
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _ConnexionState extends State<Connexion> {
-  bool _obscurePassword = true;
-  final TextEditingController _phoneController = TextEditingController();
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
-    _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    // Validation
+    if (password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez remplir tous les champs'),
+          backgroundColor: AppColors.warning,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le mot de passe doit contenir au moins 6 caractères'),
+          backgroundColor: AppColors.warning,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Les mots de passe ne correspondent pas'),
+          backgroundColor: AppColors.warning,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Close keyboard
+    FocusScope.of(context).unfocus();
+
+    // Trigger reset password event
+    context.read<DriverAuthBloc>().add(
+          DriverResetPasswordEvent(
+            phone: widget.contact,
+            otp: widget.otp,
+            newPassword: password,
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<DriverAuthBloc, DriverAuthState>(
       listener: (context, state) {
-        // Clean all previous messages and dialogs
         if (state is DriverAuthLoading) {
-          ScaffoldMessenger.of(context).clearSnackBars();
-          
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -50,85 +104,59 @@ class _ConnexionState extends State<Connexion> {
               ),
             ),
           );
-        } 
-        else if (state is DriverAuthenticated) {
-          // Close loading dialog
+        } else if (state is DriverPasswordResetSuccess) {
+          // Close loading
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
-          
-          ScaffoldMessenger.of(context).clearSnackBars();
-          
-          // Show success message
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Connexion réussie !'),
+              content: Text('Mot de passe réinitialisé avec succès !'),
               backgroundColor: AppColors.success,
               duration: Duration(seconds: 2),
             ),
           );
-          
-          // Navigate to MainLayout (with bottom navigation)
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MainLayout(),
-            ),
-          );
-        } 
-        else if (state is DriverAuthError) {
-          // Close loading dialog if open
+
+          // Go back to login (pop all forgot password screens)
+          Navigator.popUntil(context, (route) => route.isFirst);
+        } else if (state is DriverAuthError) {
+          // Close loading
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
-          
-          ScaffoldMessenger.of(context).clearSnackBars();
-          
-          // Clean error message
+
           String errorMessage = state.message;
-          
-          if (errorMessage.contains('User not found')) {
-            errorMessage = 'Email ou mot de passe incorrect';
-          } else if (errorMessage.contains('Exception:')) {
-            errorMessage = errorMessage.replaceAll('Exception:', '').trim();
-          } else if (errorMessage.contains('Login failed:')) {
-            errorMessage = errorMessage.replaceAll('Login failed:', '').trim();
-          }
-          
+
+          // Clean error message
           if (errorMessage.contains('Exception:')) {
-            final parts = errorMessage.split('Exception:');
-            errorMessage = parts.last.trim();
+            errorMessage = errorMessage.replaceAll('Exception:', '').trim();
           }
-          
-          // Show error
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
               backgroundColor: AppColors.error,
               duration: const Duration(seconds: 4),
               behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'OK',
-                textColor: Colors.white,
-                onPressed: () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                },
-              ),
             ),
           );
         }
       },
       builder: (context, state) {
-        // Disable button during loading
         final isLoading = state is DriverAuthLoading;
-        
+
         return Scaffold(
           backgroundColor: AppColors.textWhite,
           appBar: AppBar(
             backgroundColor: AppColors.textWhite,
             elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+            ),
             title: const Text(
-              'Connexion',
+              'Nouveau mot de passe',
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -171,7 +199,8 @@ class _ConnexionState extends State<Connexion> {
 
                   // Title
                   Text(
-                    'Connexion',
+                    'Créer un nouveau\nmot de passe',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -183,7 +212,7 @@ class _ConnexionState extends State<Connexion> {
 
                   // Subtitle
                   Text(
-                    'Connectez-vous pour explorer toutes les\nfonctionnalités de l\'application.',
+                    'Votre nouveau mot de passe doit être différent\ndes mots de passe précédents',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -194,48 +223,11 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 40),
 
-                  // Email Field
+                  // New Password Field
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Identifiant',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !isLoading,
-                    decoration: InputDecoration(
-                      hintText: 'driver@example.com',
-                      hintStyle: TextStyle(
-                        color: AppColors.textSecondary.withValues(alpha: 0.5),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.background.withValues(alpha: 0.3),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Password Field
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Mot de passe',
+                      'Nouveau mot de passe',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -249,7 +241,7 @@ class _ConnexionState extends State<Connexion> {
                     obscureText: _obscurePassword,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: '**********',
+                      hintText: '••••••••',
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -263,6 +255,10 @@ class _ConnexionState extends State<Connexion> {
                         horizontal: 16,
                         vertical: 16,
                       ),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: AppColors.textSecondary,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -270,24 +266,82 @@ class _ConnexionState extends State<Connexion> {
                               : Icons.visibility,
                           color: AppColors.textSecondary,
                         ),
-                        onPressed: isLoading ? null : () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Confirm Password Field
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Confirmer le mot de passe',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    enabled: !isLoading,
+                    decoration: InputDecoration(
+                      hintText: '••••••••',
+                      hintStyle: TextStyle(
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      ),
+                      filled: true,
+                      fillColor: AppColors.background.withValues(alpha: 0.3),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: AppColors.textSecondary,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                                });
+                              },
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 40),
 
-                  // Login Button
+                  // Submit Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isLoading 
+                        backgroundColor: isLoading
                             ? AppColors.primary.withValues(alpha: 0.6)
                             : AppColors.primary,
                         shape: RoundedRectangleBorder(
@@ -295,44 +349,7 @@ class _ConnexionState extends State<Connexion> {
                         ),
                         elevation: 0,
                       ),
-                      onPressed: isLoading ? null : () {
-                        // Validation
-                        if (_phoneController.text.trim().isEmpty ||
-                            _passwordController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Veuillez remplir tous les champs'),
-                              backgroundColor: AppColors.warning,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          return;
-                        }
-
-                        // Email format validation
-                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                        if (!emailRegex.hasMatch(_phoneController.text.trim())) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Veuillez entrer un email valide'),
-                              backgroundColor: AppColors.warning,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          return;
-                        }
-
-                        // Close keyboard
-                        FocusScope.of(context).unfocus();
-
-                        // Trigger login event
-                        context.read<DriverAuthBloc>().add(
-                          DriverLoginEvent(
-                            phone: _phoneController.text.trim(),
-                            password: _passwordController.text,
-                          ),
-                        );
-                      },
+                      onPressed: isLoading ? null : _submit,
                       child: isLoading
                           ? const SizedBox(
                               height: 24,
@@ -343,7 +360,7 @@ class _ConnexionState extends State<Connexion> {
                               ),
                             )
                           : Text(
-                              'Se connecter',
+                              'Réinitialiser le mot de passe',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -351,64 +368,6 @@ class _ConnexionState extends State<Connexion> {
                               ),
                             ),
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Forgot Password
-                  GestureDetector(
-                    onTap: isLoading ? null : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const MdpOubliePage()),
-                      );
-                    },
-                    child: Text(
-                      'Mot de passe oublié ?',
-                      style: TextStyle(
-                        color: isLoading 
-                            ? AppColors.primary.withValues(alpha: 0.5)
-                            : AppColors.primary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 60),
-
-                  // Sign Up Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Vous n'avez pas de compte ?  ",
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: isLoading ? null : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const InscriptionPage(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          "S'inscrire",
-                          style: TextStyle(
-                            color: isLoading
-                                ? AppColors.success.withValues(alpha: 0.5)
-                                : AppColors.success,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

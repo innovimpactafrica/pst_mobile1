@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 
 import '../../../../../core/utils/app_colors.dart';
@@ -181,8 +182,7 @@ Widget build(BuildContext context) {
                   builder: (context, state) {
                     final bool isUpdating = state is DriverProfileUpdating;
                     
-                    // 🔑 RÉCUPÉRATION DYNAMIQUE DES DONNÉES :
-                    // On prend les données du state si disponible, sinon celles du widget initial
+                   
                     final currentProfile = (state is DriverProfileUpdated) 
                         ? state.profile 
                         : (state is DriverProfileLoaded) ? state.profile : widget.profile;
@@ -230,8 +230,8 @@ Widget build(BuildContext context) {
                             text: AppConstants.labelUpdate,
                             isLoading: isUpdating,
                             onPressed: (_licenseFile != null || _idCardFile != null)
-                                ? _uploadDocuments
-                                : () {},
+                                ? () => _uploadDocuments()
+                                : null,
                           ),
                         ],
                       ),
@@ -378,73 +378,91 @@ Widget build(BuildContext context) {
     );
   }
 
-  Widget _buildExistingDocumentPreview(String? documentUrl) {
-  if (documentUrl == null || documentUrl.isEmpty) return const SizedBox.shrink();
 
-  // 🌐 CONSTRUCTION DE L'URL COMPLÈTE
-  // Si l'URL ne commence pas par http, on ajoute l'adresse de ton serveur
+Widget _buildExistingDocumentPreview(dynamic documentUrl) {
+  
+  if (documentUrl == null || documentUrl is! String || documentUrl.isEmpty) {
+    debugPrint('⚠️ [DocumentsPage] URL invalide ou format Map détecté: $documentUrl');
+    return const SizedBox.shrink(); 
+  }
+
   final String fullUrl = documentUrl.startsWith('http') 
       ? documentUrl 
       : "http://86.106.181.31:3000$documentUrl";
 
-  return Container(
-    padding: const EdgeInsets.all(AppConstants.spacingM),
-    decoration: BoxDecoration(
-      color: AppColors.successLight, 
-      borderRadius: BorderRadius.circular(AppConstants.radiusL), 
-      border: Border.all(color: AppColors.success, width: 2),
-    ),
-    child: Row(
-      children: [
-        // 🖼️ AFFICHAGE DE LA PHOTO RÉELLE
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.1), 
-            borderRadius: BorderRadius.circular(AppConstants.radiusM),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppConstants.radiusM),
-            child: Image.network(
-              fullUrl,
-              fit: BoxFit.cover,
-              // En cas d'erreur de chargement (ex: format PDF ou erreur réseau), on affiche une icône
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.insert_drive_file, 
-                color: AppColors.success,
-              ),
-              // Indicateur de chargement
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-              },
+  return GestureDetector(
+    onTap: () async {
+      final Uri uri = Uri.parse(fullUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showSnackBar('Impossible d’ouvrir le document', isError: true);
+      }
+    },
+    child: Container(
+      padding: const EdgeInsets.all(AppConstants.spacingM),
+      decoration: BoxDecoration(
+        color: AppColors.successLight, 
+        borderRadius: BorderRadius.circular(AppConstants.radiusL), 
+        border: Border.all(color: AppColors.success, width: 2),
+      ),
+      child: Row(
+        children: [
+          _buildThumbnail(fullUrl),
+          const SizedBox(width: AppConstants.spacingL),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  AppConstants.labelCurrentDocument, 
+                  style: TextStyle(
+                    fontSize: AppConstants.fontSizeM, 
+                    fontWeight: FontWeight.w600, 
+                    color: AppColors.textPrimary
+                  ),
+                ),
+                const SizedBox(height: AppConstants.spacingXS),
+                Text(
+                  documentUrl.split('/').last, 
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSizeS, 
+                    color: AppColors.textSecondary
+                  ), 
+                  maxLines: 1, 
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(width: AppConstants.spacingL),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                AppConstants.labelCurrentDocument, 
-                style: TextStyle(fontSize: AppConstants.fontSizeM, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: AppConstants.spacingXS),
-              Text(
-                documentUrl.split('/').last, 
-                style: const TextStyle(fontSize: AppConstants.fontSizeS, color: AppColors.textSecondary), 
-                maxLines: 1, 
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
+
+Widget _buildThumbnail(String url) {
+  return Container(
+    width: 48,
+    height: 48,
+    decoration: BoxDecoration(
+      color: AppColors.success.withValues(alpha:0.1), 
+      borderRadius: BorderRadius.circular(AppConstants.radiusM),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(AppConstants.radiusM),
+      child: Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.insert_drive_file, 
+          color: AppColors.success
+        ),
+      ),
+    ),
+  );
+}
+
   Widget _buildEmptyState(VoidCallback onTap) {
     return Column(
       children: [

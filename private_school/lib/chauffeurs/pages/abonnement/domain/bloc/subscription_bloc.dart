@@ -1,4 +1,5 @@
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 import '../../data/repositories/subscription_repository.dart';
@@ -27,9 +28,11 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 ) async {
   try {
     final subscription = await repository.getCurrentSubscription();
-    emit(CurrentSubscriptionLoaded(subscription));
+    emit(CurrentSubscriptionLoaded(subscription)); // null si pas d'abonnement
   } catch (e) {
-    emit(SubscriptionError(e.toString()));
+    
+    debugPrint('⚠️ Erreur chargement abonnement: $e');
+    emit(CurrentSubscriptionLoaded(null));
   }
 }
   

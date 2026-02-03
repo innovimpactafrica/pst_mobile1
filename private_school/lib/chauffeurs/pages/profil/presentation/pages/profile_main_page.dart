@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
-import 'package:private_school/chauffeurs/pages/profil/presentation/pages/language_selection_page.dart';
+import 'package:private_school/chauffeurs/pages/logout/presentation/widgets/logout_bottom_sheet.dart';
 import 'package:private_school/chauffeurs/pages/reports/presentation/pages/reports_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -14,15 +15,10 @@ import 'personal_info_page.dart';
 import 'vehicle_info_page.dart';
 import 'documents_page.dart';
 import 'payment_history_page.dart';
-
-
-// ← AJOUTER CET IMPORT
 import '../../../dashboard/domain/bloc/notification_bloc.dart';
 import '../../../dashboard/domain/bloc/notification_state.dart';
+import '../widgets/language_bottom_sheet.dart'; // 🆕 Import du modal de langue
 
-/// Driver profile main page
-/// Displays driver information and menu options
-/// Design matches Figma mockup
 class ProfileMainPage extends StatefulWidget {
   const ProfileMainPage({super.key});
 
@@ -50,11 +46,11 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                 horizontal: AppConstants.spacingXL + 4,
                 vertical: AppConstants.spacingXL,
               ),
-              child: const Align(
+              child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Mon compte',
-                  style: TextStyle(
+                  'my_account'.tr(), // 🆕 Traduction
+                  style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textWhite,
@@ -97,7 +93,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                             ),
                             const SizedBox(height: AppConstants.spacingL),
                             Text(
-                              'Erreur de chargement',
+                              'loading_error'.tr(), // 🆕 Traduction
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeXL,
                                 fontWeight: FontWeight.w600,
@@ -122,7 +118,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                               ),
-                              child: const Text('Réessayer'),
+                              child: Text('retry'.tr()), // 🆕 Traduction
                             ),
                           ],
                         ),
@@ -204,12 +200,13 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                           height: AppConstants.spacingXS,
                                         ),
                                         Text(
-                                          'Chauffeur',
-                                          style: GoogleFonts.inter(
-                                            fontSize: AppConstants.fontSizeM,
-                                            color: AppColors.textSecondary,
+                                          'role_driver'.tr(),
+                                           style: GoogleFonts.inter(
+                                           fontSize: AppConstants.fontSizeM,
+                                           color: AppColors.textSecondary,
                                           ),
-                                        ),
+                                         ),
+
                                       ],
                                     ),
                                   ),
@@ -251,7 +248,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
 
                             // "Général" section title
                             Text(
-                              'Général',
+                              'general'.tr(), // 🆕 Traduction
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeM,
                                 fontWeight: FontWeight.w600,
@@ -273,7 +270,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                 children: [
                                   _buildMenuItem(
                                     icon: Icons.person_outline,
-                                    title: 'Informations personnelles',
+                                    title: 'personal_info'.tr(), // 🆕 Traduction
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -292,7 +289,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   _buildDivider(),
                                   _buildMenuItem(
                                     icon: Icons.directions_car_outlined,
-                                    title: 'Informations du véhicule',
+                                    title: 'vehicle_info'.tr(), // 🆕 Traduction
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -307,7 +304,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   _buildDivider(),
                                   _buildMenuItem(
                                     icon: Icons.folder_outlined,
-                                    title: 'Documents',
+                                    title: 'documents'.tr(), // 🆕 Traduction
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -320,13 +317,13 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   ),
                                   _buildDivider(),
                                   
-                                  // ← REMPLACER CE BLOC PAR LA VERSION AVEC BADGE
+                                  // Notifications avec badge
                                   _buildNotificationMenuItem(),
                                   
                                   _buildDivider(),
                                   _buildMenuItem(
                                     icon: Icons.payment_outlined,
-                                    title: 'Historiques des paiements',
+                                    title: 'payment_history'.tr(), // 🆕 Traduction
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -340,7 +337,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   _buildDivider(),
                                   _buildMenuItem(
                                     icon: Icons.warning_amber_outlined,
-                                    title: 'Mes signalements',
+                                    title: 'my_reports'.tr(), // 🆕 Traduction
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -351,14 +348,19 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                     },
                                   ),
                                   _buildDivider(),
+                                  
+                                  // 🆕 LANGUE - AVEC MODAL ANIMÉ
                                   _buildMenuItem(
                                     icon: Icons.language,
-                                    title: 'Langue',
+                                    title: 'language'.tr(), // 🆕 Traduction
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          'Français',
+                                          context.locale.languageCode == 'fr'
+                                          ? 'language_french'.tr()
+                                          : 'language_english'.tr(),
+
                                           style: GoogleFonts.inter(
                                             fontSize: AppConstants.fontSizeM,
                                             color: AppColors.textGrey,
@@ -374,12 +376,10 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                         ),
                                       ],
                                     ),
-                                  onTap: () {
-                                 Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const LanguageSelectionPage()),
-                                     );
-                                      },
+                                    onTap: () {
+                                      // 🆕 Afficher le modal de langue (animé du bas vers le haut)
+                                      showLanguageBottomSheet(context);
+                                    },
                                   ),
                                 ],
                               ),
@@ -397,12 +397,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                               ),
                               child: _buildMenuItem(
                                 icon: Icons.logout,
-                                title: 'Se déconnecter',
+                                title: 'logout'.tr(), // 🆕 Traduction
                                 iconColor: AppColors.error,
                                 showChevron: false,
-                                onTap: () {
-                                  _showLogoutDialog(context);
-                                },
+                               onTap: () {
+                                    showLogoutBottomSheet(context);
+                                   }
                               ),
                             ),
 
@@ -423,7 +423,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
     );
   }
 
-  // ← NOUVELLE MÉTHODE: Bouton Notifications avec badge
+  // Bouton Notifications avec badge
   Widget _buildNotificationMenuItem() {
     return BlocBuilder<NotificationBloc, NotificationState>(
       builder: (context, state) {
@@ -469,7 +469,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                 // Title
                 Expanded(
                   child: Text(
-                    'Notifications',
+                    'notifications'.tr(), // 🆕 Traduction
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeL,
                       color: AppColors.textPrimary,
@@ -593,41 +593,5 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'Déconnexion',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-        ),
-        content: Text(
-          'Êtes-vous sûr de vouloir vous déconnecter ?',
-          style: GoogleFonts.inter(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Annuler',
-              style: GoogleFonts.inter(color: AppColors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              // TODO: Implement logout logic
-            },
-            child: Text(
-              'Déconnexion',
-              style: GoogleFonts.inter(
-                color: AppColors.error,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  
 }

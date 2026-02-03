@@ -16,11 +16,12 @@ class ApiConstants {
   static const String loginDriver = '/api/auth/login/driver';
   static const String registerDriver = '/api/auth/register-driver';
   
-  // Common Auth
-  static const String logout = '/api/auth/logout';
+  // Auth endpoints
+  static const String logout = '/api/auth/logout'; // ← Ajoutez cette ligne
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetPassword = '/api/auth/reset-password';
   static const String verifyOtp = '/api/auth/verify-otp';
+
 
   // ==================== PARENT ENDPOINTS ====================
   
@@ -71,10 +72,10 @@ class ApiConstants {
   // Profile (GET and PUT use same endpoint)
   static const String driverProfile = '/api/drivers/profile';
   
-  // 🆕 NEW: Admin endpoint to update driver by ID (for documents and vehicle)
+  // Admin endpoint to update driver by ID (for documents and vehicle)
 
   static String updateDriverById(String id) => '/api/drivers/$id';
-
+  
   
   
   // Subscription

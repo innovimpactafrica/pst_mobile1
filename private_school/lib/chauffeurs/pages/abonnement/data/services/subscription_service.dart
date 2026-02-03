@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/subscription_model.dart';
@@ -12,15 +14,26 @@ class SubscriptionService {
     return data.map((e) => SubscriptionPlan.fromJson(e)).toList();
   }
 
-  // RÉCUPÉRER L'ABONNEMENT ACTUEL
-  Future<SubscriptionModel?> getCurrentSubscription() async {
-    try {
-      final response = await _apiClient.get(ApiConstants.driverSubscription);
-      if (response.data == null) return null;
-      final subData = response.data['data'] ?? response.data;
-      return SubscriptionModel.fromJson(subData);
-    } catch (e) { return null; }
+ 
+// RÉCUPÉRER L'ABONNEMENT ACTUEL
+Future<SubscriptionModel?> getCurrentSubscription() async {
+  try {
+    final response = await _apiClient.get(ApiConstants.driverSubscription);
+    
+    if (response.data == null || response.data['success'] == false) {
+      debugPrint('🔍 Aucun abonnement trouvé via endpoint direct');
+      return null;
+    }
+    
+    final subData = response.data['data'] ?? response.data;
+    if (subData == null) return null;
+    
+    return SubscriptionModel.fromJson(subData);
+  } catch (e) {
+    debugPrint('⚠️ Erreur endpoint subscription: $e');
+    return null;
   }
+}
 
   // SOUSCRIRE (On définit planId et paymentMethodId comme paramètres nommÉS avec {})
   Future<SubscriptionModel> subscribe({

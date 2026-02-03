@@ -1,4 +1,4 @@
-// Modal for reporting problems - CORRECTED VERSION
+// Modal for reporting problems - CORRECTED VERSION WITH EDIT SUPPORT
 // Path: lib/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart
 
 import 'dart:io';
@@ -28,33 +28,35 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
   final List<File> _selectedFiles = [];
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploading = false;
+  bool get isEditMode => widget.reportToEdit != null;
 
- @override
-void initState() {
-  super.initState();
-  _descriptionController = TextEditingController(
-    text: widget.reportToEdit?.description ?? '',
-  );
-
-  if (widget.reportToEdit != null) {
-    // On cherche le libellé (value) qui correspond à la catégorie API
-    final existingType = _problemTypes.firstWhere(
-      (element) => element['api'] == widget.reportToEdit!.type || 
-                   element['value'] == widget.reportToEdit!.category,
-      orElse: () => _problemTypes.last,
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController(
+      text: widget.reportToEdit?.description ?? '',
     );
-    _selectedProblemType = existingType['value'];
-  }
-}
 
-final List<Map<String, String>> _problemTypes = [
-  {'value': 'Problème technique', 'api': 'incident'},
-  {'value': 'Problème de trajet', 'api': 'incident'},
-  {'value': 'Problème de paiement', 'api': 'litige'},
-  {'value': 'Problème de passager', 'api': 'litige'},
-  {'value': 'Problème de sécurité', 'api': 'securite'}, 
-  {'value': 'Autre', 'api': 'incident'},
-];
+    if (widget.reportToEdit != null) {
+      // Chercher le type correspondant
+      final existingType = _problemTypes.firstWhere(
+        (element) =>
+            element['api'] == widget.reportToEdit!.type ||
+            element['value'] == widget.reportToEdit!.category,
+        orElse: () => _problemTypes.last,
+      );
+      _selectedProblemType = existingType['value'];
+    }
+  }
+
+  final List<Map<String, String>> _problemTypes = [
+    {'value': 'Problème technique', 'api': 'incident'},
+    {'value': 'Problème de trajet', 'api': 'incident'},
+    {'value': 'Problème de paiement', 'api': 'litige'},
+    {'value': 'Problème de passager', 'api': 'litige'},
+    {'value': 'Problème de sécurité', 'api': 'securite'},
+    {'value': 'Autre', 'api': 'incident'},
+  ];
 
   @override
   void dispose() {
@@ -187,7 +189,6 @@ final List<Map<String, String>> _problemTypes = [
         final file = File(result.files.single.path!);
         final fileSize = await file.length();
 
-        // Check file size (10 MB max)
         if (fileSize > 10 * 1024 * 1024) {
           _showErrorSnackBar('Le fichier est trop volumineux (max 10 MB)');
           return;
@@ -238,7 +239,9 @@ final List<Map<String, String>> _problemTypes = [
       _showErrorSnackBar('Veuillez décrire le problème');
       return;
     }
-    if (_selectedFiles.isEmpty) {
+
+    // Les fichiers sont obligatoires UNIQUEMENT en mode création
+    if (!isEditMode && _selectedFiles.isEmpty) {
       _showErrorSnackBar('Veuillez ajouter au moins un document');
       return;
     }
@@ -248,20 +251,33 @@ final List<Map<String, String>> _problemTypes = [
     });
 
     try {
-      // Trouver la config API
       final problemConfig = _problemTypes.firstWhere(
         (type) => type['value'] == _selectedProblemType,
         orElse: () => {'value': 'Autre', 'api': 'incident'},
       );
 
-      context.read<ReportBloc>().add(
-            CreateReportEvent(
-              type: problemConfig['api']!,
-              category: _selectedProblemType!,
-              description: _descriptionController.text.trim(),
-              files: _selectedFiles,
-            ),
-          );
+      if (isEditMode) {
+        // Mode modification - avec fichiers optionnels
+        context.read<ReportBloc>().add(
+              UpdateReportEvent(
+                id: widget.reportToEdit!.id,
+                type: problemConfig['api']!,
+                category: _selectedProblemType!,
+                description: _descriptionController.text.trim(),
+                files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
+              ),
+            );
+      } else {
+        // Mode création
+        context.read<ReportBloc>().add(
+              CreateReportEvent(
+                type: problemConfig['api']!,
+                category: _selectedProblemType!,
+                description: _descriptionController.text.trim(),
+                files: _selectedFiles,
+              ),
+            );
+      }
     } catch (e) {
       _showErrorSnackBar('Erreur lors de la préparation du signalement');
       setState(() {
@@ -274,12 +290,16 @@ final List<Map<String, String>> _problemTypes = [
   Widget build(BuildContext context) {
     return BlocListener<ReportBloc, ReportState>(
       listener: (context, state) {
-        if (state is ReportCreated) {
+        if (state is ReportCreated || state is ReportUpdated) {
           setState(() {
             _isUploading = false;
           });
           Navigator.pop(context);
-          _showSuccessSnackBar('Signalement créé avec succès');
+          _showSuccessSnackBar(
+            isEditMode
+                ? 'Signalement modifié avec succès'
+                : 'Signalement créé avec succès',
+          );
         } else if (state is ReportError) {
           setState(() {
             _isUploading = false;
@@ -288,7 +308,6 @@ final List<Map<String, String>> _problemTypes = [
         }
       },
       child: Container(
-        // ✅ CORRECTION : Hauteur à 85% au lieu de monter jusqu'en haut
         height: MediaQuery.of(context).size.height * 0.85,
         decoration: const BoxDecoration(
           color: AppColors.white,
@@ -315,7 +334,7 @@ final List<Map<String, String>> _problemTypes = [
                 const SizedBox(height: 24),
                 _buildDescriptionField(),
                 const SizedBox(height: 24),
-                _buildDocumentsSection(),
+                _buildDocumentsSection(), // ✅ TOUJOURS afficher, pas seulement en mode création
                 const SizedBox(height: 32),
                 _buildSubmitButton(),
               ],
@@ -331,7 +350,7 @@ final List<Map<String, String>> _problemTypes = [
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Signaler un problème',
+          isEditMode ? 'Modifier le signalement' : 'Signaler un problème',
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -365,12 +384,10 @@ final List<Map<String, String>> _problemTypes = [
           height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            // ✅ CORRECTION : Fond blanc au lieu de gris
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
-            // ✅ CORRECTION : Bordure pleine grise
             border: Border.all(
-              color: const Color(0xFFD1D5DB), // Gris plein
+              color: const Color(0xFFD1D5DB),
               width: 1,
             ),
           ),
@@ -440,20 +457,18 @@ final List<Map<String, String>> _problemTypes = [
               fontSize: AppConstants.fontSizeM,
             ),
             filled: true,
-            // ✅ CORRECTION : Fond blanc au lieu de gris
             fillColor: AppColors.white,
-            // ✅ CORRECTION : Bordure pleine grise
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB), // Gris plein
+                color: Color(0xFFD1D5DB),
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB), // Gris plein
+                color: Color(0xFFD1D5DB),
                 width: 1,
               ),
             ),
@@ -474,17 +489,32 @@ final List<Map<String, String>> _problemTypes = [
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Documents',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+        Row(
+          children: [
+            Text(
+              'Documents',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            // ✅ AIDE en mode édition
+            if (isEditMode) ...[
+              const SizedBox(width: 8),
+              Text(
+                '(optionnel - pour remplacer)',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
 
-        // Selected files list
         if (_selectedFiles.isNotEmpty) ...[
           ..._selectedFiles.asMap().entries.map((entry) {
             final index = entry.key;
@@ -494,19 +524,16 @@ final List<Map<String, String>> _problemTypes = [
           const SizedBox(height: 12),
         ],
 
-        // Upload area
         InkWell(
           onTap: _isUploading ? null : _pickFile,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              // ✅ CORRECTION : Fond blanc au lieu de gris
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
-              // ✅ CORRECTION : Bordure pointillée grise
               border: Border.all(
-                color: const Color(0xFFD1D5DB), // Gris
+                color: const Color(0xFFD1D5DB),
                 width: 1,
               ),
             ),
@@ -673,7 +700,7 @@ final List<Map<String, String>> _problemTypes = [
                 ),
               )
             : Text(
-                'Envoyer',
+                isEditMode ? 'Modifier' : 'Envoyer',
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

@@ -24,9 +24,14 @@ class DriverProfileService {
       debugPrint('📦 [DriverProfileService] Response: ${response.data}');
 
       if (response.data['success'] == true && response.data['data'] != null) {
-        return DriverProfileModel.fromJson(response.data['data']);
+        final data = response.data['data'];
+        if (data is Map<String, dynamic>) {
+          return DriverProfileModel.fromJson(data);
+        } else {
+          throw Exception('Invalid data format: expected Map<String, dynamic>');
+        }
       } else {
-        throw Exception('Invalid response format');
+        throw Exception('Invalid response format: ${response.data}');
       }
     } on DioException catch (e) {
       debugPrint('❌ [DriverProfileService] DioException: ${e.message}');
@@ -37,9 +42,7 @@ class DriverProfileService {
     }
   }
 
-  /// Update driver profile with FormData (supports file upload)
-  /// ⚠️ IMPORTANT: Cet endpoint gère UNIQUEMENT les infos personnelles (nom, téléphone, adresse, photo_profil)
-  /// Pour véhicule et documents, utiliser updateDriverById()
+  
   Future<DriverProfileModel> updateProfileWithPhoto(FormData formData) async {
     try {
       debugPrint(
@@ -75,10 +78,7 @@ class DriverProfileService {
     }
   }
 
-/// 🆕 NEW: Update driver by ID using ADMIN endpoint
-/// ✅ Utilisé pour: véhicule (vehicle_brand, vehicle_color, vehicle_plate, capacity, vehicle_photo)
-/// ✅ Utilisé pour: documents (license_document, id_document)
-/// ⚠️ NE PAS utiliser pour infos personnelles (nom, téléphone, adresse)
+
 Future<DriverProfileModel> updateDriverById({
   required String driverId,
   required FormData formData,

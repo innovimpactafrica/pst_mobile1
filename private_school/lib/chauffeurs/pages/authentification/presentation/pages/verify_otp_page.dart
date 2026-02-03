@@ -1,29 +1,31 @@
+// Verify OTP for Forgot Password - Step 2/3
+// Path: lib/chauffeurs/pages/authentication/presentation/pages/verify_otp_forgot_page.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:private_school/core/utils/app_colors.dart';
-import '../../authentification/domain/bloc/driver_auth_bloc.dart';
-import '../../authentification/domain/bloc/driver_auth_event.dart';
-import '../../authentification/domain/bloc/driver_auth_state.dart';
-import 'creer_mdp.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../domain/bloc/driver_auth_bloc.dart';
+import '../../domain/bloc/driver_auth_event.dart';
+import '../../domain/bloc/driver_auth_state.dart';
+import 'reset_password_page.dart';
 
-class Verification extends StatefulWidget {
-  final String phone;
+class VerifyOtpForgotPage extends StatefulWidget {
+  final String contact;
 
-  const Verification({super.key, required this.phone});
+  const VerifyOtpForgotPage({super.key, required this.contact});
 
   @override
-  State<Verification> createState() => _VerificationState();
+  State<VerifyOtpForgotPage> createState() => _VerifyOtpForgotPageState();
 }
 
-class _VerificationState extends State<Verification> {
+class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
   final List<TextEditingController> _controllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
 
-  int _secondsRemaining = 23;
+  int _secondsRemaining = 60;
   Timer? _timer;
 
   @override
@@ -42,7 +44,7 @@ class _VerificationState extends State<Verification> {
   }
 
   void _startCountdown() {
-    _secondsRemaining = 23;
+    _secondsRemaining = 60;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining == 0) {
@@ -61,9 +63,10 @@ class _VerificationState extends State<Verification> {
     if (_controllers.every((c) => c.text.isNotEmpty)) {
       final otp = _controllers.map((c) => c.text).join();
 
+      // Trigger verify OTP event
       context.read<DriverAuthBloc>().add(
-        DriverVerifyOTPEvent(phone: widget.phone, otp: otp),
-      );
+            DriverVerifyOTPEvent(phone: widget.contact, otp: otp),
+          );
     }
   }
 
@@ -71,11 +74,14 @@ class _VerificationState extends State<Verification> {
     if (_secondsRemaining == 0) {
       _startCountdown();
       context.read<DriverAuthBloc>().add(
-        DriverForgotPasswordEvent(phone: widget.phone),
+            DriverForgotPasswordEvent(phone: widget.contact),
+          );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nouveau code envoyé'),
+          backgroundColor: AppColors.success,
+        ),
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Nouveau code envoyé')));
     }
   }
 
@@ -83,22 +89,42 @@ class _VerificationState extends State<Verification> {
     bool isSelected = _controllers[index].selection.baseOffset >= 0;
 
     return SizedBox(
-      width: 48,
-      height: 48,
+      width: 60,
+      height: 60,
       child: TextField(
         controller: _controllers[index],
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         maxLength: 1,
-        style: TextStyle(fontSize: 18, color: AppColors.textPrimary),
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
         decoration: InputDecoration(
           counterText: "",
           filled: true,
-          fillColor: isSelected ? AppColors.successLight : AppColors.background,
+          fillColor: isSelected 
+              ? AppColors.primary.withValues(alpha: 0.1) 
+              : AppColors.background.withValues(alpha: 0.3),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: isSelected ? AppColors.successDark : AppColors.background,
+              color: isSelected ? AppColors.primary : AppColors.border,
+              width: 2,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: AppColors.border,
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: AppColors.primary,
               width: 2,
             ),
           ),
@@ -109,6 +135,9 @@ class _VerificationState extends State<Verification> {
             FocusScope.of(context).nextFocus();
           }
           _checkOTPCompletion();
+          setState(() {});
+        },
+        onTap: () {
           setState(() {});
         },
       ),
@@ -125,42 +154,38 @@ class _VerificationState extends State<Verification> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (_) => const Center(child: CircularProgressIndicator()),
-          );
-        } else if (state is DriverOTPVerified) {
-          if (!mounted) return;
-          Navigator.of(context).pop();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-              backgroundColor: Colors.white,
-              content: Row(
-                children: [
-                  SvgPicture.asset('assets/icons/9.svg', width: 24, height: 24),
-                  const SizedBox(width: 12),
-                  const Text(
-                    "Vérification terminée",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
+            builder: (_) => PopScope(
+              canPop: false,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
               ),
             ),
           );
+        } else if (state is DriverOTPVerified) {
+          if (!mounted) return;
+          Navigator.of(context).pop(); // Close loading
 
-          // ✅ Fixed: Use Timer instead of Future.delayed to avoid async gap
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Code vérifié avec succès !'),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Navigate to reset password page
           final otp = _controllers.map((c) => c.text).join();
-          Timer(const Duration(seconds: 1, milliseconds: 500), () {
+          Timer(const Duration(milliseconds: 500), () {
             if (!mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) => PasswordCreationPage(phone: widget.phone, otp: otp),
+                builder: (_) => ResetPasswordPage(
+                  contact: widget.contact,
+                  otp: otp,
+                ),
               ),
             );
           });
@@ -169,45 +194,53 @@ class _VerificationState extends State<Verification> {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
+
+          String errorMessage = state.message;
+          if (errorMessage.contains('Exception:')) {
+            errorMessage = errorMessage.replaceAll('Exception:', '').trim();
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(errorMessage),
               backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
             ),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.textWhite,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.textWhite,
           leading: IconButton(
-            icon: SvgPicture.asset('assets/icons/back.svg'),
+            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
+          title: const Text(
+            'Vérification',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: false,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Row(
                 children: [
-                  SvgPicture.asset(
-                    'assets/icons/4.svg',
-                    colorFilter: ColorFilter.mode(
-                      AppColors.secondary,
-                      BlendMode.srcIn,
-                    ),
-                    width: 20,
-                    height: 20,
-                  ),
+                  const Icon(Icons.language, color: AppColors.primary, size: 20),
                   const SizedBox(width: 6),
                   Text(
-                    "Français",
+                    'Français',
                     style: TextStyle(
+                      color: AppColors.primary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -217,96 +250,116 @@ class _VerificationState extends State<Verification> {
         ),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const SizedBox(height: 20),
+
+                // Logo
                 Center(
                   child: Image.asset(
                     'assets/images/2.jpg',
-                    width: 100,
                     height: 100,
                   ),
                 ),
-                const SizedBox(height: 16),
+
+                const SizedBox(height: 30),
+
+                // Title
                 Center(
                   child: Text(
-                    "Code de vérification",
+                    'Code de vérification',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.secondary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+
+                const SizedBox(height: 12),
+
+                // Subtitle
                 Center(
                   child: Text(
-                    "Saisissez le code à 4 chiffres envoyé par\nSMS au ${widget.phone}",
+                    'Saisissez le code à 4 chiffres envoyé à\n${widget.contact}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: AppColors.textSecondary,
+                      height: 1.5,
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
+
+                const SizedBox(height: 40),
+
+                // OTP Fields
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(4, (index) => _buildOTPField(index)),
                 ),
-                const SizedBox(height: 20),
+
+                const SizedBox(height: 30),
+
+                // Resend Code
                 Center(
                   child: Column(
                     children: [
                       Text(
-                        "Vous n'avez pas reçu de code ?",
+                        'Vous n\'avez pas reçu de code ?',
                         style: TextStyle(
-                          fontSize: 15,
-                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       GestureDetector(
                         onTap: _resendCode,
                         child: Text(
                           _secondsRemaining > 0
-                              ? "Renvoyer dans (${_secondsRemaining}s)"
-                              : "Renvoyer le code",
+                              ? 'Renvoyer dans ${_secondsRemaining}s'
+                              : 'Renvoyer le code',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: _secondsRemaining > 0
                                 ? AppColors.textGrey
-                                : AppColors.successDark,
+                                : AppColors.success,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
                 const Spacer(),
+
+                // Verify Button
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 56,
                   child: ElevatedButton(
                     onPressed: _checkOTPCompletion,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
-                    child: const Text(
-                      "Vérifier",
+                    child: Text(
+                      'Vérifier',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textWhite,
                       ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
               ],
             ),

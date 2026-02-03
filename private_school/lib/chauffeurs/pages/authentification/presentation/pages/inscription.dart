@@ -6,10 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../../core/utils/app_colors.dart';
-import '../../authentification/domain/bloc/driver_auth_bloc.dart';
-import '../../authentification/domain/bloc/driver_auth_event.dart';
-import '../../authentification/domain/bloc/driver_auth_state.dart';
+import '../../../../../core/utils/app_colors.dart';
+import '../../domain/bloc/driver_auth_bloc.dart';
+import '../../domain/bloc/driver_auth_event.dart';
+import '../../domain/bloc/driver_auth_state.dart';
 
 class InscriptionPage extends StatefulWidget {
   const InscriptionPage({super.key});

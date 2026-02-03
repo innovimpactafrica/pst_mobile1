@@ -1,5 +1,4 @@
-// API client with Dio and automatic JWT management
-// Path: lib/core/network/api_client.dart
+
 
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
@@ -115,6 +114,7 @@ class ApiClient {
     }
   }
 
+
   Future<Response> delete(
     String path, {
     dynamic data,
@@ -122,10 +122,17 @@ class ApiClient {
     Options? options,
   }) async {
     try {
+     
+      Map<String, dynamic>? mergedQueryParams = queryParameters;
+      
+      if (data != null && data is Map<String, dynamic>) {
+        mergedQueryParams = {...?queryParameters, ...data};
+      }
+
       return await _dio.delete(
         path,
         data: data,
-        queryParameters: queryParameters,
+        queryParameters: mergedQueryParams,
         options: options,
       );
     } on DioException catch (e) {
