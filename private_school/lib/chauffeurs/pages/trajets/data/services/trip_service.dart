@@ -47,35 +47,37 @@ class TripService {
     }
   }
 
+  /// ✅ SIMPLIFIÉ : Accepte UN SEUL school_id
   Future<TripModel> createTrip({
     required String startPoint,
     required String endPoint,
     required DateTime departureTime,
     required int capacityMax,
-    required int schoolId,
+    required int schoolId, // ✅ Un seul ID
     bool isRecurring = false,
   }) async {
     try {
-      debugPrint('🚗 [TripService] ========================================');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🚗 [TripService] CREATING TRIP');
-      debugPrint('🚗 [TripService] ========================================');
-      debugPrint('🚗 [TripService] Start point: $startPoint');
-      debugPrint('🚗 [TripService] End point: $endPoint');
-      debugPrint('🚗 [TripService] Departure time: ${departureTime.toIso8601String()}');
-      debugPrint('🚗 [TripService] Capacity max: $capacityMax');
-      debugPrint('🚗 [TripService] School ID: $schoolId');
-      debugPrint('🚗 [TripService] Is recurring: $isRecurring');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 Start point: $startPoint');
+      debugPrint('📍 End point: $endPoint');
+      debugPrint('🕐 Departure time: ${departureTime.toIso8601String()}');
+      debugPrint('👥 Capacity max: $capacityMax');
+      debugPrint('🏫 School ID: $schoolId'); // ✅ Un seul ID
+      debugPrint('🔁 Is recurring: $isRecurring');
       
       final requestData = {
         'start_point': startPoint,
         'end_point': endPoint,
         'departure_time': departureTime.toIso8601String(),
         'capacity_max': capacityMax,
-        'school_id': schoolId,
+        'school_id': schoolId, // ✅ Un seul school_id
         'is_recurring': isRecurring,
       };
       
-      debugPrint('🚗 [TripService] Request data: $requestData');
+      debugPrint('📤 Request data: $requestData');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       final response = await _apiClient.post(
         '/api/drivers/trips',
@@ -83,7 +85,8 @@ class TripService {
       );
       
       debugPrint('✅ [TripService] Trip created successfully');
-      debugPrint('🚗 [TripService] Response: ${response.data}');
+      debugPrint('📦 Response: ${response.data}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
       final tripData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -92,7 +95,8 @@ class TripService {
       return TripModel.fromJson(tripData as Map<String, dynamic>);
     } catch (e, stackTrace) {
       debugPrint('❌ [TripService] Error creating trip: $e');
-      debugPrint('❌ [TripService] Stack trace: $stackTrace');
+      debugPrint('📚 Stack trace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       throw Exception('Failed to create trip: $e');
     }
   }

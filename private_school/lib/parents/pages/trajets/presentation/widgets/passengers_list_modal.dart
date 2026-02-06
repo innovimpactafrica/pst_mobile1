@@ -96,7 +96,7 @@ class PassengersListModal extends StatelessWidget {
 
   Widget _buildPassengerItem(PassengerModel passenger) {
     // Convertir la couleur hex en Color
-    Color avatarColor = _parseColor(passenger.avatarColor);
+    Color avatarColor = _parseColor(passenger.avatarColor ?? '#4CAF50');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -111,7 +111,7 @@ class PassengersListModal extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: passenger.photo.isNotEmpty
+              child: (passenger.photo != null && passenger.photo!.isNotEmpty)
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.asset(
@@ -148,7 +148,7 @@ class PassengersListModal extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  passenger.school,
+                  passenger.school ?? 'École non spécifiée',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.grey.shade600,

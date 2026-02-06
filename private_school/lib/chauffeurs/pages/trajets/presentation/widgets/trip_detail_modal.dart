@@ -8,20 +8,149 @@ import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import 'passengers_list_modal.dart';
 import 'schools_list_modal.dart';
+import '../../data/services/child_service.dart';
+import '../../../../../parents/pages/enfants/data/models/child_model.dart';
+import '../../../../../parents/pages/school/data/services/school_service.dart';
 
-/// Trip detail modal with full information
-/// 100% compliant with Innov & Impact Africa guidelines
-/// Matches Figma design with full page height (0.95)
-/// Location: lib/chauffeurs/pages/trajets/presentation/widgets/trip_detail_modal.dart
-class TripDetailModal extends StatelessWidget {
+/// Trip detail modal - Full screen design matching Figma with automatic children loading
+class TripDetailModal extends StatefulWidget {
   final TripModel trip;
   const TripDetailModal({super.key, required this.trip});
 
   @override
+  State<TripDetailModal> createState() => _TripDetailModalState();
+}
+
+class _TripDetailModalState extends State<TripDetailModal> {
+  final ChildService _childService = ChildService();
+  final SchoolService _schoolService = SchoolService();
+  List<ChildModel> _children = [];
+  bool _loadingChildren = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _enrichSchoolDataAndLoadChildren();
+  }
+
+  /// ✅ NOUVEAU : Enrichir les données d'école puis charger les enfants
+  Future<void> _enrichSchoolDataAndLoadChildren() async {
+    if (widget.trip.schools.isEmpty) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('⚠️ [TripDetailModal] Aucune école associée au trajet');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      return;
+    }
+
+    setState(() => _loadingChildren = true);
+
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔄 [TripDetailModal] ENRICHISSEMENT + CHARGEMENT ENFANTS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      // ✅ ÉTAPE 1 : Charger TOUTES les écoles depuis l'API
+      debugPrint('📚 Chargement de toutes les écoles...');
+      final allSchools = await _schoolService.fetchSchools();
+      debugPrint('✅ ${allSchools.length} écoles chargées depuis l\'API');
+      
+      List<ChildModel> allChildren = [];
+
+      // ✅ ÉTAPE 2 : Pour chaque école du trajet, enrichir avec les vraies données
+      for (int i = 0; i < widget.trip.schools.length; i++) {
+        final tripSchool = widget.trip.schools[i];
+        
+        debugPrint('');
+        debugPrint('📍 École ${i + 1}/${widget.trip.schools.length}:');
+        debugPrint('   ID du trajet: ${tripSchool.id}');
+        debugPrint('   Nom du trajet: ${tripSchool.name}');
+        
+        if (tripSchool.id == null) {
+          debugPrint('   ❌ PROBLÈME: École sans ID, skip');
+          continue;
+        }
+
+        // ✅ Trouver l'école complète dans la liste
+        try {
+          final fullSchool = allSchools.firstWhere(
+            (s) => s.id == tripSchool.id,
+            orElse: () => tripSchool,
+          );
+          
+          debugPrint('   ✅ École trouvée: ${fullSchool.name}');
+          debugPrint('   📍 Adresse: ${fullSchool.address}');
+          debugPrint('   🔍 Recherche enfants pour school_id=${fullSchool.id}...');
+          
+          final children = await _childService.getChildrenBySchool(fullSchool.id!);
+          
+          debugPrint('   ✅ ${children.length} enfant(s) trouvé(s)');
+          
+          if (children.isNotEmpty) {
+            for (var j = 0; j < children.length; j++) {
+              final child = children[j];
+              debugPrint('      ${j + 1}. ${child.name}');
+              debugPrint('         - ID: ${child.id}');
+              debugPrint('         - Adresse: ${child.address}');
+              debugPrint('         - School ID: ${child.schoolId}');
+              debugPrint('         - School Name: ${child.schoolName ?? "N/A"}');
+            }
+          } else {
+            debugPrint('      ⚠️ Aucun enfant inscrit dans cette école');
+          }
+          
+          allChildren.addAll(children);
+        } catch (e, stackTrace) {
+          debugPrint('   ❌ ERREUR lors du chargement:');
+          debugPrint('   $e');
+          debugPrint('   Stack: $stackTrace');
+        }
+      }
+
+      setState(() {
+        _children = allChildren;
+        _loadingChildren = false;
+      });
+
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('✅ RÉSUMÉ FINAL:');
+      debugPrint('   📚 ${widget.trip.schools.length} école(s) analysée(s)');
+      debugPrint('   👶 ${allChildren.length} enfant(s) chargé(s) au total');
+      if (allChildren.isEmpty) {
+        debugPrint('');
+        debugPrint('⚠️ ATTENTION: Aucun enfant trouvé !');
+        debugPrint('   Causes possibles:');
+        debugPrint('   1. Aucun parent n\'a inscrit d\'enfant dans cette école');
+        debugPrint('   2. Les school_id ne correspondent pas');
+        debugPrint('   3. Problème API /api/parents/children');
+      }
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('❌ [TripDetailModal] ERREUR GÉNÉRALE:');
+      debugPrint('$e');
+      debugPrint('Stack trace:');
+      debugPrint('$stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      setState(() => _loadingChildren = false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors du chargement des passagers'),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      // ✅ HAUTEUR AUGMENTÉE POUR PRENDRE TOUTE LA PAGE (comme Figma)
-      height: MediaQuery.of(context).size.height * 0.95,
+      height: MediaQuery.of(context).size.height,
       decoration: const BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.only(
@@ -38,18 +167,16 @@ class TripDetailModal extends StatelessWidget {
               child: Column(
                 children: [
                   _buildMap(),
-                  _buildTripInfo(),
+                  _buildTripInfoCard(),
                   _buildPassengersSection(context),
                   _buildSchoolsSection(context),
-                  if (trip.status == AppConstants.statusCompleted)
-                    _buildReviewsSection(),
                   const SizedBox(height: AppConstants.spacingXXXL),
                 ],
               ),
             ),
           ),
-          if (trip.status == AppConstants.statusPending ||
-              trip.status == AppConstants.statusActive)
+          if (widget.trip.status == AppConstants.statusPending ||
+              widget.trip.status == AppConstants.statusActive)
             _buildActionButtons(context),
         ],
       ),
@@ -74,7 +201,7 @@ class TripDetailModal extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingXL,
+        horizontal: AppConstants.spacingL,
         vertical: AppConstants.spacingL,
       ),
       decoration: const BoxDecoration(
@@ -88,16 +215,18 @@ class TripDetailModal extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.white),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: () => Navigator.pop(context),
           ),
-          const SizedBox(width: AppConstants.spacingS),
+          const SizedBox(width: AppConstants.spacingM),
           Expanded(
             child: Text(
-              '${trip.startLocation ?? "Dakar"} → ${trip.destination}',
+              '${widget.trip.startLocation ?? "Point de départ"} → ${widget.trip.destination}',
               style: const TextStyle(
                 color: AppColors.white,
-                fontSize: AppConstants.fontSizeXL,
-                fontWeight: FontWeight.bold,
+                fontSize: AppConstants.fontSizeL + 2,
+                fontWeight: FontWeight.w600,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -109,22 +238,22 @@ class TripDetailModal extends StatelessWidget {
 
   Widget _buildMap() {
     return Container(
-      height: AppConstants.mapHeight,
+      height: 280,
       margin: const EdgeInsets.all(AppConstants.spacingXL),
       decoration: BoxDecoration(
         color: AppColors.grey200,
-        borderRadius: BorderRadius.circular(AppConstants.mapBorderRadius),
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
       ),
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(AppConstants.mapBorderRadius),
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
             child: Container(
-              color: AppColors.grey300,
+              color: AppColors.grey200,
               child: const Center(
                 child: Icon(
                   Icons.map,
-                  size: AppConstants.iconSizeXXXL,
+                  size: 64,
                   color: AppColors.grey600,
                 ),
               ),
@@ -134,10 +263,17 @@ class TripDetailModal extends StatelessWidget {
             top: AppConstants.spacingL,
             right: AppConstants.spacingL,
             child: Container(
-              padding: const EdgeInsets.all(AppConstants.spacingS),
+              padding: const EdgeInsets.all(AppConstants.spacingS + 2),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(AppConstants.radiusXL),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.blackOpacity05,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.my_location,
@@ -151,14 +287,21 @@ class TripDetailModal extends StatelessWidget {
     );
   }
 
-  Widget _buildTripInfo() {
+  Widget _buildTripInfoCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
-      padding: const EdgeInsets.all(AppConstants.spacingL),
+      padding: const EdgeInsets.all(AppConstants.spacingXL),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppConstants.radiusL),
         border: Border.all(color: AppColors.grey200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.blackOpacity05,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -167,13 +310,13 @@ class TripDetailModal extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundLight,
+                  color: AppColors.successBackground,
                   borderRadius: BorderRadius.circular(AppConstants.radiusS),
                 ),
                 child: const Icon(
                   Icons.calendar_today,
                   size: AppConstants.iconSizeM,
-                  color: AppColors.primary,
+                  color: AppColors.success,
                 ),
               ),
               const SizedBox(width: AppConstants.spacingM),
@@ -182,17 +325,18 @@ class TripDetailModal extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _formatDate(trip.date),
+                      _formatDate(widget.trip.date),
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeL,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
-                      '${trip.schools.length} ${trip.schools.length > 1 ? "écoles desservies" : "école desservie"}',
+                      '${widget.trip.schools.length} ${widget.trip.schools.length > 1 ? "écoles desservies" : "école desservie"}',
                       style: const TextStyle(
-                        fontSize: AppConstants.fontSizeM,
+                        fontSize: AppConstants.fontSizeS,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -202,90 +346,118 @@ class TripDetailModal extends StatelessWidget {
               _buildStatusBadge(),
             ],
           ),
-          const SizedBox(height: AppConstants.spacingL),
-          const Divider(color: AppColors.divider),
-          const SizedBox(height: AppConstants.spacingL),
-          _buildRouteInfo(
-            icon: Icons.radio_button_checked,
-            label: AppConstants.labelStartPoint,
-            location: trip.startLocation ?? '123 Avenue des Champs-Élysées',
-            time: trip.time,
-            color: AppColors.locationStart,
+          
+          const SizedBox(height: AppConstants.spacingXL),
+          
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.radio_button_checked,
+                color: AppColors.success,
+                size: AppConstants.iconSizeM,
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Point de départ',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeS,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.trip.startLocation ?? '123 Avenue des Champs-Élysées',
+                      style: const TextStyle(
+                        fontSize: AppConstants.fontSizeM,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                widget.trip.time,
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeM,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
+          
           Container(
             margin: const EdgeInsets.only(
-              left: AppConstants.spacingM,
-              top: AppConstants.spacingXS,
-              bottom: AppConstants.spacingXS,
+              left: AppConstants.spacingS - 1,
+              top: AppConstants.spacingS,
+              bottom: AppConstants.spacingS,
             ),
-            height: AppConstants.spacingXL,
+            height: AppConstants.spacingXL + 4,
             width: 2,
-            color: AppColors.grey300,
+            child: CustomPaint(
+              painter: DottedLinePainter(color: AppColors.grey300),
+            ),
           ),
-          _buildRouteInfo(
-            icon: Icons.location_on,
-            label: AppConstants.labelDestination,
-            location: trip.destination,
-            time: '',
-            color: AppColors.locationDestination,
+          
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.location_on,
+                color: AppColors.error,
+                size: AppConstants.iconSizeM,
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Destination',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeS,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.trip.destination,
+                      style: const TextStyle(
+                        fontSize: AppConstants.fontSizeM,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.trip.time.isNotEmpty)
+                Text(
+                  _calculateArrivalTime(widget.trip.time),
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSizeM,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRouteInfo({
-    required IconData icon,
-    required String label,
-    required String location,
-    required String time,
-    required Color color,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: color, size: AppConstants.iconSizeL),
-        const SizedBox(width: AppConstants.spacingM),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: AppConstants.fontSizeS,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                location,
-                style: const TextStyle(
-                  fontSize: AppConstants.fontSizeM,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (time.isNotEmpty)
-          Text(
-            time,
-            style: const TextStyle(
-              fontSize: AppConstants.fontSizeM,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildPassengersSection(BuildContext context) {
+    final passengerCount = _children.length;
+    
     return GestureDetector(
-      onTap: () => _showPassengersList(context),
+      onTap: passengerCount > 0 ? () => _showPassengersList(context) : null,
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppConstants.spacingXL,
@@ -293,57 +465,102 @@ class TripDetailModal extends StatelessWidget {
           AppConstants.spacingXL,
           0,
         ),
-        padding: const EdgeInsets.all(AppConstants.spacingL),
+        padding: const EdgeInsets.all(AppConstants.spacingL + 4),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppConstants.radiusL),
           border: Border.all(color: AppColors.grey200),
-        ),
-        child: Row(
-          children: [
-            _buildPassengerAvatars(),
-            const SizedBox(width: AppConstants.spacingM),
-            Text(
-              '${trip.passengers.length.toString().padLeft(2, '0')} ${AppConstants.labelPassengers.toLowerCase()}',
-              style: const TextStyle(
-                fontSize: AppConstants.fontSizeL,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: AppConstants.iconSizeS,
-              color: AppColors.grey600,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.blackOpacity05,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
+        child: _loadingChildren
+            ? const Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Chargement des passagers...',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeM,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  if (passengerCount > 0) ...[
+                    _buildPassengerAvatars(),
+                    const SizedBox(width: AppConstants.spacingM),
+                  ] else ...[
+                    Container(
+                      padding: const EdgeInsets.all(AppConstants.spacingS),
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundLight,
+                        borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                      ),
+                      child: const Icon(
+                        Icons.people_outline,
+                        color: AppColors.textSecondary,
+                        size: AppConstants.iconSizeL,
+                      ),
+                    ),
+                    const SizedBox(width: AppConstants.spacingM),
+                  ],
+                  Text(
+                    '$passengerCount ${passengerCount > 1 ? "enfants" : "enfant"}',
+                    style: const TextStyle(
+                      fontSize: AppConstants.fontSizeL,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (passengerCount > 0)
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      size: AppConstants.iconSizeS,
+                      color: AppColors.grey600,
+                    ),
+                ],
+              ),
       ),
     );
   }
 
   Widget _buildPassengerAvatars() {
-    final displayPassengers = trip.passengers.take(3).toList();
+    final displayChildren = _children.take(3).toList();
     return SizedBox(
       width: 80,
       height: AppConstants.avatarSizeM,
       child: Stack(
-        children: List.generate(displayPassengers.length, (index) {
-          final passenger = displayPassengers[index];
+        children: List.generate(displayChildren.length, (index) {
+          final child = displayChildren[index];
           return Positioned(
             left: index * 24.0,
             child: Container(
               width: AppConstants.avatarSizeM,
               height: AppConstants.avatarSizeM,
               decoration: BoxDecoration(
-                color: _getAvatarColor(passenger.name),
+                color: _getAvatarColor(child.name),
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.white, width: 2),
               ),
               child: Center(
                 child: Text(
-                  _getInitials(passenger.name),
+                  child.initials,
                   style: const TextStyle(
                     color: AppColors.white,
                     fontSize: AppConstants.fontSizeS,
@@ -359,8 +576,10 @@ class TripDetailModal extends StatelessWidget {
   }
 
   Widget _buildSchoolsSection(BuildContext context) {
+    final schoolCount = widget.trip.schools.length;
+    
     return GestureDetector(
-      onTap: () => _showSchoolsList(context),
+      onTap: schoolCount > 0 ? () => _showSchoolsList(context) : null,
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppConstants.spacingXL,
@@ -368,11 +587,18 @@ class TripDetailModal extends StatelessWidget {
           AppConstants.spacingXL,
           AppConstants.spacingL,
         ),
-        padding: const EdgeInsets.all(AppConstants.spacingL),
+        padding: const EdgeInsets.all(AppConstants.spacingL + 4),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppConstants.radiusL),
           border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.blackOpacity05,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -394,7 +620,7 @@ class TripDetailModal extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    AppConstants.labelSchools,
+                    'Écoles desservies',
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       fontWeight: FontWeight.w600,
@@ -402,116 +628,23 @@ class TripDetailModal extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${trip.schools.length} ${trip.schools.length > 1 ? "écoles" : "école"}',
+                    '$schoolCount ${schoolCount > 1 ? "écoles" : "école"}',
                     style: const TextStyle(
-                      fontSize: AppConstants.fontSizeM,
+                      fontSize: AppConstants.fontSizeS,
                       color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: AppConstants.iconSizeS,
-              color: AppColors.grey600,
-            ),
+            if (schoolCount > 0)
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: AppConstants.iconSizeS,
+                color: AppColors.grey600,
+              ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildReviewsSection() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        AppConstants.spacingXL,
-        0,
-        AppConstants.spacingXL,
-        AppConstants.spacingL,
-      ),
-      padding: const EdgeInsets.all(AppConstants.spacingL),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppConstants.radiusL),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                '4.0',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeHuge,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(width: AppConstants.spacingL),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRatingBar(5, 0.7),
-                    _buildRatingBar(4, 0.5),
-                    _buildRatingBar(3, 0.3),
-                    _buildRatingBar(2, 0.1),
-                    _buildRatingBar(1, 0.05),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppConstants.spacingS),
-          const Row(
-            children: [
-              Icon(Icons.star, color: AppColors.rating, size: AppConstants.iconSizeM),
-              Icon(Icons.star, color: AppColors.rating, size: AppConstants.iconSizeM),
-              Icon(Icons.star, color: AppColors.rating, size: AppConstants.iconSizeM),
-              Icon(Icons.star, color: AppColors.rating, size: AppConstants.iconSizeM),
-              Icon(Icons.star_border, color: AppColors.rating, size: AppConstants.iconSizeM),
-              SizedBox(width: AppConstants.spacingS),
-              Text(
-                '52 avis',
-                style: TextStyle(
-                  fontSize: AppConstants.fontSizeS,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingBar(int stars, double percentage) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text(
-            '$stars',
-            style: const TextStyle(
-              fontSize: AppConstants.fontSizeS,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(width: AppConstants.spacingS),
-          const Icon(Icons.star, size: AppConstants.fontSizeS, color: AppColors.rating),
-          const SizedBox(width: AppConstants.spacingS),
-          Expanded(
-            child: LinearProgressIndicator(
-              value: percentage,
-              backgroundColor: AppColors.grey200,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
-              minHeight: 4,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -531,19 +664,21 @@ class TripDetailModal extends StatelessWidget {
       ),
       child: Row(
         children: [
-          if (trip.status == AppConstants.statusPending) ...[
+          if (widget.trip.status == AppConstants.statusPending) ...[
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _showCancelDialog(context),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingL),
-                  side: const BorderSide(color: AppColors.error),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppConstants.spacingL + 2,
+                  ),
+                  side: const BorderSide(color: AppColors.error, width: 1.5),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
                   ),
                 ),
                 child: const Text(
-                  AppConstants.labelReject,
+                  'Rejeter',
                   style: TextStyle(
                     color: AppColors.error,
                     fontSize: AppConstants.fontSizeL,
@@ -558,13 +693,16 @@ class TripDetailModal extends StatelessWidget {
                 onPressed: () => _acceptTrip(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingL),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppConstants.spacingL + 2,
                   ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                  ),
+                  elevation: 0,
                 ),
                 child: const Text(
-                  AppConstants.labelAccept,
+                  'Accepter',
                   style: TextStyle(
                     color: AppColors.white,
                     fontSize: AppConstants.fontSizeL,
@@ -573,22 +711,25 @@ class TripDetailModal extends StatelessWidget {
                 ),
               ),
             ),
-          ] else if (trip.status == AppConstants.statusActive) ...[
+          ] else if (widget.trip.status == AppConstants.statusActive) ...[
             Expanded(
               child: ElevatedButton(
                 onPressed: () => _startTrip(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingL),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppConstants.spacingL + 2,
                   ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                  ),
+                  elevation: 0,
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      AppConstants.labelStartTrip,
+                      'Démarrer le trajet',
                       style: TextStyle(
                         color: AppColors.white,
                         fontSize: AppConstants.fontSizeL,
@@ -596,7 +737,7 @@ class TripDetailModal extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: AppConstants.spacingS),
-                    Icon(Icons.arrow_forward, color: AppColors.white),
+                    Icon(Icons.arrow_forward, color: AppColors.white, size: 20),
                   ],
                 ),
               ),
@@ -623,8 +764,8 @@ class TripDetailModal extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: AppConstants.spacingS,
-            height: AppConstants.spacingS,
+            width: AppConstants.spacingXS + 2,
+            height: AppConstants.spacingXS + 2,
             decoration: BoxDecoration(
               color: statusConfig['textColor'],
               shape: BoxShape.circle,
@@ -645,70 +786,90 @@ class TripDetailModal extends StatelessWidget {
   }
 
   Map<String, dynamic> _getStatusConfig() {
-    switch (trip.status) {
+    switch (widget.trip.status) {
       case AppConstants.statusPending:
         return {
-          'bgColor': AppColors.statusPendingBg,
-          'textColor': AppColors.statusPending,
+          'bgColor': const Color(0xFFFEF3C7),
+          'textColor': const Color(0xFFF59E0B),
           'label': 'En attente',
         };
       case AppConstants.statusActive:
       case 'in_progress':
         return {
-          'bgColor': AppColors.statusActiveBg,
-          'textColor': AppColors.statusActive,
-          'label': 'En cours',
-        };
-      case AppConstants.statusStarted:
-        return {
-          'bgColor': AppColors.statusStartedBg,
-          'textColor': AppColors.statusStarted,
+          'bgColor': AppColors.primary.withValues(alpha: 0.1),
+          'textColor': AppColors.primary,
           'label': 'En cours',
         };
       case AppConstants.statusCompleted:
         return {
-          'bgColor': AppColors.statusCompletedBg,
-          'textColor': AppColors.statusCompleted,
+          'bgColor': AppColors.successBackground,
+          'textColor': AppColors.success,
           'label': 'Terminé',
         };
       default:
         return {
           'bgColor': AppColors.grey200,
           'textColor': AppColors.grey700,
-          'label': trip.status,
+          'label': widget.trip.status,
         };
     }
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+    final now = DateTime.now();
+    final difference = date.difference(now).inDays;
+
+    if (difference == 0) {
+      return "Aujourd'hui";
+    } else if (difference == 1) {
+      return 'Demain';
+    } else {
+      final formatted = DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+      return formatted[0].toUpperCase() + formatted.substring(1);
+    }
+  }
+
+  String _calculateArrivalTime(String departureTime) {
+    try {
+      final parts = departureTime.split(':');
+      if (parts.length == 2) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        
+        final arrivalHour = (hours + 1) % 24;
+        
+        return '${arrivalHour.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      debugPrint('Error calculating arrival time: $e');
+    }
+    return '';
   }
 
   Color _getAvatarColor(String name) {
     final colors = [
-      AppColors.info,
-      AppColors.success,
-      AppColors.warning,
-      AppColors.error,
-      AppColors.primaryLight,
+      const Color(0xFF3B82F6),
+      const Color(0xFF10B981),
+      const Color(0xFFF59E0B),
+      const Color(0xFFEF4444),
+      const Color(0xFF8B5CF6),
     ];
     return colors[name.hashCode % colors.length];
   }
 
-  String _getInitials(String name) {
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  }
-
   void _showPassengersList(BuildContext context) {
+    final passengers = _children.map((child) => Passenger(
+      id: child.id ?? '',
+      name: child.name,
+      school: child.schoolName,
+      isConfirmed: true,
+    )).toList();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => PassengersListModal(passengers: trip.passengers),
+      builder: (context) => PassengersListModal(passengers: passengers),
     );
   }
 
@@ -717,27 +878,27 @@ class TripDetailModal extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => SchoolsListModal(schools: trip.schools),
+      builder: (context) => SchoolsListModal(schools: widget.trip.schools),
     );
   }
 
   void _acceptTrip(BuildContext context) {
-    context.read<TripBloc>().add(StartTripEvent(trip.id));
+    context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(AppConstants.successTripAccepted),
+        content: Text('Trajet accepté avec succès'),
         backgroundColor: AppColors.success,
       ),
     );
   }
 
   void _startTrip(BuildContext context) {
-    context.read<TripBloc>().add(StartTripEvent(trip.id));
+    context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(AppConstants.successTripStarted),
+        content: Text('Trajet démarré'),
         backgroundColor: AppColors.success,
       ),
     );
@@ -748,8 +909,11 @@ class TripDetailModal extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text(
-          AppConstants.labelCancelTrip,
-          style: TextStyle(color: AppColors.textPrimary),
+          'Rejeter le trajet',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         content: const Text(
           'Êtes-vous sûr de vouloir rejeter ce trajet ?',
@@ -759,7 +923,7 @@ class TripDetailModal extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text(
-              'Non',
+              'Annuler',
               style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
@@ -767,17 +931,53 @@ class TripDetailModal extends StatelessWidget {
             onPressed: () {
               context.read<TripBloc>().add(
                     CancelTripEvent(
-                      tripId: trip.id,
+                      tripId: widget.trip.id,
                       reason: 'Rejeté par le chauffeur',
                     ),
                   );
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
-            child: const Text('Oui', style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Rejeter',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class DottedLinePainter extends CustomPainter {
+  final Color color;
+
+  DottedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+
+    const dashHeight = 4.0;
+    const dashSpace = 4.0;
+    double startY = 0;
+
+    while (startY < size.height) {
+      canvas.drawLine(
+        Offset(0, startY),
+        Offset(0, startY + dashHeight),
+        paint,
+      );
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

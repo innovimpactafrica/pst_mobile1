@@ -37,17 +37,19 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 }
   
   Future<void> _onLoadPlans(
-    LoadSubscriptionPlansEvent event,
-    Emitter<SubscriptionState> emit,
-  ) async {
-    emit(SubscriptionLoading());
-    try {
-      final plans = await repository.getPlans();
-      emit(SubscriptionPlansLoaded(plans));
-    } catch (e) {
-      emit(SubscriptionError(e.toString()));
-    }
+  LoadSubscriptionPlansEvent event,
+  Emitter<SubscriptionState> emit,
+) async {
+ 
+  try {
+    final plans = await repository.getPlans();
+    debugPrint('✅ ${plans.length} plans chargés');
+    emit(SubscriptionPlansLoaded(plans));
+  } catch (e) {
+    debugPrint('❌ Erreur chargement plans: $e');
+    emit(SubscriptionError(e.toString()));
   }
+}
 
   Future<void> _onSubscribe(
     SubscribeEvent event,

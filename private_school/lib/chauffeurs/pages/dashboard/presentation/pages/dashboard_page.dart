@@ -6,12 +6,15 @@ import 'package:intl/intl.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/services/driver_profile_service.dart';
 import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
+import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import '../../domain/bloc/dashboard_bloc.dart';
 import '../../domain/bloc/dashboard_event.dart';
 import '../../domain/bloc/dashboard_state.dart';
 import '../widgets/dashboard_header.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
+import '../../../trajets/presentation/widgets/trip_detail_modal.dart'; 
+import '../../../trajets/data/models/trip_model.dart'; 
 
 
 class DashboardPage extends StatefulWidget {
@@ -316,16 +319,15 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           )
         else
-          SizedBox(
-            height: 220,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              scrollDirection: Axis.horizontal,
-              // ✅ CORRECTION : Afficher TOUS les trajets au lieu de limiter à 3
-              itemCount: upcomingTripsList.length,
-              itemBuilder: (context, index) {
-                return _buildTripCard(upcomingTripsList[index]);
-              },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: upcomingTripsList.map((trip) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildTripCard(trip),
+                );
+              }).toList(),
             ),
           ),
       ],
@@ -341,7 +343,6 @@ class _DashboardPageState extends State<DashboardPage> {
     String childrenCount;
 
     if (trip is Map<String, dynamic>) {
-      // C'est un Map (JSON brut)
       startPoint = trip['start_point'] ?? '';
       endPoint = trip['end_point'] ?? '';
       capacityMax = trip['capacity_max'] ?? 0;
@@ -349,10 +350,9 @@ class _DashboardPageState extends State<DashboardPage> {
       departureTime = DateTime.parse(trip['departure_time'] ?? DateTime.now().toIso8601String());
       childrenCount = trip['children_count']?.toString() ?? '0';
     } else {
-      // C'est un objet RecentTrip
       final recentTrip = trip as dynamic;
-      startPoint = recentTrip.destination ?? '';  // Le modèle utilise 'destination'
-      endPoint = '';  // Pas disponible dans RecentTrip
+      startPoint = recentTrip.destination ?? '';
+      endPoint = '';
       capacityMax = recentTrip.passengers ?? 0;
       status = recentTrip.status ?? 'pending';
       departureTime = recentTrip.date ?? DateTime.now();
@@ -372,14 +372,13 @@ class _DashboardPageState extends State<DashboardPage> {
       formattedDate = formattedDate[0].toUpperCase() + formattedDate.substring(1);
     }
 
-    // Déterminer le statut pour le badge
     String statusLabel;
     Color statusColor;
     
     switch (status) {
       case 'pending':
         statusLabel = 'En attente';
-        statusColor = const Color(0xFFF59E0B);
+        statusColor = AppColors.statusPending;
         break;
       case 'in_progress':
         statusLabel = 'En cours';
@@ -387,221 +386,263 @@ class _DashboardPageState extends State<DashboardPage> {
         break;
       case 'completed':
         statusLabel = 'Terminé';
-        statusColor = const Color(0xFF16A34A);
+        statusColor = AppColors.statusCompleted;
         break;
       default:
         statusLabel = 'En attente';
-        statusColor = const Color(0xFFF59E0B);
+        statusColor = AppColors.warning;
     }
 
-    // ✅ Récupérer le nombre d'écoles
     final schoolCount = int.tryParse(childrenCount.toString()) ?? 1;
 
-    return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE5E5E5),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return GestureDetector(
+      // 🆕 NAVIGATION AU CLIC
+      onTap: () => _showTripDetail(trip),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFE5E5E5),
+            width: 1,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header avec date et badge
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: Color(0xFF16A34A),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    formattedDate,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusLabel,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: statusColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            const SizedBox(height: 16),
-            // Nombre de passagers
-            Row(
-              children: [
-                const Icon(
-                  Icons.people_outline,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '$capacityMax passagers',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Point de départ
-            Row(
-              children: [
-                const Icon(
-                  Icons.radio_button_checked,
-                  size: 14,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    startPoint.isEmpty ? 'Point de départ' : startPoint,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            // Ligne verticale
-            Padding(
-              padding: const EdgeInsets.only(left: 6),
-              child: Container(
-                width: 2,
-                height: 16,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.5),
-                      AppColors.primary.withValues(alpha: 0.2),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Point d'arrivée
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  size: 14,
-                  color: AppColors.error,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    endPoint.isEmpty ? (startPoint.isEmpty ? 'Destination' : startPoint) : endPoint,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            // Écoles desservies
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  const Icon(
-                    Icons.school,
-                    size: 14,
-                    color: Color(0xFF16A34A),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$schoolCount ${schoolCount > 1 ? "écoles desservies" : "école desservie"}',
-                    style: const TextStyle(
-                      fontSize: 11,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today,
+                      size: 16,
                       color: Color(0xFF16A34A),
-                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      formattedDate,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          statusLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: statusColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$capacityMax passagers',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.radio_button_checked,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      startPoint.isEmpty ? 'Point de départ' : startPoint,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Container(
+                  width: 2,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.5),
+                        AppColors.primary.withValues(alpha: 0.2),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    size: 14,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      endPoint.isEmpty ? (startPoint.isEmpty ? 'Destination' : startPoint) : endPoint,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.school,
+                      size: 14,
+                      color: Color(0xFF16A34A),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$schoolCount ${schoolCount > 1 ? "écoles desservies" : "école desservie"}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF16A34A),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // 🆕 MÉTHODE POUR AFFICHER LE DÉTAIL DU TRAJET
+  void _showTripDetail(dynamic tripData) {
+    try {
+      // Convertir les données en TripModel
+      TripModel trip;
+      
+      if (tripData is Map<String, dynamic>) {
+        trip = TripModel.fromJson(tripData);
+      } else if (tripData is TripModel) {
+        trip = tripData;
+      } else {
+        // Cas RecentTrip ou autre - convertir en Map puis TripModel
+        trip = TripModel.fromJson({
+          'id': tripData.id ?? '',
+          'driver_id': _profile?.id ?? '',
+          'destination': tripData.destination ?? '',
+          'start_point': '',
+          'departure_time': (tripData.date ?? DateTime.now()).toIso8601String(),
+          'time': '00:00',
+          'capacity_max': tripData.passengers ?? 0,
+          'status': tripData.status ?? 'pending',
+          'passengers': [],
+          'schools': [],
+        });
+      }
+
+      // Afficher le modal de détail
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => BlocProvider.value(
+          value: context.read<TripBloc>(), // Partager le BLoC
+          child: TripDetailModal(trip: trip),
+        ),
+      );
+    } catch (e) {
+      debugPrint('❌ Erreur lors de l\'affichage du détail: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'affichage du détail: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Widget _buildNotificationsSection(DashboardLoaded state) {
-    // Gestion sécurisée des notifications
     final notifications = state.dashboard.notifications;
     final List<dynamic> notificationsList = (notifications as List).take(2).toList();
 
@@ -648,20 +689,17 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildNotificationItem(dynamic notification) {
-    // ✅ CORRECTION : Gérer les 2 cas (Map OU NotificationModel)
     String type;
     String title;
     String description;
     String dateCreation;
 
     if (notification is Map<String, dynamic>) {
-      // C'est un Map (JSON brut)
       type = notification['type'] ?? '';
       title = notification['libelle'] ?? 'Notification';
       description = notification['description'] ?? '';
       dateCreation = notification['date_creation'] ?? '';
     } else {
-      // C'est un objet NotificationModel
       final notif = notification as dynamic;
       type = notif.type ?? '';
       title = notif.title ?? 'Notification';

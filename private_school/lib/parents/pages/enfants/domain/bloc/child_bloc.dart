@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/child_model.dart';
 import '../../data/repositories/child_repository.dart';
@@ -19,29 +20,44 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     on<UpdateChildScheduleEvent>(_onUpdateChildSchedule);
   }
 
-  /// Handle loading children
+  /// ✅ Handle loading children - CORRIGÉ
   Future<void> _onLoadChildren(
-      LoadChildrenEvent event,
-      Emitter<ChildState> emit,
-      ) async {
+    LoadChildrenEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    debugPrint('🔄 [ChildBloc] Loading children...');
     emit(const ChildLoadingState());
 
     try {
       final children = await _repository.getChildren();
+      
+      debugPrint('✅ [ChildBloc] ${children.length} enfant(s) chargé(s)');
+      
       emit(ChildLoadedState(
         children: children,
         filteredChildren: children,
       ));
     } catch (e) {
-      emit(ChildErrorState(error: e.toString()));
+      debugPrint('❌ [ChildBloc] Error loading children: $e');
+      
+      final currentState = state;
+
+      emit(ChildErrorState(
+        error: 'Erreur: ${e.toString()}',
+        children: currentState is ChildLoadedState
+            ? currentState.children
+            : [],
+      ));
     }
   }
 
-  /// Handle adding a child
+  /// ✅ Handle adding a child - CORRIGÉ avec rechargement
   Future<void> _onAddChild(
-      AddChildEvent event,
-      Emitter<ChildState> emit,
-      ) async {
+    AddChildEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    debugPrint('🔄 [ChildBloc] Adding child: ${event.child.name}');
+    
     final currentState = state;
     final currentChildren = currentState is ChildLoadedState
         ? currentState.children
@@ -50,21 +66,34 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     emit(ChildActionInProgressState(currentChildren));
 
     try {
+      // 1. Créer l'enfant via l'API
       final newChild = await _repository.addChild(event.child);
-      final updatedChildren = [...currentChildren, newChild];
+      
+      debugPrint('✅ [ChildBloc] Child added successfully: ${newChild.name}');
 
+      // 2. Afficher le message de succès
       emit(ChildActionSuccessState(
         message: 'Enfant ajouté avec succès',
-        children: updatedChildren,
+        children: [...currentChildren, newChild],
       ));
 
+      // 3. ✅ IMPORTANT : Recharger TOUS les enfants depuis l'API
+      debugPrint('🔄 [ChildBloc] Reloading all children from API...');
+      
+      final updatedChildren = await _repository.getChildren();
+      
+      debugPrint('✅ [ChildBloc] Reloaded: ${updatedChildren.length} enfant(s)');
+
+      // 4. Émettre le nouvel état avec les données fraîches
       emit(ChildLoadedState(
         children: updatedChildren,
         filteredChildren: updatedChildren,
       ));
     } catch (e) {
+      debugPrint('❌ [ChildBloc] Error adding child: $e');
+      
       emit(ChildErrorState(
-        error: e.toString(),
+        error: 'Erreur lors de l\'ajout: ${e.toString()}',
         children: currentChildren,
       ));
 
@@ -77,11 +106,13 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     }
   }
 
-  /// Handle updating a child
+  /// ✅ Handle updating a child - CORRIGÉ avec rechargement
   Future<void> _onUpdateChild(
-      UpdateChildEvent event,
-      Emitter<ChildState> emit,
-      ) async {
+    UpdateChildEvent event,
+    Emitter<ChildState> emit,
+  ) async {
+    debugPrint('🔄 [ChildBloc] Updating child: ${event.child.name}');
+    
     final currentState = state;
     final currentChildren = currentState is ChildLoadedState
         ? currentState.children
@@ -90,23 +121,35 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     emit(ChildActionInProgressState(currentChildren));
 
     try {
+      // 1. Mettre à jour l'enfant via l'API
       final updatedChild = await _repository.modifyChild(event.child);
-      final updatedChildren = currentChildren
-          .map((child) => child.id == updatedChild.id ? updatedChild : child)
-          .toList();
+      
+      debugPrint('✅ [ChildBloc] Child updated successfully: ${updatedChild.name}');
 
+      // 2. Afficher le message de succès
       emit(ChildActionSuccessState(
         message: 'Enfant mis à jour avec succès',
-        children: updatedChildren,
+        children: currentChildren
+            .map((child) => child.id == updatedChild.id ? updatedChild : child)
+            .toList(),
       ));
+
+      // 3. ✅ Recharger tous les enfants depuis l'API
+      debugPrint('🔄 [ChildBloc] Reloading all children from API...');
+      
+      final updatedChildren = await _repository.getChildren();
+      
+      debugPrint('✅ [ChildBloc] Reloaded: ${updatedChildren.length} enfant(s)');
 
       emit(ChildLoadedState(
         children: updatedChildren,
         filteredChildren: updatedChildren,
       ));
     } catch (e) {
+      debugPrint('❌ [ChildBloc] Error updating child: $e');
+      
       emit(ChildErrorState(
-        error: e.toString(),
+        error: 'Erreur lors de la mise à jour: ${e.toString()}',
         children: currentChildren,
       ));
 
@@ -119,17 +162,19 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     }
   }
 
-  /// Handle deleting a child
+  /// ✅ Handle deleting a child - CORRIGÉ avec rechargement
   Future<void> _onDeleteChild(
-      DeleteChildEvent event,
-      Emitter<ChildState> emit,
-      ) async {
-    // ✅ CORRECTION : Vérifier que childId n'est pas null
+    DeleteChildEvent event,
+    Emitter<ChildState> emit,
+  ) async {
     if (event.childId == null) {
+      debugPrint('❌ [ChildBloc] Cannot delete: childId is null');
       emit(const ChildErrorState(error: 'ID de l\'enfant manquant'));
       return;
     }
 
+    debugPrint('🔄 [ChildBloc] Deleting child ID: ${event.childId}');
+
     final currentState = state;
     final currentChildren = currentState is ChildLoadedState
         ? currentState.children
@@ -138,23 +183,33 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     emit(ChildActionInProgressState(currentChildren));
 
     try {
-      // ✅ Utiliser event.childId! car on a vérifié qu'il n'est pas null
+      // 1. Supprimer l'enfant via l'API
       await _repository.removeChild(event.childId!);
-      final updatedChildren =
-      currentChildren.where((child) => child.id != event.childId).toList();
+      
+      debugPrint('✅ [ChildBloc] Child deleted successfully');
 
+      // 2. Afficher le message de succès
       emit(ChildActionSuccessState(
         message: 'Enfant supprimé avec succès',
-        children: updatedChildren,
+        children: currentChildren.where((child) => child.id != event.childId).toList(),
       ));
+
+      // 3. ✅ Recharger tous les enfants depuis l'API
+      debugPrint('🔄 [ChildBloc] Reloading all children from API...');
+      
+      final updatedChildren = await _repository.getChildren();
+      
+      debugPrint('✅ [ChildBloc] Reloaded: ${updatedChildren.length} enfant(s)');
 
       emit(ChildLoadedState(
         children: updatedChildren,
         filteredChildren: updatedChildren,
       ));
     } catch (e) {
+      debugPrint('❌ [ChildBloc] Error deleting child: $e');
+      
       emit(ChildErrorState(
-        error: e.toString(),
+        error: 'Erreur lors de la suppression: ${e.toString()}',
         children: currentChildren,
       ));
 
@@ -169,9 +224,9 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
 
   /// Handle searching children
   void _onSearchChildren(
-      SearchChildrenEvent event,
-      Emitter<ChildState> emit,
-      ) {
+    SearchChildrenEvent event,
+    Emitter<ChildState> emit,
+  ) {
     final currentState = state;
     if (currentState is! ChildLoadedState) return;
 
@@ -186,6 +241,8 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
           lastName.contains(query);
     }).toList();
 
+    debugPrint('🔍 [ChildBloc] Search query: "$query" → ${filteredChildren.length} résultat(s)');
+
     emit(currentState.copyWith(
       filteredChildren: filteredChildren,
       searchQuery: event.query,
@@ -193,57 +250,64 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
   }
 
   /// Handle updating child schedule
-  Future<void> _onUpdateChildSchedule(
-      UpdateChildScheduleEvent event,
-      Emitter<ChildState> emit,
-      ) async {
-    // ✅ CORRECTION : Vérifier que childId n'est pas null
-    if (event.childId == null) {
-      emit(const ChildErrorState(error: 'ID de l\'enfant manquant'));
-      return;
-    }
+Future<void> _onUpdateChildSchedule(
+  UpdateChildScheduleEvent event,
+  Emitter<ChildState> emit,
+) async {
+  if (event.childId == null) {
+    debugPrint('❌ [ChildBloc] Cannot update schedule: childId is null');
+    emit(const ChildErrorState(error: 'ID de l\'enfant manquant'));
+    return;
+  }
 
-    final currentState = state;
-    final currentChildren = currentState is ChildLoadedState
-        ? currentState.children
-        : <ChildModel>[];
+  debugPrint('🔄 [ChildBloc] Updating schedule for child ID: ${event.childId}');
+  debugPrint('📦 [ChildBloc] Schedule data: ${event.schedule}');
 
-    emit(ChildActionInProgressState(currentChildren));
+  final currentState = state;
+  final currentChildren = currentState is ChildLoadedState
+      ? currentState.children
+      : <ChildModel>[];
 
-    try {
-      // ✅ Utiliser event.childId! car on a vérifié qu'il n'est pas null
-      final childToUpdate = currentChildren.firstWhere(
-            (c) => c.id == event.childId,
-      );
-      final updatedChild = childToUpdate.copyWith(
-        schedule: event.schedule,
-      );
+  emit(ChildActionInProgressState(currentChildren));
 
-      final updatedChildren = currentChildren
-          .map((child) => child.id == updatedChild.id ? updatedChild : child)
-          .toList();
+  try {
+    // 1. ✅ Mettre à jour les horaires via l'API
+    await _repository.updateChildSchedule(event.childId!, event.schedule);
+    
+    debugPrint('✅ [ChildBloc] Schedule updated successfully via API');
 
-      emit(ChildActionSuccessState(
-        message: 'Horaires mis à jour avec succès',
-        children: updatedChildren,
-      ));
+    // 2. Afficher le message de succès
+    emit(ChildActionSuccessState(
+      message: 'Horaires mis à jour avec succès',
+      children: currentChildren,
+    ));
 
+    // 3. ✅ Recharger tous les enfants depuis l'API pour avoir les données fraîches
+    debugPrint('🔄 [ChildBloc] Reloading all children from API...');
+    
+    final updatedChildren = await _repository.getChildren();
+    
+    debugPrint('✅ [ChildBloc] Reloaded: ${updatedChildren.length} enfant(s)');
+
+    // 4. Émettre le nouvel état avec les données à jour
+    emit(ChildLoadedState(
+      children: updatedChildren,
+      filteredChildren: updatedChildren,
+    ));
+  } catch (e) {
+    debugPrint('❌ [ChildBloc] Error updating schedule: $e');
+    
+    emit(ChildErrorState(
+      error: 'Erreur lors de la mise à jour des horaires: ${e.toString()}',
+      children: currentChildren,
+    ));
+
+    if (currentChildren.isNotEmpty) {
       emit(ChildLoadedState(
-        children: updatedChildren,
-        filteredChildren: updatedChildren,
-      ));
-    } catch (e) {
-      emit(ChildErrorState(
-        error: e.toString(),
         children: currentChildren,
+        filteredChildren: currentChildren,
       ));
-
-      if (currentChildren.isNotEmpty) {
-        emit(ChildLoadedState(
-          children: currentChildren,
-          filteredChildren: currentChildren,
-        ));
-      }
     }
   }
+}
 }

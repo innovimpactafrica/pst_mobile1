@@ -1,8 +1,6 @@
-// Driver authentication repository
-// Path: lib/chauffeurs/authentification/data/repositories/driver_auth_repository.dart
+
 
 import 'dart:io';
-
 import '../../../../../core/storage/secure_storage.dart';
 import '../models/driver_model.dart';
 import '../services/driver_auth_service.dart';
@@ -31,10 +29,10 @@ class DriverAuthRepository {
     required String password,
     String? licenseNumber,
     String? vehicleType,
-    String? vehicleColor, 
-    File? licenseFile,    
-    File? idCardFile,     
-    File? vehicleFile,    
+    String? vehicleColor,
+    File? licenseFile,
+    File? idCardFile,
+    File? vehicleFile,
   }) async {
     final result = await _authService.register(
       firstName: firstName,
@@ -59,18 +57,20 @@ class DriverAuthRepository {
     await _authService.verifyOTP(phone: phone, otp: otp);
   }
 
-  Future<void> forgotPassword({required String phone}) async {
-    await _authService.forgotPassword(phone: phone);
+ 
+  Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
+    return await _authService.forgotPassword(contact: contact);
   }
 
+
   Future<void> resetPassword({
-    required String phone,
-    required String otp,
+    required int userId,
+    required String code,
     required String newPassword,
   }) async {
     await _authService.resetPassword(
-      phone: phone,
-      otp: otp,
+      userId: userId,
+      code: code,
       newPassword: newPassword,
     );
   }

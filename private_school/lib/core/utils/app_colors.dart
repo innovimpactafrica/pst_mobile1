@@ -72,6 +72,8 @@ class AppColors {
   static const Color statusStarted = Colors.blue;
   static const Color statusCompleted = Color(0xFF4CAF50);
   static const Color statusCanceled = Color(0xFFF44336);
+  static const Color statusInProgress = Colors.blue; 
+static final Color statusInProgressBg = Colors.blue.withValues(alpha: 0.1);
   
   // Rating
   static const Color rating = Color(0xFFFFB300);

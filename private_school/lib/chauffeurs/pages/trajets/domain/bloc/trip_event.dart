@@ -7,7 +7,7 @@ class CreateTripEvent extends TripEvent {
   final String endPoint;
   final DateTime departureTime;
   final int capacityMax;
-  final int schoolId;
+  final int schoolId; // ✅ Un seul ID pour l'instant
   final bool isRecurring;
 
   CreateTripEvent({
@@ -22,13 +22,11 @@ class CreateTripEvent extends TripEvent {
 
 class StartTripEvent extends TripEvent {
   final String tripId;
-
   StartTripEvent(this.tripId);
 }
 
 class CompleteTripEvent extends TripEvent {
   final String tripId;
-
   CompleteTripEvent(this.tripId);
 }
 
@@ -40,6 +38,11 @@ class CancelTripEvent extends TripEvent {
     required this.tripId,
     required this.reason,
   });
+}
+
+class LoadTripDetailEvent extends TripEvent {
+  final String tripId;
+  LoadTripDetailEvent(this.tripId);
 }
 
 class RefreshTripsEvent extends TripEvent {}

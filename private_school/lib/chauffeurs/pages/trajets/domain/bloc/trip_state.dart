@@ -59,6 +59,16 @@ class TripCanceled extends TripState {
   List<Object?> get props => [tripId];
 }
 
+class TripLoaded extends TripState {
+  final TripModel trip;
+
+  TripLoaded(this.trip);
+
+  @override
+  List<Object?> get props => [trip];
+}
+
+
 class TripError extends TripState {
   final String message;
 

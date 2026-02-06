@@ -22,11 +22,17 @@ class _EnfantsPageState extends State<EnfantsPage>
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<ChildBloc>().add(const LoadChildrenEvent());
-  }
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final bloc = context.read<ChildBloc>();
+    if (bloc.state is! ChildLoadedState) {
+      bloc.add(const LoadChildrenEvent());
+    }
+  });
+}
+
 
   @override
   void dispose() {
@@ -132,6 +138,21 @@ class _EnfantsPageState extends State<EnfantsPage>
                             );
                           }
 
+                          if (state is ChildActionSuccessState) {
+                            if (state.children.isEmpty) {
+                             return Center(
+                             child: Text(
+                              'Aucun enfant',
+                             style: GoogleFonts.inter(
+                            fontSize: 16,
+                          color: AppColors.grey300,
+                        ),
+                      ),
+                     );
+                    }
+
+                     return _buildChildrenList(state.children);
+                       }
                           if (state is ChildLoadedState) {
                             if (state.filteredChildren.isEmpty) {
                               return Center(
@@ -173,6 +194,7 @@ class _EnfantsPageState extends State<EnfantsPage>
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_child_fab',
         onPressed: _showAddChildModal,
         backgroundColor: AppColors.success,
         child: const Icon(Icons.add, color: Colors.white, size: 28),

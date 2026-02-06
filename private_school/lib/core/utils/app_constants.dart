@@ -154,6 +154,7 @@ class AppConstants {
   static const String statusStarted = "started";
   static const String statusCompleted = "completed";
   static const String statusCanceled = "canceled";
+  static const String statusInProgress = 'in_progress';
 
   // Success messages - Documents
   static const String successFileSelected = 'Fichier sélectionné avec succès';

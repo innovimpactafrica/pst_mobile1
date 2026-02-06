@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,6 +20,7 @@ class PersonalInfoPage extends StatefulWidget {
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
   bool _isEditMode = false;
+  File? _selectedImageFile;
 
   // Controllers for editable fields
   late TextEditingController _firstNameController;
@@ -59,35 +61,51 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     try {
       final ImagePicker picker = ImagePicker();
 
-      // Ask user to choose between camera and gallery
+      // Demander à l'utilisateur de choisir entre caméra et galerie
       final source = await showModalBottomSheet<ImageSource>(
         context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         builder: (context) => SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_camera),
-                title: const Text('Prendre une photo'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choisir depuis la galerie'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_camera, color: AppColors.success),
+                  title: const Text('Prendre une photo'),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library, color: AppColors.success),
+                  title: const Text('Choisir depuis la galerie'),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
           ),
         ),
       );
 
       if (source != null) {
-        final XFile? image = await picker.pickImage(source: source);
+        final XFile? image = await picker.pickImage(
+          source: source,
+          imageQuality: 80, // Compresser l'image à 80%
+        );
 
         if (image != null && mounted) {
-          // Send event to update photo
-          context.read<ProfilBloc>().add(
-                UpdateProfilePhotoFromPathEvent(image.path),
-              );
+          setState(() {
+            _selectedImageFile = File(image.path);
+          });
+          
+          // Envoyer immédiatement la photo à l'API
+          if (mounted) {
+            context.read<ProfilBloc>().add(
+                  UpdateProfilePhotoFromPathEvent(image.path),
+                );
+          }
         }
       }
     } catch (e) {
@@ -103,14 +121,49 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }
 
   void _saveChanges() {
-    // Send event to update profile
+    // Validation basique
+    if (_firstNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le prénom est obligatoire'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_lastNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Le nom est obligatoire'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('L\'email est obligatoire'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Envoyer les modifications à l'API
     context.read<ProfilBloc>().add(
           UpdateUserFieldsEvent(
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
-            phone: _phoneController.text.trim(),
+            phone: _phoneController.text.trim().isEmpty 
+                ? null 
+                : _phoneController.text.trim(),
             email: _emailController.text.trim(),
-            address: _addressController.text.trim(),
+            address: _addressController.text.trim().isEmpty 
+                ? null 
+                : _addressController.text.trim(),
           ),
         );
   }
@@ -146,6 +199,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               onPressed: () {
                 setState(() {
                   _isEditMode = false;
+                  _selectedImageFile = null;
                 });
               },
             ),
@@ -158,10 +212,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               const SnackBar(
                 content: Text('Profil mis à jour avec succès'),
                 backgroundColor: AppColors.success,
+                duration: Duration(seconds: 2),
               ),
             );
             setState(() {
               _isEditMode = false;
+              _selectedImageFile = null;
             });
           }
 
@@ -170,6 +226,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               const SnackBar(
                 content: Text('Photo mise à jour avec succès'),
                 backgroundColor: AppColors.success,
+                duration: Duration(seconds: 2),
               ),
             );
           }
@@ -179,6 +236,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -187,7 +245,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           builder: (context, state) {
             if (state is ProfilLoading || state is ProfilUpdating) {
               return const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+                child: CircularProgressIndicator(color: AppColors.success),
               );
             }
 
@@ -196,9 +254,15 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppColors.primary),
+                    CircularProgressIndicator(color: AppColors.success),
                     SizedBox(height: AppConstants.spacingXL),
-                    Text('Téléchargement de la photo...'),
+                    Text(
+                      'Téléchargement de la photo...',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: AppConstants.fontSizeM,
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -207,8 +271,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             if (state is ProfilLoaded) {
               final user = state.user;
 
-              // Initialize controllers when entering edit mode
-              if (_isEditMode && _firstNameController.text.isEmpty) {
+              // Initialiser les controllers avec les données de l'utilisateur
+              if (_firstNameController.text.isEmpty) {
                 _initializeControllers(state);
               }
 
@@ -216,26 +280,19 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
                 child: Column(
                   children: [
-                    // Profile photo
+                    // Photo de profil
                     Center(
                       child: Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: AppColors.grey200,
-                            backgroundImage: user.photo != null &&
-                                    user.photo!.isNotEmpty
-                                ? AssetImage('assets/images/${user.photo}')
-                                : null,
-                            onBackgroundImageError: (_, __) {},
-                            child: user.photo == null || user.photo!.isEmpty
-                                ? Icon(
-                                    Icons.person,
-                                    size: 60,
-                                    color: AppColors.grey600,
-                                  )
-                                : null,
-                          ),
+                          // Afficher l'image sélectionnée localement OU l'image de l'API
+                          _selectedImageFile != null
+                              ? CircleAvatar(
+                                  radius: 60,
+                                  backgroundImage: FileImage(_selectedImageFile!),
+                                )
+                              : _buildProfileAvatar(user.photo),
+                          
+                          // Bouton caméra
                           Positioned(
                             bottom: 0,
                             right: 0,
@@ -265,19 +322,21 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                     const SizedBox(height: AppConstants.spacingXXXL),
 
-                    // Fields
+                    // Champs
                     _buildField(
                       'Prénom',
                       _firstNameController,
                       user.firstName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
+                    
                     _buildField(
                       'Nom',
                       _lastNameController,
                       user.lastName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
+                    
                     _buildField(
                       'Téléphone',
                       _phoneController,
@@ -285,6 +344,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
+                    
                     _buildField(
                       'Email',
                       _emailController,
@@ -292,6 +352,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
+                    
                     _buildField(
                       'Adresse',
                       _addressController,
@@ -300,7 +361,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                     const SizedBox(height: AppConstants.spacingXXXL),
 
-                    // Button
+                    // Bouton Modifier / Enregistrer
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -311,7 +372,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                           } else {
                             setState(() {
                               _isEditMode = true;
-                              _initializeControllers(state);
                             });
                           }
                         },
@@ -325,7 +385,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                           elevation: 0,
                         ),
                         child: Text(
-                          _isEditMode ? 'Enregistrer' : 'Modifier',
+                          _isEditMode ? 'Enregistrer' : 'Mettre à jour',
                           style: GoogleFonts.inter(
                             fontSize: AppConstants.fontSizeL,
                             fontWeight: FontWeight.w600,
@@ -340,7 +400,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             }
 
             return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
+              child: CircularProgressIndicator(color: AppColors.success),
             );
           },
         ),
@@ -403,6 +463,45 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ),
         ),
       ],
+    );
+  }
+
+  /// Construit l'avatar depuis l'URL de l'API
+  Widget _buildProfileAvatar(String? photoUrl) {
+    // Pas de photo
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 60,
+        backgroundColor: AppColors.grey200,
+        child: Icon(
+          Icons.person,
+          size: 60,
+          color: AppColors.grey600,
+        ),
+      );
+    }
+
+    // URL complète
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return CircleAvatar(
+        radius: 60,
+        backgroundColor: AppColors.grey200,
+        backgroundImage: NetworkImage(photoUrl),
+        onBackgroundImageError: (exception, stackTrace) {
+          debugPrint('⚠️ Erreur chargement photo: $exception');
+        },
+      );
+    }
+
+    // URL relative
+    final fullUrl = 'http://86.106.181.31:3000$photoUrl';
+    return CircleAvatar(
+      radius: 60,
+      backgroundColor: AppColors.grey200,
+      backgroundImage: NetworkImage(fullUrl),
+      onBackgroundImageError: (exception, stackTrace) {
+        debugPrint('⚠️ Erreur chargement photo: $exception');
+      },
     );
   }
 }

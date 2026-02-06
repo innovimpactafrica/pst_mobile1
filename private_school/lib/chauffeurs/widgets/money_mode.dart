@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../core/utils/app_colors.dart';
+import '../../chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 
-/// Payment modal for subscription
+/// Payment modal for subscription matching Figma design
 /// Location: lib/chauffeurs/widgets/money_mode.dart
 class PaymentModal extends StatefulWidget {
-  final VoidCallback? onClose;
+  final SubscriptionPlan plan;
+  final VoidCallback? onPaymentComplete;
 
-  const PaymentModal({super.key, this.onClose});
+  const PaymentModal({
+    super.key,
+    required this.plan,
+    this.onPaymentComplete,
+  });
 
   @override
   State<PaymentModal> createState() => _PaymentModalState();
@@ -18,56 +25,35 @@ class _PaymentModalState extends State<PaymentModal> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Material(
-      color: Colors.transparent,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Container(
-          height: screenHeight * 0.92,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 20),
+              _buildSubscriptionDetails(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('payment_info'.tr()), // "Informations de paiement"
+              const SizedBox(height: 16),
+              _buildPaymentMethodTabs(),
+              const SizedBox(height: 24),
+              if (isCard) _buildCardForm() else _buildMobileMoney(),
+              const SizedBox(height: 24),
+              _buildPayButton(),
+              const SizedBox(height: 16),
+              _buildTermsText(),
             ],
-          ),
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-
-                  // Subscription details
-                  _buildSubscriptionDetails(),
-                  const SizedBox(height: 25),
-
-                  // Payment method tabs
-                  _buildPaymentMethodTabs(),
-                  const SizedBox(height: 25),
-
-                  // Dynamic content
-                  if (isCard) _buildCardForm() else _buildMobileMoney(),
-                  const SizedBox(height: 25),
-
-                  // Terms and conditions
-                  _buildTermsText(),
-                ],
-              ),
-            ),
           ),
         ),
       ),
@@ -78,24 +64,17 @@ class _PaymentModalState extends State<PaymentModal> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Flexible(
-          child: Text(
-            "Paiement de l'abonnement",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-            ),
+        Text(
+          'subscription_payment'.tr(), // "Paiement de l'abonnement"
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
         ),
         IconButton(
           icon: const Icon(Icons.close, color: AppColors.textSecondary),
-          onPressed: () {
-            Navigator.pop(context);
-            if (widget.onClose != null) {
-              widget.onClose!();
-            }
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ],
     );
@@ -103,39 +82,45 @@ class _PaymentModalState extends State<PaymentModal> {
 
   Widget _buildSubscriptionDetails() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Abonnement Annuelle",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.plan.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              Text(
-                "Facturation annuelle",
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
+                const SizedBox(height: 4),
+                Text(
+                  widget.plan.durationDays <= 31
+                      ? 'monthly_billing'.tr()
+                      : 'annual_billing'.tr(),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const Text(
-            "29.900 F cfa",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+          Text(
+            '${widget.plan.price.toStringAsFixed(0)} F cfa',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
               color: AppColors.primary,
             ),
           ),
@@ -144,52 +129,86 @@ class _PaymentModalState extends State<PaymentModal> {
     );
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
   Widget _buildPaymentMethodTabs() {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => setState(() => isCard = true),
-            icon: SvgPicture.asset(
-              'assets/icons/7.svg',
-              width: 18,
-            ),
-            label: const Text("Carte bancaire"),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: isCard
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : Colors.white,
-              foregroundColor: isCard ? AppColors.primary : AppColors.textPrimary,
-              side: BorderSide(
-                color: isCard ? AppColors.primary : AppColors.border,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          child: _buildPaymentTab(
+            icon: Icons.credit_card,
+            label: 'bank_card'.tr(), // "Carte bancaire"
+            isSelected: isCard,
+            onTap: () => setState(() => isCard = true),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => setState(() => isCard = false),
-            icon: const Icon(Icons.phone_android_outlined),
-            label: const Text("Mobile money"),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: !isCard
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : Colors.white,
-              foregroundColor: !isCard ? AppColors.primary : AppColors.textPrimary,
-              side: BorderSide(
-                color: !isCard ? AppColors.primary : AppColors.border,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+          child: _buildPaymentTab(
+            icon: Icons.phone_android_outlined,
+            label: 'mobile_money'.tr(), // "Mobile money"
+            isSelected: !isCard,
+            onTap: () => setState(() => isCard = false),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPaymentTab({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.white,
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color:
+                      isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -197,175 +216,90 @@ class _PaymentModalState extends State<PaymentModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Card holder name
-        const Text(
-          "Nom sur la carte",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+        _buildTextField(
+          label: 'cardholder_name'.tr(), // "Nom sur la carte"
+          hint: 'Lamine wade',
+          icon: Icons.person_outline,
         ),
-        const SizedBox(height: 6),
-        TextField(
-          decoration: InputDecoration(
-            hintText: "Lamine wade",
-            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
-        ),
-
         const SizedBox(height: 16),
-
-        // Card number
-        const Text(
-          "Numéro de carte",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextField(
+        _buildTextField(
+          label: 'card_number'.tr(), // "Numéro de carte"
+          hint: '1234 5678 9012 3456',
+          icon: Icons.credit_card,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: "1234 5678 9012 3456",
-            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-            prefixIcon: const Icon(Icons.credit_card, color: AppColors.primary),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
         ),
-
         const SizedBox(height: 16),
-
-        // Expiry date and CVV
         Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Date d'expiration",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    keyboardType: TextInputType.datetime,
-                    decoration: InputDecoration(
-                      hintText: "MM/AA",
-                      hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                ],
+              child: _buildTextField(
+                label: 'expiry_date'.tr(), // "Date d'expiration"
+                hint: 'MM/AA',
+                keyboardType: TextInputType.datetime,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "CVV",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: "123",
-                      hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                ],
+              child: _buildTextField(
+                label: 'CVV',
+                hint: '123',
+                keyboardType: TextInputType.number,
+                obscureText: true,
               ),
             ),
           ],
         ),
+      ],
+    );
+  }
 
-        const SizedBox(height: 25),
-
-        // Pay button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              elevation: 0,
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    IconData? icon,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.inter(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
-            onPressed: () {
-              // Handle payment
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Paiement en cours...'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            child: const Text(
-              "Payer",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            prefixIcon: icon != null
+                ? Icon(icon, color: AppColors.textSecondary, size: 20)
+                : null,
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
             ),
           ),
         ),
@@ -374,61 +308,70 @@ class _PaymentModalState extends State<PaymentModal> {
   }
 
   Widget _buildMobileMoney() {
-    return GridView.count(
+    final providers = [
+      {'image': 'assets/images/2.png', 'name': 'Wave'},
+      {'image': 'assets/images/3.png', 'name': 'Yas money'},
+      {'image': 'assets/images/4.png', 'name': 'Orange money'},
+      {'image': 'assets/images/5.png', 'name': 'Kay pay'},
+    ];
+
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      children: [
-        _buildPayBox('assets/images/2.png', "Wave"),
-        _buildPayBox('assets/images/3.png', "Yas money"),
-        _buildPayBox('assets/images/4.png', "Orange money"),
-        _buildPayBox('assets/images/5.png', "Kay pay"),
-      ],
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: providers.length,
+      itemBuilder: (context, index) {
+        final provider = providers[index];
+        return _buildPaymentProviderCard(
+          provider['image']!,
+          provider['name']!,
+        );
+      },
     );
   }
 
-  Widget _buildPayBox(String img, String label) {
-    return GestureDetector(
-      onTap: () {
-        // Handle mobile money selection
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Paiement via $label en cours...'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      },
+  Widget _buildPaymentProviderCard(String imagePath, String name) {
+    return InkWell(
+      onTap: () => _processPayment(paymentMethod: name),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10),
           color: Colors.white,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              img,
-              width: 45,
-              height: 45,
+              imagePath,
+              width: 50,
+              height: 50,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(
+                return const Icon(
                   Icons.account_balance_wallet,
-                  size: 45,
+                  size: 50,
                   color: AppColors.primary,
                 );
               },
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
-              label,
-              style: const TextStyle(
+              name,
+              style: GoogleFonts.inter(
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -436,24 +379,76 @@ class _PaymentModalState extends State<PaymentModal> {
     );
   }
 
+  Widget _buildPayButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.success,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          elevation: 0,
+        ),
+        onPressed: () => _processPayment(),
+        child: Text(
+          'pay'.tr(), // "Payer"
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTermsText() {
     return Text(
-      "En effectuant ce paiement, vous acceptez nos conditions générales d'utilisation et notre politique de confidentialité.",
+      'payment_terms'.tr(),
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: GoogleFonts.inter(
         fontSize: 12,
         color: AppColors.textSecondary,
       ),
     );
   }
+
+  void _processPayment({String? paymentMethod}) {
+    Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          paymentMethod != null
+              ? 'payment_via'.tr(namedArgs: {'method': paymentMethod})
+              : 'payment_processing'.tr(),
+        ),
+        backgroundColor: AppColors.success,
+      ),
+    );
+
+    // Appeler le callback si fourni
+    if (widget.onPaymentComplete != null) {
+      widget.onPaymentComplete!();
+    }
+  }
 }
 
 /// Helper function to show payment modal
-void showPaymentModal(BuildContext context, {VoidCallback? onClose}) {
+void showPaymentModal(
+  BuildContext context, {
+  required SubscriptionPlan plan,
+  VoidCallback? onPaymentComplete,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => PaymentModal(onClose: onClose),
+    builder: (context) => PaymentModal(
+      plan: plan,
+      onPaymentComplete: onPaymentComplete,
+    ),
   );
 }

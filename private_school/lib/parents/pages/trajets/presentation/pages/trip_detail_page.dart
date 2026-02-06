@@ -42,7 +42,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   ),
                   Expanded(
                     child: Text(
-                      'Dakar → ${widget.trip.arrival}',
+                      'Dakar → ${widget.trip.destination}',
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -203,63 +203,6 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                   )
                                                 : null,
                                           ),
-                                          // PHOTO BUS/VOITURE (superposée)
-                                          if (widget
-                                                  .trip
-                                                  .driver
-                                                  ?.vehicle
-                                                  ?.photo !=
-                                              null)
-                                            Positioned(
-                                              right: -4,
-                                              bottom: -4,
-                                              child: Container(
-                                                width: 28,
-                                                height: 28,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 2,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withValues(
-                                                            alpha: 0.1,
-                                                          ),
-                                                      blurRadius: 4,
-                                                      offset: const Offset(
-                                                        0,
-                                                        2,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: ClipOval(
-                                                  child: Image.asset(
-                                                    'assets/images/${widget.trip.driver!.vehicle!.photo}',
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder:
-                                                        (
-                                                          context,
-                                                          error,
-                                                          stackTrace,
-                                                        ) {
-                                                          return Icon(
-                                                            Icons
-                                                                .directions_bus,
-                                                            color: Colors
-                                                                .grey
-                                                                .shade600,
-                                                            size: 14,
-                                                          );
-                                                        },
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
                                         ],
                                       ),
                                       const SizedBox(width: 12),
@@ -269,7 +212,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              widget.trip.driver!.name,
+                                              widget.trip.driver!.fullName,
                                               style: GoogleFonts.inter(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
@@ -283,8 +226,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                   widget
                                                           .trip
                                                           .driver!
-                                                          .vehicle
-                                                          ?.plate ??
+                                                          .licenseNumber ??
                                                       '',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 13,
@@ -299,8 +241,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  widget.trip.driver!.rating
-                                                      .toString(),
+                                                  '4.5',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
@@ -449,7 +390,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  widget.trip.date,
+                                  widget.trip.formattedDate,
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     color: AppColors.success,
@@ -512,17 +453,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                       .passengers[0]
                                                       .initials,
                                                   Color(
-                                                    int.parse(
-                                                      widget
-                                                          .trip
-                                                          .passengers[0]
-                                                          .avatarColor
-                                                          .replaceFirst(
-                                                            '#',
-                                                            '0xFF',
-                                                          ),
-                                                    ),
-                                                  ),
+                                                   int.parse(
+                                                 (widget.trip.passengers[0].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
+                                                ),
+                                            ),
                                                 ),
                                               ),
                                             if (widget.trip.passengers.length >
@@ -536,14 +470,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                       .initials,
                                                   Color(
                                                     int.parse(
-                                                      widget
-                                                          .trip
-                                                          .passengers[1]
-                                                          .avatarColor
-                                                          .replaceFirst(
-                                                            '#',
-                                                            '0xFF',
-                                                          ),
+                                                      (widget.trip.passengers[1].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
                                                     ),
                                                   ),
                                                 ),
@@ -559,14 +486,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                       .initials,
                                                   Color(
                                                     int.parse(
-                                                      widget
-                                                          .trip
-                                                          .passengers[2]
-                                                          .avatarColor
-                                                          .replaceFirst(
-                                                            '#',
-                                                            '0xFF',
-                                                          ),
+                                                      (widget.trip.passengers[2].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
                                                     ),
                                                   ),
                                                 ),

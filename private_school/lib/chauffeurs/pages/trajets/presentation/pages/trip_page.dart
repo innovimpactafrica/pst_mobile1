@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:private_school/chauffeurs/pages/trajets/presentation/pages/create_trip_page.dart';
+import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/create_trip_modal.dart';
 
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
@@ -176,7 +176,7 @@ class _TripPageState extends State<TripPage>
             trip.status == 'pending' ||
             trip.status == 'active' ||
             trip.status == 'started' ||
-            trip.status == 'in_progress')  // ← AJOUTÉ !
+            trip.status == 'in_progress')  
         .toList();
 
     debugPrint('📊 [TripPage] Upcoming trips: ${upcomingTrips.length}');

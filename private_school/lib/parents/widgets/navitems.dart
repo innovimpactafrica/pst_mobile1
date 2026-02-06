@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 //import 'package:flutter_svg/flutter_svg.dart';
 
-import '../pages/acceuil/home.dart';
+import '../pages/acceuil/presentation/pages/home.dart';
 import '../utils/HexColor.dart';
 
 class MainScreen extends StatefulWidget {

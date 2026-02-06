@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models/school_model.dart';
+import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 class SchoolsListModal extends StatelessWidget {
@@ -125,11 +125,11 @@ class SchoolsListModal extends StatelessWidget {
               color: iconColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: school.icon.isNotEmpty
+            child: school.logoUrl != null && school.logoUrl!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.asset(
-                      'assets/images/${school.icon}',
+                      'assets/images/${school.logoUrl}',
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
@@ -158,7 +158,7 @@ class SchoolsListModal extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  school.numberOfStudents,
+                  'Élèves inscrits',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.grey.shade600,

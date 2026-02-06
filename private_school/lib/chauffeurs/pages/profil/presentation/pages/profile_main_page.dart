@@ -37,389 +37,394 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Purple header with "Mon compte"
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacingXL + 4,
-                vertical: AppConstants.spacingXL,
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'my_account'.tr(), // 🆕 Traduction
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textWhite,
-                  ),
+    body: SafeArea(
+  child: Stack(
+    children: [
+      // 1️⃣ FOND VIOLET (en haut)
+      Column(
+        children: [
+          Container(
+            height: 140, // Hauteur de la partie violette
+            color: AppColors.primary,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingXL + 4,
+              vertical: AppConstants.spacingXL,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'my_account'.tr(),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textWhite,
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: AppConstants.spacingXL + 4),
-
-            // White content area
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(AppConstants.radiusXXL - 6),
-                    topRight: Radius.circular(AppConstants.radiusXXL - 6),
-                  ),
+          // 2️⃣ FOND BLANC (en bas)
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(AppConstants.radiusXXL - 6),
+                  topRight: Radius.circular(AppConstants.radiusXXL - 6),
                 ),
-                child: BlocBuilder<DriverProfileBloc, DriverProfileState>(
-                  builder: (context, state) {
-                    if (state is DriverProfileLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
-                        ),
-                      );
-                    }
+              ),
+              child: BlocBuilder<DriverProfileBloc, DriverProfileState>(
+                builder: (context, state) {
+                  if (state is DriverProfileLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    );
+                  }
 
-                    if (state is DriverProfileError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: AppColors.error,
-                              size: 64,
+                  if (state is DriverProfileError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.error,
+                            size: 64,
+                          ),
+                          const SizedBox(height: AppConstants.spacingL),
+                          Text(
+                            'loading_error'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeXL,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
-                            const SizedBox(height: AppConstants.spacingL),
-                            Text(
-                              'loading_error'.tr(), // 🆕 Traduction
-                              style: GoogleFonts.inter(
-                                fontSize: AppConstants.fontSizeXL,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
+                          ),
+                          const SizedBox(height: AppConstants.spacingS),
+                          Text(
+                            state.message,
+                            style: GoogleFonts.inter(
+                              color: AppColors.textSecondary,
                             ),
-                            const SizedBox(height: AppConstants.spacingS),
-                            Text(
-                              state.message,
-                              style: GoogleFonts.inter(
-                                color: AppColors.textSecondary,
-                              ),
-                              textAlign: TextAlign.center,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppConstants.spacingXL),
+                          ElevatedButton(
+                            onPressed: () {
+                              context
+                                  .read<DriverProfileBloc>()
+                                  .add(LoadDriverProfileEvent());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
                             ),
-                            const SizedBox(height: AppConstants.spacingXL),
-                            ElevatedButton(
-                              onPressed: () {
-                                context
-                                    .read<DriverProfileBloc>()
-                                    .add(LoadDriverProfileEvent());
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                              ),
-                              child: Text('retry'.tr()), // 🆕 Traduction
+                            child: Text('retry'.tr()),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (state is DriverProfileLoaded) {
+                    final profile = state.profile;
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.only(
+                        top: 80, // ✅ ESPACE POUR LE CARD QUI FLOTTE
+                        left: AppConstants.spacingXL + 4,
+                        right: AppConstants.spacingXL + 4,
+                        bottom: AppConstants.spacingXL + 4,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: AppConstants.spacingXXL),
+
+                          // "Général" section title
+                          Text(
+                            'general'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeM,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
                             ),
-                          ],
-                        ),
-                      );
-                    }
+                          ),
 
-                    if (state is DriverProfileLoaded) {
-                      final profile = state.profile;
+                          const SizedBox(height: AppConstants.spacingL),
 
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.all(
-                          AppConstants.spacingXL + 4,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Profile card with driver photo and edit button
-                            Container(
-                              padding: const EdgeInsets.all(
-                                AppConstants.spacingXL,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusXL - 8,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.blackOpacity05,
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  // Driver profile photo
-                                  CircleAvatar(
-                                    radius: 32,
-                                    backgroundColor: AppColors.primary
-                                        .withValues(alpha: 0.1),
-                                    backgroundImage: profile.photo != null &&
-                                            profile.photo!.isNotEmpty
-                                        ? NetworkImage(
-                                            ImageUrlHelper.getFullImageUrl(
-                                              profile.photo!,
-                                            ),
-                                          )
-                                        : null,
-                                    child: profile.photo == null ||
-                                            profile.photo!.isEmpty
-                                        ? Text(
-                                            profile.initials,
-                                            style: GoogleFonts.inter(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.primary,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                  const SizedBox(width: AppConstants.spacingXL),
-
-                                  // Driver name and role
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          profile.fullName,
-                                          style: GoogleFonts.inter(
-                                            fontSize: AppConstants.fontSizeXL,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          height: AppConstants.spacingXS,
-                                        ),
-                                        Text(
-                                          'role_driver'.tr(),
-                                           style: GoogleFonts.inter(
-                                           fontSize: AppConstants.fontSizeM,
-                                           color: AppColors.textSecondary,
-                                          ),
-                                         ),
-
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Edit button
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider.value(
-                                            value: context
-                                                .read<DriverProfileBloc>(),
-                                            child: PersonalInfoPage(
-                                              profile: profile,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.backgroundLight,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Icon(
-                                        Icons.edit_outlined,
-                                        color: AppColors.textSecondary,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          // Menu items (reste du code inchangé)
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(
+                                AppConstants.radiusXL - 8,
                               ),
                             ),
-
-                            const SizedBox(height: AppConstants.spacingXXL),
-
-                            // "Général" section title
-                            Text(
-                              'general'.tr(), // 🆕 Traduction
-                              style: GoogleFonts.inter(
-                                fontSize: AppConstants.fontSizeM,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-
-                            const SizedBox(height: AppConstants.spacingL),
-
-                            // Menu items in white container
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusXL - 8,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  _buildMenuItem(
-                                    icon: Icons.person_outline,
-                                    title: 'personal_info'.tr(), // 🆕 Traduction
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BlocProvider.value(
-                                            value: context
-                                                .read<DriverProfileBloc>(),
-                                            child: PersonalInfoPage(
-                                              profile: profile,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildDivider(),
-                                  _buildMenuItem(
-                                    icon: Icons.directions_car_outlined,
-                                    title: 'vehicle_info'.tr(), // 🆕 Traduction
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => VehicleInfoPage(
+                            child: Column(
+                              children: [
+                                _buildMenuItem(
+                                  icon: Icons.person_outline,
+                                  title: 'personal_info'.tr(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BlocProvider.value(
+                                          value: context
+                                              .read<DriverProfileBloc>(),
+                                          child: PersonalInfoPage(
                                             profile: profile,
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                  _buildDivider(),
-                                  _buildMenuItem(
-                                    icon: Icons.folder_outlined,
-                                    title: 'documents'.tr(), // 🆕 Traduction
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                             DocumentsPage(profile: profile),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildDivider(),
-                                  
-                                  // Notifications avec badge
-                                  _buildNotificationMenuItem(),
-                                  
-                                  _buildDivider(),
-                                  _buildMenuItem(
-                                    icon: Icons.payment_outlined,
-                                    title: 'payment_history'.tr(), // 🆕 Traduction
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const PaymentHistoryPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildDivider(),
-                                  _buildMenuItem(
-                                    icon: Icons.warning_amber_outlined,
-                                    title: 'my_reports'.tr(), // 🆕 Traduction
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const ReportsPage(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  _buildDivider(),
-                                  
-                                  // 🆕 LANGUE - AVEC MODAL ANIMÉ
-                                  _buildMenuItem(
-                                    icon: Icons.language,
-                                    title: 'language'.tr(), // 🆕 Traduction
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          context.locale.languageCode == 'fr'
-                                          ? 'language_french'.tr()
-                                          : 'language_english'.tr(),
-
-                                          style: GoogleFonts.inter(
-                                            fontSize: AppConstants.fontSizeM,
-                                            color: AppColors.textGrey,
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: AppConstants.spacingXS,
-                                        ),
-                                        const Icon(
-                                          Icons.chevron_right,
-                                          color: AppColors.textSecondary,
-                                          size: 20,
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      // 🆕 Afficher le modal de langue (animé du bas vers le haut)
-                                      showLanguageBottomSheet(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: AppConstants.spacingXXL),
-
-                            // Logout button (separate container)
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(
-                                  AppConstants.radiusXL - 8,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                              child: _buildMenuItem(
-                                icon: Icons.logout,
-                                title: 'logout'.tr(), // 🆕 Traduction
-                                iconColor: AppColors.error,
-                                showChevron: false,
-                               onTap: () {
-                                    showLogoutBottomSheet(context);
-                                   }
+                                _buildDivider(),
+                                _buildMenuItem(
+                                  icon: Icons.directions_car_outlined,
+                                  title: 'vehicle_info'.tr(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => VehicleInfoPage(
+                                          profile: profile,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildDivider(),
+                                _buildMenuItem(
+                                  icon: Icons.folder_outlined,
+                                  title: 'documents'.tr(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            DocumentsPage(profile: profile),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildDivider(),
+                                _buildNotificationMenuItem(),
+                                _buildDivider(),
+                                _buildMenuItem(
+                                  icon: Icons.payment_outlined,
+                                  title: 'payment_history'.tr(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const PaymentHistoryPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildDivider(),
+                                _buildMenuItem(
+                                  icon: Icons.warning_amber_outlined,
+                                  title: 'my_reports'.tr(),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const ReportsPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildDivider(),
+                                _buildMenuItem(
+                                  icon: Icons.language,
+                                  title: 'language'.tr(),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        context.locale.languageCode == 'fr'
+                                            ? 'language_french'.tr()
+                                            : 'language_english'.tr(),
+                                        style: GoogleFonts.inter(
+                                          fontSize: AppConstants.fontSizeM,
+                                          color: AppColors.textGrey,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: AppConstants.spacingXS,
+                                      ),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: AppColors.textSecondary,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    showLanguageBottomSheet(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: AppConstants.spacingXXL),
+
+                          // Logout button
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(
+                                AppConstants.radiusXL - 8,
                               ),
                             ),
+                            child: _buildMenuItem(
+                              icon: Icons.logout,
+                              title: 'logout'.tr(),
+                              iconColor: AppColors.error,
+                              showChevron: false,
+                              onTap: () {
+                                showLogoutBottomSheet(context);
+                              },
+                            ),
+                          ),
 
-                            const SizedBox(height: AppConstants.spacingXXL),
-                          ],
-                        ),
-                      );
-                    }
+                          const SizedBox(height: AppConstants.spacingXXL),
+                        ],
+                      ),
+                    );
+                  }
 
-                    return const SizedBox();
-                  },
-                ),
+                  return const SizedBox();
+                },
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+
+      // 3️⃣ ✨ CARD BLANC FLOTTANT (superposé)
+      Positioned(
+        top: 100, // Position depuis le haut
+        left: AppConstants.spacingXL + 4,
+        right: AppConstants.spacingXL + 4,
+        child: BlocBuilder<DriverProfileBloc, DriverProfileState>(
+          builder: (context, state) {
+            if (state is DriverProfileLoaded) {
+              final profile = state.profile;
+
+              return Container(
+                padding: const EdgeInsets.all(AppConstants.spacingXL),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.radiusXL - 8,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Driver profile photo
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor:
+                          AppColors.primary.withValues(alpha: 0.1),
+                      backgroundImage: profile.photo != null &&
+                              profile.photo!.isNotEmpty
+                          ? NetworkImage(
+                              ImageUrlHelper.getFullImageUrl(
+                                profile.photo!,
+                              ),
+                            )
+                          : null,
+                      child: profile.photo == null || profile.photo!.isEmpty
+                          ? Text(
+                              profile.initials,
+                              style: GoogleFonts.inter(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: AppConstants.spacingXL),
+
+                    // Driver name and role
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profile.fullName,
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeXL,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: AppConstants.spacingXS),
+                          Text(
+                            'role_driver'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeM,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Edit button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<DriverProfileBloc>(),
+                              child: PersonalInfoPage(profile: profile),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.backgroundLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          color: AppColors.textSecondary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return const SizedBox();
+          },
         ),
       ),
+    ],
+  ),
+),
     );
   }
 

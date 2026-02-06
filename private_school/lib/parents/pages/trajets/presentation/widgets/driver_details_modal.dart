@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../data/models/driver_model.dart';
+import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -90,7 +90,7 @@ class DriverDetailsModal extends StatelessWidget {
 
                   // NOM
                   Text(
-                    driver.name,
+                    driver.fullName,
                     style: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

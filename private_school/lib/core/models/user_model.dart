@@ -1,6 +1,4 @@
-/// Unified user model for the entire application
-/// Combines authentication and profile data
-/// Location: lib/core/models/user_model.dart
+
 class UserModel {
   final String id;
   final String firstName;
@@ -35,36 +33,46 @@ class UserModel {
     return '${firstName[0]}${lastName[0]}'.toUpperCase();
   }
 
-  /// Create from JSON (API response)
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Handle name parsing from different API formats
-    final fullName = (json['name'] ?? '').toString().split(' ');
-    
-    // Parse ID - can be int or String
-    final dynamic rawId = json['id'] ?? json['_id'];
-    final String parsedId = rawId != null ? rawId.toString() : '';
+  final fullName = (json['name'] ?? '').toString().split(' ');
+  final dynamic rawId = json['id'] ?? json['_id'];
+  final String parsedId = rawId != null ? rawId.toString() : '';
 
-    return UserModel(
-      id: parsedId,
-      firstName: json['firstName'] ??
-          json['prenom'] ??
-          (fullName.isNotEmpty ? fullName.first : ''),
-      lastName: json['lastName'] ??
-          json['nom'] ??
-          (fullName.length > 1 ? fullName.sublist(1).join(' ') : ''),
-      email: json['email'] ?? '',
-      phone: json['phone'] ?? json['telephone'],
-      address: json['address'] ?? json['adresse'],
-      photo: json['photo'] ?? json['photoUrl'],
-      role: json['role'],
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
-    );
+  // 1. Définir l'adresse de base de ton serveur
+  const String baseUrl = "http://86.106.181.31:3000";
+
+  // 2. Récupérer la valeur brute (on ajoute photo_profil ici)
+  String? rawPhoto = json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
+
+  // 3. Si la photo existe et est un chemin relatif, on ajoute le domaine
+  String? fullPhotoUrl;
+  if (rawPhoto != null && rawPhoto.isNotEmpty) {
+    fullPhotoUrl = rawPhoto.startsWith('http') 
+        ? rawPhoto 
+        : '$baseUrl$rawPhoto';
   }
+
+  return UserModel(
+    id: parsedId,
+    firstName: json['firstName'] ??
+        json['prenom'] ??
+        (fullName.isNotEmpty ? fullName.first : ''),
+    lastName: json['lastName'] ??
+        json['nom'] ??
+        (fullName.length > 1 ? fullName.sublist(1).join(' ') : ''),
+    email: json['email'] ?? '',
+    phone: json['phone'] ?? json['telephone'],
+    address: json['address'] ?? json['adresse'],
+    photo: fullPhotoUrl, // On utilise l'URL complète ici
+    role: json['role'],
+    createdAt: json['createdAt'] != null
+        ? DateTime.tryParse(json['createdAt'])
+        : null,
+    updatedAt: json['updatedAt'] != null
+        ? DateTime.tryParse(json['updatedAt'])
+        : null,
+  );
+}
 
   /// Convert to JSON (for sending to API)
   Map<String, dynamic> toJson() {

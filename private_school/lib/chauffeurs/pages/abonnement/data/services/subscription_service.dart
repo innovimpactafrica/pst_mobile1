@@ -20,18 +20,16 @@ Future<SubscriptionModel?> getCurrentSubscription() async {
   try {
     final response = await _apiClient.get(ApiConstants.driverSubscription);
     
-    if (response.data == null || response.data['success'] == false) {
-      debugPrint('🔍 Aucun abonnement trouvé via endpoint direct');
-      return null;
-    }
-    
+    // Si l'API renvoie des données avec succès
     final subData = response.data['data'] ?? response.data;
     if (subData == null) return null;
     
     return SubscriptionModel.fromJson(subData);
   } catch (e) {
-    debugPrint('⚠️ Erreur endpoint subscription: $e');
-    return null;
+    // ICI ON GÈRE LE 404 SPÉCIFIQUEMENT
+    debugPrint('ℹ️ Info subscription: Aucun abonnement actif (404 ou vide)');
+    // On retourne null au lieu de faire planter le Bloc
+    return null; 
   }
 }
 

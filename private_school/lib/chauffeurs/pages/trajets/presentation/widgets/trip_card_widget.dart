@@ -224,6 +224,12 @@ class TripCardWidget extends StatelessWidget {
           'textColor': AppColors.statusStarted,
           'label': 'Terminé',
         };
+        case AppConstants.statusInProgress: 
+        return {
+          'bgColor': AppColors.statusInProgressBg,
+          'textColor': AppColors.statusInProgress,
+          'label': 'En cours',
+        };
       case AppConstants.statusCompleted:
         return {
           'bgColor': AppColors.statusCompletedBg,

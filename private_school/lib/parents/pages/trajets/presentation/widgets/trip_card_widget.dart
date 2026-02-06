@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
 
 /// Trip card widget
-/// Displays trip information including driver, route, and status
+/// Displays trip information including route and status
 class TripCardWidget extends StatelessWidget {
   final TripModel trip;
   final VoidCallback? onTap;
@@ -33,97 +34,17 @@ class TripCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Driver section + status
+            // Header avec status
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Overlapping photos
-                SizedBox(
-                  width: 60,
-                  height: 40,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppColors.grey200,
-                        backgroundImage: trip.driver?.photo != null
-                            ? AssetImage('assets/images/${trip.driver!.photo}')
-                            : null,
-                        onBackgroundImageError: (_, __) {},
-                        child: trip.driver?.photo == null
-                            ? Icon(
-                                Icons.person,
-                                color: AppColors.grey600,
-                                size: 20,
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        left: 28,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.white,
-                          child: CircleAvatar(
-                            radius: 14,
-                            backgroundColor: AppColors.grey300,
-                            backgroundImage: trip.driver?.vehicle?.photo != null
-                                ? AssetImage(
-                                    'assets/images/${trip.driver!.vehicle!.photo}',
-                                  )
-                                : null,
-                            onBackgroundImageError: (_, __) {},
-                            child: trip.driver?.vehicle?.photo == null
-                                ? Icon(
-                                    Icons.directions_bus,
-                                    color: AppColors.grey600,
-                                    size: 14,
-                                  )
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacingL),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        trip.driver?.name ?? 'Chauffeur',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          fontSize: AppConstants.fontSizeL - 1,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            trip.driver?.vehicle?.plate ?? 'N/A',
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(width: AppConstants.spacingS),
-                          const Icon(
-                            Icons.star,
-                            color: AppColors.rating,
-                            size: 13,
-                          ),
-                          const SizedBox(width: 2),
-                         Text(
-                         '${trip.passengers.length} enfants inscrits / ${(trip.driver?.vehicle?.capacity) ?? 0}',
-                         style: GoogleFonts.inter(
-                         fontSize: AppConstants.fontSizeS,
-                         color: AppColors.textSecondary,
-                         ),
-                       ),
-                        ],
-                      ),
-                    ],
+                // 🔥 CORRECTION : Afficher la date formatée
+                Text(
+                  _formatDate(trip.date),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 _buildStatusBadge(trip.status),
@@ -166,7 +87,7 @@ class TripCardWidget extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              trip.departure,
+                              trip.startLocation ?? 'Point de départ',
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeS + 1,
                                 color: AppColors.textPrimary,
@@ -177,7 +98,7 @@ class TripCardWidget extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            trip.departureTime,
+                            trip.time,
                             style: GoogleFonts.inter(
                               fontSize: AppConstants.fontSizeS + 1,
                               fontWeight: FontWeight.w600,
@@ -190,16 +111,21 @@ class TripCardWidget extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            trip.arrival,
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS + 1,
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              trip.destination,
+                              style: GoogleFonts.inter(
+                                fontSize: AppConstants.fontSizeS + 1,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          // 🔥 Calcul approximatif de l'heure d'arrivée (+1h30)
                           Text(
-                            trip.arrivalTime,
+                            _calculateArrivalTime(trip.time),
                             style: GoogleFonts.inter(
                               fontSize: AppConstants.fontSizeS + 1,
                               fontWeight: FontWeight.w600,
@@ -219,20 +145,42 @@ class TripCardWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${trip.schools.length} écoles desservies',
-                  style: GoogleFonts.inter(
-                    color: AppColors.success,
-                    fontSize: AppConstants.fontSizeS,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.school,
+                      size: 16,
+                      color: AppColors.success,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      trip.schools.isNotEmpty 
+                          ? '${trip.schools.length} école${trip.schools.length > 1 ? 's' : ''}'
+                          : 'Aucune école',
+                      style: GoogleFonts.inter(
+                        color: AppColors.success,
+                        fontSize: AppConstants.fontSizeS,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${trip.passengers.length} enfants inscrits / ${trip.driver?.vehicle?.capacity ?? 0}',
-                  style: GoogleFonts.inter(
-                    fontSize: AppConstants.fontSizeS,
-                    color: AppColors.textSecondary,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.people,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${trip.passengers.length}/${trip.totalSeats} places',
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeS,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -242,22 +190,71 @@ class TripCardWidget extends StatelessWidget {
     );
   }
 
+  /// Format la date
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == today) {
+      return "Aujourd'hui";
+    } else if (dateOnly == tomorrow) {
+      return "Demain";
+    } else {
+      return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+    }
+  }
+
+  /// Calcule l'heure d'arrivée approximative
+  String _calculateArrivalTime(String departureTime) {
+    try {
+      final parts = departureTime.split(':');
+      if (parts.length >= 2) {
+        int hours = int.parse(parts[0]);
+        int minutes = int.parse(parts[1]);
+        
+        // Ajouter 1h30
+        minutes += 30;
+        if (minutes >= 60) {
+          hours += 1;
+          minutes -= 60;
+        }
+        hours += 1;
+        
+        if (hours >= 24) hours -= 24;
+        
+        return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      // En cas d'erreur, retourner "--:--"
+    }
+    return '--:--';
+  }
+
   Widget _buildStatusBadge(String status) {
     Color badgeColor;
     String badgeText;
 
-    switch (status) {
-      case 'Accepté':
-        badgeColor = AppColors.primary;
-        badgeText = 'Accepté';
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'started':
+      case 'in_progress':
+        badgeColor = AppColors.success;
+        badgeText = 'En cours';
         break;
-      case 'En attente':
+      case 'completed':
+        badgeColor = AppColors.primary;
+        badgeText = 'Terminé';
+        break;
+      case 'canceled':
+        badgeColor = AppColors.error;
+        badgeText = 'Annulé';
+        break;
+      case 'pending':
+      default:
         badgeColor = AppColors.warning;
         badgeText = 'En attente';
-        break;
-      default:
-        badgeColor = AppColors.textGrey;
-        badgeText = status;
     }
 
     return Container(

@@ -1,8 +1,6 @@
-// BLoC d'authentification
-// Chemin: lib/parents/authentification/domain/bloc/auth_bloc.dart
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../ data/repositories/auth_repository.dart';
+import 'package:private_school/parents/pages/authentification/%20data/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -10,68 +8,69 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository = AuthRepository();
 
   AuthBloc() : super(const AuthInitial()) {
-    //  Inscription
     on<RegisterEvent>(_onRegister);
-
-    //  Connexion
     on<LoginEvent>(_onLogin);
-
-    //  Vérifier OTP
     on<VerifyOtpEvent>(_onVerifyOtp);
-
-    //  Mot de passe oublié
     on<ForgotPasswordEvent>(_onForgotPassword);
-
-    //  Réinitialiser mot de passe
     on<ResetPasswordEvent>(_onResetPassword);
-
-    //  Déconnexion
     on<LogoutEvent>(_onLogout);
-
-    //  Charger l'utilisateur actuel
     on<LoadCurrentUserEvent>(_onLoadCurrentUser);
-
-    //  Vérifier le statut d'authentification
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
-  ///  Handler : Inscription
+  /// ✅ Handler : Inscription - AVEC password optionnel
   Future<void> _onRegister(
-      RegisterEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    RegisterEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
+      debugPrint('🔄 BLoC: Starting registration...');
+
       final result = await _authRepository.register(
         firstName: event.firstName,
         lastName: event.lastName,
         phone: event.phone,
         email: event.email,
+        password: event.password,
       );
 
-      emit(RegisterSuccess(
-        message: result['message'] ?? 'Inscription réussie',
-      ));
+      debugPrint('✅ BLoC: Registration result: $result');
+
+      if (result['token'] != null) {
+        emit(RegisterSuccess(
+          message: result['message'] ?? 'Inscription réussie',
+        ));
+      } else {
+        emit(RegisterSuccess(
+          message: result['message'] ?? 'Inscription réussie',
+        ));
+      }
     } catch (e) {
+      debugPrint('❌ BLoC: Registration error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
   /// ✅ Handler : Connexion
   Future<void> _onLogin(
-      LoginEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    LoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
+      debugPrint('🔄 BLoC: Starting login...');
+
       final result = await _authRepository.login(
         email: event.email,
         password: event.password,
       );
 
-      if (result['success'] == true) {
+      debugPrint('✅ BLoC: Login result: $result');
+
+      if (result['success'] == true && result['user'] != null) {
         emit(AuthAuthenticated(
           user: result['user'],
           message: 'Connexion réussie',
@@ -80,123 +79,161 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthError(message: 'Échec de la connexion'));
       }
     } catch (e) {
+      debugPrint('❌ BLoC: Login error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
   /// ✅ Handler : Vérifier OTP
   Future<void> _onVerifyOtp(
-      VerifyOtpEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    VerifyOtpEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
+      debugPrint('🔄 BLoC: Verifying OTP...');
+
       final result = await _authRepository.verifyOtp(
         email: event.email,
         otp: event.otp,
       );
+
+      debugPrint('✅ BLoC: OTP verified');
 
       emit(OtpVerified(
         message: result['message'] ?? 'Code vérifié',
         token: result['token'],
       ));
     } catch (e) {
+      debugPrint('❌ BLoC: OTP verification error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Mot de passe oublié
+  /// ✅ Handler : Mot de passe oublié - CORRIGÉ
   Future<void> _onForgotPassword(
-      ForgotPasswordEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    ForgotPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
+      debugPrint('🔄 BLoC: Requesting password reset...');
+
       final result = await _authRepository.forgotPassword(
-        email: event.email,
+        contact: event.contact,
       );
 
-      emit(OtpSent(
-        message: result['message'] ?? 'Code OTP envoyé',
+      debugPrint('✅ BLoC: Password reset requested: $result');
+
+      // Récupérer userId depuis la réponse API
+      final userId = result['user']?['id'] ?? result['userId'];
+
+      emit(PasswordResetRequested(
+        event.contact,
+        userId: userId,
       ));
     } catch (e) {
+      debugPrint('❌ BLoC: Forgot password error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
   /// ✅ Handler : Réinitialiser mot de passe
   Future<void> _onResetPassword(
-      ResetPasswordEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    ResetPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
-      final result = await _authRepository.resetPassword(
-        email: event.email,
-        otp: event.otp,
+      debugPrint('🔄 BLoC: Resetting password...');
+
+      await _authRepository.resetPassword(
+        userId: event.userId,
+        code: event.code,
         newPassword: event.newPassword,
       );
 
-      emit(PasswordResetSuccess(
-        message: result['message'] ?? 'Mot de passe réinitialisé',
+      debugPrint('✅ BLoC: Password reset successful');
+
+      emit(const PasswordResetSuccess(
+        message: 'Mot de passe réinitialisé avec succès',
       ));
     } catch (e) {
+      debugPrint('❌ BLoC: Reset password error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
   /// ✅ Handler : Déconnexion
   Future<void> _onLogout(
-      LogoutEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    LogoutEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
+      debugPrint('🔄 BLoC: Logging out...');
+
       await _authRepository.logout();
+
+      debugPrint('✅ BLoC: Logout successful');
+
       emit(const AuthUnauthenticated());
     } catch (e) {
+      debugPrint('❌ BLoC: Logout error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Charger l'utilisateur actuel
+  /// ✅ Handler : Charger l'utilisateur actuel - CORRIGÉ
   Future<void> _onLoadCurrentUser(
-      LoadCurrentUserEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    LoadCurrentUserEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(const AuthLoading());
 
     try {
+      debugPrint('🔄 BLoC: Loading current user...');
+
       final user = await _authRepository.getCurrentUser();
+
+      debugPrint('✅ BLoC: User loaded: ${user.fullName}');
+
       emit(UserLoaded(user: user));
+      emit(AuthAuthenticated(user: user));
     } catch (e) {
+      debugPrint('❌ BLoC: Load current user error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
   /// ✅ Handler : Vérifier le statut d'authentification
   Future<void> _onCheckAuthStatus(
-      CheckAuthStatusEvent event,
-      Emitter<AuthState> emit,
-      ) async {
+    CheckAuthStatusEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
+      debugPrint('🔄 BLoC: Checking auth status...');
+
       final isLoggedIn = await _authRepository.isLoggedIn();
 
       if (isLoggedIn) {
-        // Charger les infos de l'utilisateur
+        debugPrint('✅ BLoC: User is logged in, loading profile...');
         try {
           final user = await _authRepository.getCurrentUser();
+          debugPrint('✅ BLoC: User profile loaded');
           emit(AuthAuthenticated(user: user));
         } catch (e) {
-          // Si on ne peut pas charger l'utilisateur, on est déconnecté
+          debugPrint('❌ BLoC: Failed to load user profile: $e');
           emit(const AuthUnauthenticated());
         }
       } else {
+        debugPrint('ℹ️ BLoC: User is not logged in');
         emit(const AuthUnauthenticated());
       }
     } catch (e) {
+      debugPrint('❌ BLoC: Check auth status error: $e');
       emit(const AuthUnauthenticated());
     }
   }

@@ -1,0 +1,258 @@
+// Service d'authentification - CORRIGÉ pour le format API
+// Chemin: lib/parents/authentification/data/services/auth_service.dart
+
+import 'package:private_school/core/models/user_model.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/storage/secure_storage.dart';
+import '../../../../../core/utils/api_constants.dart';
+import 'package:flutter/foundation.dart';
+
+class AuthService {
+  final ApiClient _apiClient = ApiClient();
+  final SecureStorage _storage = SecureStorage();
+
+  /// ✅ INSCRIPTION d'un parent - FORMAT CORRIGÉ
+  /// Endpoint: POST /api/auth/register-parent
+  Future<Map<String, dynamic>> registerParent({
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String email,
+    String? password,
+  }) async {
+    try {
+      debugPrint('📤 Registering parent: $email');
+
+      // ✅ CORRECTION : Le backend attend "name" (firstName + lastName combinés)
+      final fullName = '$firstName $lastName'.trim();
+
+      // ✅ CORRECTION : Le téléphone doit être au format international
+      String formattedPhone = phone.trim();
+      if (!formattedPhone.startsWith('+')) {
+        // Si le numéro ne commence pas par +, ajouter +221 (Sénégal)
+        if (formattedPhone.startsWith('221')) {
+          formattedPhone = '+$formattedPhone';
+        } else {
+          formattedPhone = '+221$formattedPhone';
+        }
+      }
+
+      final Map<String, dynamic> data = {
+        'name': fullName,              // ← CORRIGÉ : "name" au lieu de firstName/lastName
+        'phone': formattedPhone,       // ← CORRIGÉ : Format international
+        'email': email,
+      };
+
+      // Ajouter le password si fourni
+      if (password != null && password.isNotEmpty) {
+        data['password'] = password;
+        debugPrint('🔐 Password included in registration');
+      }
+
+      debugPrint('📤 Sending data: $data');
+
+      final response = await _apiClient.post(
+        ApiConstants.registerParent,
+        data: data,
+      );
+
+      debugPrint('✅ Registration successful');
+
+      // Si le backend renvoie un token, le sauvegarder
+      final token = response.data['token'] ?? response.data['accessToken'];
+      if (token != null) {
+        await _storage.saveAccessToken(token);
+        debugPrint('✅ Token saved from registration');
+      }
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Inscription réussie',
+        'data': response.data,
+        'token': token,
+      };
+    } catch (e) {
+      debugPrint('❌ Registration error: $e');
+      throw Exception('Erreur lors de l\'inscription: $e');
+    }
+  }
+
+  /// ✅ CONNEXION d'un parent
+  /// Endpoint: POST /api/auth/login/parent
+  Future<Map<String, dynamic>> loginParent({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      debugPrint('📤 Logging in parent: $email');
+
+      final response = await _apiClient.post(
+        ApiConstants.loginParent,
+        data: {'email': email, 'password': password},
+      );
+
+      debugPrint('✅ Login successful');
+      debugPrint('📦 Login response: ${response.data}');
+
+      // Extraire le token et les données utilisateur
+      final token = response.data['token'] ?? response.data['accessToken'];
+      final userData = response.data['user'] ?? response.data['data'];
+
+      // Sauvegarder le token
+      if (token != null) {
+        await _storage.saveAccessToken(token);
+        debugPrint('✅ Token saved');
+      }
+
+      // Sauvegarder les données utilisateur (en JSON)
+      if (userData != null) {
+        await _storage.saveUserData(userData.toString());
+        debugPrint('✅ User data saved');
+      }
+
+      return {
+        'success': true,
+        'token': token,
+        'user': userData != null ? UserModel.fromJson(userData) : null,
+      };
+    } catch (e) {
+      debugPrint('❌ Login error: $e');
+      throw Exception('Email ou mot de passe incorrect');
+    }
+  }
+
+  /// ✅ VÉRIFIER le code OTP
+  /// Endpoint: POST /api/auth/verify-otp
+  Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      debugPrint('📤 Verifying OTP for: $email');
+
+      final response = await _apiClient.post(
+        ApiConstants.verifyOtp,
+        data: {'email': email, 'otp': otp},
+      );
+
+      debugPrint('✅ OTP verified successfully');
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Code vérifié',
+        'token': response.data['token'],
+      };
+    } catch (e) {
+      debugPrint('❌ OTP verification error: $e');
+      throw Exception('Code de vérification invalide');
+    }
+  }
+
+  /// ✅ MOT DE PASSE OUBLIÉ - Demander OTP
+  /// Forgot Password - Returns userId
+  Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
+    try {
+      debugPrint('📤 Requesting password reset for: $contact');
+
+      final response = await _apiClient.post(
+        ApiConstants.forgotPassword,
+        data: {
+          'contact': contact, // Email ou téléphone
+        },
+      );
+
+      debugPrint('✅ Password reset requested');
+      debugPrint('📦 Response: ${response.data}');
+
+      final responseData = response.data is Map
+          ? response.data
+          : {'data': response.data};
+
+      return responseData; // Contient userId
+    } catch (e) {
+      debugPrint('❌ Forgot password error: $e');
+      throw Exception('Erreur lors de la demande de réinitialisation');
+    }
+  }
+
+  /// ✅ RÉINITIALISER le mot de passe avec OTP
+  /// Reset Password
+  Future<void> resetPassword({
+    required int userId,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      debugPrint('📤 Resetting password for user: $userId');
+
+      await _apiClient.post(
+        ApiConstants.resetPassword,
+        data: {
+          'userId': userId,
+          'code': code,
+          'newPassword': newPassword,
+        },
+      );
+
+      debugPrint('✅ Password reset successful');
+    } catch (e) {
+      debugPrint('❌ Reset password error: $e');
+      throw Exception('Erreur lors de la réinitialisation');
+    }
+  }
+
+  /// ✅ DÉCONNEXION
+  Future<void> logout() async {
+    try {
+      debugPrint('📤 Logging out...');
+      await _apiClient.post(ApiConstants.logout);
+      debugPrint('✅ Logout successful');
+    } catch (e) {
+      debugPrint('⚠️ Logout API error (continuing with local logout): $e');
+    } finally {
+      await _storage.clearAll();
+      debugPrint('✅ Local storage cleared');
+    }
+  }
+
+  /// ✅ Récupérer l'utilisateur actuel
+  Future<UserModel> getCurrentUser() async {
+    try {
+      debugPrint('📤 Fetching current user profile...');
+
+      final response = await _apiClient.get('/api/auth');
+
+      debugPrint('✅ User profile received: ${response.data}');
+      debugPrint('📦 Response type: ${response.data.runtimeType}');
+
+      // ✅ CORRECTION : Vérifier la structure de la réponse
+      final dynamic responseData = response.data;
+      
+      // Cas 1 : La réponse est directement l'objet utilisateur
+      if (responseData is Map<String, dynamic>) {
+        // Si la réponse contient une clé 'user' ou 'data'
+        if (responseData.containsKey('user') && responseData['user'] != null) {
+          debugPrint('✅ Extracting user from response.user');
+          return UserModel.fromJson(responseData['user']);
+        } else if (responseData.containsKey('data') && responseData['data'] != null) {
+          debugPrint('✅ Extracting user from response.data');
+          return UserModel.fromJson(responseData['data']);
+        } else {
+          // La réponse est directement l'utilisateur
+          debugPrint('✅ Response is directly the user object');
+          return UserModel.fromJson(responseData);
+        }
+      }
+      
+      throw Exception('Format de réponse invalide: $responseData');
+    } catch (e) {
+      debugPrint('❌ Get current user error: $e');
+      throw Exception('Impossible de récupérer le profil: $e');
+    }
+  }
+
+  /// ✅ Vérifier si l'utilisateur est connecté
+  Future<bool> isLoggedIn() async {
+    return await _storage.isLoggedIn();
+  }
+}

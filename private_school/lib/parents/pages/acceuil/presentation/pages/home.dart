@@ -1,32 +1,38 @@
-// Home page for parents - Fixed import
-// Path: lib/parents/pages/acceuil/home.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
+import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart';
-
-import '../../widgets/main_layout.dart';
-import '../trajets/presentation/pages/trip_detail_page.dart';
-import 'discussion.dart';
-import 'package:private_school/core/utils/app_colors.dart';
-import 'package:private_school/parents/pages/acceuil/widgets/report_problem_modal.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
 import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_card_widget.dart';
+import 'package:private_school/parents/pages/trajets/presentation/pages/trip_detail_page.dart';
+import 'package:private_school/parents/widgets/main_layout.dart';
+import 'discussion.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          HomeBloc(repository: TripRepository())..add(LoadDriversEvent()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) =>
+              HomeBloc(repository: TripRepository())..add(LoadDriversEvent()),
+        ),
+        BlocProvider(
+          create: (context) => AuthBloc()..add(const LoadCurrentUserEvent()),
+        ),
+      ],
       child: const HomePageContent(),
     );
   }
@@ -49,7 +55,6 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   void _openReportProblem(BuildContext context) {
-    // Use the modal directly with showModalBottomSheet
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -83,7 +88,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                   height: 280,
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                     ),
                                   ),
                                 );
@@ -95,7 +100,9 @@ class _HomePageContentState extends State<HomePageContent> {
                                   child: Center(
                                     child: Text(
                                       state.message,
-                                      style: const TextStyle(color: Colors.red),
+                                      style: const TextStyle(
+                                        color: AppColors.error,
+                                      ),
                                     ),
                                   ),
                                 );
@@ -127,7 +134,7 @@ class _HomePageContentState extends State<HomePageContent> {
           Center(
             child: Icon(
               Icons.map_outlined,
-              size: 80,
+              size: AppConstants.iconSizeXXXL + 16,
               color: Colors.grey.shade300,
             ),
           ),
@@ -138,14 +145,17 @@ class _HomePageContentState extends State<HomePageContent> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 3),
+                border: Border.all(
+                  color: AppColors.primary,
+                  width: 3,
+                ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.location_on,
                 color: AppColors.primary,
-                size: 20,
+                size: AppConstants.iconSizeM,
               ),
             ),
           ),
@@ -156,18 +166,18 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppConstants.spacingM),
       child: Row(
         children: [
           Expanded(
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(100),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: AppColors.blackOpacity10,
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -178,7 +188,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   hintText: "Rechercher un trajet",
                   hintStyle: GoogleFonts.inter(
                     color: Colors.grey.shade400,
-                    fontSize: 14,
+                    fontSize: AppConstants.fontSizeM,
                   ),
                   prefixIcon: Icon(
                     Icons.search,
@@ -186,27 +196,33 @@ class _HomePageContentState extends State<HomePageContent> {
                     size: 22,
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: AppConstants.fontSizeM,
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppConstants.spacingL),
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppColors.blackOpacity10,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Icon(Icons.tune, color: Colors.grey.shade600, size: 22),
+            child: Icon(
+              Icons.tune,
+              color: Colors.grey.shade600,
+              size: 22,
+            ),
           ),
         ],
       ),
@@ -215,67 +231,87 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      decoration: BoxDecoration(color: AppColors.success),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL,
+        vertical: AppConstants.spacingXL,
+      ),
+      decoration: const BoxDecoration(color: AppColors.success),
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          String userName = "Utilisateur";
+
+          // ✅ CORRECTION : Vérification plus robuste
+          if (authState is UserLoaded) {
+            userName = authState.user.fullName;
+          } else if (authState is AuthAuthenticated && authState.user != null) {
+            userName = authState.user!.fullName;
+          } else if (authState is AuthLoading) {
+            userName = "Chargement...";
+          } else if (authState is AuthError) {
+            userName = "Erreur";
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.white,
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/1.png',
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.person,
-                        size: 32,
-                        color: AppColors.success,
-                      );
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    "Bonjour,",
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 14,
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.white,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/1.png',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.person,
+                            size: AppConstants.iconSizeXL,
+                            color: AppColors.success,
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Mariama Ly",
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                  const SizedBox(width: AppConstants.spacingL),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppConstants.labelGreeting,
+                        style: GoogleFonts.inter(
+                          color: AppColors.whiteOpacity20.withValues(alpha: 0.9),
+                          fontSize: AppConstants.fontSizeM,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        userName,
+                        style: GoogleFonts.inter(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: AppConstants.fontSizeXL,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => _openDiscussions(context),
-                child: _buildNotifIconSvg('assets/icons/notif.svg', 1),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _openDiscussions(context),
+                    child: _buildNotifIconSvg('assets/icons/notif.svg', 1),
+                  ),
+                  const SizedBox(width: AppConstants.spacingL),
+                  _buildNotifIconSvg('assets/icons/Settings.svg', 0),
+                ],
               ),
-              const SizedBox(width: 12),
-              _buildNotifIconSvg('assets/icons/Settings.svg', 0),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -293,7 +329,7 @@ class _HomePageContentState extends State<HomePageContent> {
               width: 30,
               height: 30,
               colorFilter: const ColorFilter.mode(
-                Colors.white,
+                AppColors.white,
                 BlendMode.srcIn,
               ),
             ),
@@ -306,14 +342,14 @@ class _HomePageContentState extends State<HomePageContent> {
             child: Container(
               padding: const EdgeInsets.all(3),
               decoration: const BoxDecoration(
-                color: Colors.red,
+                color: AppColors.error,
                 shape: BoxShape.circle,
               ),
               child: Text(
                 notifCount.toString(),
                 style: const TextStyle(
-                  fontSize: 8,
-                  color: Colors.white,
+                  fontSize: AppConstants.fontSizeXS,
+                  color: AppColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -328,11 +364,13 @@ class _HomePageContentState extends State<HomePageContent> {
       height: 280,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
         itemCount: trips.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: EdgeInsets.only(right: index < trips.length - 1 ? 12 : 0),
+            padding: EdgeInsets.only(
+              right: index < trips.length - 1 ? AppConstants.spacingL : 0,
+            ),
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.85,
               child: TripCardWidget(
@@ -361,10 +399,10 @@ class _HomePageContentState extends State<HomePageContent> {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: AppColors.blackOpacity10,
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -373,7 +411,11 @@ class _HomePageContentState extends State<HomePageContent> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(icon: Icons.home_rounded, label: 'Accueil', index: 0),
+            _buildNavItem(
+              icon: Icons.home_rounded,
+              label: AppConstants.labelHome,
+              index: 0,
+            ),
             _buildNavItem(
               icon: Icons.people_rounded,
               label: 'Enfants',
@@ -391,7 +433,7 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
             _buildNavItem(
               icon: Icons.person_rounded,
-              label: 'Profil',
+              label: AppConstants.labelProfile,
               index: 4,
             ),
           ],
@@ -425,7 +467,7 @@ class _HomePageContentState extends State<HomePageContent> {
       onTap: () => _onBottomNavTap(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingS),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -434,7 +476,7 @@ class _HomePageContentState extends State<HomePageContent> {
               color: isSelected ? AppColors.success : Colors.grey.shade500,
               size: 26,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppConstants.spacingXS),
             Text(
               label,
               style: GoogleFonts.inter(
@@ -451,7 +493,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Widget _buildFloatingActionButton(BuildContext context) {
     return Positioned(
-      right: 20,
+      right: AppConstants.spacingXL,
       bottom: 90,
       child: FloatingActionButton(
         onPressed: () => _openReportProblem(context),
@@ -461,7 +503,10 @@ class _HomePageContentState extends State<HomePageContent> {
           'assets/icons/13.svg',
           width: 28,
           height: 28,
-          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          colorFilter: const ColorFilter.mode(
+            AppColors.white,
+            BlendMode.srcIn,
+          ),
         ),
       ),
     );

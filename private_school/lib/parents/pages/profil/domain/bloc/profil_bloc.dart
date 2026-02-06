@@ -122,10 +122,15 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
     Emitter<ProfilState> emit,
   ) async {
     try {
+      // 1. Appel au repository pour informer le serveur (et effacer le token localement)
       await repository.logout();
+      
+      // 2. Émettre le succès pour déclencher le BlocListener dans ProfilPage
       emit(LogoutSuccess());
     } catch (e) {
-      emit(ProfilError('Unable to logout: ${e.toString()}'));
+      // ✅ ASTUCE : Même si l'API échoue, on émet LogoutSuccess.
+      // On veut que l'utilisateur puisse sortir de l'app quoi qu'il arrive.
+      emit(LogoutSuccess());
     }
   }
 }

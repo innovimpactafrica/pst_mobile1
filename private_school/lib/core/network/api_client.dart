@@ -1,6 +1,5 @@
-
-
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../storage/secure_storage.dart';
 import '../utils/base_url.dart';
@@ -19,8 +18,8 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: BaseUrl.current,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -35,15 +34,25 @@ class ApiClient {
           final token = await _storage.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
+            debugPrint('🔑 Token added to request: ${options.path}');
+          } else {
+            debugPrint('⚠️ No token found for request: ${options.path}');
           }
           return handler.next(options);
         },
         onError: (error, handler) async {
+          debugPrint('❌ API Error: ${error.response?.statusCode} - ${error.message}');
+          
           // Handle token expiration
           if (error.response?.statusCode == 401) {
+            debugPrint('🔒 Unauthorized - Clearing storage');
             await _storage.clearAll();
           }
           return handler.next(error);
+        },
+        onResponse: (response, handler) {
+          debugPrint('✅ API Response: ${response.statusCode} - ${response.requestOptions.path}');
+          return handler.next(response);
         },
       ),
     );
@@ -114,7 +123,6 @@ class ApiClient {
     }
   }
 
-
   Future<Response> delete(
     String path, {
     dynamic data,
@@ -122,7 +130,6 @@ class ApiClient {
     Options? options,
   }) async {
     try {
-     
       Map<String, dynamic>? mergedQueryParams = queryParameters;
       
       if (data != null && data is Map<String, dynamic>) {

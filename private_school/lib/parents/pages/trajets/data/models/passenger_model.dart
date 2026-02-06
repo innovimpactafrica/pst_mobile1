@@ -1,28 +1,39 @@
 class PassengerModel {
   final String id;
   final String name;
-  final String initials; // "MN", "MF", "AD"
-  final String school; // "École Primaire Saint-Michel"
-  final String photo; // Optionnel
-  final String avatarColor; // Couleur de l'avatar
+  final String? phone;
+  final bool isConfirmed;
+  final String? photo;
+  final String? school;
+  final String? avatarColor;
 
   PassengerModel({
     required this.id,
     required this.name,
-    required this.initials,
-    required this.school,
-    this.photo = '',
-    this.avatarColor = '#4CAF50',
+    this.phone,
+    this.isConfirmed = false,
+    this.photo,
+    this.school,
+    this.avatarColor,
   });
+
+  String get initials {
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+  }
 
   factory PassengerModel.fromJson(Map<String, dynamic> json) {
     return PassengerModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      initials: json['initials'] ?? '',
-      school: json['school'] ?? '',
-      photo: json['photo'] ?? '',
-      avatarColor: json['avatarColor'] ?? '#4CAF50',
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      name: (json['name'] ?? json['nom'] ?? '').toString(),
+      phone: json['phone']?.toString() ?? json['telephone']?.toString(),
+      isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
+      photo: json['photo']?.toString() ?? json['image']?.toString(),
+      school: json['school']?.toString() ?? json['ecole']?.toString(),
+      avatarColor: json['avatarColor']?.toString() ?? json['couleur']?.toString(),
     );
   }
 
@@ -30,9 +41,10 @@ class PassengerModel {
     return {
       'id': id,
       'name': name,
-      'initials': initials,
-      'school': school,
+      'phone': phone,
+      'isConfirmed': isConfirmed,
       'photo': photo,
+      'school': school,
       'avatarColor': avatarColor,
     };
   }

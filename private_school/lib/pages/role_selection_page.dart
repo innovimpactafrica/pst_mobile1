@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:private_school/core/utils/app_colors.dart';
-import 'package:private_school/parents/pages/authentification/connexion.dart'
+import 'package:private_school/parents/pages/authentification/presentation/pages/connexion.dart'
     as parent_auth;
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/connexion.dart'
     as driver_auth;

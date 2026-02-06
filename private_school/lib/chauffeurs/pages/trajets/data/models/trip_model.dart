@@ -1,8 +1,8 @@
-import 'school_model.dart';
+import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 
 class TripModel {
   final String id;
-  final String driverId;
+  final String? driverId;
   final String destination;
   final String? startLocation;
   final DateTime date;
@@ -19,7 +19,7 @@ class TripModel {
 
   TripModel({
     required this.id,
-    required this.driverId,
+    this.driverId,
     required this.destination,
     this.startLocation,
     required this.date,
@@ -41,108 +41,84 @@ class TripModel {
   bool get isPending => status == 'pending';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
-    // Helper pour convertir n'importe quel type en String
-    String toString(dynamic value, [String defaultValue = '']) {
-      if (value == null) return defaultValue;
-      return value.toString();
-    }
-
-    // Helper pour convertir en int
-    int toInt(dynamic value, [int defaultValue = 0]) {
-      if (value == null) return defaultValue;
+    // Fonctions helper pour conversion sécurisée
+    int safeInt(dynamic value) {
+      if (value == null) return 0;
       if (value is int) return value;
-      if (value is String) return int.tryParse(value) ?? defaultValue;
-      if (value is num) return value.toInt();
-      return defaultValue;
+      return int.tryParse(value.toString()) ?? 0;
     }
 
-    // Helper pour parser DateTime
     DateTime parseDate(dynamic value) {
       if (value == null) return DateTime.now();
       if (value is DateTime) return value;
-      if (value is String) {
-        try {
-          return DateTime.parse(value);
-        } catch (e) {
-          return DateTime.now();
-        }
+      try {
+        return DateTime.parse(value.toString());
+      } catch (e) {
+        return DateTime.now();
       }
-      return DateTime.now();
     }
 
-    // Parser le temps depuis departure_time ou time
-    String parseTime(Map<String, dynamic> json) {
-      if (json['time'] != null) return json['time'] as String;
-      if (json['heure'] != null) return json['heure'] as String;
-      
-      // Si departure_time existe, extraire l'heure
-      if (json['departure_time'] != null) {
-        final departureTime = parseDate(json['departure_time']);
-        return '${departureTime.hour.toString().padLeft(2, '0')}:${departureTime.minute.toString().padLeft(2, '0')}';
+    // ✅ NOUVEAU : Créer une école temporaire à partir du school_id
+    List<SchoolModel> parseSchools(Map<String, dynamic> json) {
+      // Si l'API retourne déjà une liste d'écoles complète
+      if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
+        return (json['schools'] as List).map((s) => SchoolModel.fromJson(s)).toList();
       }
       
-      return '00:00';
+      // Sinon, créer une école temporaire à partir du school_id
+      final schoolId = json['school_id'];
+      if (schoolId != null) {
+        // Créer une école "placeholder" avec juste l'ID
+        // Le nom sera récupéré via l'API plus tard
+        return [
+          SchoolModel(
+            id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
+            name: json['end_point'] ?? 'École ID: $schoolId',
+            address: '',
+          ),
+        ];
+      }
+      
+      return [];
     }
 
     return TripModel(
-      // Convertir id (int ou String) en String
-      id: toString(json['id'] ?? json['_id']),
+      // 🔥 CORRECTION : L'id peut être int ou String, on force la conversion
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
       
-      // Convertir driver_id (int) en String
-      driverId: toString(json['driver_id'] ?? json['driverId'] ?? json['chauffeurId']),
+      // driver_id peut être null ou int
+      driverId: json['driver_id']?.toString() ?? json['driverId']?.toString(),
       
-      // Destination (end_point ou destination)
-      destination: json['end_point'] ?? json['destination'] ?? '',
+      // Champs texte
+      destination: (json['end_point'] ?? json['destination'] ?? '').toString(),
+      startLocation: (json['start_point'] ?? json['lieuDepart'] ?? '').toString(),
       
-      // Start location (start_point ou startLocation)
-      startLocation: json['start_point'] ?? json['startLocation'] ?? json['lieuDepart'],
+      // Date et heure
+      date: parseDate(json['departure_time'] ?? json['date']),
+      time: (json['time'] ?? '00:00').toString(),
       
-      // Date (departure_time ou date)
-      date: parseDate(json['departure_time'] ?? json['date'] ?? json['created_at']),
+      // Nombres
+      totalSeats: safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0),
+      availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
       
-      // Time
-      time: parseTime(json),
-      
-      // Total seats (capacity_max ou totalSeats)
-      totalSeats: toInt(json['capacity_max'] ?? json['totalSeats'] ?? json['placesTotal']),
-      
-      // Available seats (calculé ou fourni)
-      availableSeats: toInt(
-        json['availableSeats'] ?? 
-        json['placesDisponibles'] ?? 
-        json['capacity_max'] ?? 
-        json['totalSeats'] ?? 
-        0,
-      ),
-      
-      // Price
+      // Prix optionnel
       price: json['price'] != null ? (json['price'] as num).toDouble() : null,
       
-      // Status (normaliser in_progress → active)
-      status: (json['status'] ?? json['statut'] ?? 'pending').toString().toLowerCase(),
+      // Status
+      status: (json['status'] ?? 'pending').toString().toLowerCase(),
       
-      // Passengers
+      // Listes
       passengers: json['passengers'] != null
-          ? (json['passengers'] as List)
-              .map((p) => Passenger.fromJson(p))
-              .toList()
+          ? (json['passengers'] as List).map((p) => Passenger.fromJson(p)).toList()
           : [],
       
-      // Schools
-      schools: json['schools'] != null
-          ? (json['schools'] as List)
-              .map((s) => SchoolModel.fromJson(s))
-              .toList()
-          : [],
+      // ✅ MODIFIÉ : Parser les écoles intelligemment
+      schools: parseSchools(json),
       
-      // Dates de suivi
-      startedAt: json['startedAt'] != null
-          ? parseDate(json['startedAt'])
-          : null,
-      completedAt: json['completedAt'] != null
-          ? parseDate(json['completedAt'])
-          : null,
-      cancelReason: json['cancelReason'] ?? json['raisonAnnulation'],
+      // Dates optionnelles
+      startedAt: json['startedAt'] != null ? parseDate(json['startedAt']) : null,
+      completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
+      cancelReason: json['cancelReason']?.toString(),
     );
   }
 
@@ -233,12 +209,12 @@ class Passenger {
   factory Passenger.fromJson(Map<String, dynamic> json) {
     return Passenger(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
-      name: json['name'] ?? json['nom'] ?? '',
-      phone: json['phone'] ?? json['telephone'],
+      name: (json['name'] ?? json['nom'] ?? '').toString(),
+      phone: json['phone']?.toString() ?? json['telephone']?.toString(),
       isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
-      photo: json['photo'] ?? json['image'],
-      school: json['school'] ?? json['ecole'],
-      avatarColor: json['avatarColor'] ?? json['couleur'],
+      photo: json['photo']?.toString() ?? json['image']?.toString(),
+      school: json['school']?.toString() ?? json['ecole']?.toString(),
+      avatarColor: json['avatarColor']?.toString() ?? json['couleur']?.toString(),
     );
   }
 

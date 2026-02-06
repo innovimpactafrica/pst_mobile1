@@ -4,7 +4,21 @@ import '../services/trip_service.dart';
 class TripRepository {
   final TripService _tripService = TripService();
 
-  /// Search for available trips
+  /// Get all trips from the API
+  /// This is what "Trajets disponibles" should call
+  Future<List<TripModel>> getAllTrips() async {
+    return await _tripService.getAllTrips();
+  }
+
+  /// Get only available trips (for "Trajets disponibles" tab)
+  /// For now, same as getAllTrips, but can be filtered later
+  Future<List<TripModel>> getAvailableTrips() async {
+    // Pour l'instant, on récupère tous les trajets
+    // Plus tard, on peut filtrer par statut "disponible" ou "en_attente"
+    return await _tripService.getAllTrips();
+  }
+
+  /// Search for available trips with filters
   Future<List<TripModel>> searchTrips({
     String? homeAddress,
     String? schoolAddress,
@@ -17,16 +31,6 @@ class TripRepository {
       departureTime: departureTime,
       childId: childId,
     );
-  }
-
-  /// Get all available trips (default search)
-  Future<List<TripModel>> getAllTrips() async {
-    return await _tripService.searchTrips();
-  }
-
-  /// Get only available trips (for "Trajets disponibles" tab)
-  Future<List<TripModel>> getAvailableTrips() async {
-    return await _tripService.searchTrips();
   }
 
   /// Get my reservations

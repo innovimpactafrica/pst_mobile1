@@ -99,3 +99,14 @@ class UserLoaded extends AuthState {
   @override
   List<Object?> get props => [user];
 }
+
+class PasswordResetRequested extends AuthState {
+  final String contact;
+  final int? userId;
+
+  const PasswordResetRequested(this.contact, {this.userId});
+
+  @override
+  List<Object?> get props => [contact, userId];
+}
+

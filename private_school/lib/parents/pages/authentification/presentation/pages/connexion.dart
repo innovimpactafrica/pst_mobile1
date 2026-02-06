@@ -3,11 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
-import 'package:private_school/parents/pages/authentification/inscription.dart';
-import '../../authentification/domain/bloc/auth_bloc.dart';
-import '../../authentification/domain/bloc/auth_event.dart';
-import '../../authentification/domain/bloc/auth_state.dart';
-import '../acceuil/home.dart';
+import 'package:private_school/parents/pages/authentification/presentation/pages/parent_inscription.dart';
+import '../../domain/bloc/auth_bloc.dart';
+import '../../domain/bloc/auth_event.dart';
+import '../../domain/bloc/auth_state.dart';
+import '../../../acceuil/presentation/pages/home.dart';
 import 'mdp_oublie.dart';
 
 class Connexion extends StatefulWidget {
@@ -167,7 +167,7 @@ class _ConnexionState extends State<Connexion> {
 
                   // ======== Mot de passe oublié ========
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.center,
                     child: TextButton(
                       onPressed: () => Navigator.push(
                         context,
@@ -191,7 +191,7 @@ class _ConnexionState extends State<Connexion> {
                     height: 55,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.success,
                         foregroundColor: AppColors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
@@ -222,7 +222,7 @@ class _ConnexionState extends State<Connexion> {
                       GestureDetector(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const InscriptionPage()),
+                          MaterialPageRoute(builder: (_) => const ParentInscription()),
                         ),
                         child: const Text(
                           "S’inscrire",

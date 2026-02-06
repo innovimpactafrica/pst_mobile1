@@ -14,6 +14,12 @@ class DriverModel {
   final String? vehicleType;
   final String? vehicleColor; 
   final bool isActive;
+  final int totalTrips;
+  final double rating;
+  final int totalReviews;
+  final double successRate;
+  final String memberSince;
+  final VehicleModel? vehicle;
 
   DriverModel({
     required this.id,
@@ -28,6 +34,12 @@ class DriverModel {
     this.vehicleType,
     this.vehicleColor,
     this.isActive = true,
+    this.totalTrips = 0,
+    this.rating = 0.0,
+    this.totalReviews = 0,
+    this.successRate = 0.0,
+    this.memberSince = '',
+    this.vehicle,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -100,6 +112,12 @@ class DriverModel {
       vehicleColor: vehicleData?['color']?.toString() ?? 
                     json['vehicleColor']?.toString() ??
                     json['couleur']?.toString(),
+      totalTrips: json['totalTrips'] ?? json['nombreTrajets'] ?? 0,
+      rating: (json['rating'] ?? json['note'] ?? 0.0).toDouble(),
+      totalReviews: json['totalReviews'] ?? json['nombreAvis'] ?? 0,
+      successRate: (json['successRate'] ?? json['tauxReussite'] ?? 0.0).toDouble(),
+      memberSince: json['memberSince']?.toString() ?? json['membreDepuis']?.toString() ?? '',
+      vehicle: vehicleData != null ? VehicleModel.fromJson(vehicleData) : null,
     );
   }
 
@@ -116,6 +134,12 @@ class DriverModel {
       'licenseNumber': licenseNumber,
       'vehicleType': vehicleType,
       'isActive': isActive,
+      'totalTrips': totalTrips,
+      'rating': rating,
+      'totalReviews': totalReviews,
+      'successRate': successRate,
+      'memberSince': memberSince,
+      'vehicle': vehicle?.toJson(),
     };
   }
 
@@ -131,6 +155,12 @@ class DriverModel {
     String? licenseNumber,
     String? vehicleType,
     bool? isActive,
+    int? totalTrips,
+    double? rating,
+    int? totalReviews,
+    double? successRate,
+    String? memberSince,
+    VehicleModel? vehicle,
   }) {
     return DriverModel(
       id: id ?? this.id,
@@ -144,6 +174,49 @@ class DriverModel {
       licenseNumber: licenseNumber ?? this.licenseNumber,
       vehicleType: vehicleType ?? this.vehicleType,
       isActive: isActive ?? this.isActive,
+      totalTrips: totalTrips ?? this.totalTrips,
+      rating: rating ?? this.rating,
+      totalReviews: totalReviews ?? this.totalReviews,
+      successRate: successRate ?? this.successRate,
+      memberSince: memberSince ?? this.memberSince,
+      vehicle: vehicle ?? this.vehicle,
     );
+  }
+}
+
+
+class VehicleModel {
+  final String model;
+  final String plate;
+  final String color;
+  final String? photo;
+  final int capacity;
+
+  VehicleModel({
+    required this.model,
+    required this.plate,
+    required this.color,
+    this.photo,
+    this.capacity = 0,
+  });
+
+  factory VehicleModel.fromJson(Map<String, dynamic> json) {
+    return VehicleModel(
+      model: (json['model'] ?? json['brand'] ?? '').toString(),
+      plate: (json['plate'] ?? json['licenseNumber'] ?? '').toString(),
+      color: (json['color'] ?? '').toString(),
+      photo: json['photo']?.toString(),
+      capacity: json['capacity'] ?? json['capacite'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'model': model,
+      'plate': plate,
+      'color': color,
+      'photo': photo,
+      'capacity': capacity,
+    };
   }
 }

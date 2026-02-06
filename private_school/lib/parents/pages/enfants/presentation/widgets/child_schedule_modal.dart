@@ -31,10 +31,41 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
   @override
   void initState() {
     super.initState();
-    _schedule =
-        widget.child.schedule != null && widget.child.schedule!.isNotEmpty
-        ? Map<String, DaySchedule>.from(widget.child.schedule!)
-        : _getDefaultSchedule();
+    
+    // 🔥 CORRECTION : Convertir tous les jours en format abrégé UNIQUEMENT
+    final Map<String, DaySchedule> childSchedule = widget.child.schedule ?? {};
+    _schedule = {};
+    
+    // Mapping pour normaliser tous les jours vers le format abrégé
+    final Map<String, String> dayMapping = {
+      'Lundi': 'Lun.',
+      'Mardi': 'Mar',
+      'Mercredi': 'Mer.',
+      'Jeudi': 'Jeu',
+      'Vendredi': 'Ven.',
+      'Samedi': 'Sam.',
+      'Dimanche': 'Dim.',
+    };
+    
+    // ✅ Convertir tous les jours en format abrégé (garde seulement le dernier)
+    childSchedule.forEach((day, schedule) {
+      final normalizedDay = dayMapping[day] ?? day;
+      _schedule[normalizedDay] = schedule; // ✅ Écrase les doublons
+    });
+    
+    // Si aucun horaire, utiliser les valeurs par défaut
+    if (_schedule.isEmpty) {
+      _schedule = _getDefaultSchedule();
+    } else {
+      // Compléter avec les jours manquants
+      _getDefaultSchedule().forEach((day, defaultSchedule) {
+        if (!_schedule.containsKey(day)) {
+          _schedule[day] = defaultSchedule;
+        }
+      });
+    }
+    
+    debugPrint('🔧 [ScheduleModal] Initialized schedule: $_schedule');
   }
 
   Map<String, DaySchedule> _getDefaultSchedule() {
@@ -51,8 +82,16 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
 
   void _toggleDay(String day) {
     setState(() {
-      final current = _schedule[day]!;
-      _schedule[day] = current.copyWith(isOpen: !current.isOpen);
+      final current = _schedule[day];
+      if (current == null) {
+        _schedule[day] = DaySchedule(
+          isOpen: true,
+          startTime: '09:00',
+          endTime: '18:00',
+        );
+      } else {
+        _schedule[day] = current.copyWith(isOpen: !current.isOpen);
+      }
     });
   }
 
@@ -74,20 +113,36 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
       setState(() {
         final timeString =
             '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        final current = _schedule[day]!;
-
-        _schedule[day] = current.copyWith(
-          startTime: isStart ? timeString : current.startTime,
-          endTime: !isStart ? timeString : current.endTime,
-        );
+        
+        final current = _schedule[day];
+        
+        if (current == null) {
+          _schedule[day] = DaySchedule(
+            isOpen: true,
+            startTime: isStart ? timeString : '09:00',
+            endTime: !isStart ? timeString : '18:00',
+          );
+        } else {
+          _schedule[day] = current.copyWith(
+            startTime: isStart ? timeString : current.startTime,
+            endTime: !isStart ? timeString : current.endTime,
+          );
+        }
       });
     }
   }
 
   void _handleSave() {
+    debugPrint('💾 [ScheduleModal] Saving schedule for child: ${widget.child.id}');
+    debugPrint('📦 [ScheduleModal] Schedule (ONLY abbreviated days): $_schedule');
+    
     context.read<ChildBloc>().add(
-      UpdateChildScheduleEvent(childId: widget.child.id, schedule: _schedule),
+      UpdateChildScheduleEvent(
+        childId: widget.child.id,
+        schedule: _schedule, // ✅ Contient UNIQUEMENT Lun., Mar, Mer., etc.
+      ),
     );
+    
     if (mounted) {
       Navigator.pop(context);
     }
@@ -256,8 +311,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
                   child: Checkbox(
                     value: schedule.isOpen,
                     onChanged: (_) => _toggleDay(day),
-                    activeColor: AppColors.primary
-,
+                    activeColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(3),
                     ),

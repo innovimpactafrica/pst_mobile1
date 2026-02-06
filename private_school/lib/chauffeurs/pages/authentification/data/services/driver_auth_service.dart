@@ -1,4 +1,4 @@
-// Driver authentication service
+// Driver authentication service - FULLY CORRECTED
 // Path: lib/chauffeurs/authentification/data/services/driver_auth_service.dart
 
 import 'dart:convert';
@@ -132,18 +132,40 @@ class DriverAuthService {
     );
   }
 
-  Future<void> forgotPassword({required String phone}) async {
-    await _apiClient.post('/api/auth/forgot-password', data: {'phone': phone});
-  }
+  Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
+  final response = await _apiClient.post(
+    '/api/auth/forgot-password',
+    data: {
+      'contact': contact, 
+    },
+  );
+
+  final responseData = response.data is Map
+      ? response.data
+      : {'data': response.data}; 
+  final userData = responseData['user'];
+  final userId = userData?['id'] as int?;
+  
+  return {
+    'message': responseData['message'],
+    'userId': userId,  
+    'user': userData,
+  };
+}
+
 
   Future<void> resetPassword({
-    required String phone,
-    required String otp,
+    required int userId,      
+    required String code,     
     required String newPassword,
   }) async {
     await _apiClient.post(
       '/api/auth/reset-password',
-      data: {'phone': phone, 'otp': otp, 'newPassword': newPassword},
+      data: {
+        'userId': userId,         
+        'code': code,             
+        'newPassword': newPassword,
+      },
     );
   }
 

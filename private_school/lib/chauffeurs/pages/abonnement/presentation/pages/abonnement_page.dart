@@ -1,17 +1,15 @@
-// Subscription page with real API data
-// Path: lib/chauffeurs/pages/abonnement/presentation/pages/abonnement_page.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/subscription_bloc.dart';
 import '../../domain/bloc/subscription_event.dart';
 import '../../domain/bloc/subscription_state.dart';
 import '../../data/models/subscription_model.dart';
-import '../widgets/subscription_card.dart';
-import '../widgets/current_subscription_card.dart';
-import '../widgets/plan_toggle.dart';
+import '../../../../../chauffeurs/widgets/money_mode.dart';
 
 class AbonnementPage extends StatefulWidget {
   const AbonnementPage({super.key});
@@ -21,8 +19,9 @@ class AbonnementPage extends StatefulWidget {
 }
 
 class _AbonnementPageState extends State<AbonnementPage> {
-  bool _isAnnual = false;
   SubscriptionModel? _currentSubscription;
+  List<SubscriptionPlan> _plans = [];
+  bool _isAnnual = false; // 🆕 Toggle state
 
   @override
   void initState() {
@@ -38,40 +37,41 @@ class _AbonnementPageState extends State<AbonnementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
             Expanded(
-             child: BlocListener<SubscriptionBloc, SubscriptionState>(
-  listener: (context, state) {
-    if (state is CurrentSubscriptionLoaded) {
-      debugPrint("Abonnement reçu: ${state.subscription?.plan}");
-      setState(() {
-        _currentSubscription = state.subscription;
-      });
-    } else if (state is SubscriptionActive) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Abonnement activé avec succès !'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      _loadData();
-    }
-                },
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _buildCurrentSubscription(),
-                      const SizedBox(height: 24),
-                      _buildPlanToggle(),
-                      const SizedBox(height: 20),
-                      _buildPlansSection(),
-                    ],
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
+                ),
+                child: BlocListener<SubscriptionBloc, SubscriptionState>(
+                  listener: (context, state) {
+                    if (state is SubscriptionPlansLoaded) {
+                      setState(() {
+                        _plans = state.plans;
+                      });
+                    } else if (state is CurrentSubscriptionLoaded) {
+                      setState(() {
+                        _currentSubscription = state.subscription;
+                      });
+                    } else if (state is SubscriptionActive) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('subscription_activated'.tr()),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                      _loadData();
+                    }
+                  },
+                  child: _buildContent(),
                 ),
               ),
             ),
@@ -82,25 +82,16 @@ class _AbonnementPageState extends State<AbonnementPage> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Row(
         children: [
           Text(
-            'Abonnements',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textWhite,
+            'subscription'.tr(),
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: AppColors.white,
             ),
           ),
         ],
@@ -108,229 +99,408 @@ class _AbonnementPageState extends State<AbonnementPage> {
     );
   }
 
- Widget _buildCurrentSubscription() {
-  if (_currentSubscription == null) {
-    return CurrentSubscriptionCard(
-      plan: 'Aucun abonnement actif',
-      expiryDate: '-',
-      isActive: false,
-    );
-  }
-
-  final dateFormat = DateFormat('dd/MM/yyyy');
-
-  return CurrentSubscriptionCard(
-    plan: _currentSubscription!.plan,
-    expiryDate: dateFormat.format(_currentSubscription!.expiryDate),
-    isActive: _currentSubscription!.isActive,
-  );
-}
-
-  Widget _buildPlanToggle() {
-    return PlanToggle(
-      isAnnual: _isAnnual,
-      onToggle: (value) {
-        setState(() {
-          _isAnnual = value;
-        });
-      },
-    );
-  }
-
-  Widget _buildPlansSection() {
+  Widget _buildContent() {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
       builder: (context, state) {
         if (state is SubscriptionLoading) {
           return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(),
-            ),
+            child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
 
         if (state is SubscriptionError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: AppColors.error),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.error),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                    ),
-                    child: const Text('Réessayer'),
-                  ),
-                ],
-              ),
-            ),
-          );
+          return _buildErrorWidget(state.message);
         }
 
-        if (state is SubscriptionPlansLoaded) {
-          final plans = state.plans;
-
-          if (plans.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Text(
-                  'Aucun plan disponible',
-                  style: TextStyle(color: AppColors.textGrey),
-                ),
-              ),
-            );
-          }
-
-          return Column(
-            children: plans.map((plan) {
-              final isAnnualPlan = plan.durationDays >= 365;
-              final shouldShow = _isAnnual ? isAnnualPlan : !isAnnualPlan;
-
-              if (!shouldShow) return const SizedBox.shrink();
-
-              final displayPrice = plan.price;
-             // final pricePerMonth = isAnnualPlan ? plan.price / 12 : plan.price;
-              final savingsPercent = isAnnualPlan ? 30 : 0;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: SubscriptionCard(
-                  title: plan.name,
-                  price: displayPrice,
-                  period: _isAnnual ? '/an' : '/mois',
-                  features: plan.features.isNotEmpty
-                      ? plan.features
-                      : [
-                          'Profil visible auprès des parents',
-                          'Réception des demandes de trajets',
-                          'Support prioritaire',
-                        ],
-                  isRecommended: isAnnualPlan && _isAnnual,
-                  savings: isAnnualPlan && _isAnnual
-                      ? 'Économisez $savingsPercent% par rapport à l\'abonnement mensuel'
-                      : null,
-                  onSelect: () => _onSelectPlan(plan),
-                ),
-              );
-            }).toList(),
-          );
-        }
-
-        return const SizedBox.shrink();
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCurrentSubscriptionCard(),
+              const SizedBox(height: 24),
+              _buildChooseYourPlanSection(),
+              const SizedBox(height: 16),
+              _buildToggle(), // 🆕 Toggle Mensuel/Annuel
+              const SizedBox(height: 20),
+              _buildAvailablePlansSection(),
+            ],
+          ),
+        );
       },
     );
   }
 
-  void _onSelectPlan(SubscriptionPlan plan) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildPaymentSheet(plan),
-    );
-  }
+  Widget _buildCurrentSubscriptionCard() {
+    final bool hasSubscription = _currentSubscription != null;
 
-  Widget _buildPaymentSheet(SubscriptionPlan plan) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.textWhite,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
           Container(
-            width: 40,
-            height: 4,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: AppColors.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Confirmer votre abonnement',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Vous allez souscrire à ${plan.name}',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: const Icon(
+              Icons.card_membership,
+              color: AppColors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Total',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'my_subscription'.tr(), // "Mon abonnement"
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (hasSubscription)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '● ${'active'.tr()}', // "● Actif"
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  '${plan.price.toStringAsFixed(0)} FCFA',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                  hasSubscription
+                      ? '${'expiry_date'.tr()}: ${DateFormat('dd/MM/yyyy').format(_currentSubscription!.expiryDate)}'
+                      : 'no_active_subscription'.tr(),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChooseYourPlanSection() {
+    return Text(
+      'choose_your_plan'.tr(), // "Choisissez votre plan"
+      style: GoogleFonts.inter(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  // 🆕 Toggle Mensuel/Annuel avec couleurs exactes Figma
+  Widget _buildToggle() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildToggleButton(
+            label: 'monthly'.tr(), // "Mensuel"
+            isSelected: !_isAnnual,
+            onTap: () => setState(() => _isAnnual = false),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildToggleButton(
+            label: 'annual'.tr(), // "Annuel"
+            isSelected: _isAnnual,
+            onTap: () => setState(() => _isAnnual = true),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1) 
+              : const Color(0xFFF5F5F5), 
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isSelected
+                  ? AppColors.primary // 🎨 Texte violet
+                  : AppColors.textPrimary, // 🎨 Texte noir
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvailablePlansSection() {
+    if (_plans.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Text(
+            'no_plans_available'.tr(),
+            style: GoogleFonts.inter(color: AppColors.textSecondary),
+          ),
+        ),
+      );
+    }
+
+    // Filtrer les plans selon le toggle
+    final filteredPlans = _plans.where((plan) {
+      final isMonthly = plan.durationDays <= 31;
+      return _isAnnual ? !isMonthly : isMonthly;
+    }).toList();
+
+    if (filteredPlans.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Text(
+            'no_plans_available'.tr(),
+            style: GoogleFonts.inter(color: AppColors.textSecondary),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: filteredPlans.map((plan) => _buildPlanCard(plan)).toList(),
+    );
+  }
+
+  Widget _buildPlanCard(SubscriptionPlan plan) {
+    final bool isAnnual = plan.durationDays > 31;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isAnnual
+              ? AppColors.primary // 🎨 Bordure violette pour annuel
+              : AppColors.border, // 🎨 Bordure grise pour mensuel
+          width: isAnnual ? 2 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 🆕 Badge "Recommandé" pour l'annuel
+          if (isAnnual)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'recommended'.tr(), // "Recommandé"
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+          if (isAnnual) const SizedBox(height: 12),
+
+          Text(
+            plan.name,
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Prix
+          Row(
+            children: [
+              Text(
+                '${plan.price.toStringAsFixed(0)} FCFA',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                isAnnual ? '/an' : '/mois',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Description
+          Text(
+            isAnnual ? 'annual_billing'.tr() : 'monthly_billing'.tr(),
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+
+          // Features avec checkmarks violets
+          if (plan.features.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            ...plan.features.take(3).map(
+                  (feature) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check,
+                          size: 20,
+                          color: AppColors.primary, 
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            feature,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ],
+          const SizedBox(height: 16),
+
+         
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 48,
             child: ElevatedButton(
+              onPressed: () => _showPaymentModal(plan),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                context.read<SubscriptionBloc>().add(
-                  SubscribeEvent(plan.id, 'default_payment_method'),
-                );
-              },
               child: Text(
-                'Sélectionner',
-                style: TextStyle(
+                'select'.tr(), // 🆕 "Sélectionner"
+                style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textWhite,
+                  color: AppColors.white,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+
+  void _showPaymentModal(SubscriptionPlan plan) {
+    showPaymentModal(
+      context,
+      plan: plan,
+      onPaymentComplete: () {
+        _loadData();
+      },
+    );
+  }
+
+  Widget _buildErrorWidget(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(color: AppColors.error),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: Text('retry'.tr()),
+            ),
+          ],
+        ),
       ),
     );
   }

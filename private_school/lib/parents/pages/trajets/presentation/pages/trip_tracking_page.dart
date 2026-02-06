@@ -43,7 +43,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   ),
                   Expanded(
                     child: Text(
-                      'Dakar → ${widget.trip.arrival}',
+                     'Dakar → ${widget.trip.destination}',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeM,
@@ -357,7 +357,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          widget.trip.date,
+          widget.trip.formattedDate,
           style: TextStyle(color: AppColors.success),
         ),
         Text(

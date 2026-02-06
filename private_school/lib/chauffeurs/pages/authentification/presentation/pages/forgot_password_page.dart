@@ -1,5 +1,4 @@
-// Forgot Password Page - Step 1/3
-// Path: lib/chauffeurs/pages/authentication/presentation/pages/forgot_password_page.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +7,6 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/driver_auth_bloc.dart';
 import '../../domain/bloc/driver_auth_event.dart';
 import '../../domain/bloc/driver_auth_state.dart';
-
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -19,6 +17,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _contactController = TextEditingController();
+  bool _isPhoneMode = true; // true = Téléphone, false = Email
 
   @override
   void dispose() {
@@ -31,36 +30,47 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     if (contact.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez entrer votre email ou téléphone'),
+        SnackBar(
+          content: Text(_isPhoneMode
+              ? 'Veuillez entrer votre numéro de téléphone'
+              : 'Veuillez entrer votre email'),
           backgroundColor: AppColors.warning,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
-    // Validation basique
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
-
-    if (!emailRegex.hasMatch(contact) && !phoneRegex.hasMatch(contact)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Format d\'email ou téléphone invalide'),
-          backgroundColor: AppColors.warning,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
+    // Validation
+    if (_isPhoneMode) {
+      final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
+      if (!phoneRegex.hasMatch(contact)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Format de téléphone invalide'),
+            backgroundColor: AppColors.warning,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    } else {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (!emailRegex.hasMatch(contact)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Format d\'email invalide'),
+            backgroundColor: AppColors.warning,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
     }
 
-    // Close keyboard
     FocusScope.of(context).unfocus();
-
-    // Trigger forgot password event
     context.read<DriverAuthBloc>().add(
-          DriverForgotPasswordEvent(phone: contact),
+          DriverForgotPasswordEvent(contact: contact),
         );
   }
 
@@ -68,51 +78,52 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<DriverAuthBloc, DriverAuthState>(
       listener: (context, state) {
-        if (state is DriverAuthLoading) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => PopScope(
-              canPop: false,
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          );
-        } else if (state is DriverPasswordResetRequested) {
-          // Close loading
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop();
-          }
+  if (state is DriverAuthLoading) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primary,
+          ),
+        ),
+      ),
+    );
+  } else if (state is DriverPasswordResetRequested) {
+    // Close loading
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Code envoyé avec succès !'),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Code envoyé avec succès !'),
+        backgroundColor: AppColors.success,
+        duration: Duration(seconds: 2),
+      ),
+    );
 
-          // Navigate to OTP verification
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => VerifyOtpForgotPage(
-                contact: _contactController.text.trim(),
-              ),
-            ),
-          );
-        } else if (state is DriverAuthError) {
-          // Close loading
+    // ✅ PASSER userId à VerifyOtpForgotPage
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<DriverAuthBloc>(),
+          child: VerifyOtpForgotPage(
+            contact: _contactController.text.trim(),
+            userId: state.userId,  // ✅ Récupéré depuis le state
+          ),
+        ),
+      ),
+    );
+  } else if (state is DriverAuthError) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
 
           String errorMessage = state.message;
-
-          // Clean error message
           if (errorMessage.contains('Exception:')) {
             errorMessage = errorMessage.replaceAll('Exception:', '').trim();
           }
@@ -148,25 +159,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
             centerTitle: false,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.language, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Français',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -182,21 +174,21 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const SizedBox(height: 30),
 
                   // Title
-                  Text(
-                    'Réinitialiser votre\nmot de passe',
+                  const Text(
+                    'Mot de passe oublié',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
 
                   const SizedBox(height: 12),
 
                   // Subtitle
-                  Text(
-                    'Entrez votre email ou numéro de téléphone\npour recevoir un code de vérification',
+                  const Text(
+                    'Entrer votre numéro de téléphone ou votre\nadresse email pour recevoir un OTP',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -205,14 +197,143 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
-                  // Email/Phone Field
+                  // Toggle Téléphone / Email
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.background.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: isLoading
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _isPhoneMode = true;
+                                      _contactController.clear();
+                                    });
+                                  },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _isPhoneMode
+                                    ? AppColors.textWhite
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: _isPhoneMode
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.05),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.phone_android,
+                                    size: 18,
+                                    color: _isPhoneMode
+                                        ? AppColors.primary
+                                        : AppColors.textSecondary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Téléphone',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: _isPhoneMode
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: _isPhoneMode
+                                          ? AppColors.primary
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: isLoading
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _isPhoneMode = false;
+                                      _contactController.clear();
+                                    });
+                                  },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !_isPhoneMode
+                                    ? AppColors.textWhite
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: !_isPhoneMode
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.05),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.email_outlined,
+                                    size: 18,
+                                    color: !_isPhoneMode
+                                        ? AppColors.primary
+                                        : AppColors.textSecondary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Email',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: !_isPhoneMode
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: !_isPhoneMode
+                                          ? AppColors.primary
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Input Field
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Email ou Téléphone',
-                      style: TextStyle(
+                      _isPhoneMode
+                          ? 'Numéro de téléphone'
+                          : 'Adresse email',
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -222,10 +343,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: _contactController,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: _isPhoneMode
+                        ? TextInputType.phone
+                        : TextInputType.emailAddress,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: 'driver@example.com ou +221771234567',
+                      hintText: _isPhoneMode
+                          ? 'Ex: +221771234567'
+                          : 'exemple@email.com',
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -240,7 +365,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         vertical: 16,
                       ),
                       prefixIcon: Icon(
-                        Icons.email_outlined,
+                        _isPhoneMode
+                            ? Icons.phone_android
+                            : Icons.email_outlined,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -272,7 +399,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 strokeWidth: 2.5,
                               ),
                             )
-                          : Text(
+                          : const Text(
                               'Envoyer le code',
                               style: TextStyle(
                                 fontSize: 16,
@@ -281,39 +408,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               ),
                             ),
                     ),
-                  ),
-
-                  const SizedBox(height: 60),
-
-                  // Back to Login
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Vous vous souvenez de votre mot de passe ?  ',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: isLoading
-                            ? null
-                            : () {
-                                Navigator.pop(context);
-                              },
-                        child: Text(
-                          'Se connecter',
-                          style: TextStyle(
-                            color: isLoading
-                                ? AppColors.success.withValues(alpha: 0.5)
-                                : AppColors.success,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

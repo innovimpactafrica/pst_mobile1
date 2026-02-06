@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/utils/app_colors.dart';
-import '../pages/acceuil/home.dart';
+import '../pages/acceuil/presentation/pages/home.dart';
 import '../pages/enfants/presentation/pages/enfants_page.dart';
 import '../pages/enfants/presentation/widgets/add_child_modal.dart';
 import '../pages/groupes/presentation/pages/groupes_page.dart';

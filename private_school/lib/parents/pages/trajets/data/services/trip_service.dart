@@ -1,20 +1,48 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../../../../core/storage/secure_storage.dart';
+import 'package:flutter/material.dart';
+import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/trip_model.dart';
 
 /// Service for handling trip-related API calls
 class TripService {
-  final SecureStorage _secureStorage = SecureStorage();
+  final ApiClient _apiClient = ApiClient();
 
-  /// Get headers with authentication token
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await _secureStorage.getAccessToken();
-    return {
-      'Content-Type': ApiConstants.contentType,
-      'Authorization': 'Bearer $token',
-    };
+  /// Get all available trips
+  /// GET /api/trips (tous les trajets)
+  Future<List<TripModel>> getAllTrips() async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔵 [TripService] GET ALL TRIPS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final response = await _apiClient.get('/api/trips');
+
+      debugPrint('✅ [TripService] Response: ${response.statusCode}');
+      debugPrint('📦 [TripService] Data: ${response.data}');
+
+      final List<dynamic> tripsJson;
+
+      if (response.data is Map<String, dynamic>) {
+        tripsJson = response.data['trips'] ?? 
+                   response.data['data'] ?? 
+                   [];
+      } else if (response.data is List) {
+        tripsJson = response.data;
+      } else {
+        throw Exception('Format de réponse invalide');
+      }
+
+      debugPrint('✅ [TripService] ${tripsJson.length} trajet(s) trouvé(s)');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return tripsJson
+          .map((tripJson) => TripModel.fromJson(tripJson))
+          .toList();
+    } catch (e) {
+      debugPrint('❌ [TripService] Error fetching trips: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
   }
 
   /// Search for available trips (optimized search)
@@ -26,37 +54,48 @@ class TripService {
     String? childId,
   }) async {
     try {
-      final headers = await _getHeaders();
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔵 [TripService] SEARCH TRIPS');
+      debugPrint('📤 Params: home=$homeAddress, school=$schoolAddress, time=$departureTime');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // Build query parameters
-      final queryParams = <String, String>{};
+      final queryParams = <String, dynamic>{};
       if (homeAddress != null) queryParams['homeAddress'] = homeAddress;
       if (schoolAddress != null) queryParams['schoolAddress'] = schoolAddress;
       if (departureTime != null) queryParams['departureTime'] = departureTime;
       if (childId != null) queryParams['childId'] = childId;
 
-      final uri = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.tripsSearch}')
-          .replace(queryParameters: queryParams);
+      final response = await _apiClient.get(
+        ApiConstants.tripsSearch,
+        queryParameters: queryParams,
+      );
 
-      final response = await http.get(
-        uri,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
+      debugPrint('✅ [TripService] Response: ${response.statusCode}');
+      debugPrint('📦 [TripService] Data: ${response.data}');
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        final List<dynamic> tripsJson = jsonResponse['trips'] ?? [];
+      final List<dynamic> tripsJson;
 
-        return tripsJson
-            .map((tripJson) => TripModel.fromJson(tripJson))
-            .toList();
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      if (response.data is Map<String, dynamic>) {
+        tripsJson = response.data['trips'] ?? 
+                   response.data['data'] ?? 
+                   [];
+      } else if (response.data is List) {
+        tripsJson = response.data;
       } else {
-        throw Exception('Erreur lors de la recherche des trajets');
+        throw Exception('Format de réponse invalide');
       }
+
+      debugPrint('✅ [TripService] ${tripsJson.length} trajet(s) trouvé(s)');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return tripsJson
+          .map((tripJson) => TripModel.fromJson(tripJson))
+          .toList();
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error searching trips: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -64,23 +103,20 @@ class TripService {
   /// GET /api/parents/trips/filters
   Future<Map<String, dynamic>> getFilterOptions() async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.tripsFilters}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔵 [TripService] GET FILTERS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
+      final response = await _apiClient.get(ApiConstants.tripsFilters);
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        throw Exception('Erreur lors du chargement des filtres');
-      }
+      debugPrint('✅ [TripService] Filters loaded');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return response.data;
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error loading filters: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -88,24 +124,24 @@ class TripService {
   /// GET /api/parents/trips/{tripId}/details
   Future<TripModel> getTripDetails(String tripId) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.tripDetails(tripId)}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔵 [TripService] GET TRIP DETAILS');
+      debugPrint('📤 Trip ID: $tripId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
+      final response = await _apiClient.get(
+        ApiConstants.tripDetails(tripId),
+      );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        return TripModel.fromJson(jsonResponse['trip']);
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        throw Exception('Erreur lors du chargement des détails');
-      }
+      debugPrint('✅ [TripService] Details loaded');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      final tripData = response.data['trip'] ?? response.data;
+      return TripModel.fromJson(tripData);
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error loading trip details: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -113,23 +149,17 @@ class TripService {
   /// GET /api/parents/trips/{tripId}/realtime
   Future<Map<String, dynamic>> trackTripRealtime(String tripId) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.tripRealtime(tripId)}');
+      debugPrint('🔵 [TripService] TRACK REALTIME: $tripId');
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
+      final response = await _apiClient.get(
+        ApiConstants.tripRealtime(tripId),
+      );
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        throw Exception('Erreur lors du suivi du trajet');
-      }
+      debugPrint('✅ [TripService] Realtime data loaded');
+      return response.data;
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error tracking trip: $e');
+      rethrow;
     }
   }
 
@@ -140,31 +170,27 @@ class TripService {
     required String childId,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.reservations}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🟢 [TripService] RESERVE TRIP');
+      debugPrint('📤 Trip: $tripId, Child: $childId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final body = json.encode({
-        'tripId': tripId,
-        'childId': childId,
-      });
+      final response = await _apiClient.post(
+        ApiConstants.reservations,
+        data: {
+          'tripId': tripId,
+          'childId': childId,
+        },
+      );
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: body,
-      ).timeout(ApiConstants.connectTimeout);
+      debugPrint('✅ [TripService] Reservation successful');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return json.decode(response.body);
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        final errorMessage = json.decode(response.body)['message'] ??
-            'Erreur lors de la réservation';
-        throw Exception(errorMessage);
-      }
+      return response.data;
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error reserving trip: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -172,28 +198,37 @@ class TripService {
   /// GET /api/parents/reservations
   Future<List<TripModel>> getMyReservations() async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.reservations}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔵 [TripService] GET MY RESERVATIONS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
+      final response = await _apiClient.get(ApiConstants.reservations);
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        final List<dynamic> reservationsJson = jsonResponse['reservations'] ?? [];
+      debugPrint('✅ [TripService] Response: ${response.statusCode}');
+      debugPrint('📦 [TripService] Data: ${response.data}');
 
-        return reservationsJson
-            .map((resJson) => TripModel.fromJson(resJson))
-            .toList();
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      final List<dynamic> reservationsJson;
+
+      if (response.data is Map<String, dynamic>) {
+        reservationsJson = response.data['reservations'] ?? 
+                          response.data['data'] ?? 
+                          [];
+      } else if (response.data is List) {
+        reservationsJson = response.data;
       } else {
-        throw Exception('Erreur lors du chargement des réservations');
+        throw Exception('Format de réponse invalide');
       }
+
+      debugPrint('✅ [TripService] ${reservationsJson.length} réservation(s) trouvée(s)');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return reservationsJson
+          .map((resJson) => TripModel.fromJson(resJson))
+          .toList();
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error loading reservations: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -204,27 +239,21 @@ class TripService {
     required String childId,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.cancelReservation(tripId, childId)}'
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔴 [TripService] CANCEL RESERVATION');
+      debugPrint('📤 Trip: $tripId, Child: $childId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      await _apiClient.delete(
+        ApiConstants.cancelReservation(tripId, childId),
       );
 
-      final response = await http.delete(
-        url,
-        headers: headers,
-      ).timeout(ApiConstants.connectTimeout);
-
-      if (response.statusCode == 200) {
-        return;
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        final errorMessage = json.decode(response.body)['message'] ??
-            'Erreur lors de l\'annulation';
-        throw Exception(errorMessage);
-      }
+      debugPrint('✅ [TripService] Reservation cancelled');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error cancelling reservation: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
@@ -235,30 +264,24 @@ class TripService {
     required String message,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/parents/trips/$tripId/contact-driver');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🟢 [TripService] CONTACT DRIVER');
+      debugPrint('📤 Trip: $tripId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final body = json.encode({
-        'message': message,
-      });
+      final response = await _apiClient.post(
+        ApiConstants.contactDriver(tripId),
+        data: {'message': message},
+      );
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: body,
-      ).timeout(ApiConstants.connectTimeout);
+      debugPrint('✅ [TripService] Message sent');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return json.decode(response.body);
-      } else if (response.statusCode == 401) {
-        throw Exception('Session expirée. Veuillez vous reconnecter.');
-      } else {
-        final errorMessage = json.decode(response.body)['message'] ??
-            'Erreur lors de l\'envoi du message';
-        throw Exception(errorMessage);
-      }
+      return response.data;
     } catch (e) {
-      throw Exception('Erreur réseau: ${e.toString()}');
+      debugPrint('❌ [TripService] Error contacting driver: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 }
