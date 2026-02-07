@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/services/driver_profile_service.dart';
@@ -14,7 +13,8 @@ import '../../domain/bloc/dashboard_state.dart';
 import '../widgets/dashboard_header.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
 import '../../../trajets/presentation/widgets/trip_detail_modal.dart'; 
-import '../../../trajets/data/models/trip_model.dart'; 
+import '../../../trajets/data/models/trip_model.dart';
+import '../../../trajets/presentation/widgets/trip_card_widget.dart'; // ✅ IMPORT
 
 
 class DashboardPage extends StatefulWidget {
@@ -68,18 +68,15 @@ class _DashboardPageState extends State<DashboardPage> {
           onRefresh: _loadData,
           child: CustomScrollView(
             slivers: [
-              // Header
               SliverToBoxAdapter(
                 child: DashboardHeader(
                   profile: _profile,
                   isLoading: _isLoadingProfile,
                 ),
               ),
-              // Barre de recherche
               SliverToBoxAdapter(
                 child: _buildSearchBar(),
               ),
-              // Contenu principal
               SliverToBoxAdapter(
                 child: Container(
                   margin: const EdgeInsets.only(top: 8),
@@ -173,9 +170,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
             child: IconButton(
-              onPressed: () {
-                // Ouvrir les filtres
-              },
+              onPressed: () {},
               icon: const Icon(
                 Icons.tune,
                 color: AppColors.primary,
@@ -322,10 +317,10 @@ class _DashboardPageState extends State<DashboardPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
-              children: upcomingTripsList.map((trip) {
+              children: upcomingTripsList.map((tripData) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildTripCard(trip),
+                  child: _buildTripCard(tripData),
                 );
               }).toList(),
             ),
@@ -334,312 +329,70 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTripCard(dynamic trip) {
-    String startPoint;
-    String endPoint;
-    int capacityMax;
-    String status;
-    DateTime departureTime;
-    String childrenCount;
-
-    if (trip is Map<String, dynamic>) {
-      startPoint = trip['start_point'] ?? '';
-      endPoint = trip['end_point'] ?? '';
-      capacityMax = trip['capacity_max'] ?? 0;
-      status = trip['status'] ?? 'pending';
-      departureTime = DateTime.parse(trip['departure_time'] ?? DateTime.now().toIso8601String());
-      childrenCount = trip['children_count']?.toString() ?? '0';
-    } else {
-      final recentTrip = trip as dynamic;
-      startPoint = recentTrip.destination ?? '';
-      endPoint = '';
-      capacityMax = recentTrip.passengers ?? 0;
-      status = recentTrip.status ?? 'pending';
-      departureTime = recentTrip.date ?? DateTime.now();
-      childrenCount = '0';
-    }
-
-    final now = DateTime.now();
-    final isToday = departureTime.year == now.year &&
-        departureTime.month == now.month &&
-        departureTime.day == now.day;
-    
-    String formattedDate;
-    if (isToday) {
-      formattedDate = "Aujourd'hui";
-    } else {
-      formattedDate = DateFormat('EEEE d MMMM', 'fr_FR').format(departureTime);
-      formattedDate = formattedDate[0].toUpperCase() + formattedDate.substring(1);
-    }
-
-    String statusLabel;
-    Color statusColor;
-    
-    switch (status) {
-      case 'pending':
-        statusLabel = 'En attente';
-        statusColor = AppColors.statusPending;
-        break;
-      case 'in_progress':
-        statusLabel = 'En cours';
-        statusColor = AppColors.primary;
-        break;
-      case 'completed':
-        statusLabel = 'Terminé';
-        statusColor = AppColors.statusCompleted;
-        break;
-      default:
-        statusLabel = 'En attente';
-        statusColor = AppColors.warning;
-    }
-
-    final schoolCount = int.tryParse(childrenCount.toString()) ?? 1;
-
-    return GestureDetector(
-      // 🆕 NAVIGATION AU CLIC
-      onTap: () => _showTripDetail(trip),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFE5E5E5),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: Color(0xFF16A34A),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      formattedDate,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          statusLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: statusColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.people_outline,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$capacityMax passagers',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.radio_button_checked,
-                    size: 14,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      startPoint.isEmpty ? 'Point de départ' : startPoint,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: Container(
-                  width: 2,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.5),
-                        AppColors.primary.withValues(alpha: 0.2),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    size: 14,
-                    color: AppColors.error,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      endPoint.isEmpty ? (startPoint.isEmpty ? 'Destination' : startPoint) : endPoint,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.school,
-                      size: 14,
-                      color: Color(0xFF16A34A),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$schoolCount ${schoolCount > 1 ? "écoles desservies" : "école desservie"}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF16A34A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 🆕 MÉTHODE POUR AFFICHER LE DÉTAIL DU TRAJET
-  void _showTripDetail(dynamic tripData) {
+  /// ✅ UTILISER TripCardWidget (identique à TripPage)
+  Widget _buildTripCard(dynamic tripData) {
     try {
-      // Convertir les données en TripModel
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🏠 [Dashboard] Création carte trajet');
+      debugPrint('📊 Type de données: ${tripData.runtimeType}');
+      
+      // Convertir en TripModel
       TripModel trip;
       
       if (tripData is Map<String, dynamic>) {
+        debugPrint('📦 Conversion depuis Map');
+        debugPrint('   ID: ${tripData['id']}');
+        debugPrint('   Start: ${tripData['start_point']}');
+        debugPrint('   End: ${tripData['end_point']}');
+        debugPrint('   School ID: ${tripData['school_id']}');
+        
         trip = TripModel.fromJson(tripData);
       } else if (tripData is TripModel) {
+        debugPrint('✅ Déjà un TripModel');
         trip = tripData;
       } else {
-        // Cas RecentTrip ou autre - convertir en Map puis TripModel
+        debugPrint('⚠️ Type inconnu, conversion générique');
         trip = TripModel.fromJson({
           'id': tripData.id ?? '',
-          'driver_id': _profile?.id ?? '',
-          'destination': tripData.destination ?? '',
           'start_point': '',
+          'end_point': tripData.destination ?? '',
           'departure_time': (tripData.date ?? DateTime.now()).toIso8601String(),
-          'time': '00:00',
           'capacity_max': tripData.passengers ?? 0,
           'status': tripData.status ?? 'pending',
-          'passengers': [],
-          'schools': [],
         });
       }
 
-      // Afficher le modal de détail
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => BlocProvider.value(
-          value: context.read<TripBloc>(), // Partager le BLoC
-          child: TripDetailModal(trip: trip),
-        ),
+      debugPrint('✅ TripModel créé:');
+      debugPrint('   ID: ${trip.id}');
+      debugPrint('   Start: ${trip.startLocation}');
+      debugPrint('   End: ${trip.destination}');
+      debugPrint('   Schools: ${trip.schools.length}');
+      debugPrint('   Passengers: ${trip.passengers.length}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      // ✅ Utiliser TripCardWidget (EXACTEMENT comme dans TripPage)
+      return TripCardWidget(
+        trip: trip,
+        onTap: () => _showTripDetail(trip),
       );
-    } catch (e) {
-      debugPrint('❌ Erreur lors de l\'affichage du détail: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de l\'affichage du détail: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    } catch (e, stackTrace) {
+      debugPrint('❌ Erreur création carte: $e');
+      debugPrint('Stack: $stackTrace');
+      return const SizedBox.shrink();
     }
+  }
+
+  /// ✅ Afficher le détail (EXACTEMENT comme dans TripPage)
+  void _showTripDetail(TripModel trip) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<TripBloc>(),
+        child: TripDetailModal(trip: trip),
+      ),
+    );
   }
 
   Widget _buildNotificationsSection(DashboardLoaded state) {

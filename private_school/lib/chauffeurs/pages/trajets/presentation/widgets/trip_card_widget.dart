@@ -77,8 +77,9 @@ class TripCardWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
+              // ✅ CORRIGÉ : Utiliser totalSeats au lieu de passengers.length
               Text(
-                '${trip.passengers.length} passagers',
+                '${trip.totalSeats} passagers',
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeS,
                   color: AppColors.textSecondary,
@@ -224,7 +225,7 @@ class TripCardWidget extends StatelessWidget {
           'textColor': AppColors.statusStarted,
           'label': 'Terminé',
         };
-        case AppConstants.statusInProgress: 
+      case AppConstants.statusInProgress: 
         return {
           'bgColor': AppColors.statusInProgressBg,
           'textColor': AppColors.statusInProgress,

@@ -8,11 +8,12 @@ import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import 'passengers_list_modal.dart';
 import 'schools_list_modal.dart';
+import 'trip_map_widget.dart';
 import '../../data/services/child_service.dart';
 import '../../../../../parents/pages/enfants/data/models/child_model.dart';
 import '../../../../../parents/pages/school/data/services/school_service.dart';
 
-/// Trip detail modal - Full screen design matching Figma with automatic children loading
+/// Trip detail modal - Full screen design with Google Maps and real-time calculations
 class TripDetailModal extends StatefulWidget {
   final TripModel trip;
   const TripDetailModal({super.key, required this.trip});
@@ -26,6 +27,9 @@ class _TripDetailModalState extends State<TripDetailModal> {
   final SchoolService _schoolService = SchoolService();
   List<ChildModel> _children = [];
   bool _loadingChildren = false;
+  
+  // ✅ NOUVEAU : Variable pour calculer l'heure d'arrivée
+  int? _durationMinutes;
 
   @override
   void initState() {
@@ -33,76 +37,34 @@ class _TripDetailModalState extends State<TripDetailModal> {
     _enrichSchoolDataAndLoadChildren();
   }
 
-  /// ✅ NOUVEAU : Enrichir les données d'école puis charger les enfants
+  /// Enrichir les données d'école puis charger les enfants
   Future<void> _enrichSchoolDataAndLoadChildren() async {
     if (widget.trip.schools.isEmpty) {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('⚠️ [TripDetailModal] Aucune école associée au trajet');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       return;
     }
 
     setState(() => _loadingChildren = true);
 
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔄 [TripDetailModal] ENRICHISSEMENT + CHARGEMENT ENFANTS');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      // ✅ ÉTAPE 1 : Charger TOUTES les écoles depuis l'API
-      debugPrint('📚 Chargement de toutes les écoles...');
       final allSchools = await _schoolService.fetchSchools();
-      debugPrint('✅ ${allSchools.length} écoles chargées depuis l\'API');
-      
       List<ChildModel> allChildren = [];
 
-      // ✅ ÉTAPE 2 : Pour chaque école du trajet, enrichir avec les vraies données
       for (int i = 0; i < widget.trip.schools.length; i++) {
         final tripSchool = widget.trip.schools[i];
         
-        debugPrint('');
-        debugPrint('📍 École ${i + 1}/${widget.trip.schools.length}:');
-        debugPrint('   ID du trajet: ${tripSchool.id}');
-        debugPrint('   Nom du trajet: ${tripSchool.name}');
-        
-        if (tripSchool.id == null) {
-          debugPrint('   ❌ PROBLÈME: École sans ID, skip');
-          continue;
-        }
+        if (tripSchool.id == null) continue;
 
-        // ✅ Trouver l'école complète dans la liste
         try {
           final fullSchool = allSchools.firstWhere(
             (s) => s.id == tripSchool.id,
             orElse: () => tripSchool,
           );
           
-          debugPrint('   ✅ École trouvée: ${fullSchool.name}');
-          debugPrint('   📍 Adresse: ${fullSchool.address}');
-          debugPrint('   🔍 Recherche enfants pour school_id=${fullSchool.id}...');
-          
           final children = await _childService.getChildrenBySchool(fullSchool.id!);
-          
-          debugPrint('   ✅ ${children.length} enfant(s) trouvé(s)');
-          
-          if (children.isNotEmpty) {
-            for (var j = 0; j < children.length; j++) {
-              final child = children[j];
-              debugPrint('      ${j + 1}. ${child.name}');
-              debugPrint('         - ID: ${child.id}');
-              debugPrint('         - Adresse: ${child.address}');
-              debugPrint('         - School ID: ${child.schoolId}');
-              debugPrint('         - School Name: ${child.schoolName ?? "N/A"}');
-            }
-          } else {
-            debugPrint('      ⚠️ Aucun enfant inscrit dans cette école');
-          }
-          
           allChildren.addAll(children);
-        } catch (e, stackTrace) {
-          debugPrint('   ❌ ERREUR lors du chargement:');
-          debugPrint('   $e');
-          debugPrint('   Stack: $stackTrace');
+        } catch (e) {
+          debugPrint('❌ Erreur: $e');
         }
       }
 
@@ -110,29 +72,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
         _children = allChildren;
         _loadingChildren = false;
       });
-
-      debugPrint('');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('✅ RÉSUMÉ FINAL:');
-      debugPrint('   📚 ${widget.trip.schools.length} école(s) analysée(s)');
-      debugPrint('   👶 ${allChildren.length} enfant(s) chargé(s) au total');
-      if (allChildren.isEmpty) {
-        debugPrint('');
-        debugPrint('⚠️ ATTENTION: Aucun enfant trouvé !');
-        debugPrint('   Causes possibles:');
-        debugPrint('   1. Aucun parent n\'a inscrit d\'enfant dans cette école');
-        debugPrint('   2. Les school_id ne correspondent pas');
-        debugPrint('   3. Problème API /api/parents/children');
-      }
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    } catch (e, stackTrace) {
-      debugPrint('');
-      debugPrint('❌ [TripDetailModal] ERREUR GÉNÉRALE:');
-      debugPrint('$e');
-      debugPrint('Stack trace:');
-      debugPrint('$stackTrace');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      
+    } catch (e) {
       setState(() => _loadingChildren = false);
       
       if (mounted) {
@@ -140,11 +80,19 @@ class _TripDetailModalState extends State<TripDetailModal> {
           const SnackBar(
             content: Text('Erreur lors du chargement des passagers'),
             backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
           ),
         );
       }
     }
+  }
+
+  /// ✅ NOUVEAU : Callback quand le trajet est calculé
+  void _onRouteCalculated(double distance, int duration) {
+    setState(() {
+      _durationMinutes = duration;
+    });
+    debugPrint('✅ Distance: ${distance.toStringAsFixed(1)} km');
+    debugPrint('✅ Durée: $duration minutes');
   }
 
   @override
@@ -236,53 +184,14 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
+  /// ✅ NOUVELLE CARTE GOOGLE MAPS
   Widget _buildMap() {
     return Container(
-      height: 280,
       margin: const EdgeInsets.all(AppConstants.spacingXL),
-      decoration: BoxDecoration(
-        color: AppColors.grey200,
-        borderRadius: BorderRadius.circular(AppConstants.radiusL),
-      ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-            child: Container(
-              color: AppColors.grey200,
-              child: const Center(
-                child: Icon(
-                  Icons.map,
-                  size: 64,
-                  color: AppColors.grey600,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: AppConstants.spacingL,
-            right: AppConstants.spacingL,
-            child: Container(
-              padding: const EdgeInsets.all(AppConstants.spacingS + 2),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(AppConstants.radiusXL),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.blackOpacity05,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.my_location,
-                size: AppConstants.iconSizeM,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ],
+      child: TripMapWidget(
+        startLocation: widget.trip.startLocation ?? 'Dakar',
+        destination: widget.trip.destination,
+        onRouteCalculated: _onRouteCalculated,
       ),
     );
   }
@@ -349,6 +258,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
           
           const SizedBox(height: AppConstants.spacingXL),
           
+          // ✅ HEURE DE DÉPART RÉELLE
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -371,7 +281,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.trip.startLocation ?? '123 Avenue des Champs-Élysées',
+                      widget.trip.startLocation ?? 'Non renseigné',
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
@@ -381,6 +291,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                   ],
                 ),
               ),
+              // ✅ AFFICHER L'HEURE RÉELLE DU CHAUFFEUR
               Text(
                 widget.trip.time,
                 style: const TextStyle(
@@ -405,6 +316,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
             ),
           ),
           
+          // ✅ HEURE D'ARRIVÉE CALCULÉE
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -437,15 +349,15 @@ class _TripDetailModalState extends State<TripDetailModal> {
                   ],
                 ),
               ),
-              if (widget.trip.time.isNotEmpty)
-                Text(
-                  _calculateArrivalTime(widget.trip.time),
-                  style: const TextStyle(
-                    fontSize: AppConstants.fontSizeM,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+              // ✅ CALCULER L'HEURE D'ARRIVÉE BASÉE SUR LA DURÉE
+              Text(
+                _calculateArrivalTime(),
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeM,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
+              ),
             ],
           ),
         ],
@@ -829,21 +741,29 @@ class _TripDetailModalState extends State<TripDetailModal> {
     }
   }
 
-  String _calculateArrivalTime(String departureTime) {
+  /// ✅ NOUVEAU : Calculer l'heure d'arrivée basée sur la durée réelle
+  String _calculateArrivalTime() {
+    if (_durationMinutes == null) {
+      return '--:--';
+    }
+
     try {
-      final parts = departureTime.split(':');
+      final parts = widget.trip.time.split(':');
       if (parts.length == 2) {
         final hours = int.parse(parts[0]);
         final minutes = int.parse(parts[1]);
         
-        final arrivalHour = (hours + 1) % 24;
+        // Ajouter la durée du trajet
+        final totalMinutes = hours * 60 + minutes + _durationMinutes!;
+        final arrivalHour = (totalMinutes ~/ 60) % 24;
+        final arrivalMinute = totalMinutes % 60;
         
-        return '${arrivalHour.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+        return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
       debugPrint('Error calculating arrival time: $e');
     }
-    return '';
+    return '--:--';
   }
 
   Color _getAvatarColor(String name) {
