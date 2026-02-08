@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/review_page.dart';
 import '../widgets/passengers_list_modal.dart';
@@ -17,6 +18,58 @@ class TripTrackingPage extends StatefulWidget {
 }
 
 class _TripTrackingPageState extends State<TripTrackingPage> {
+  // ✅ NOUVEAU : Variable pour l'heure d'arrivée calculée
+  int? _durationMinutes;
+
+  /// ✅ Callback quand le trajet est calculé par la carte
+  void _onRouteCalculated(double distance, int duration) {
+    setState(() {
+      _durationMinutes = duration;
+    });
+    debugPrint('✅ [TripTrackingPage] Distance: ${distance.toStringAsFixed(1)} km');
+    debugPrint('✅ [TripTrackingPage] Durée: $duration minutes');
+  }
+
+  /// ✅ Calculer l'heure d'arrivée basée sur la durée réelle
+  String _calculateArrivalTime() {
+    if (_durationMinutes == null) {
+      return widget.trip.arrivalTime; // Fallback sur l'heure de l'API
+    }
+
+    try {
+      final parts = widget.trip.departureTime.split(':');
+      if (parts.length == 2) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        
+        // Ajouter la durée du trajet
+        final totalMinutes = hours * 60 + minutes + _durationMinutes!;
+        final arrivalHour = (totalMinutes ~/ 60) % 24;
+        final arrivalMinute = totalMinutes % 60;
+        
+        return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      debugPrint('Error calculating arrival time: $e');
+    }
+    return widget.trip.arrivalTime;
+  }
+
+  /// ✅ Formatter la durée estimée
+  String _formatDuration() {
+    if (_durationMinutes == null) {
+      return widget.trip.duration;
+    }
+    
+    final hours = _durationMinutes! ~/ 60;
+    final minutes = _durationMinutes! % 60;
+    
+    if (hours > 0) {
+      return '${hours}h${minutes.toString().padLeft(2, '0')}min';
+    }
+    return '${minutes}min';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +96,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   ),
                   Expanded(
                     child: Text(
-                     'Dakar → ${widget.trip.destination}',
+                      'Dakar → ${widget.trip.destination}',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeM,
@@ -62,42 +115,14 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // ================= MAP =================
-                    Container(
+                    // ================= GOOGLE MAPS =================
+                    SizedBox(
                       height: AppConstants.mapHeight,
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.grey200,
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/pin-s+4CAF50(-17.4467,14.7167),pin-s+FF5252(-17.4677,14.6937)/auto/600x400',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          CustomPaint(
-                            size: Size(double.infinity, AppConstants.mapHeight),
-                            painter: RouteLinePainter(),
-                          ),
-                          Positioned(
-                            top: 60,
-                            left: 40,
-                            child: _buildMapMarker(
-                              Icons.circle,
-                              AppColors.textPrimary,
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 40,
-                            right: 40,
-                            child: _buildMapMarker(
-                              Icons.location_on,
-                              AppColors.success,
-                            ),
-                          ),
-                        ],
+                      child: TripMapWidget(
+                        startLocation: widget.trip.departure,
+                        destination: widget.trip.arrival,
+                        onRouteCalculated: _onRouteCalculated,
                       ),
                     ),
 
@@ -196,24 +221,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   }
 
   // ================= COMPONENTS =================
-
-  Widget _buildMapMarker(IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingS),
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.4),
-            blurRadius: 8,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Icon(icon, color: AppColors.white, size: 16),
-    );
-  }
 
   Widget _driverCard() {
     return Container(
@@ -318,7 +325,8 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           _tripPoint(
             'Destination',
             widget.trip.arrival,
-            widget.trip.arrivalTime,
+            // ✅ HEURE D'ARRIVÉE CALCULÉE
+            _calculateArrivalTime(),
             AppColors.error,
             Icons.location_on,
           ),
@@ -360,8 +368,9 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           widget.trip.formattedDate,
           style: TextStyle(color: AppColors.success),
         ),
+        // ✅ DURÉE CALCULÉE
         Text(
-          'Estimation ${widget.trip.duration}',
+          'Estimation ${_formatDuration()}',
           style: TextStyle(color: AppColors.textSecondary),
         ),
       ],
@@ -424,30 +433,4 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       builder: (_) => SchoolsListModal(schools: widget.trip.schools),
     );
   }
-}
-
-// ================= PAINTERS =================
-
-class RouteLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.secondary
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    final path = Path()
-      ..moveTo(size.width * 0.2, size.height * 0.3)
-      ..quadraticBezierTo(
-        size.width * 0.5,
-        size.height * 0.5,
-        size.width * 0.8,
-        size.height * 0.7,
-      );
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }

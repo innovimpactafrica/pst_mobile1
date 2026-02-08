@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/driver_details_modal.dart';
 import '../widgets/passengers_list_modal.dart';
@@ -18,6 +19,57 @@ class TripDetailPage extends StatefulWidget {
 
 class _TripDetailPageState extends State<TripDetailPage> {
   bool _isMapExpanded = true;
+  
+  int? _durationMinutes;
+
+  /// ✅ Callback quand le trajet est calculé par la carte
+  void _onRouteCalculated(double distance, int duration) {
+    setState(() {
+      _durationMinutes = duration;
+    });
+    debugPrint('✅ [TripDetailPage] Distance: ${distance.toStringAsFixed(1)} km');
+    debugPrint('✅ [TripDetailPage] Durée: $duration minutes');
+  }
+
+  /// ✅ Calculer l'heure d'arrivée basée sur la durée réelle
+  String _calculateArrivalTime() {
+    if (_durationMinutes == null) {
+      return widget.trip.arrivalTime; // Fallback sur l'heure de l'API
+    }
+
+    try {
+      final parts = widget.trip.departureTime.split(':');
+      if (parts.length == 2) {
+        final hours = int.parse(parts[0]);
+        final minutes = int.parse(parts[1]);
+        
+        // Ajouter la durée du trajet
+        final totalMinutes = hours * 60 + minutes + _durationMinutes!;
+        final arrivalHour = (totalMinutes ~/ 60) % 24;
+        final arrivalMinute = totalMinutes % 60;
+        
+        return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      debugPrint('Error calculating arrival time: $e');
+    }
+    return widget.trip.arrivalTime;
+  }
+
+  /// ✅ Formatter la durée estimée
+  String _formatDuration() {
+    if (_durationMinutes == null) {
+      return widget.trip.duration;
+    }
+    
+    final hours = _durationMinutes! ~/ 60;
+    final minutes = _durationMinutes! % 60;
+    
+    if (hours > 0) {
+      return '${hours}h${minutes.toString().padLeft(2, '0')}min';
+    }
+    return '${minutes}min';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +94,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   ),
                   Expanded(
                     child: Text(
-                      'Dakar → ${widget.trip.destination}',
+                      '${widget.trip.departure} → ${widget.trip.destination}',
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -60,7 +112,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // CARTE INTERACTIVE
+                    // ✅ CARTE GOOGLE MAPS INTERACTIVE
                     GestureDetector(
                       onTap: () {
                         setState(() {
@@ -71,53 +123,18 @@ class _TripDetailPageState extends State<TripDetailPage> {
                         duration: const Duration(milliseconds: 300),
                         height: _isMapExpanded ? 250 : 120,
                         width: double.infinity,
+                        margin: const EdgeInsets.all(16),
                         child: Stack(
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                image: const DecorationImage(
-                                  image: NetworkImage(
-                                    'https://api.mapbox.com/styles/v1/mapbox/light-v10/static/pin-s+4CAF50(-17.4467,14.7167),pin-s+FF5252(-17.4677,14.6937)/auto/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
+                            // ✅ WIDGET GOOGLE MAPS
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: TripMapWidget(
+                                startLocation: widget.trip.departure,
+                                destination: widget.trip.arrival,
+                                onRouteCalculated: _onRouteCalculated,
                               ),
-                              child: CustomPaint(painter: RouteLinePainter()),
                             ),
-                            if (_isMapExpanded) ...[
-                              // MARQUEUR DÉPART (NOIR)
-                              Positioned(
-                                top: 80,
-                                left: 40,
-                                child: _buildMapMarker(
-                                  Icons.circle,
-                                  Colors.black,
-                                  'Départ',
-                                ),
-                              ),
-                              // MARQUEUR ARRIVÉE (VERT)
-                              Positioned(
-                                bottom: 60,
-                                right: 40,
-                                child: _buildMapMarker(
-                                  Icons.location_on,
-                                  AppColors.success,
-                                  'Arrivée',
-                                ),
-                              ),
-                              // ÉCOLES SUR LA CARTE
-                              Positioned(
-                                top: 120,
-                                left: 100,
-                                child: _buildSchoolMarker('A'),
-                              ),
-                              Positioned(
-                                bottom: 100,
-                                right: 100,
-                                child: _buildSchoolMarker('B'),
-                              ),
-                            ],
                             // INDICATEUR POUR AGRANDIR/RÉDUIRE
                             Positioned(
                               bottom: 8,
@@ -158,9 +175,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                 horizontal: 20,
                               ),
                               child: GestureDetector(
-                                onTap: () {
-                                  _showDriverDetails();
-                                },
+                                onTap: _showDriverDetails,
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -178,32 +193,23 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Stack(
-                                        children: [
-                                          // PHOTO CHAUFFEUR
-                                          CircleAvatar(
-                                            radius: 28,
-                                            backgroundColor:
-                                                Colors.grey.shade200,
-                                            backgroundImage:
-                                                widget.trip.driver?.photo !=
-                                                    null
+                                      CircleAvatar(
+                                        radius: 28,
+                                        backgroundColor: Colors.grey.shade200,
+                                        backgroundImage:
+                                            widget.trip.driver?.photo != null
                                                 ? AssetImage(
                                                     'assets/images/${widget.trip.driver!.photo}',
                                                   )
                                                 : null,
-                                            onBackgroundImageError: (_, __) {},
-                                            child:
-                                                widget.trip.driver?.photo ==
-                                                    null
-                                                ? Icon(
-                                                    Icons.person,
-                                                    color: Colors.grey.shade600,
-                                                    size: 28,
-                                                  )
-                                                : null,
-                                          ),
-                                        ],
+                                        onBackgroundImageError: (_, __) {},
+                                        child: widget.trip.driver?.photo == null
+                                            ? Icon(
+                                                Icons.person,
+                                                color: Colors.grey.shade600,
+                                                size: 28,
+                                              )
+                                            : null,
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -223,9 +229,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                             Row(
                                               children: [
                                                 Text(
-                                                  widget
-                                                          .trip
-                                                          .driver!
+                                                  widget.trip.driver!
                                                           .licenseNumber ??
                                                       '',
                                                   style: GoogleFonts.inter(
@@ -290,9 +294,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           vertical: 14,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                     ),
@@ -321,9 +324,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           color: AppColors.success,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                     ),
@@ -344,7 +346,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
+                                    color:
+                                        Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
                                   ),
@@ -374,7 +377,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     iconColor: Colors.red,
                                     title: 'Destination',
                                     location: widget.trip.arrival,
-                                    time: widget.trip.arrivalTime,
+                                    // ✅ HEURE D'ARRIVÉE CALCULÉE
+                                    time: _calculateArrivalTime(),
                                   ),
                                 ],
                               ),
@@ -397,8 +401,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
+                                // ✅ DURÉE CALCULÉE
                                 Text(
-                                  'Estimation ${widget.trip.duration}',
+                                  'Estimation ${_formatDuration()}',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     color: Colors.grey.shade600,
@@ -410,7 +415,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
 
                           const SizedBox(height: 16),
 
-                          // PASSAGERS CARD (CLIQUABLE)
+                          // PASSAGERS CARD
                           if (widget.trip.passengers.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(
@@ -435,58 +440,58 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   ),
                                   child: Row(
                                     children: [
-                                      // AVATARS EMPILÉS (3 PASSAGERS)
                                       SizedBox(
                                         width: 80,
                                         height: 32,
                                         child: Stack(
                                           children: [
-                                            if (widget
-                                                .trip
-                                                .passengers
-                                                .isNotEmpty)
+                                            if (widget.trip.passengers.isNotEmpty)
                                               Positioned(
                                                 left: 0,
                                                 child: _buildPassengerAvatar(
-                                                  widget
-                                                      .trip
-                                                      .passengers[0]
-                                                      .initials,
-                                                  Color(
-                                                   int.parse(
-                                                 (widget.trip.passengers[0].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
-                                                ),
-                                            ),
-                                                ),
-                                              ),
-                                            if (widget.trip.passengers.length >
-                                                1)
-                                              Positioned(
-                                                left: 24,
-                                                child: _buildPassengerAvatar(
-                                                  widget
-                                                      .trip
-                                                      .passengers[1]
+                                                  widget.trip.passengers[0]
                                                       .initials,
                                                   Color(
                                                     int.parse(
-                                                      (widget.trip.passengers[1].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
+                                                      (widget.trip.passengers[0]
+                                                                  .avatarColor ??
+                                                              '#4CAF50')
+                                                          .replaceFirst(
+                                                              '#', '0xFF'),
                                                     ),
                                                   ),
                                                 ),
                                               ),
-                                            if (widget.trip.passengers.length >
-                                                2)
+                                            if (widget.trip.passengers.length > 1)
                                               Positioned(
-                                                left: 48,
+                                                left: 24,
                                                 child: _buildPassengerAvatar(
-                                                  widget
-                                                      .trip
-                                                      .passengers[2]
+                                                  widget.trip.passengers[1]
                                                       .initials,
                                                   Color(
                                                     int.parse(
-                                                      (widget.trip.passengers[2].avatarColor ?? '#4CAF50').replaceFirst('#', '0xFF'),
+                                                      (widget.trip.passengers[1]
+                                                                  .avatarColor ??
+                                                              '#4CAF50')
+                                                          .replaceFirst(
+                                                              '#', '0xFF'),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            if (widget.trip.passengers.length > 2)
+                                              Positioned(
+                                                left: 48,
+                                                child: _buildPassengerAvatar(
+                                                  widget.trip.passengers[2]
+                                                      .initials,
+                                                  Color(
+                                                    int.parse(
+                                                      (widget.trip.passengers[2]
+                                                                  .avatarColor ??
+                                                              '#4CAF50')
+                                                          .replaceFirst(
+                                                              '#', '0xFF'),
                                                     ),
                                                   ),
                                                 ),
@@ -517,16 +522,14 @@ class _TripDetailPageState extends State<TripDetailPage> {
 
                           const SizedBox(height: 16),
 
-                          // ÉCOLES (CLIQUABLE)
+                          // ÉCOLES
                           if (widget.trip.schools.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
                               ),
                               child: GestureDetector(
-                                onTap: () {
-                                  _showSchoolsList();
-                                },
+                                onTap: _showSchoolsList,
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -551,9 +554,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           color: AppColors.success.withValues(
                                             alpha: 0.1,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Center(
                                           child: Image.asset(
@@ -563,12 +565,12 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                             color: AppColors.success,
                                             errorBuilder:
                                                 (context, error, stackTrace) {
-                                                  return Icon(
-                                                    Icons.school,
-                                                    color: AppColors.success,
-                                                    size: 22,
-                                                  );
-                                                },
+                                              return Icon(
+                                                Icons.school,
+                                                color: AppColors.success,
+                                                size: 22,
+                                              );
+                                            },
                                           ),
                                         ),
                                       ),
@@ -651,58 +653,6 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMapMarker(IconData icon, Color color, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.4),
-                blurRadius: 8,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: Icon(icon, color: Colors.white, size: 16),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSchoolMarker(String letter) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          letter,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
           ),
         ),
       ),
@@ -808,35 +758,11 @@ class _TripDetailPageState extends State<TripDetailPage> {
   }
 
   void _showReservationConfirmation(BuildContext context) {
-    // Navigation directe vers la page de paiement
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => PaymentPage(trip: widget.trip)),
     );
   }
-}
-
-class RouteLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF5B4FC7)
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    path.moveTo(size.width * 0.2, size.height * 0.4);
-    path.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.2,
-      size.width * 0.8,
-      size.height * 0.6,
-    );
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
 class DashedLinePainter extends CustomPainter {

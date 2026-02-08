@@ -12,34 +12,107 @@ class TripService {
   Future<List<TripModel>> getAllTrips() async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [TripService] GET ALL TRIPS');
+      debugPrint('🔵 [TripService PARENT] GET ALL TRIPS');
+      debugPrint('📍 Endpoint: /api/trips');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final response = await _apiClient.get('/api/trips');
 
-      debugPrint('✅ [TripService] Response: ${response.statusCode}');
-      debugPrint('📦 [TripService] Data: ${response.data}');
+      debugPrint('✅ [TripService] Response Status: ${response.statusCode}');
+      debugPrint('📦 [TripService] Response Type: ${response.data.runtimeType}');
+      debugPrint('📦 [TripService] Full Response:');
+      debugPrint('$response.data');
+      debugPrint('');
 
       final List<dynamic> tripsJson;
 
+      // ✅ PARSER LA RÉPONSE
       if (response.data is Map<String, dynamic>) {
-        tripsJson = response.data['trips'] ?? 
-                   response.data['data'] ?? 
-                   [];
+        final map = response.data as Map<String, dynamic>;
+        debugPrint('📋 Map keys: ${map.keys.toList()}');
+        
+        // Essayer plusieurs clés possibles
+        if (map.containsKey('trips')) {
+          tripsJson = map['trips'] as List;
+          debugPrint('✅ Found trips in "trips" key');
+        } else if (map.containsKey('data')) {
+          final data = map['data'];
+          if (data is List) {
+            tripsJson = data;
+            debugPrint('✅ Found trips in "data" key (List)');
+          } else if (data is Map && data.containsKey('trips')) {
+            tripsJson = data['trips'];
+            debugPrint('✅ Found trips in "data.trips" key');
+          } else {
+            tripsJson = [];
+            debugPrint('⚠️ "data" key exists but format unknown');
+          }
+        } else if (map.containsKey('success')) {
+          // Format { success: true, data: [...] }
+          if (map['data'] is List) {
+            tripsJson = map['data'];
+            debugPrint('✅ Found trips in success response');
+          } else {
+            tripsJson = [];
+            debugPrint('⚠️ Success response but no data array');
+          }
+        } else {
+          tripsJson = [];
+          debugPrint('⚠️ Unknown map structure');
+        }
       } else if (response.data is List) {
         tripsJson = response.data;
+        debugPrint('✅ Response is directly a List');
       } else {
-        throw Exception('Format de réponse invalide');
+        debugPrint('❌ Unknown response format');
+        throw Exception('Format de réponse invalide: ${response.data.runtimeType}');
       }
 
-      debugPrint('✅ [TripService] ${tripsJson.length} trajet(s) trouvé(s)');
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 RÉSULTAT: ${tripsJson.length} trajet(s) trouvé(s)');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // ✅ PARSER CHAQUE TRAJET AVEC LOGS
+      final trips = <TripModel>[];
+      for (int i = 0; i < tripsJson.length; i++) {
+        try {
+          debugPrint('');
+          debugPrint('🚗 Parsing trip ${i + 1}/${tripsJson.length}:');
+          debugPrint('   Raw data: ${tripsJson[i]}');
+          
+          final trip = TripModel.fromJson(tripsJson[i]);
+          
+          debugPrint('   ✅ Trip parsed successfully:');
+          debugPrint('      ID: ${trip.id}');
+          debugPrint('      Start: ${trip.startLocation}');
+          debugPrint('      End: ${trip.destination}');
+          debugPrint('      Date: ${trip.date}');
+          debugPrint('      Status: ${trip.status}');
+          debugPrint('      Schools: ${trip.schools.length}');
+          
+          trips.add(trip);
+        } catch (e, stackTrace) {
+          debugPrint('   ❌ Error parsing trip ${i + 1}:');
+          debugPrint('   Error: $e');
+          debugPrint('   Stack: $stackTrace');
+          // Continue parsing other trips
+        }
+      }
+
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('✅ FINAL: ${trips.length}/${tripsJson.length} trajets parsés');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      return tripsJson
-          .map((tripJson) => TripModel.fromJson(tripJson))
-          .toList();
-    } catch (e) {
-      debugPrint('❌ [TripService] Error fetching trips: $e');
+      return trips;
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripService] ERREUR CRITIQUE');
+      debugPrint('Error: $e');
+      debugPrint('Stack trace:');
+      debugPrint('$stackTrace');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       rethrow;
     }
@@ -55,8 +128,12 @@ class TripService {
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [TripService] SEARCH TRIPS');
-      debugPrint('📤 Params: home=$homeAddress, school=$schoolAddress, time=$departureTime');
+      debugPrint('🔍 [TripService] SEARCH TRIPS');
+      debugPrint('📤 Params:');
+      debugPrint('   Home: $homeAddress');
+      debugPrint('   School: $schoolAddress');
+      debugPrint('   Time: $departureTime');
+      debugPrint('   Child: $childId');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // Build query parameters
@@ -71,8 +148,7 @@ class TripService {
         queryParameters: queryParams,
       );
 
-      debugPrint('✅ [TripService] Response: ${response.statusCode}');
-      debugPrint('📦 [TripService] Data: ${response.data}');
+      debugPrint('✅ Response: ${response.statusCode}');
 
       final List<dynamic> tripsJson;
 
@@ -86,15 +162,14 @@ class TripService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [TripService] ${tripsJson.length} trajet(s) trouvé(s)');
+      debugPrint('✅ ${tripsJson.length} trajet(s) trouvé(s)');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return tripsJson
           .map((tripJson) => TripModel.fromJson(tripJson))
           .toList();
     } catch (e) {
-      debugPrint('❌ [TripService] Error searching trips: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error searching trips: $e\n');
       rethrow;
     }
   }
@@ -103,19 +178,12 @@ class TripService {
   /// GET /api/parents/trips/filters
   Future<Map<String, dynamic>> getFilterOptions() async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [TripService] GET FILTERS');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
+      debugPrint('🔍 [TripService] GET FILTERS');
       final response = await _apiClient.get(ApiConstants.tripsFilters);
-
-      debugPrint('✅ [TripService] Filters loaded');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
+      debugPrint('✅ Filters loaded\n');
       return response.data;
     } catch (e) {
-      debugPrint('❌ [TripService] Error loading filters: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error loading filters: $e\n');
       rethrow;
     }
   }
@@ -124,23 +192,18 @@ class TripService {
   /// GET /api/parents/trips/{tripId}/details
   Future<TripModel> getTripDetails(String tripId) async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [TripService] GET TRIP DETAILS');
-      debugPrint('📤 Trip ID: $tripId');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
+      debugPrint('🔍 [TripService] GET TRIP DETAILS: $tripId');
+      
       final response = await _apiClient.get(
         ApiConstants.tripDetails(tripId),
       );
 
-      debugPrint('✅ [TripService] Details loaded');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('✅ Details loaded\n');
 
       final tripData = response.data['trip'] ?? response.data;
       return TripModel.fromJson(tripData);
     } catch (e) {
-      debugPrint('❌ [TripService] Error loading trip details: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error loading trip details: $e\n');
       rethrow;
     }
   }
@@ -149,16 +212,16 @@ class TripService {
   /// GET /api/parents/trips/{tripId}/realtime
   Future<Map<String, dynamic>> trackTripRealtime(String tripId) async {
     try {
-      debugPrint('🔵 [TripService] TRACK REALTIME: $tripId');
+      debugPrint('📍 [TripService] TRACK REALTIME: $tripId');
 
       final response = await _apiClient.get(
         ApiConstants.tripRealtime(tripId),
       );
 
-      debugPrint('✅ [TripService] Realtime data loaded');
+      debugPrint('✅ Realtime data loaded\n');
       return response.data;
     } catch (e) {
-      debugPrint('❌ [TripService] Error tracking trip: $e');
+      debugPrint('❌ Error tracking trip: $e\n');
       rethrow;
     }
   }
@@ -183,13 +246,12 @@ class TripService {
         },
       );
 
-      debugPrint('✅ [TripService] Reservation successful');
+      debugPrint('✅ Reservation successful');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return response.data;
     } catch (e) {
-      debugPrint('❌ [TripService] Error reserving trip: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error reserving trip: $e\n');
       rethrow;
     }
   }
@@ -204,8 +266,8 @@ class TripService {
 
       final response = await _apiClient.get(ApiConstants.reservations);
 
-      debugPrint('✅ [TripService] Response: ${response.statusCode}');
-      debugPrint('📦 [TripService] Data: ${response.data}');
+      debugPrint('✅ Response: ${response.statusCode}');
+      debugPrint('📦 Data: ${response.data}');
 
       final List<dynamic> reservationsJson;
 
@@ -219,15 +281,14 @@ class TripService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [TripService] ${reservationsJson.length} réservation(s) trouvée(s)');
+      debugPrint('✅ ${reservationsJson.length} réservation(s) trouvée(s)');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return reservationsJson
           .map((resJson) => TripModel.fromJson(resJson))
           .toList();
     } catch (e) {
-      debugPrint('❌ [TripService] Error loading reservations: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error loading reservations: $e\n');
       rethrow;
     }
   }
@@ -239,20 +300,16 @@ class TripService {
     required String childId,
   }) async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🔴 [TripService] CANCEL RESERVATION');
       debugPrint('📤 Trip: $tripId, Child: $childId');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       await _apiClient.delete(
         ApiConstants.cancelReservation(tripId, childId),
       );
 
-      debugPrint('✅ [TripService] Reservation cancelled');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('✅ Reservation cancelled\n');
     } catch (e) {
-      debugPrint('❌ [TripService] Error cancelling reservation: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error cancelling reservation: $e\n');
       rethrow;
     }
   }
@@ -264,23 +321,19 @@ class TripService {
     required String message,
   }) async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🟢 [TripService] CONTACT DRIVER');
       debugPrint('📤 Trip: $tripId');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final response = await _apiClient.post(
         ApiConstants.contactDriver(tripId),
         data: {'message': message},
       );
 
-      debugPrint('✅ [TripService] Message sent');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('✅ Message sent\n');
 
       return response.data;
     } catch (e) {
-      debugPrint('❌ [TripService] Error contacting driver: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('❌ Error contacting driver: $e\n');
       rethrow;
     }
   }

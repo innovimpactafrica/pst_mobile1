@@ -329,60 +329,61 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  /// ✅ UTILISER TripCardWidget (identique à TripPage)
+/// ✅ CORRECTION COMPLÈTE: Conversion vers TripModel
   Widget _buildTripCard(dynamic tripData) {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🏠 [Dashboard] Création carte trajet');
       debugPrint('📊 Type de données: ${tripData.runtimeType}');
       
-      // Convertir en TripModel
-      TripModel trip;
-      
+      // ✅ Conversion directe depuis Map
       if (tripData is Map<String, dynamic>) {
-        debugPrint('📦 Conversion depuis Map');
-        debugPrint('   ID: ${tripData['id']}');
-        debugPrint('   Start: ${tripData['start_point']}');
-        debugPrint('   End: ${tripData['end_point']}');
-        debugPrint('   School ID: ${tripData['school_id']}');
+        debugPrint('📦 Données brutes du Dashboard:');
+        debugPrint('   ${tripData.keys.toList()}');
         
-        trip = TripModel.fromJson(tripData);
-      } else if (tripData is TripModel) {
+        // ✅ Conversion directe vers TripModel
+        final trip = TripModel.fromJson(tripData);
+        
+        debugPrint('✅ TripModel créé:');
+        debugPrint('   ID: ${trip.id}');
+        debugPrint('   Start: ${trip.startLocation}');
+        debugPrint('   End: ${trip.destination}');
+        debugPrint('   Status: ${trip.status}');
+        debugPrint('   Schools: ${trip.schools.length}');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+        return TripCardWidget(
+          trip: trip,
+          onTap: () => _showTripDetail(trip),
+        );
+      }
+      
+      // ✅ Si déjà un TripModel
+      if (tripData is TripModel) {
         debugPrint('✅ Déjà un TripModel');
-        trip = tripData;
-      } else {
-        debugPrint('⚠️ Type inconnu, conversion générique');
-        trip = TripModel.fromJson({
-          'id': tripData.id ?? '',
-          'start_point': '',
-          'end_point': tripData.destination ?? '',
-          'departure_time': (tripData.date ?? DateTime.now()).toIso8601String(),
-          'capacity_max': tripData.passengers ?? 0,
-          'status': tripData.status ?? 'pending',
-        });
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
+        return TripCardWidget(
+          trip: tripData,
+          onTap: () => _showTripDetail(tripData),
+        );
       }
 
-      debugPrint('✅ TripModel créé:');
-      debugPrint('   ID: ${trip.id}');
-      debugPrint('   Start: ${trip.startLocation}');
-      debugPrint('   End: ${trip.destination}');
-      debugPrint('   Schools: ${trip.schools.length}');
-      debugPrint('   Passengers: ${trip.passengers.length}');
+      // ❌ Type inconnu
+      debugPrint('❌ Type de données inconnu: ${tripData.runtimeType}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-      // ✅ Utiliser TripCardWidget (EXACTEMENT comme dans TripPage)
-      return TripCardWidget(
-        trip: trip,
-        onTap: () => _showTripDetail(trip),
-      );
+      return const SizedBox.shrink();
+      
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur création carte: $e');
+      debugPrint('📦 Data: $tripData');
       debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       return const SizedBox.shrink();
     }
   }
 
-  /// ✅ Afficher le détail (EXACTEMENT comme dans TripPage)
+  /// ✅ Afficher le détail (identique à TripPage)
   void _showTripDetail(TripModel trip) {
     showModalBottomSheet(
       context: context,
@@ -394,6 +395,8 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
+
+
 
   Widget _buildNotificationsSection(DashboardLoaded state) {
     final notifications = state.dashboard.notifications;

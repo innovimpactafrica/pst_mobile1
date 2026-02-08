@@ -3,12 +3,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
-import '../../data/models/dashboard_model.dart';
 import 'package:intl/intl.dart';
 
 class UpcomingTripsSection extends StatelessWidget {
-  final List<RecentTrip> upcomingTrips;
-  final List<RecentTrip> todayTrips;
+  final List<dynamic> upcomingTrips;
+  final List<dynamic> todayTrips;
 
   const UpcomingTripsSection({
     super.key,
@@ -73,7 +72,13 @@ class UpcomingTripsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTripCard(RecentTrip trip) {
+  Widget _buildTripCard(dynamic trip) {
+    // Extract trip data safely
+    final date = trip is Map && trip['date'] != null 
+        ? DateTime.tryParse(trip['date'].toString()) ?? DateTime.now()
+        : DateTime.now();
+    final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
+    
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');
 
     return Container(
@@ -116,7 +121,7 @@ class UpcomingTripsSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      dateFormatter.format(trip.date),
+                      dateFormatter.format(date),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -210,7 +215,7 @@ class UpcomingTripsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${trip.passengers} passagers',
+                  '$passengers passagers',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

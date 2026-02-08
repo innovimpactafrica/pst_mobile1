@@ -119,11 +119,7 @@ class _ReportsPageState extends State<ReportsPage> {
               fontSize: AppConstants.fontSizeM,
             ),
             border: InputBorder.none,
-            icon: const Icon(
-              Icons.search,
-              color: AppColors.textGrey,
-              size: 20,
-            ),
+            icon: const Icon(Icons.search, color: AppColors.textGrey, size: 20),
             contentPadding: const EdgeInsets.symmetric(
               vertical: AppConstants.spacingL,
             ),
@@ -260,11 +256,8 @@ class _ReportsPageState extends State<ReportsPage> {
         child: Image.asset(
           imageUrl,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(
-            Icons.image,
-            color: AppColors.textGrey,
-            size: 24,
-          ),
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.image, color: AppColors.textGrey, size: 24),
         ),
       ),
     );
@@ -419,10 +412,12 @@ class _ReportsPageState extends State<ReportsPage> {
                   isExpanded: true,
                   underline: const SizedBox(),
                   items: ['Incident', 'Litiges', 'Sécurité']
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) {},
                 ),

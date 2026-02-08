@@ -1,14 +1,16 @@
-// Dashboard model with proper API response parsing
+// Dashboard model with FULL trip data compatibility
 // Path: lib/chauffeurs/pages/dashboard/data/models/dashboard_model.dart
+
+import 'package:flutter/material.dart';
 
 class DashboardModel {
   final DriverInfo driver;
   final DashboardStats stats;
-  final List<RecentTrip> upcomingTripsList;
-  final List<RecentTrip> todayTrips;
+  final List<dynamic> upcomingTripsList;  // ✅ CHANGÉ: dynamic pour accepter TripModel
+  final List<dynamic> todayTrips;         // ✅ CHANGÉ
   final List<NotificationItem> notifications;
   final int unreadNotificationsCount;
-  final List<RecentTrip> recentBookings;
+  final List<dynamic> recentBookings;     // ✅ CHANGÉ
   final SubscriptionStatus? subscription;
 
   DashboardModel({
@@ -27,37 +29,41 @@ class DashboardModel {
   int get completedTrips => stats.completedTrips;
   int get canceledTrips => stats.canceledTrips;
   int get upcomingTrips => stats.upcomingTrips;
-  double get totalEarnings => 0.0; // Not provided by API
-  double get monthlyEarnings => 0.0; // Not provided by API
+  double get totalEarnings => 0.0;
+  double get monthlyEarnings => 0.0;
   int get activePassengers => stats.totalChildrenTransported;
   double get rating => stats.averageRating;
-  List<RecentTrip> get recentTrips => [...upcomingTripsList, ...todayTrips, ...recentBookings];
+  List<dynamic> get recentTrips => [...upcomingTripsList, ...todayTrips, ...recentBookings];
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 [DashboardModel] Parsing dashboard data');
+    
     return DashboardModel(
       driver: DriverInfo.fromJson(json['driver'] ?? {}),
       stats: DashboardStats.fromJson(json['stats'] ?? {}),
+      
+      // ✅ CORRECTION: Garder les Maps bruts pour conversion ultérieure en TripModel
       upcomingTripsList: json['upcomingTrips'] != null
-          ? (json['upcomingTrips'] as List)
-              .map((trip) => RecentTrip.fromJson(trip))
-              .toList()
+          ? (json['upcomingTrips'] as List).map((trip) => trip).toList()
           : [],
+      
       todayTrips: json['todayTrips'] != null
-          ? (json['todayTrips'] as List)
-              .map((trip) => RecentTrip.fromJson(trip))
-              .toList()
+          ? (json['todayTrips'] as List).map((trip) => trip).toList()
           : [],
+      
       notifications: json['notifications'] != null
           ? (json['notifications'] as List)
               .map((notif) => NotificationItem.fromJson(notif))
               .toList()
           : [],
+      
       unreadNotificationsCount: json['unreadNotificationsCount'] ?? 0,
+      
       recentBookings: json['recentBookings'] != null
-          ? (json['recentBookings'] as List)
-              .map((booking) => RecentTrip.fromJson(booking))
-              .toList()
+          ? (json['recentBookings'] as List).map((booking) => booking).toList()
           : [],
+      
       subscription: json['subscription'] != null
           ? SubscriptionStatus.fromJson(json['subscription'])
           : null,
@@ -68,11 +74,11 @@ class DashboardModel {
     return {
       'driver': driver.toJson(),
       'stats': stats.toJson(),
-      'upcomingTrips': upcomingTripsList.map((trip) => trip.toJson()).toList(),
-      'todayTrips': todayTrips.map((trip) => trip.toJson()).toList(),
+      'upcomingTrips': upcomingTripsList,
+      'todayTrips': todayTrips,
       'notifications': notifications.map((notif) => notif.toJson()).toList(),
       'unreadNotificationsCount': unreadNotificationsCount,
-      'recentBookings': recentBookings.map((booking) => booking.toJson()).toList(),
+      'recentBookings': recentBookings,
       'subscription': subscription?.toJson(),
     };
   }
@@ -142,7 +148,6 @@ class DashboardStats {
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
-    // Helper function to parse string or int to int
     int parseToInt(dynamic value) {
       if (value == null) return 0;
       if (value is int) return value;
@@ -150,7 +155,6 @@ class DashboardStats {
       return 0;
     }
 
-    // Helper function to parse string or double to double
     double parseToDouble(dynamic value) {
       if (value == null) return 0.0;
       if (value is double) return value;
@@ -191,44 +195,6 @@ class DashboardStats {
       'total_children_transported': totalChildrenTransported,
       'trips_this_month': tripsThisMonth,
       'trips_this_week': tripsThisWeek,
-    };
-  }
-}
-
-class RecentTrip {
-  final String id;
-  final String destination;
-  final DateTime date;
-  final int passengers;
-  final String status;
-
-  RecentTrip({
-    required this.id,
-    required this.destination,
-    required this.date,
-    required this.passengers,
-    required this.status,
-  });
-
-  factory RecentTrip.fromJson(Map<String, dynamic> json) {
-    return RecentTrip(
-      id: (json['_id'] ?? json['id'] ?? '').toString(),
-      destination: json['destination'] ?? '',
-      date: json['date'] != null 
-          ? DateTime.tryParse(json['date'].toString()) ?? DateTime.now()
-          : DateTime.now(),
-      passengers: json['passengers'] ?? json['passagers'] ?? 0,
-      status: json['status'] ?? json['statut'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'destination': destination,
-      'date': date.toIso8601String(),
-      'passengers': passengers,
-      'status': status,
     };
   }
 }

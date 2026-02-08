@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
-import '../../data/models/dashboard_model.dart';
 
 /// Recent trips section for dashboard
 /// Location: lib/features/dashboard/presentation/widgets/recent_trips_section.dart
 class RecentTripsSection extends StatelessWidget {
-  final List<RecentTrip> trips;
+  final List<dynamic> trips;
 
   const RecentTripsSection({
     super.key,
@@ -65,7 +64,12 @@ class RecentTripsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTripCard(RecentTrip trip) {
+  Widget _buildTripCard(dynamic trip) {
+    // Extract trip data safely
+    final destination = trip is Map ? (trip['destination'] ?? 'Destination inconnue') : 'Destination inconnue';
+    final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
+    final status = trip is Map ? (trip['status'] ?? 'pending') : 'pending';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
       padding: const EdgeInsets.all(AppConstants.spacingM),
@@ -80,12 +84,12 @@ class RecentTripsSection extends StatelessWidget {
             width: AppConstants.avatarSizeL,
             height: AppConstants.avatarSizeL,
             decoration: BoxDecoration(
-              color: _getStatusColor(trip.status).withValues(alpha: 0.1),
+              color: _getStatusColor(status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppConstants.radiusM),
             ),
             child: Icon(
               Icons.directions_car,
-              color: _getStatusColor(trip.status),
+              color: _getStatusColor(status),
               size: AppConstants.iconSizeL,
             ),
           ),
@@ -95,7 +99,7 @@ class RecentTripsSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  trip.destination,
+                  destination,
                   style: const TextStyle(
                     fontSize: AppConstants.fontSizeL,
                     fontWeight: FontWeight.w600,
@@ -104,7 +108,7 @@ class RecentTripsSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${trip.passengers} passagers',
+                  '$passengers passagers',
                   style: const TextStyle(
                     fontSize: AppConstants.fontSizeM,
                     color: AppColors.textSecondary,
@@ -113,7 +117,7 @@ class RecentTripsSection extends StatelessWidget {
               ],
             ),
           ),
-          _buildStatusBadge(trip.status),
+          _buildStatusBadge(status),
         ],
       ),
     );
