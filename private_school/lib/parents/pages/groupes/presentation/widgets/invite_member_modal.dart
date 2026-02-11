@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
-import '../../data/repositories/group_repository.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 
 class InviteMemberModal extends StatefulWidget {
@@ -30,16 +29,20 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
     if (_controller.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Veuillez remplir ce champ',
-            style: GoogleFonts.inter(),
-          ),
+          content: Text('Veuillez remplir ce champ', style: GoogleFonts.inter()),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📨 [InviteMemberModal] SEND INVITE');
+    debugPrint('   GroupId: ${widget.groupId}');
+    debugPrint('   ${_isEmail ? "Email" : "Phone"}: ${_controller.text.trim()}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // ✅ Utilise le BLoC parent (fourni par GroupDetailPage)
     context.read<GroupBloc>().add(
       InviteMemberEvent(
         groupId: widget.groupId,
@@ -51,130 +54,146 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GroupBloc(repository: GroupRepository()),
-      child: BlocConsumer<GroupBloc, GroupState>(
-        listener: (context, state) {
-          if (state is MemberInvited) {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Invitation envoyée', style: GoogleFonts.inter()),
-                backgroundColor: AppColors.success,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Inviter un membre',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(child: _buildTabButton('Email', true)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildTabButton('Téléphone', false)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      _isEmail ? 'Adresse email' : 'Numéro de téléphone',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _controller,
-                      keyboardType: _isEmail
-                          ? TextInputType.emailAddress
-                          : TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: _isEmail
-                            ? 'Ex : votre@email.com'
-                            : 'Ex : +77 123 45 67',
-                        prefixIcon: Icon(
-                          _isEmail ? Icons.email : Icons.phone,
-                          color: AppColors.success,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.success),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _sendInvite(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.success,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Envoyer',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
+    return BlocConsumer<GroupBloc, GroupState>(
+      listener: (context, state) {
+        if (state is MemberInvited) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Invitation envoyée ✅', style: GoogleFonts.inter()),
+              backgroundColor: AppColors.success,
             ),
           );
-        },
-      ),
+        } else if (state is GroupError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message, style: GoogleFonts.inter()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is GroupLoading;
+
+        return Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Inviter un membre',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(child: _buildTabButton('Email', true)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _buildTabButton('Téléphone', false)),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _isEmail ? 'Adresse email' : 'Numéro de téléphone',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _controller,
+                    keyboardType: _isEmail
+                        ? TextInputType.emailAddress
+                        : TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: _isEmail
+                          ? 'Ex : votre@email.com'
+                          : 'Ex : +77 123 45 67',
+                      prefixIcon: Icon(
+                        _isEmail ? Icons.email : Icons.phone,
+                        color: AppColors.success,
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.success),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : () => _sendInvite(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20, width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Envoyer',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

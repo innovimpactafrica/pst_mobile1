@@ -1,4 +1,4 @@
-// Service d'authentification - CORRIGÉ pour le format API
+// Service d'authentification - CORRIGÉ pour récupérer la photo
 // Chemin: lib/parents/authentification/data/services/auth_service.dart
 
 import 'package:private_school/core/models/user_model.dart';
@@ -215,38 +215,69 @@ class AuthService {
     }
   }
 
-  /// ✅ Récupérer l'utilisateur actuel
+  /// ✅ MODIFIÉ : Récupérer l'utilisateur actuel AVEC PHOTO
+  /// Utilise /api/parents/account au lieu de /api/auth
   Future<UserModel> getCurrentUser() async {
     try {
-      debugPrint('📤 Fetching current user profile...');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📤 [AuthService] Fetching current user WITH PHOTO...');
+      debugPrint('📍 Endpoint: /api/parents/account');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final response = await _apiClient.get('/api/auth');
+      // ✅ UTILISER /api/parents/account pour avoir la photo
+      final response = await _apiClient.get('/api/parents/account');
 
-      debugPrint('✅ User profile received: ${response.data}');
-      debugPrint('📦 Response type: ${response.data.runtimeType}');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Type: ${response.data.runtimeType}');
 
-      // ✅ CORRECTION : Vérifier la structure de la réponse
       final dynamic responseData = response.data;
       
-      // Cas 1 : La réponse est directement l'objet utilisateur
+      // Vérifier la structure de la réponse
       if (responseData is Map<String, dynamic>) {
-        // Si la réponse contient une clé 'user' ou 'data'
-        if (responseData.containsKey('user') && responseData['user'] != null) {
-          debugPrint('✅ Extracting user from response.user');
-          return UserModel.fromJson(responseData['user']);
-        } else if (responseData.containsKey('data') && responseData['data'] != null) {
+        Map<String, dynamic> userData;
+
+        // Cas 1 : {success: true, data: {...}}
+        if (responseData.containsKey('data') && responseData['data'] != null) {
           debugPrint('✅ Extracting user from response.data');
-          return UserModel.fromJson(responseData['data']);
-        } else {
-          // La réponse est directement l'utilisateur
+          userData = responseData['data'];
+        } 
+        // Cas 2 : {user: {...}}
+        else if (responseData.containsKey('user') && responseData['user'] != null) {
+          debugPrint('✅ Extracting user from response.user');
+          userData = responseData['user'];
+        } 
+        // Cas 3 : La réponse est directement l'utilisateur
+        else {
           debugPrint('✅ Response is directly the user object');
-          return UserModel.fromJson(responseData);
+          userData = responseData;
         }
+
+        // ✅ LOG : Vérifier si la photo est présente
+        debugPrint('');
+        debugPrint('👤 USER DATA:');
+        debugPrint('   ID: ${userData['id']}');
+        debugPrint('   Name: ${userData['name']}');
+        debugPrint('   Email: ${userData['email']}');
+        debugPrint('   Photo (brut): ${userData['photo_profil'] ?? userData['photo']}');
+        debugPrint('');
+
+        final user = UserModel.fromJson(userData);
+
+        debugPrint('✅ UserModel created:');
+        debugPrint('   Full Name: ${user.fullName}');
+        debugPrint('   Photo URL: ${user.photo}');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+        return user;
       }
       
       throw Exception('Format de réponse invalide: $responseData');
-    } catch (e) {
-      debugPrint('❌ Get current user error: $e');
+    } catch (e, stackTrace) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [AuthService] Get current user error');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       throw Exception('Impossible de récupérer le profil: $e');
     }
   }

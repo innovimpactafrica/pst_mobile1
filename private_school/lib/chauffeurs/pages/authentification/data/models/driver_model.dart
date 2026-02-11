@@ -1,6 +1,3 @@
-// Driver model with bulletproof API response parsing
-// Path: lib/chauffeurs/authentification/data/models/driver_model.dart
-
 class DriverModel {
   final String id;
   final String firstName;
@@ -20,6 +17,7 @@ class DriverModel {
   final double successRate;
   final String memberSince;
   final VehicleModel? vehicle;
+  final String? status; // ✅ AJOUTÉ pour compatibilité
 
   DriverModel({
     required this.id,
@@ -40,6 +38,7 @@ class DriverModel {
     this.successRate = 0.0,
     this.memberSince = '',
     this.vehicle,
+    this.status,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -50,8 +49,8 @@ class DriverModel {
     return (firstInitial + lastInitial).toUpperCase();
   }
 
- factory DriverModel.fromJson(Map<String, dynamic> json) {
-    // 1. Logique pour le nom et le prénom (Déjà robuste)
+  factory DriverModel.fromJson(Map<String, dynamic> json) {
+    // 1. Logique pour le nom et le prénom
     String firstName = '';
     String lastName = '';
     
@@ -80,11 +79,20 @@ class DriverModel {
       }
     }
 
-    // 2. Extraction des données du véhicule 
-    // On récupère l'objet 'vehicle' s'il existe
+    // ✅ 2. CORRECTION PHOTO CHAUFFEUR (comme UserModel)
+    const String baseUrl = "http://86.106.181.31:3000";
+    String? rawPhoto = json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
+    String? fullPhotoUrl;
+    
+    if (rawPhoto != null && rawPhoto.isNotEmpty) {
+      fullPhotoUrl = rawPhoto.startsWith('http') 
+          ? rawPhoto 
+          : '$baseUrl$rawPhoto';
+    }
+
+    // 3. Extraction des données du véhicule 
     final vehicleData = json['vehicle'] as Map<String, dynamic>?;
 
-    
     return DriverModel(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       firstName: firstName,
@@ -92,26 +100,25 @@ class DriverModel {
       phone: (json['phone'] ?? json['telephone'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       address: json['address']?.toString() ?? json['adresse']?.toString(),
-      photo: json['photo']?.toString(),
+      photo: fullPhotoUrl, // ✅ URL COMPLÈTE
       role: (json['role'] ?? 'driver').toString(),
       isActive: json['isActive'] ?? json['actif'] ?? true,
+      status: json['status']?.toString(), // ✅ AJOUTÉ
       
-     
       licenseNumber: vehicleData?['plate']?.toString() ?? 
                      vehicleData?['licenseNumber']?.toString() ?? 
                      json['licenseNumber']?.toString() ?? 
                      json['numeroPermis']?.toString(),
       
-
       vehicleType: vehicleData?['brand']?.toString() ?? 
                    vehicleData?['model']?.toString() ?? 
                    json['vehicleType']?.toString() ?? 
                    json['typeVehicule']?.toString(),
-
       
       vehicleColor: vehicleData?['color']?.toString() ?? 
                     json['vehicleColor']?.toString() ??
                     json['couleur']?.toString(),
+      
       totalTrips: json['totalTrips'] ?? json['nombreTrajets'] ?? 0,
       rating: (json['rating'] ?? json['note'] ?? 0.0).toDouble(),
       totalReviews: json['totalReviews'] ?? json['nombreAvis'] ?? 0,
@@ -140,6 +147,7 @@ class DriverModel {
       'successRate': successRate,
       'memberSince': memberSince,
       'vehicle': vehicle?.toJson(),
+      'status': status,
     };
   }
 
@@ -161,6 +169,7 @@ class DriverModel {
     double? successRate,
     String? memberSince,
     VehicleModel? vehicle,
+    String? status,
   }) {
     return DriverModel(
       id: id ?? this.id,
@@ -180,10 +189,10 @@ class DriverModel {
       successRate: successRate ?? this.successRate,
       memberSince: memberSince ?? this.memberSince,
       vehicle: vehicle ?? this.vehicle,
+      status: status ?? this.status,
     );
   }
 }
-
 
 class VehicleModel {
   final String model;
@@ -201,11 +210,25 @@ class VehicleModel {
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
+    // ✅ CORRECTION PHOTO VÉHICULE
+    const String baseUrl = "http://86.106.181.31:3000";
+    String? rawPhoto = json['photo']?.toString();
+    String? fullPhotoUrl;
+    
+    if (rawPhoto != null && rawPhoto.isNotEmpty) {
+      // ⚠️ Si c'est un lien Google Drive, le garder tel quel (on ne peut pas l'afficher directement)
+      if (rawPhoto.startsWith('http')) {
+        fullPhotoUrl = rawPhoto;
+      } else {
+        fullPhotoUrl = '$baseUrl$rawPhoto';
+      }
+    }
+
     return VehicleModel(
       model: (json['model'] ?? json['brand'] ?? '').toString(),
       plate: (json['plate'] ?? json['licenseNumber'] ?? '').toString(),
       color: (json['color'] ?? '').toString(),
-      photo: json['photo']?.toString(),
+      photo: fullPhotoUrl, // ✅ URL COMPLÈTE
       capacity: json['capacity'] ?? json['capacite'] ?? 0,
     );
   }

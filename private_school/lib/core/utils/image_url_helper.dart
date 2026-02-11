@@ -4,26 +4,38 @@ class ImageUrlHelper {
   // 🔧 Remplacez par l'URL de votre backend
   static const String baseUrl = 'http://86.106.181.31:3000';
 
-  /// Convertit un chemin relatif en URL complète
-  /// 
-  /// Exemples:
-  /// - "/uploads/drivers/photo.jpg" -> "http://86.106.181.31:3000/uploads/drivers/photo.jpg"
-  /// - "http://example.com/photo.jpg" -> "http://example.com/photo.jpg" (inchangé)
-  /// - null ou "" -> "" (chaîne vide)
+ 
   static String getFullImageUrl(String? path) {
-    if (path == null || path.isEmpty) {
-      return ''; // Retourner une chaîne vide pour les images par défaut
+  if (path == null || path.isEmpty) {
+  return '';
+}
+
+//  CAS GOOGLE DRIVE
+if (path.contains('drive.google.com')) {
+  try {
+    final uri = Uri.parse(path);
+    final segments = uri.pathSegments;
+
+    // récupérer l'id du fichier (après /d/)
+    final index = segments.indexOf('d');
+    if (index != -1 && index + 1 < segments.length) {
+      final fileId = segments[index + 1];
+      return 'https://drive.google.com/uc?export=view&id=$fileId';
     }
+  } catch (e) {
+    return '';
+  }
+}
 
-    // Si le path commence déjà par http, le retourner tel quel
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-      return path;
-    }
+// si déjà une vraie URL http
+if (path.startsWith('http://') || path.startsWith('https://')) {
+  return path;
+}
 
-    // Supprimer le slash initial si présent
-    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+// sinon image locale backend
+final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+return '$baseUrl/$cleanPath';
 
-    return '$baseUrl/$cleanPath';
   }
 
   /// Vérifie si une URL d'image est valide

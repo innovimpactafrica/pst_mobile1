@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
 
-/// Trip card widget
-/// Displays trip information including route and status
+/// ✅ TRIP CARD - Design avec 2 photos circulaires côte à côte
 class TripCardWidget extends StatelessWidget {
   final TripModel trip;
   final VoidCallback? onTap;
+  final bool isReserved; // Pour navigation uniquement (pas affiché)
 
-  const TripCardWidget({super.key, required this.trip, this.onTap});
+  const TripCardWidget({
+    super.key,
+    required this.trip,
+    this.onTap,
+    this.isReserved = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,204 +39,310 @@ class TripCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header avec status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // 🔥 CORRECTION : Afficher la date formatée
-                Text(
-                  _formatDate(trip.date),
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    fontSize: AppConstants.fontSizeL - 1,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                _buildStatusBadge(trip.status),
-              ],
-            ),
+            // ✅ HEADER : Photo chauffeur + véhicule + infos + badge statut
+            _buildDriverHeader(),
+            
             const SizedBox(height: AppConstants.spacingXL),
 
             // Route section
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: [
-                    Icon(
-                      Icons.circle_outlined,
-                      color: AppColors.textGrey,
-                      size: 16,
-                    ),
-                    Container(
-                      width: 2,
-                      height: 30,
-                      margin: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingXS,
-                      ),
-                      child: CustomPaint(painter: DashedLinePainter()),
-                    ),
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.success,
-                      size: 18,
-                    ),
-                  ],
-                ),
-                const SizedBox(width: AppConstants.spacingL),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              trip.startLocation ?? 'departure_point'.tr(),
-                              style: GoogleFonts.inter(
-                                fontSize: AppConstants.fontSizeS + 1,
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            trip.time,
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS + 1,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 28),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              trip.destination,
-                              style: GoogleFonts.inter(
-                                fontSize: AppConstants.fontSizeS + 1,
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // 🔥 Calcul approximatif de l'heure d'arrivée (+1h30)
-                          Text(
-                            _calculateArrivalTime(trip.time),
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS + 1,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            _buildRouteSection(),
+            
             const SizedBox(height: AppConstants.spacingL),
 
             // Info section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.school,
-                      size: 16,
-                      color: AppColors.success,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      trip.schools.isNotEmpty 
-                          ? '${trip.schools.length} ${trip.schools.length > 1 ? 'schools_count'.tr() : 'school_count'.tr()}'
-                          : 'no_school'.tr(),
-                      style: GoogleFonts.inter(
-                        color: AppColors.success,
-                        fontSize: AppConstants.fontSizeS,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.people,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${trip.passengers.length}/${trip.totalSeats} ${'seats'.tr()}',
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeS,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            _buildInfoSection(),
           ],
         ),
       ),
     );
   }
 
-  /// Format la date
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final dateOnly = DateTime(date.year, date.month, date.day);
-
-    if (dateOnly == today) {
-      return 'today'.tr();
-    } else if (dateOnly == tomorrow) {
-      return 'tomorrow'.tr();
-    } else {
-      return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
-    }
+  /// ✅ HEADER : Photo chauffeur + véhicule (superposées) + infos
+  Widget _buildDriverHeader() {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacingXL),
+      child: Row(
+        children: [
+          // ✅ STACK : Photo chauffeur + véhicule superposées
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Photo chauffeur (grand cercle)
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.grey200,
+                backgroundImage: trip.hasDriverPhoto
+                    ? NetworkImage(trip.driverPhotoUrl)
+                    : null,
+                onBackgroundImageError: trip.hasDriverPhoto 
+                    ? (exception, stackTrace) {
+                        debugPrint('! Erreur chargement photo chauffeur');
+                      }
+                    : null,
+                child: !trip.hasDriverPhoto
+                    ? const Icon(Icons.person, color: AppColors.grey600, size: 24)
+                    : null,
+              ),
+              
+              // ✅ Photo véhicule (petit cercle en bas à droite)
+              if (trip.hasVehiclePhoto)
+                Positioned(
+                  right: -4,
+                  bottom: -4,
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.directions_car,
+                      color: AppColors.white,
+                      size: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          
+          const SizedBox(width: AppConstants.spacingL),
+          
+          // Infos chauffeur
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Nom du chauffeur
+                Text(
+                  trip.driverName,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                
+                const SizedBox(height: 4),
+                
+                // Plaque + Rating
+                Row(
+                  children: [
+                  // Plaque
+if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
+  Flexible(
+    child: Text(
+      trip.vehiclePlate!,
+      style: GoogleFonts.inter(
+        fontSize: AppConstants.fontSizeS,
+        color: AppColors.textSecondary,
+        fontWeight: FontWeight.w500,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    ),
+  ),
+                    
+                    // Séparateur
+                    if (trip.vehiclePlate != null && 
+                        trip.vehiclePlate!.isNotEmpty && 
+                        trip.driverRating != null && 
+                        trip.driverRating! > 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          width: 3,
+                          height: 3,
+                          decoration: const BoxDecoration(
+                            color: AppColors.textSecondary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    
+                    // Rating
+                    if (trip.driverRating != null && trip.driverRating! > 0)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            size: 14,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            trip.driverRating!.toStringAsFixed(1),
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeS,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // ✅ BADGE STATUT (pending/active/completed) - PAS "Réservé"
+          _buildStatusBadge(trip.status),
+        ],
+      ),
+    );
   }
 
-  /// Calcule l'heure d'arrivée approximative
-  String _calculateArrivalTime(String departureTime) {
-    try {
-      final parts = departureTime.split(':');
-      if (parts.length >= 2) {
-        int hours = int.parse(parts[0]);
-        int minutes = int.parse(parts[1]);
+  /// ✅ SECTION ROUTE
+  Widget _buildRouteSection() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Icônes
+        Column(
+          children: [
+            const Icon(
+              Icons.circle_outlined,
+              color: AppColors.textGrey,
+              size: 16,
+            ),
+            Container(
+              width: 2,
+              height: 30,
+              margin: const EdgeInsets.symmetric(
+                vertical: AppConstants.spacingXS,
+              ),
+              child: CustomPaint(painter: DashedLinePainter()),
+            ),
+            const Icon(
+              Icons.location_on,
+              color: AppColors.success,
+              size: 18,
+            ),
+          ],
+        ),
         
-        // Ajouter 1h30
-        minutes += 30;
-        if (minutes >= 60) {
-          hours += 1;
-          minutes -= 60;
-        }
-        hours += 1;
+        const SizedBox(width: AppConstants.spacingL),
         
-        if (hours >= 24) hours -= 24;
-        
-        return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
-      }
-    } catch (e) {
-      // En cas d'erreur, retourner "--:--"
-    }
-    return '--:--';
+        // Textes
+        Expanded(
+          child: Column(
+            children: [
+              // Départ
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      trip.startLocation ?? 'departure_point'.tr(),
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeS + 1,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    trip.time,
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeS + 1,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 28),
+              
+              // Arrivée
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      trip.destination,
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeS + 1,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    _calculateArrivalTime(trip.time),
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeS + 1,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
+  /// ✅ SECTION INFO (écoles + "X enfants inscrits / Y places")
+  Widget _buildInfoSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Écoles
+        Row(
+          children: [
+            const Icon(
+              Icons.school,
+              size: 16,
+              color: AppColors.success,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              trip.schools.isNotEmpty 
+                  ? '${trip.schools.length} ${trip.schools.length > 1 ? 'écoles desservies' : 'école desservie'}'
+                  : 'Aucune école',
+              style: GoogleFonts.inter(
+                color: AppColors.success,
+                fontSize: AppConstants.fontSizeS,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        
+        // ✅ "X enfants inscrits / Y places"
+        Row(
+          children: [
+            const Icon(
+              Icons.people,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '${trip.passengers.length} enfants inscrits / ${trip.totalSeats}',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeS,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// ✅ BADGE STATUT DE LA BASE (pending/active/in_progress/completed/canceled)
   Widget _buildStatusBadge(String status) {
     Color badgeColor;
     String badgeText;
@@ -242,20 +352,20 @@ class TripCardWidget extends StatelessWidget {
       case 'started':
       case 'in_progress':
         badgeColor = AppColors.success;
-        badgeText = 'in_progress'.tr();
+        badgeText = 'En cours';
         break;
       case 'completed':
         badgeColor = AppColors.primary;
-        badgeText = 'completed'.tr();
+        badgeText = 'Terminé';
         break;
       case 'canceled':
         badgeColor = AppColors.error;
-        badgeText = 'cancelled'.tr();
+        badgeText = 'Annulé';
         break;
       case 'pending':
       default:
         badgeColor = AppColors.warning;
-        badgeText = 'pending'.tr();
+        badgeText = 'En attente';
     }
 
     return Container(
@@ -290,6 +400,31 @@ class TripCardWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Calcule l'heure d'arrivée (+1h30)
+  String _calculateArrivalTime(String departureTime) {
+    try {
+      final parts = departureTime.split(':');
+      if (parts.length >= 2) {
+        int hours = int.parse(parts[0]);
+        int minutes = int.parse(parts[1]);
+        
+        minutes += 30;
+        if (minutes >= 60) {
+          hours += 1;
+          minutes -= 60;
+        }
+        hours += 1;
+        
+        if (hours >= 24) hours -= 24;
+        
+        return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
+      }
+    } catch (e) {
+      // Ignore
+    }
+    return '--:--';
   }
 }
 

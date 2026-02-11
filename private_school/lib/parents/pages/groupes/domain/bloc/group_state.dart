@@ -1,56 +1,70 @@
 import 'package:equatable/equatable.dart';
 import '../../data/models/group_model.dart';
 
-
 abstract class GroupState extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
-// État initial
 class GroupInitial extends GroupState {}
-
-// Chargement
 class GroupLoading extends GroupState {}
 
-// Mes groupes chargés
-class MyGroupsLoaded extends GroupState {
-  final List<GroupModel> groups;
+/// ✅ NOUVEAU : état composite qui garde les DEUX listes simultanément
+/// Résout la course condition LoadMyGroups ↔ LoadAvailableGroups
+class GroupsLoaded extends GroupState {
+  final List<GroupModel> myGroups;
+  final List<GroupModel> availableGroups;
+  final List<GroupInvitation> invitations;
+  final bool isLoadingMore; // pour un refresh partiel
 
-  MyGroupsLoaded({required this.groups});
-
-  @override
-  List<Object?> get props => [groups];
-}
-
-// Groupes disponibles chargés
-class AvailableGroupsLoaded extends GroupState {
-  final List<GroupModel> groups;
-
-  AvailableGroupsLoaded({required this.groups});
-
-  @override
-  List<Object?> get props => [groups];
-}
-
-// Détails d'un groupe chargés
-class GroupDetailsLoaded extends GroupState {
-  final GroupModel group;
-  final int selectedTabIndex; // 0 = Planning, 1 = Membres, 2 = Historiques
-
-  GroupDetailsLoaded({
-    required this.group,
-    this.selectedTabIndex = 0,
+  GroupsLoaded({
+    this.myGroups = const [],
+    this.availableGroups = const [],
+    this.invitations = const [],
+    this.isLoadingMore = false,
   });
 
   @override
-  List<Object?> get props => [group, selectedTabIndex];
+  List<Object?> get props => [myGroups, availableGroups, invitations, isLoadingMore];
 
-  // Copie avec modification
-  GroupDetailsLoaded copyWith({
-    GroupModel? group,
-    int? selectedTabIndex,
+  GroupsLoaded copyWith({
+    List<GroupModel>? myGroups,
+    List<GroupModel>? availableGroups,
+    List<GroupInvitation>? invitations,
+    bool? isLoadingMore,
   }) {
+    return GroupsLoaded(
+      myGroups: myGroups ?? this.myGroups,
+      availableGroups: availableGroups ?? this.availableGroups,
+      invitations: invitations ?? this.invitations,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
+}
+
+// ─── Gardés pour compatibilité avec groupes_page.dart existant ───
+class MyGroupsLoaded extends GroupState {
+  final List<GroupModel> groups;
+  MyGroupsLoaded({required this.groups});
+  @override
+  List<Object?> get props => [groups];
+}
+
+class AvailableGroupsLoaded extends GroupState {
+  final List<GroupModel> groups;
+  AvailableGroupsLoaded({required this.groups});
+  @override
+  List<Object?> get props => [groups];
+}
+
+// Détails d'un groupe
+class GroupDetailsLoaded extends GroupState {
+  final GroupModel group;
+  final int selectedTabIndex;
+  GroupDetailsLoaded({required this.group, this.selectedTabIndex = 0});
+  @override
+  List<Object?> get props => [group, selectedTabIndex];
+  GroupDetailsLoaded copyWith({GroupModel? group, int? selectedTabIndex}) {
     return GroupDetailsLoaded(
       group: group ?? this.group,
       selectedTabIndex: selectedTabIndex ?? this.selectedTabIndex,
@@ -58,51 +72,40 @@ class GroupDetailsLoaded extends GroupState {
   }
 }
 
-// Groupe créé avec succès
 class GroupCreated extends GroupState {
   final GroupModel group;
-
   GroupCreated({required this.group});
-
   @override
   List<Object?> get props => [group];
 }
 
-// Membre invité avec succès
 class MemberInvited extends GroupState {}
-
-// Planning créé avec succès
 class PlanningCreated extends GroupState {}
-
-// Remplacement demandé avec succès
 class ReplacementRequested extends GroupState {}
-
-// Réponse au remplacement envoyée
 class ReplacementResponseSent extends GroupState {
   final bool accepted;
-
   ReplacementResponseSent({required this.accepted});
-
   @override
   List<Object?> get props => [accepted];
 }
 
-// Groupe rejoint avec succès
 class GroupJoined extends GroupState {
   final String groupId;
-
   GroupJoined({required this.groupId});
-
   @override
   List<Object?> get props => [groupId];
 }
 
-// Erreur
+class InvitationResponded extends GroupState {
+  final bool accepted;
+  InvitationResponded({required this.accepted});
+  @override
+  List<Object?> get props => [accepted];
+}
+
 class GroupError extends GroupState {
   final String message;
-
   GroupError({required this.message});
-
   @override
   List<Object?> get props => [message];
 }

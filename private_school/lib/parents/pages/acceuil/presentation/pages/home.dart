@@ -6,19 +6,22 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
+import 'package:private_school/parents/pages/profil/presentation/pages/notifications_page.dart';
 import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_card_widget.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_detail_page.dart';
-import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tracking_page.dart'; // ✅ AJOUTÉ
+import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tracking_page.dart';
 import 'package:private_school/parents/widgets/main_layout.dart';
-//import 'discussion.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,6 +37,11 @@ class HomePage extends StatelessWidget {
         BlocProvider(
           create: (context) => AuthBloc()..add(const LoadCurrentUserEvent()),
         ),
+        BlocProvider(
+        create: (context) => ConversationBloc(
+          repository: MessagingRepository(), 
+        )..add(LoadConversationsEvent()), 
+      ),
       ],
       child: const HomePageContent(),
     );
@@ -49,12 +57,6 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   int _selectedIndex = 0;
-
-  /*void _openDiscussions(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const DiscussionsPage()),
-    );
-  }*/
 
   void _openReportProblem(BuildContext context) {
     showModalBottomSheet(
@@ -95,7 +97,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                   ),
                                 );
                               } else if (state is HomeLoaded) {
-                                return _buildTripCardsSection(state.trips);
+                                return _buildTripCardsSection(context, state.trips);
                               } else if (state is HomeError) {
                                 return SizedBox(
                                   height: 280,
@@ -231,7 +233,7 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
-  /// ✅ MODIFIÉ : Afficher la photo de profil depuis l'API
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -244,7 +246,7 @@ class _HomePageContentState extends State<HomePageContent> {
           String userName = "user".tr();
           String? userPhoto;
 
-          // ✅ RÉCUPÉRER LE NOM ET LA PHOTO
+        
           if (authState is UserLoaded) {
             userName = authState.user.fullName;
             userPhoto = authState.user.photo;
@@ -262,7 +264,7 @@ class _HomePageContentState extends State<HomePageContent> {
             children: [
               Row(
                 children: [
-                  // ✅ PHOTO DE PROFIL DEPUIS L'API
+                  
                   _buildProfileAvatar(userPhoto),
                   
                   const SizedBox(width: AppConstants.spacingL),
@@ -289,16 +291,36 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  GestureDetector(
-                    //onTap: () => _openDiscussions(context),
-                    child: _buildNotifIconSvg('assets/icons/notif.svg', 1),
-                  ),
-                  const SizedBox(width: AppConstants.spacingL),
-                  _buildNotifIconSvg('assets/icons/Settings.svg', 0),
-                ],
-              ),
+              // Dans _buildHeader (home.dart)
+Row(
+  children: [
+    _buildNotifIconSvg(
+      'assets/icons/notif.svg', 
+      1, 
+      () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NotificationsPage()),
+        );
+      }
+    ),
+    const SizedBox(width: AppConstants.spacingL),
+    // Icône Notifications ou Paramètres
+    _buildNotifIconSvg(
+      'assets/icons/Settings.svg', 
+      0, 
+      () {
+        debugPrint("⚙️ Navigation vers Paramètres");
+       Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NotificationsPage()),
+        );
+      }
+      }
+    ),
+  ],
+),
+)
             ],
           );
         },
@@ -306,7 +328,7 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
-  /// ✅ NOUVEAU : Widget pour afficher la photo de profil
+  /// ✅ Widget pour afficher la photo de profil
   Widget _buildProfileAvatar(String? photoUrl) {
     // Pas de photo → Avatar par défaut
     if (photoUrl == null || photoUrl.isEmpty) {
@@ -331,7 +353,7 @@ class _HomePageContentState extends State<HomePageContent> {
       );
     }
 
-    // URL complète (commence par http:// ou https://)
+    // URL complète
     if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
       return CircleAvatar(
         radius: 28,
@@ -343,7 +365,7 @@ class _HomePageContentState extends State<HomePageContent> {
       );
     }
 
-    // URL relative → Construire l'URL complète
+    // URL relative
     final fullUrl = 'http://86.106.181.31:3000$photoUrl';
     
     debugPrint('🖼️ [HomePage] Loading profile photo: $fullUrl');
@@ -353,15 +375,16 @@ class _HomePageContentState extends State<HomePageContent> {
       backgroundColor: AppColors.white,
       backgroundImage: NetworkImage(fullUrl),
       onBackgroundImageError: (exception, stackTrace) {
-        debugPrint('⚠️ Erreur chargement photo: $exception');
+        debugPrint('⚠️ Erreur chargement photo parent: $exception');
       },
-      // Fallback si l'image ne charge pas
-      child: const SizedBox.shrink(),
     );
   }
 
-  Widget _buildNotifIconSvg(String svgPath, int notifCount) {
-    return Stack(
+  Widget _buildNotifIconSvg(String svgPath, int notifCount, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap, // C'est ici que l'action se déclenche
+    behavior: HitTestBehavior.opaque, // Pour que toute la zone soit cliquable
+    child: Stack(
       clipBehavior: Clip.none,
       children: [
         SizedBox(
@@ -400,11 +423,24 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
           ),
       ],
-    );
-  }
+    ),
+  );
+}
 
-  /// ✅ MODIFIÉ : Navigation intelligente selon si le trajet est réservé
-  Widget _buildTripCardsSection(List<TripModel> trips) {
+  /// ✅ MODIFIÉ : Section cards avec navigation intelligente
+  Widget _buildTripCardsSection(BuildContext context, List<TripModel> trips) {
+    if (trips.isEmpty) {
+      return const SizedBox(
+        height: 280,
+        child: Center(
+          child: Text(
+            'Aucun trajet disponible',
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 280,
       child: ListView.builder(
@@ -413,6 +449,8 @@ class _HomePageContentState extends State<HomePageContent> {
         itemCount: trips.length,
         itemBuilder: (context, index) {
           final trip = trips[index];
+          final homeBloc = context.read<HomeBloc>();
+          final isReserved = homeBloc.isTripReserved(trip.id);
           
           return Padding(
             padding: EdgeInsets.only(
@@ -422,7 +460,8 @@ class _HomePageContentState extends State<HomePageContent> {
               width: MediaQuery.of(context).size.width * 0.85,
               child: TripCardWidget(
                 trip: trip,
-                onTap: () => _handleTripTap(context, trip),
+                isReserved: isReserved, // ✅ Passer le statut réservé
+                onTap: () => _handleTripTap(context, trip, isReserved),
               ),
             ),
           );
@@ -432,17 +471,14 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   /// ✅ NOUVEAU : Gestion intelligente de la navigation
-  void _handleTripTap(BuildContext context, TripModel trip) {
-    final homeBloc = context.read<HomeBloc>();
-    final isReserved = homeBloc.isTripReserved(trip.id);
-
+  void _handleTripTap(BuildContext context, TripModel trip, bool isReserved) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🏠 [HomePage] TAP SUR CARD');
     debugPrint('   Trip ID: ${trip.id}');
     debugPrint('   Destination: ${trip.destination}');
     debugPrint('   Status: ${trip.status}');
     debugPrint('   Est réservé: $isReserved');
-    debugPrint('   → ${isReserved ? "TripTrackingPage" : "TripDetailPage"}');
+    debugPrint('   → ${isReserved ? "TripTrackingPage ✅" : "TripDetailPage 📝"}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     if (isReserved) {
@@ -584,30 +620,4 @@ class _HomePageContentState extends State<HomePageContent> {
       ),
     );
   }
-}
-
-class DashedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey.shade400
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    const dashHeight = 3;
-    const dashSpace = 3;
-    double startY = 0;
-
-    while (startY < size.height) {
-      canvas.drawLine(
-        Offset(size.width / 2, startY),
-        Offset(size.width / 2, startY + dashHeight),
-        paint,
-      );
-      startY += dashHeight + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

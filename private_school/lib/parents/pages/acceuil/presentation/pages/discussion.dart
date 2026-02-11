@@ -1,4 +1,4 @@
-/*
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -243,7 +243,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
     );
   }
 
-  /*Widget _buildConversationsList(ConversationLoaded state) {
+  Widget _buildConversationsList(ConversationLoaded state) {
     final conversations = state.displayedConversations;
 
     if (conversations.isEmpty) {
@@ -270,104 +270,9 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         },
       ),
     );
-  }*/
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.spacingXL),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _showArchived ? Icons.archive_outlined : Icons.chat_bubble_outline,
-              size: 80,
-              color: AppColors.grey400,
-            ),
-            const SizedBox(height: AppConstants.spacingL),
-            Text(
-              _showArchived
-                  ? 'Aucune conversation archivée'
-                  : 'Aucune conversation',
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeXL,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textWhite,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppConstants.spacingS),
-            Text(
-              _showArchived
-                  ? 'Les conversations archivées apparaîtront ici'
-                  : 'Commencez une nouvelle conversation\nen appuyant sur le bouton +',
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeM,
-                color: AppColors.grey600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
-  Widget _buildErrorState(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.spacingXL),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 80,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: AppConstants.spacingL),
-            Text(
-              'Erreur',
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeXL,
-                fontWeight: FontWeight.w600,
-                color: AppColors.error,
-              ),
-            ),
-            const SizedBox(height: AppConstants.spacingS),
-            Text(
-              message,
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeM,
-                color: AppColors.grey600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppConstants.spacingL),
-            ElevatedButton.icon(
-              onPressed: () {
-                context.read<ConversationBloc>().add(
-                      const LoadConversationsEvent(),
-                    );
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.spacingXL,
-                  vertical: AppConstants.spacingM,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /*void _openChat(ConversationModel conversation) async {
+  void _openChat(ConversationModel conversation) async {
     debugPrint('🔄 Ouverture du chat: ${conversation.displayName}');
     await Navigator.push(
       context,
@@ -376,11 +281,10 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
       ),
     );
     
-    // Rafraîchir la liste quand on revient
     if (mounted) {
       context.read<ConversationBloc>().add(const RefreshConversationsEvent());
     }
-  }*/
+  }
 
   void _showConversationOptions(ConversationModel conversation) {
     showModalBottomSheet(
@@ -450,8 +354,6 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   }
 
   void _showNewConversationDialog() {
-    // TODO: Implémenter la création de nouvelle conversation
-    // Pour l'instant, afficher un message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Fonctionnalité à venir : Nouvelle conversation'),
@@ -459,5 +361,99 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
       ),
     );
   }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.spacingXL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _showArchived ? Icons.archive_outlined : Icons.chat_bubble_outline,
+              size: 80,
+              color: AppColors.grey400,
+            ),
+            const SizedBox(height: AppConstants.spacingL),
+            Text(
+              _showArchived
+                  ? 'Aucune conversation archivée'
+                  : 'Aucune conversation',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeXL,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppConstants.spacingS),
+            Text(
+              _showArchived
+                  ? 'Les conversations archivées apparaîtront ici'
+                  : 'Commencez une nouvelle conversation\nen appuyant sur le bouton +',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeM,
+                color: AppColors.grey600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.spacingXL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 80,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: AppConstants.spacingL),
+            Text(
+              'Erreur',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeXL,
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: AppConstants.spacingS),
+            Text(
+              message,
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeM,
+                color: AppColors.grey600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppConstants.spacingL),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<ConversationBloc>().add(
+                      const LoadConversationsEvent(),
+                    );
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Réessayer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacingXL,
+                  vertical: AppConstants.spacingM,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
-*/

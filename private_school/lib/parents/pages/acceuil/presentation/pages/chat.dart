@@ -1,4 +1,4 @@
-/*
+
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -40,10 +40,8 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _loadCurrentUser();
     
-    // ✅ CORRECTION 1 : Convertir conversation.id en int
-    final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
     context.read<MessageBloc>().add(
-          LoadMessagesEvent(conversationId: conversationId),
+          LoadMessagesEvent(conversationId: widget.conversation.id),
         );
   }
 
@@ -240,9 +238,8 @@ class _ChatPageState extends State<ChatPage> {
         IconButton(
           icon: const Icon(Icons.refresh, color: AppColors.white),
           onPressed: () {
-            final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
             context.read<MessageBloc>().add(
-                  RefreshMessagesEvent(conversationId: conversationId),
+                  RefreshMessagesEvent(conversationId: widget.conversation.id),
                 );
           },
         ),
@@ -259,9 +256,8 @@ class _ChatPageState extends State<ChatPage> {
           child: RefreshIndicator(
             color: AppColors.success,
             onRefresh: () async {
-              final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
               context.read<MessageBloc>().add(
-                    RefreshMessagesEvent(conversationId: conversationId),
+                    RefreshMessagesEvent(conversationId: widget.conversation.id),
                   );
               await Future.delayed(const Duration(seconds: 1));
             },
@@ -516,9 +512,8 @@ class _ChatPageState extends State<ChatPage> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
               context.read<MessageBloc>().add(
-                    LoadMessagesEvent(conversationId: conversationId),
+                    LoadMessagesEvent(conversationId: widget.conversation.id),
                   );
             },
             icon: const Icon(Icons.refresh),
@@ -536,12 +531,10 @@ class _ChatPageState extends State<ChatPage> {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
-
     if (_editingMessage != null) {
       context.read<MessageBloc>().add(UpdateMessageEvent(
-            conversationId: conversationId,
-            messageId: int.tryParse(_editingMessage!.id.toString()) ?? 0,
+            conversationId: widget.conversation.id,
+            messageId: _editingMessage!.id,
             content: content,
           ));
       setState(() => _editingMessage = null);
@@ -552,7 +545,7 @@ class _ChatPageState extends State<ChatPage> {
         replyToId = state.replyToId;
       }
       context.read<MessageBloc>().add(SendMessageEvent(
-            conversationId: conversationId,
+            conversationId: widget.conversation.id,
             content: content,
             replyToId: replyToId,
           ));
@@ -562,7 +555,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _setReplyToMessage(MessageModel message) {
     context.read<MessageBloc>().add(SetReplyToMessageEvent(
-          messageId: int.tryParse(message.id.toString()) ?? 0,
+          messageId: message.id,
           messageContent: message.content,
           senderName: message.senderName,
         ));
@@ -629,8 +622,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _confirmDelete(MessageModel message) {
-    final conversationId = int.tryParse(widget.conversation.id.toString()) ?? 0;
-    
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -645,8 +636,8 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () {
               Navigator.pop(ctx);
               context.read<MessageBloc>().add(DeleteMessageEvent(
-                    conversationId: conversationId,
-                    messageId: int.tryParse(message.id.toString()) ?? 0,
+                    conversationId: widget.conversation.id,
+                    messageId: message.id,
                   ));
             },
             child: const Text('Supprimer',
@@ -656,4 +647,4 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-}*/
+}

@@ -7,14 +7,14 @@ import 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository repository;
   
-  // ✅ NOUVEAU : Cache des IDs des trajets réservés
+  // ✅ Cache des IDs des trajets réservés
   Set<String> _reservedTripIds = {};
 
   HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadDriversEvent>(_onLoadDrivers);
   }
 
-  /// ✅ MODIFIÉ : Charger les trajets disponibles avec filtrage des réservés
+  /// ✅ MODIFIÉ : Charger TOUS les trajets + Trier (réservés en premier)
   Future<void> _onLoadDrivers(
     LoadDriversEvent event,
     Emitter<HomeState> emit,
@@ -22,7 +22,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🏠 [HomeBloc] LOAD TRIPS FOR HOME PAGE');
+      debugPrint('🏠 [HomeBloc] LOAD ALL TRIPS FOR HOME PAGE');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // 1️⃣ Charger TOUS les trajets disponibles
@@ -35,7 +35,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final reservations = await repository.getMyReservations();
         _reservedTripIds = reservations.map((trip) => trip.id).toSet();
         
-        debugPrint('🔖 Trajets déjà réservés: ${_reservedTripIds.length}');
+        debugPrint('🔖 Trajets réservés: ${_reservedTripIds.length}');
         if (_reservedTripIds.isNotEmpty) {
           debugPrint('   IDs réservés: $_reservedTripIds');
         }
@@ -44,26 +44,36 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _reservedTripIds = {};
       }
 
-      // 3️⃣ Filtrer pour exclure les trajets déjà réservés
-      final availableTrips = allTrips.where((trip) {
-        final isReserved = _reservedTripIds.contains(trip.id);
+      // 3️⃣ ✅ TRIER : Trajets réservés EN PREMIER
+      allTrips.sort((a, b) {
+        final aReserved = _reservedTripIds.contains(a.id);
+        final bReserved = _reservedTripIds.contains(b.id);
         
-        if (isReserved) {
-          debugPrint('   ⏭️ Exclu (réservé): ID ${trip.id} - ${trip.destination}');
-        }
-        
-        return !isReserved; // Garder seulement les NON réservés
-      }).toList();
+        // Si a est réservé et b non → a avant b
+        if (aReserved && !bReserved) return -1;
+        // Si b est réservé et a non → b avant a
+        if (!aReserved && bReserved) return 1;
+        // Sinon même priorité
+        return 0;
+      });
 
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('✅ RÉSULTAT FILTRAGE (HOME):');
-      debugPrint('   Total API: ${allTrips.length}');
-      debugPrint('   Réservés: ${_reservedTripIds.length}');
-      debugPrint('   Disponibles (après filtre): ${availableTrips.length}');
+      debugPrint('✅ RÉSULTAT TRI (HOME):');
+      debugPrint('   Total trajets: ${allTrips.length}');
+      debugPrint('   Réservés (en premier): ${_reservedTripIds.length}');
+      debugPrint('');
+      
+      // Afficher les 3 premiers pour debug
+      for (var i = 0; i < (allTrips.length > 3 ? 3 : allTrips.length); i++) {
+        final trip = allTrips[i];
+        final isReserved = _reservedTripIds.contains(trip.id);
+        debugPrint('   ${i + 1}. ${isReserved ? "🔖 RÉSERVÉ" : "⭕ Disponible"} - ID ${trip.id} - ${trip.destination}');
+      }
+      
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      emit(HomeLoaded(trips: availableTrips));
+      emit(HomeLoaded(trips: allTrips));
     } catch (e) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -75,11 +85,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
   }
 
-  /// ✅ NOUVEAU : Vérifier si un trajet est réservé
+  /// ✅ Vérifier si un trajet est réservé
   bool isTripReserved(String tripId) {
-    return _reservedTripIds.contains(tripId);
+    final isReserved = _reservedTripIds.contains(tripId);
+    
+    debugPrint('🔍 [HomeBloc] Vérification réservation:');
+    debugPrint('   Trip ID: $tripId');
+    debugPrint('   Est réservé: $isReserved');
+    
+    return isReserved;
   }
 
-  /// ✅ NOUVEAU : Obtenir les IDs réservés (pour debug)
+  /// ✅ Obtenir les IDs réservés (pour debug)
   Set<String> get reservedTripIds => _reservedTripIds;
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
-import 'passenger_model.dart'; // ✅ Import du fichier séparé
+import 'passenger_model.dart';
 
 class TripModel {
   final String id;
@@ -20,6 +20,13 @@ class TripModel {
   final DateTime? completedAt;
   final String? cancelReason;
   final DriverModel? driver;
+  
+  // ===== Mobile enriched fields =====
+  final String? driverPhone;
+  final int? driverRating;
+  final String? driverPhoto;
+  final String? vehiclePlate;
+  final String? vehiclePhoto;
 
   TripModel({
     required this.id,
@@ -38,6 +45,11 @@ class TripModel {
     this.completedAt,
     this.cancelReason,
     this.driver,
+    this.driverPhone,
+    this.driverRating,
+    this.driverPhoto,
+    this.vehiclePlate,
+    this.vehiclePhoto,
   });
 
   // ========== GETTERS ==========
@@ -68,12 +80,19 @@ class TripModel {
   
   String get duration => '1h 00min';
   String get driverName => driver?.fullName ?? 'Chauffeur non assigné';
-  String get driverImg => driver?.photo ?? '';
+  String get driverImg => driver?.photo ?? driverPhoto ?? '';
   
   String get formattedDate => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  
+  bool get hasDriverPhoto => (driver?.photo != null && driver!.photo!.isNotEmpty) || 
+                             (driverPhoto != null && driverPhoto!.isNotEmpty);
+  String get driverPhotoUrl => driver?.photo ?? driverPhoto ?? '';
+  
+  bool get hasVehiclePhoto => vehiclePhoto != null && vehiclePhoto!.isNotEmpty && 
+                              !vehiclePhoto!.contains('drive.google.com'); // ⚠️ Exclure Google Drive
+  String get vehiclePhotoUrl => vehiclePhoto ?? '';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
-    // ✅ LOG 1 : Afficher tout le JSON reçu
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🔍 [TripModel] JSON REÇU DE L\'API:');
     debugPrint(json.toString());
@@ -98,7 +117,6 @@ class TripModel {
     final departureDateTime = parseDate(json['departure_time'] ?? json['date']);
     final timeStr = '${departureDateTime.hour.toString().padLeft(2, '0')}:${departureDateTime.minute.toString().padLeft(2, '0')}';
 
-    // ✅ LOG 2 : Capacité du véhicule
     debugPrint('📊 [TripModel] CAPACITÉ:');
     debugPrint('   capacity_max brut: ${json['capacity_max']}');
     debugPrint('   totalSeats brut: ${json['totalSeats']}');
@@ -107,7 +125,6 @@ class TripModel {
     final capacityMax = safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0);
     debugPrint('   ✅ Capacité finale: $capacityMax');
 
-    // ✅ LOG 3 : Passagers
     debugPrint('👥 [TripModel] PASSAGERS:');
     debugPrint('   passengers brut: ${json['passengers']}');
     debugPrint('   Type passengers: ${json['passengers'].runtimeType}');
@@ -133,6 +150,53 @@ class TripModel {
       }
     }
 
+    // ===== MOBILE DRIVER FIELDS (avec URL complètes) =====
+    const String baseUrl = "http://86.106.181.31:3000";
+    
+    final mobileDriverName = json['driver_name']?.toString();
+    final mobileDriverPhone = json['driver_phone']?.toString();
+    final mobileDriverRating = json['driver_rating'] is int
+        ? json['driver_rating']
+        : (json['driver_rating'] is String
+            ? int.tryParse(json['driver_rating'])
+            : null);
+    
+    // ✅ PHOTO CHAUFFEUR avec URL complète
+    String? mobileDriverPhoto = json['driver_photo']?.toString();
+    if (mobileDriverPhoto != null && mobileDriverPhoto.isNotEmpty) {
+      if (!mobileDriverPhoto.startsWith('http')) {
+        mobileDriverPhoto = '$baseUrl$mobileDriverPhoto';
+      }
+    }
+    
+    final mobileVehiclePlate = json['vehicle_plate']?.toString();
+    
+    // ✅ PHOTO VÉHICULE avec URL complète (sauf Google Drive)
+    String? mobileVehiclePhoto = json['vehicle_photo']?.toString();
+    if (mobileVehiclePhoto != null && mobileVehiclePhoto.isNotEmpty) {
+      // Si ce n'est PAS Google Drive ET que c'est un chemin relatif
+      if (!mobileVehiclePhoto.startsWith('http')) {
+        mobileVehiclePhoto = '$baseUrl$mobileVehiclePhoto';
+      }
+      // Si c'est Google Drive, on le garde mais on sait qu'il ne s'affichera pas
+      if (mobileVehiclePhoto.contains('drive.google.com')) {
+        debugPrint('⚠️ Photo véhicule est un lien Google Drive (non affichable)');
+      }
+    }
+
+    // Si pas d'objet driver mais infos mobiles disponibles → créer un driver
+    if (parsedDriver == null && mobileDriverName != null) {
+      final nameParts = mobileDriverName.split(RegExp(r'\s+'));
+      parsedDriver = DriverModel(
+        id: json['driver_id']?.toString() ?? '',
+        firstName: nameParts.isNotEmpty ? nameParts.first : mobileDriverName,
+        lastName: nameParts.length > 1 ? nameParts.skip(1).join(' ') : '',
+        email: '',
+        phone: mobileDriverPhone ?? '',
+        photo: mobileDriverPhoto, // ✅ URL COMPLÈTE
+      );
+    }
+
     List<SchoolModel> parsedSchools = [];
     if (json['schools'] != null && json['schools'] is List) {
       parsedSchools = (json['schools'] as List)
@@ -148,7 +212,6 @@ class TripModel {
       ];
     }
 
-    // ✅ LOG 4 : Résumé final
     debugPrint('');
     debugPrint('✅ [TripModel] RÉSUMÉ PARSING:');
     debugPrint('   ID: ${json['id']?.toString() ?? json['_id']?.toString()}');
@@ -157,6 +220,8 @@ class TripModel {
     debugPrint('   Passagers: ${parsedPassengers.length}');
     debugPrint('   Écoles: ${parsedSchools.length}');
     debugPrint('   Status: ${json['status']}');
+    debugPrint('   Photo chauffeur: $mobileDriverPhoto');
+    debugPrint('   Photo véhicule: $mobileVehiclePhoto');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     return TripModel(
@@ -176,6 +241,11 @@ class TripModel {
       completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
       cancelReason: json['cancelReason']?.toString(),
       driver: parsedDriver,
+      driverPhone: mobileDriverPhone,
+      driverRating: mobileDriverRating,
+      driverPhoto: mobileDriverPhoto, // ✅ URL COMPLÈTE
+      vehiclePlate: mobileVehiclePlate,
+      vehiclePhoto: mobileVehiclePhoto, // ✅ URL COMPLÈTE
     );
   }
 

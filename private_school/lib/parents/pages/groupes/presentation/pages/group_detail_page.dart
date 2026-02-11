@@ -84,43 +84,34 @@ class GroupDetailPageContent extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
                     child: Text(
                       initialGroup.name,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  // 🆕 BOUTON AJOUTER MEMBRE (TOUJOURS VISIBLE)
-                  BlocBuilder<GroupBloc, GroupState>(
-                    builder: (context, state) {
-                      return IconButton(
-                        icon: const Icon(
-                          Icons.person_add,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          final groupId = state is GroupDetailsLoaded
-                              ? state.group.id
-                              : initialGroup.id;
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) =>
-                                InviteMemberModal(groupId: groupId),
+                  // ✅ BOUTON INVITER — avec Builder pour bon contexte
+                  Builder(
+                    builder: (btnContext) {
+                      return BlocBuilder<GroupBloc, GroupState>(
+                        builder: (context, state) {
+                          return IconButton(
+                            icon: const Icon(Icons.person_add, color: Colors.white, size: 24),
+                            onPressed: () {
+                              final groupId = state is GroupDetailsLoaded
+                                  ? state.group.id
+                                  : initialGroup.id;
+                              showModalBottomSheet(
+                                context: context, // ✅ Utilise le contexte du BlocProvider
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => InviteMemberModal(groupId: groupId),
+                              );
+                            },
                           );
                         },
                       );
@@ -136,10 +127,7 @@ class GroupDetailPageContent extends StatelessWidget {
             BlocBuilder<GroupBloc, GroupState>(
               builder: (context, state) {
                 int selectedTab = 0;
-                if (state is GroupDetailsLoaded) {
-                  selectedTab = state.selectedTabIndex;
-                }
-
+                if (state is GroupDetailsLoaded) selectedTab = state.selectedTabIndex;
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
@@ -148,22 +136,13 @@ class GroupDetailPageContent extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
                       ],
                     ),
                     child: Row(
                       children: [
                         _buildTabButton(context, 'Planning', 0, selectedTab),
-                        _buildTabButton(
-                          context,
-                          'Membres(${initialGroup.membersCount})',
-                          1,
-                          selectedTab,
-                        ),
+                        _buildTabButton(context, 'Membres(${initialGroup.membersCount})', 1, selectedTab),
                         _buildTabButton(context, 'Historiques', 2, selectedTab),
                       ],
                     ),
@@ -181,10 +160,7 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is PlanningCreated) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Planning créé avec succès',
-                          style: GoogleFonts.inter(),
-                        ),
+                        content: Text('Planning créé avec succès ✅', style: GoogleFonts.inter()),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -192,10 +168,7 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is MemberInvited) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Invitation envoyée',
-                          style: GoogleFonts.inter(),
-                        ),
+                        content: Text('Invitation envoyée ✅', style: GoogleFonts.inter()),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -203,86 +176,71 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is ReplacementRequested) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Demande de remplacement envoyée',
-                          style: GoogleFonts.inter(),
-                        ),
+                        content: Text('Demande de remplacement envoyée', style: GoogleFonts.inter()),
                         backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
+                  if (state is GroupError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message, style: GoogleFonts.inter()),
+                        backgroundColor: Colors.red,
                       ),
                     );
                   }
                 },
                 builder: (context, state) {
                   if (state is GroupLoading) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.success,
-                      ),
-                    );
+                    return Center(child: CircularProgressIndicator(color: AppColors.success));
                   }
-
                   if (state is GroupDetailsLoaded) {
                     return _buildTabContent(context, state);
                   }
-
-                  // État par défaut avec les données initiales
-                  return _buildTabContent(
-                    context,
-                    GroupDetailsLoaded(group: initialGroup),
-                  );
+                  return _buildTabContent(context, GroupDetailsLoaded(group: initialGroup));
                 },
               ),
             ),
           ],
         ),
       ),
-      // 🔧 FAB uniquement sur le tab Planning
-      floatingActionButton: BlocBuilder<GroupBloc, GroupState>(
-        builder: (context, state) {
-          int selectedTab = 0;
-          if (state is GroupDetailsLoaded) {
-            selectedTab = state.selectedTabIndex;
-          }
+      // ✅ FAB CRÉER PLANNING — avec Builder pour bon contexte
+      floatingActionButton: Builder(
+        builder: (fabContext) {
+          return BlocBuilder<GroupBloc, GroupState>(
+            builder: (context, state) {
+              int selectedTab = 0;
+              if (state is GroupDetailsLoaded) selectedTab = state.selectedTabIndex;
 
-          // Afficher uniquement sur le tab Planning (index 0)
-          if (selectedTab == 0) {
-            final groupId = state is GroupDetailsLoaded
-                ? state.group.id
-                : initialGroup.id;
+              if (selectedTab != 0) return const SizedBox.shrink();
 
-            return FloatingActionButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => CreatePlanningModal(groupId: groupId),
-                );
-              },
-              backgroundColor: AppColors.success,
-              child: const Icon(Icons.add, color: Colors.white),
-            );
-          }
+              final groupId = state is GroupDetailsLoaded ? state.group.id : initialGroup.id;
 
-          return const SizedBox.shrink();
+              return FloatingActionButton(
+                onPressed: () {
+                  debugPrint('📅 [FAB] Opening CreatePlanningModal for group: $groupId');
+                  showModalBottomSheet(
+                    context: context, // ✅ Utilise le contexte du BlocProvider
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => CreatePlanningModal(groupId: groupId),
+                  );
+                },
+                backgroundColor: AppColors.success,
+                child: const Icon(Icons.add, color: Colors.white),
+              );
+            },
+          );
         },
       ),
     );
   }
 
-  Widget _buildTabButton(
-    BuildContext context,
-    String label,
-    int tabIndex,
-    int selectedTabIndex,
-  ) {
+  Widget _buildTabButton(BuildContext context, String label, int tabIndex, int selectedTabIndex) {
     final isSelected = tabIndex == selectedTabIndex;
-
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          context.read<GroupBloc>().add(SelectGroupTabEvent(tabIndex));
-        },
+        onTap: () => context.read<GroupBloc>().add(SelectGroupTabEvent(tabIndex)),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -316,13 +274,11 @@ class GroupDetailPageContent extends StatelessWidget {
     }
   }
 
-  // TAB PLANNING
   Widget _buildPlanningTab(BuildContext context, GroupModel group) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // ALERTE SI PLANNING NON CONFIRMÉ
           if (group.plannings.any((p) => !p.isConfirmed))
             Container(
               padding: const EdgeInsets.all(16),
@@ -343,291 +299,163 @@ class GroupDetailPageContent extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Planning à confirmer',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.orange.shade900,
-                              ),
-                            ),
+                            Text('Planning à confirmer',
+                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.orange.shade900)),
                             const SizedBox(height: 4),
                             Text(
-                              'Veuillez confirmer votre disponibilité pour les jours où vous êtes assigné(e)',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Colors.orange.shade800,
-                              ),
-                            ),
+                                'Veuillez confirmer votre disponibilité pour les jours où vous êtes assigné(e)',
+                                style: GoogleFonts.inter(fontSize: 12, color: Colors.orange.shade800)),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                          Icons.close,
-                          color: Colors.orange.shade700,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          // Fermer l'alerte
-                        },
+                        icon: Icon(Icons.close, color: Colors.orange.shade700, size: 20),
+                        onPressed: () {},
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // BOUTON CONFIRMER EN BAS
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Confirmer planning
-                      },
+                      onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange.shade700,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: Text(
-                        'Confirmer',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Text('Confirmer', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
               ),
             ),
-
-          // LISTE DES PLANNINGS
           if (group.plannings.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(40),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 64,
-                      color: Colors.grey.shade300,
-                    ),
+                    Icon(Icons.calendar_today, size: 64, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    Text(
-                      'Aucun planning',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    Text('Aucun planning',
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
                     const SizedBox(height: 8),
-                    Text(
-                      'Créez votre premier planning',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
+                    Text('Créez votre premier planning',
+                        style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
                   ],
                 ),
               ),
             )
           else
-            ...group.plannings.map((planning) {
-              return _buildPlanningCard(context, planning, group);
-            }),
+            ...group.plannings.map((planning) => _buildPlanningCard(context, planning, group)),
         ],
       ),
     );
   }
 
-  Widget _buildPlanningCard(
-    BuildContext context,
-    Planning planning,
-    GroupModel group,
-  ) {
+  Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel group) {
     String dateStr;
     try {
       dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
     } catch (e) {
       dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
     }
-
     final isYou = planning.assignedTo == 'Vous';
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              // 🔧 ICÔNE WARNING À GAUCHE (pour remplacement demandé)
               if (planning.needsReplacement) ...[
                 Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.warning_amber,
-                      color: Colors.orange.shade700,
-                      size: 20,
-                    ),
-                  ),
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: Colors.orange.shade100, shape: BoxShape.circle),
+                  child: Center(child: Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20)),
                 ),
                 const SizedBox(width: 12),
               ],
-
-              // INITIALES
               Container(
-                width: 40,
-                height: 40,
+                width: 40, height: 40,
                 decoration: BoxDecoration(
-                  color: isYou
-                      ? AppColors.success.withValues(alpha: 0.2)
-                      : Colors.grey.shade200,
+                  color: isYou ? AppColors.success.withValues(alpha: 0.2) : Colors.grey.shade200,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text(
                     isYou
                         ? 'MN'
-                        : group.members
-                              .firstWhere(
-                                (m) => m.name == planning.assignedTo,
-                                orElse: () => GroupMember(
-                                  id: '',
-                                  name: planning.assignedTo,
-                                  role: '',
-                                  availability: '',
-                                ),
-                              )
-                              .displayInitials,
+                        : group.members.firstWhere((m) => m.name == planning.assignedTo,
+                            orElse: () => GroupMember(id: '', name: planning.assignedTo, role: '', availability: '')).displayInitials,
                     style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: isYou ? AppColors.success : Colors.grey.shade700,
-                    ),
+                        fontSize: 14, fontWeight: FontWeight.bold, color: isYou ? AppColors.success : Colors.grey.shade700),
                   ),
                 ),
               ),
-
               const SizedBox(width: 12),
-
-              // DATE ET NOM
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      dateStr,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
+                    Text(dateStr, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
                     const SizedBox(height: 2),
-                    Text(
-                      planning.assignedTo,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
+                    Text(planning.assignedTo, style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600)),
                   ],
                 ),
               ),
-
-              // STATUT À DROITE - Texte "En attente" ou icône check
               if (!planning.needsReplacement) ...[
                 if (planning.isPending)
-                  Text(
-                    'En attente',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.orange.shade600,
-                    ),
-                  )
+                  Text('En attente',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.orange.shade600))
                 else if (planning.isConfirmed)
                   Icon(Icons.check_circle, color: AppColors.success, size: 20),
               ],
             ],
           ),
-
-          // 🆕 BOUTON "Remplacer ma journée" DANS LA CARD
-          // Afficher si: c'est "Vous" ET pas de remplacement déjà demandé
           if (isYou && !planning.needsReplacement) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () {
-                  // Modal pour DEMANDER un remplacement (1 bouton Envoyer)
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (context) =>
-                        RequestReplacementModal(planning: planning),
+                    builder: (_) => RequestReplacementModal(planning: planning),
                   );
                 },
                 icon: Icon(Icons.sync, color: Colors.orange.shade700, size: 18),
-                label: Text(
-                  'Remplacer ma journée',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.orange.shade700,
-                  ),
-                ),
+                label: Text('Remplacer ma journée',
+                    style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.orange.shade700)),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.orange.shade200),
                   backgroundColor: Colors.orange.shade50,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ),
           ],
-
-          // 🆕 ALERTE REMPLACEMENT DEMANDÉ (avec icône sync)
-          if (planning.needsReplacement &&
-              planning.replacementReason != null) ...[
+          if (planning.needsReplacement && planning.replacementReason != null) ...[
             const SizedBox(height: 12),
             GestureDetector(
               onTap: () {
-                // Modal pour RÉPONDRE à une demande (2 boutons Refuser/Accepter)
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      RespondReplacementModal(planning: planning),
+                  builder: (_) => RespondReplacementModal(planning: planning),
                 );
               },
               child: Container(
@@ -640,24 +468,13 @@ class GroupDetailPageContent extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // 🔧 Icône sync (comme dans l'UI)
                     Icon(Icons.sync, color: Colors.orange.shade700, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        'Remplacement demandé',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange.shade900,
-                        ),
-                      ),
+                      child: Text('Remplacement demandé',
+                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.orange.shade900)),
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: Colors.orange.shade700,
-                      size: 18,
-                    ),
+                    Icon(Icons.chevron_right, color: Colors.orange.shade700, size: 18),
                   ],
                 ),
               ),
@@ -668,64 +485,38 @@ class GroupDetailPageContent extends StatelessWidget {
     );
   }
 
-  // TAB MEMBRES
   Widget _buildMembersTab(BuildContext context, GroupModel group) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // BARRE DE RECHERCHE
           Container(
             height: 48,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
             ),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Rechercher',
-                hintStyle: GoogleFonts.inter(
-                  color: Colors.grey.shade400,
-                  fontSize: 14,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.grey.shade500,
-                  size: 22,
-                ),
+                hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // LISTE DES MEMBRES
           if (group.members.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(40),
-                child: Text(
-                  'Aucun membre',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
+                child: Text('Aucun membre', style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
               ),
             )
           else
-            ...group.members.map((member) {
-              return _buildMemberCard(member);
-            }),
+            ...group.members.map((member) => _buildMemberCard(member)),
         ],
       ),
     );
@@ -738,95 +529,40 @@ class GroupDetailPageContent extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
-          // AVATAR
           Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
+            width: 48, height: 48,
+            decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.2), shape: BoxShape.circle),
             child: Center(
-              child: Text(
-                member.displayInitials,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.success,
-                ),
-              ),
+              child: Text(member.displayInitials,
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.success)),
             ),
           ),
-
           const SizedBox(width: 12),
-
-          // INFOS
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  member.name,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
+                Text(member.name, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
                 const SizedBox(height: 4),
-                Text(
-                  member.role,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                Text(member.role, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600)),
               ],
             ),
           ),
-
-          // DISPONIBILITÉ
-          Text(
-            member.availability,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.success,
-            ),
-          ),
+          Text(member.availability,
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.success)),
         ],
       ),
     );
   }
 
-  // TAB HISTORIQUES
   Widget _buildHistoryTab(BuildContext context, GroupModel group) {
-    // DONNÉES DE TEST - À remplacer par les vraies données
     final historyItems = [
-      {
-        'date': 'Vendredi 24 janvier',
-        'time': '10:23',
-        'from': 'Moussa Fall',
-        'to': 'Aïssatou Diop',
-        'reason': 'déplacement personnelle',
-      },
-      {
-        'date': 'Lundi 2 janvier',
-        'time': '08:14',
-        'from': 'Aïssatou Diop',
-        'to': 'Moussa Fall',
-        'reason': 'Panne de voiture',
-      },
+      {'date': 'Vendredi 24 janvier', 'time': '10:23', 'from': 'Moussa Fall', 'to': 'Aïssatou Diop', 'reason': 'déplacement personnelle'},
+      {'date': 'Lundi 2 janvier', 'time': '08:14', 'from': 'Aïssatou Diop', 'to': 'Moussa Fall', 'reason': 'Panne de voiture'},
     ];
 
     return SingleChildScrollView(
@@ -837,113 +573,53 @@ class GroupDetailPageContent extends StatelessWidget {
                 const SizedBox(height: 40),
                 Icon(Icons.history, size: 64, color: Colors.grey.shade300),
                 const SizedBox(height: 16),
-                Text(
-                  'Aucun historique',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                Text('Aucun historique',
+                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
                 const SizedBox(height: 8),
-                Text(
-                  'Les trajets passés apparaîtront ici',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
+                Text('Les trajets passés apparaîtront ici',
+                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
               ]
-            : historyItems.map((item) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+            : historyItems
+                .map((item) => Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ICÔNE SYNC ORANGE
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.sync,
-                            color: Colors.orange.shade600,
-                            size: 20,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 40, height: 40,
+                            decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle),
+                            child: Center(child: Icon(Icons.sync, color: Colors.orange.shade600, size: 20)),
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // CONTENU
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // DATE
-                            Text(
-                              item['date']!,
-                              style: GoogleFonts.inter(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item['date']!,
+                                    style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                                const SizedBox(height: 4),
+                                Text('${item['from']} → ${item['to']}',
+                                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade700)),
+                                const SizedBox(height: 8),
+                                Text('Raison : ${item['reason']}',
+                                    style:
+                                        GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+                              ],
                             ),
-
-                            const SizedBox(height: 4),
-
-                            // NOMS (FROM → TO)
-                            Text(
-                              '${item['from']} → ${item['to']}',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // RAISON
-                            Text(
-                              'Raison : ${item['reason']}',
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          Text(item['time']!, style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade500)),
+                        ],
                       ),
-
-                      // HEURE
-                      Text(
-                        item['time']!,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                    ))
+                .toList(),
       ),
     );
   }
