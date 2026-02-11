@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/trip_model.dart';
+import '../../data/repositories/evaluation_repository.dart';
 import 'review_submitted_dialog.dart';
 import '../../../../../core/utils/app_colors.dart';
 
@@ -17,6 +19,8 @@ class _ReviewPageState extends State<ReviewPage> {
   int _rating = 0;
   String? _selectedBadge;
   final _commentController = TextEditingController();
+  final _repository = EvaluationRepository();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -47,9 +51,7 @@ class _ReviewPageState extends State<ReviewPage> {
                   ),
                   // BOUTON FERMER (CROIX)
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       width: 32,
                       height: 32,
@@ -92,7 +94,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     // TITRE
                     Text(
-                      'Course terminé',
+                      'trip_completed'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -104,7 +106,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     // SOUS-TITRE
                     Text(
-                      'Merci pour votre confiance chez\nPrivate School Transport',
+                      'thank_you_message'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -117,7 +119,7 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     // NOTEZ VOTRE EXPÉRIENCE
                     Text(
-                      'Notez votre expérience',
+                      'rate_your_experience'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -155,7 +157,7 @@ class _ReviewPageState extends State<ReviewPage> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Qu\'avez-vous particulièrement apprécié ?',
+                        'what_did_you_appreciate'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -172,7 +174,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         Expanded(
                           child: _buildBadge(
                             icon: Icons.schedule,
-                            label: 'Ponctuel',
+                            label: 'punctual'.tr(),
                             id: 'ponctuel',
                           ),
                         ),
@@ -180,7 +182,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         Expanded(
                           child: _buildBadge(
                             icon: Icons.work_outline,
-                            label: 'Professionnel',
+                            label: 'professional'.tr(),
                             id: 'professionnel',
                           ),
                         ),
@@ -188,7 +190,7 @@ class _ReviewPageState extends State<ReviewPage> {
                         Expanded(
                           child: _buildBadge(
                             icon: Icons.mood,
-                            label: 'Sympathique',
+                            label: 'friendly'.tr(),
                             id: 'sympathique',
                           ),
                         ),
@@ -202,7 +204,7 @@ class _ReviewPageState extends State<ReviewPage> {
                       controller: _commentController,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: 'Laisser un commentaire',
+                        hintText: 'leave_comment'.tr(),
                         hintStyle: GoogleFonts.inter(
                           color: Colors.grey.shade400,
                           fontSize: 14,
@@ -248,23 +250,33 @@ class _ReviewPageState extends State<ReviewPage> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: _submitReview,
+            onPressed: _isSubmitting ? null : _submitReview,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
               foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey.shade300,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 0,
             ),
-            child: Text(
-              'Envoyer la note',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    'send_rating'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -319,22 +331,79 @@ class _ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  void _submitReview() {
+  Future<void> _submitReview() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Veuillez donner une note', style: GoogleFonts.inter()),
+          content: Text('please_give_rating'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Afficher le dialog de confirmation
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const ReviewSubmittedDialog(),
-    );
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🟢 [ReviewPage] ENVOI ÉVALUATION');
+      debugPrint('📤 Trip ID: ${widget.trip.id}');
+      debugPrint('📤 Rating: $_rating');
+      debugPrint('📤 Badge: $_selectedBadge');
+      debugPrint('📤 Comment: ${_commentController.text}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Envoyer l'évaluation au backend
+      final evaluation = await _repository.createEvaluation(
+        tripId: int.parse(widget.trip.id),
+        rating: _rating,
+        badge: _selectedBadge,
+        comment: _commentController.text.trim().isNotEmpty 
+            ? _commentController.text.trim() 
+            : null,
+      );
+
+      debugPrint('✅ Évaluation créée avec succès');
+      debugPrint('   ID: ${evaluation.id}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      if (!mounted) return;
+
+      // Afficher le dialog de confirmation
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const ReviewSubmittedDialog(),
+      );
+
+      if (!mounted) return;
+
+      // Fermer la page review après le dialog
+      Navigator.pop(context);
+      Navigator.pop(context); // Retour au tracking
+
+    } catch (e) {
+      debugPrint('❌ Erreur envoi évaluation: $e');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${'error_sending_review'.tr()}: $e',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

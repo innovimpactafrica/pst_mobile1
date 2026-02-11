@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class CurrentSubscriptionCard extends StatelessWidget {
   final String plan;
@@ -57,7 +59,8 @@ class CurrentSubscriptionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Date d\'expiration : $expiryDate',
+                 '${'expires_on'.tr()} : $expiryDate',
+
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -87,7 +90,8 @@ class CurrentSubscriptionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isActive ? 'Actif' : 'Inactif',
+                 isActive ? 'active'.tr() : 'inactive'.tr(),
+
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

@@ -270,7 +270,7 @@ class _VerificationState extends State<Verification> {
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ),

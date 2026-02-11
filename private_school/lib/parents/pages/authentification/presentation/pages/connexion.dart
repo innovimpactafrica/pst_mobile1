@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/parent_inscription.dart';
@@ -49,8 +50,8 @@ class _ConnexionState extends State<Connexion> {
             MaterialPageRoute(builder: (_) => const HomePage()),
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Connexion réussie !'),
+            SnackBar(
+              content: Text('login_success'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -92,9 +93,9 @@ class _ConnexionState extends State<Connexion> {
                           width: AppConstants.iconSizeM,
                         ),
                         const SizedBox(width: AppConstants.spacingS),
-                        const Text(
-                          "Français",
-                          style: TextStyle(
+                        Text(
+                          "french".tr(),
+                          style: const TextStyle(
                             fontSize: AppConstants.fontSizeM,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary,
@@ -116,8 +117,8 @@ class _ConnexionState extends State<Connexion> {
                   const SizedBox(height: AppConstants.spacingXXL),
 
                   // ======== Titre & Description ========
-                  const Text(
-                    "Connexion",
+                  Text(
+                    "login".tr(),
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeXXL,
                       fontWeight: FontWeight.bold,
@@ -137,13 +138,13 @@ class _ConnexionState extends State<Connexion> {
                   const SizedBox(height: AppConstants.spacingXXXL),
 
                   // ======== Champ Identification (Email) ========
-                  _buildInputLabel("Identification"),
+                  _buildInputLabel("identification".tr()),
                   const SizedBox(height: AppConstants.spacingS),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: _buildInputDecoration(
-                      hint: "Ex: bdiop@gmail.com",
+                      hint: "email_example".tr(),
                       prefixIcon: Icons.email_outlined,
                     ),
                   ),
@@ -151,13 +152,13 @@ class _ConnexionState extends State<Connexion> {
                   const SizedBox(height: AppConstants.spacingXL),
 
                   // ======== Champ Mot de passe ========
-                  _buildInputLabel("Mot de passe"),
+                  _buildInputLabel("password".tr()),
                   const SizedBox(height: AppConstants.spacingS),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: _buildInputDecoration(
-                      hint: "********",
+                      hint: "password_placeholder".tr(),
                       prefixIcon: Icons.lock_outline,
                       isPassword: true,
                     ),
@@ -173,8 +174,8 @@ class _ConnexionState extends State<Connexion> {
                         context,
                         MaterialPageRoute(builder: (_) => const MdpOubliePage()),
                       ),
-                      child: const Text(
-                        "Mot de passe oublié ?",
+                      child: Text(
+                        "forgot_password".tr(),
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -199,8 +200,8 @@ class _ConnexionState extends State<Connexion> {
                         elevation: 0,
                       ),
                       onPressed: _handleLogin,
-                      child: const Text(
-                        "Se connecter",
+                      child: Text(
+                        "connect".tr(),
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeL,
                           fontWeight: FontWeight.bold,
@@ -215,8 +216,8 @@ class _ConnexionState extends State<Connexion> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Vous n'avez pas de compte ? ",
+                      Text(
+                        "no_account_question".tr(),
                         style: TextStyle(color: AppColors.textSecondary),
                       ),
                       GestureDetector(
@@ -298,7 +299,7 @@ class _ConnexionState extends State<Connexion> {
   void _handleLogin() {
     if (_emailController.text.trim().isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+        SnackBar(content: Text('please_fill_all_fields'.tr())),
       );
       return;
     }

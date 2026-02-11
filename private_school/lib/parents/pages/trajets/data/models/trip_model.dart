@@ -70,10 +70,15 @@ class TripModel {
   String get driverName => driver?.fullName ?? 'Chauffeur non assigné';
   String get driverImg => driver?.photo ?? '';
   
-  // ✅ AJOUTÉ : Getter pour la date formatée
   String get formattedDate => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
+    // ✅ LOG 1 : Afficher tout le JSON reçu
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🔍 [TripModel] JSON REÇU DE L\'API:');
+    debugPrint(json.toString());
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
     int safeInt(dynamic value) {
       if (value == null) return 0;
       if (value is int) return value;
@@ -92,6 +97,32 @@ class TripModel {
 
     final departureDateTime = parseDate(json['departure_time'] ?? json['date']);
     final timeStr = '${departureDateTime.hour.toString().padLeft(2, '0')}:${departureDateTime.minute.toString().padLeft(2, '0')}';
+
+    // ✅ LOG 2 : Capacité du véhicule
+    debugPrint('📊 [TripModel] CAPACITÉ:');
+    debugPrint('   capacity_max brut: ${json['capacity_max']}');
+    debugPrint('   totalSeats brut: ${json['totalSeats']}');
+    debugPrint('   Type capacity_max: ${json['capacity_max'].runtimeType}');
+
+    final capacityMax = safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0);
+    debugPrint('   ✅ Capacité finale: $capacityMax');
+
+    // ✅ LOG 3 : Passagers
+    debugPrint('👥 [TripModel] PASSAGERS:');
+    debugPrint('   passengers brut: ${json['passengers']}');
+    debugPrint('   Type passengers: ${json['passengers'].runtimeType}');
+    
+    List<PassengerModel> parsedPassengers = [];
+    if (json['passengers'] != null && json['passengers'] is List) {
+      parsedPassengers = (json['passengers'] as List)
+          .map((p) => PassengerModel.fromJson(p as Map<String, dynamic>))
+          .toList();
+      debugPrint('   ✅ Nombre de passagers parsés: ${parsedPassengers.length}');
+    } else if (json['passengers'] != null && json['passengers'] is int) {
+      debugPrint('   ⚠️ passengers est un nombre: ${json['passengers']}');
+    } else {
+      debugPrint('   ⚠️ passengers est null ou type inconnu');
+    }
 
     DriverModel? parsedDriver;
     if (json['driver'] != null && json['driver'] is Map) {
@@ -117,12 +148,16 @@ class TripModel {
       ];
     }
 
-    List<PassengerModel> parsedPassengers = [];
-    if (json['passengers'] != null && json['passengers'] is List) {
-      parsedPassengers = (json['passengers'] as List)
-          .map((p) => PassengerModel.fromJson(p as Map<String, dynamic>))
-          .toList();
-    }
+    // ✅ LOG 4 : Résumé final
+    debugPrint('');
+    debugPrint('✅ [TripModel] RÉSUMÉ PARSING:');
+    debugPrint('   ID: ${json['id']?.toString() ?? json['_id']?.toString()}');
+    debugPrint('   Destination: ${json['end_point'] ?? json['destination']}');
+    debugPrint('   Total Seats: $capacityMax');
+    debugPrint('   Passagers: ${parsedPassengers.length}');
+    debugPrint('   Écoles: ${parsedSchools.length}');
+    debugPrint('   Status: ${json['status']}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     return TripModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
@@ -131,7 +166,7 @@ class TripModel {
       startLocation: json['start_point']?.toString() ?? json['lieuDepart']?.toString(),
       date: departureDateTime,
       time: timeStr,
-      totalSeats: safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0),
+      totalSeats: capacityMax,
       availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
       price: json['price'] != null ? (json['price'] as num).toDouble() : null,
       status: json['status']?.toString().toLowerCase() ?? 'pending',

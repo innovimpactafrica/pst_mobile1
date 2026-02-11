@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../core/utils/app_colors.dart';
 
@@ -22,10 +23,10 @@ class BottomNavBar extends StatelessWidget {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: AppColors.blackOpacity10,
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -34,25 +35,25 @@ class BottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(icon: Icons.home_rounded, label: 'Accueil', index: 0),
+            _buildNavItem(icon: Icons.home_rounded, label: 'home'.tr(), index: 0),
             _buildNavItem(
               icon: Icons.people_rounded,
-              label: 'Enfants',
+              label: 'children'.tr(),
               index: 1,
             ),
             _buildNavItem(
               icon: Icons.route_rounded,
-              label: 'Mes trajets',
+              label: 'my_trips'.tr(),
               index: 2,
             ),
             _buildNavItem(
               icon: Icons.groups_rounded,
-              label: 'Groupes',
+              label: 'groups'.tr(),
               index: 3,
             ),
             _buildNavItem(
               icon: Icons.person_rounded,
-              label: 'Profil',
+              label: 'profile'.tr(),
               index: 4,
             ),
           ],
@@ -77,7 +78,7 @@ class BottomNavBar extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.success : Colors.grey.shade500,
+              color: isSelected ? AppColors.success : AppColors.textSecondary,
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -86,7 +87,7 @@ class BottomNavBar extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? AppColors.success : Colors.grey.shade600,
+                color: isSelected ? AppColors.success : AppColors.grey600,
               ),
             ),
           ],

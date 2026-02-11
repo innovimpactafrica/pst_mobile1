@@ -1,57 +1,67 @@
-// Notification Service - API calls only
-// Path: lib/parents/profil/data/services/notification_service.dart
-
-import 'package:private_school/core/network/api_client.dart';
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../../../../core/network/api_client.dart';
 import '../models/notification_model.dart';
 
 class NotificationService {
   final ApiClient _apiClient = ApiClient();
 
+  /// Récupérer toutes les notifications du parent
   Future<List<NotificationModel>> fetchNotifications() async {
     try {
-      debugPrint('🔍 Fetching notifications...');
-
-      final response = await _apiClient.get('/api/notifications/user');
-
-      debugPrint('✅ Notifications received: ${response.statusCode}');
-
-      final List<dynamic> notificationsData = response.data is List
-          ? response.data
-          : response.data['data'] ?? response.data['notifications'] ?? [];
-
-      return notificationsData
-          .map(
-            (json) => NotificationModel.fromJson(json as Map<String, dynamic>),
-          )
-          .toList();
+      debugPrint('═══════════════════════════════════════════════════════');
+      debugPrint('📥 [NotificationService] GET /api/notifications');
+      debugPrint('═══════════════════════════════════════════════════════');
+      
+      final response = await _apiClient.get('/api/notifications');
+      
+      debugPrint('📦 Response: ${response.data}');
+      
+      if (response.data != null) {
+        final List<dynamic> notificationsList = response.data['notifications'] ?? response.data['data'] ?? [];
+        
+        debugPrint('✅ ${notificationsList.length} notification(s) récupérée(s)');
+        
+        return notificationsList
+            .map((json) => NotificationModel.fromJson(json))
+            .toList();
+      }
+      
+      return [];
     } catch (e) {
-      debugPrint('❌ Error fetching notifications: $e');
-      throw Exception('Failed to load notifications: $e');
+      debugPrint('❌ [NotificationService] Erreur: $e');
+      throw Exception('Erreur lors de la récupération des notifications: $e');
     }
   }
 
+  /// Marquer une notification comme lue
   Future<void> markAsRead(String notificationId) async {
     try {
-      await _apiClient.put(
-        '/api/notifications/$notificationId',
-        data: {'isRead': true},
-      );
-      debugPrint('✅ Notification marked as read');
+      debugPrint('═══════════════════════════════════════════════════════');
+      debugPrint('📝 [NotificationService] PUT /api/notifications/$notificationId/read');
+      debugPrint('═══════════════════════════════════════════════════════');
+      
+      await _apiClient.put('/api/notifications/$notificationId/read');
+      
+      debugPrint('✅ Notification marquée comme lue');
     } catch (e) {
-      debugPrint('❌ Error marking as read: $e');
-      throw Exception('Failed to mark as read: $e');
+      debugPrint('❌ [NotificationService] Erreur: $e');
+      throw Exception('Erreur lors du marquage: $e');
     }
   }
 
+  /// Supprimer une notification
   Future<void> deleteNotification(String notificationId) async {
     try {
+      debugPrint('═══════════════════════════════════════════════════════');
+      debugPrint('🗑️ [NotificationService] DELETE /api/notifications/$notificationId');
+      debugPrint('═══════════════════════════════════════════════════════');
+      
       await _apiClient.delete('/api/notifications/$notificationId');
-      debugPrint('✅ Notification deleted');
+      
+      debugPrint('✅ Notification supprimée');
     } catch (e) {
-      debugPrint('❌ Error deleting notification: $e');
-      throw Exception('Failed to delete notification: $e');
+      debugPrint('❌ [NotificationService] Erreur: $e');
+      throw Exception('Erreur lors de la suppression: $e');
     }
   }
 }

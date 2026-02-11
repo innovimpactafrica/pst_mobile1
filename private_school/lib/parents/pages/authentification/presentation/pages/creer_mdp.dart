@@ -382,13 +382,13 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                       ),
                       onPressed: isLoading ? null : _submit,
                       child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const CircularProgressIndicator(color: AppColors.white)
                           : const Text(
                               'Confirmer',
                               style: TextStyle(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                     ),

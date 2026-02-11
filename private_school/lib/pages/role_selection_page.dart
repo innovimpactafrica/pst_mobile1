@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/connexion.dart'
     as parent_auth;
@@ -33,7 +34,7 @@ class RoleSelectionPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    "Français",
+                    "french".tr(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -49,7 +50,7 @@ class RoleSelectionPage extends StatelessWidget {
               const SizedBox(height: 40),
 
               Text(
-                "Bienvenue sur\nPrivate School Transport",
+                "welcome_to_private_school_transport".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
@@ -60,7 +61,7 @@ class RoleSelectionPage extends StatelessWidget {
               const SizedBox(height: 16),
 
               Text(
-                "Choisissez votre profil pour continuer",
+                "choose_your_profile_to_continue".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: AppColors.textGrey),
               ),
@@ -68,8 +69,8 @@ class RoleSelectionPage extends StatelessWidget {
 
               _buildRoleCard(
                 context: context,
-                title: "Je suis un Parent",
-                subtitle: "Gérer les trajets de mes enfants",
+                title: "i_am_a_parent".tr(),
+                subtitle: "manage_my_children_trips".tr(),
                 icon: Icons.family_restroom,
                 color: AppColors.primary,
                 onTap: () {
@@ -85,8 +86,8 @@ class RoleSelectionPage extends StatelessWidget {
 
               _buildRoleCard(
                 context: context,
-                title: "Je suis un Chauffeur",
-                subtitle: "Gérer mes trajets et passagers",
+                title: "i_am_a_driver".tr(),
+                subtitle: "manage_my_trips_and_passengers".tr(),
                 icon: Icons.local_taxi,
                 color: AppColors.secondary,
                 onTap: () {

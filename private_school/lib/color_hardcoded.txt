@@ -1,0 +1,87 @@
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:478:        iconColor = const Color(0xFF16A34A);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:479:        backgroundColor = const Color(0xFFF0FDF4);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:483:        iconColor = const Color(0xFF3B82F6);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:484:        backgroundColor = const Color(0xFFDEEBFF);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:488:        iconColor = const Color(0xFFF59E0B);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:489:        backgroundColor = const Color(0xFFFEF3C7);
+chauffeurs\pages\dashboard\presentation\pages\dashboard_page.dart:504:          color: const Color(0xFFE5E5E5),
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:46:                  color: Color(0xFFF9FAFB),
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:125:              : const Color(0xFFE5E7EB),
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:155:                        color: Color(0xFF1F2937),
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:162:                        color: Color(0xFF6B7280),
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:173:                        ? const Color(0xFF1F2937)
+chauffeurs\pages\dashboard\presentation\pages\messagerie_page.dart:174:                        : const Color(0xFF6B7280),
+chauffeurs\pages\dashboard\presentation\pages\notifications_page.dart:375:              : const Color(0xFFEFF6FF),
+chauffeurs\pages\dashboard\presentation\pages\notifications_page.dart:470:        return const Color(0xFF3B82F6);
+chauffeurs\pages\dashboard\presentation\widgets\notifications_section.dart:85:            : const Color(0xFFEFF6FF),
+chauffeurs\pages\dashboard\presentation\widgets\notifications_section.dart:89:              ? const Color(0xFFE5E7EB)
+chauffeurs\pages\dashboard\presentation\widgets\notifications_section.dart:164:        return const Color(0xFF3B82F6);
+chauffeurs\pages\profil\presentation\pages\documents_page.dart:314:        boxShadow: const [BoxShadow(color: Color(0x0C000000), blurRadius: 10, offset: Offset(0, 2))],
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:14:      backgroundColor: const Color(0xFF2E3192),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:46:                  color: Color(0xFFF9FAFB),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:113:        border: Border.all(color: const Color(0xFFE5E7EB)),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:122:              color: const Color(0xFF10B981).withValues(alpha: 0.1),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:127:              color: Color(0xFF10B981),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:142:                    color: Color(0xFF1F2937),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:150:                    color: Color(0xFF6B7280),
+chauffeurs\pages\profil\presentation\pages\payment_history_page.dart:162:              color: Color(0xFF10B981),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:38:            color: Color(0xFF6B7280),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:53:            color: Color(0xFF1F2937),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:60:              color: Color(0xFF9CA3AF),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:72:                color: Color(0xFFE5E7EB),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:79:                color: Color(0xFFE5E7EB),
+chauffeurs\pages\profil\presentation\widgets\custom_text_field.dart:86:                color: Color(0xFF2E3192),
+chauffeurs\pages\profil\presentation\widgets\primary_button.dart:27:          backgroundColor: backgroundColor ?? const Color(0xFF2E3192),
+chauffeurs\pages\reports\presentation\widgets\report_problem_modal.dart:390:              color: const Color(0xFFD1D5DB),
+chauffeurs\pages\reports\presentation\widgets\report_problem_modal.dart:464:                color: Color(0xFFD1D5DB),
+chauffeurs\pages\reports\presentation\widgets\report_problem_modal.dart:471:                color: Color(0xFFD1D5DB),
+chauffeurs\pages\reports\presentation\widgets\report_problem_modal.dart:536:                color: const Color(0xFFD1D5DB),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:221:        color: const Color(0xFFE0E0E0),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:233:            color: Color(0xFFE5E5E5),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:284:                  color: const Color(0xFFF5F5F5),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:312:                      color: const Color(0xFFFEF3C7),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:314:                      border: Border.all(color: const Color(0xFFF59E0B)),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:318:                        Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:324:                              color: Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:349:                          fillColor: const Color(0xFFF5F5F5),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:463:                                  : const Color(0xFFFEF3C7),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:468:                                    : const Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:478:                                      : const Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:490:                                          : const Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\create_trip_modal.dart:549:            fillColor: const Color(0xFFF5F5F5),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:704:          'bgColor': const Color(0xFFFEF3C7),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:705:          'textColor': const Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:771:      const Color(0xFF3B82F6),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:772:      const Color(0xFF10B981),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:773:      const Color(0xFFF59E0B),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:774:      const Color(0xFFEF4444),
+chauffeurs\pages\trajets\presentation\widgets\trip_detail_modal.dart:775:      const Color(0xFF8B5CF6),
+parents\pages\authentification\presentation\pages\mdp_oublie.dart:221:                      color: const Color(0xFFEEF2F8), // Fond toggle exact Figma
+parents\pages\authentification\presentation\pages\mdp_oublie.dart:263:                                        : const Color(0xFF4B5563),
+parents\pages\authentification\presentation\pages\mdp_oublie.dart:275:                                          : const Color(0xFF4B5563),
+parents\pages\authentification\presentation\pages\mdp_oublie.dart:321:                                        : const Color(0xFF4B5563),
+parents\pages\authentification\presentation\pages\mdp_oublie.dart:333:                                          : const Color(0xFF4B5563),
+parents\pages\enfants\presentation\widgets\child_schedule_modal.dart:381:              color: isEnabled ? const Color(0xFFFF6B6B) : Colors.grey.shade300,
+parents\pages\groupes\presentation\pages\groupes_page.dart:346:                                  color: const Color(0xFF1E3A8A),
+parents\pages\groupes\presentation\pages\groupes_page.dart:420:                                  color: const Color(0xFF1E3A8A),
+parents\pages\reports\presentation\widgets\report_problem_modal.dart:390:              color: const Color(0xFFD1D5DB),
+parents\pages\reports\presentation\widgets\report_problem_modal.dart:464:                color: Color(0xFFD1D5DB),
+parents\pages\reports\presentation\widgets\report_problem_modal.dart:471:                color: Color(0xFFD1D5DB),
+parents\pages\reports\presentation\widgets\report_problem_modal.dart:536:                color: const Color(0xFFD1D5DB),
+parents\pages\trajets\presentation\pages\payment_page.dart:69:                  color: const Color(0xFF5B4FC7),
+parents\pages\trajets\presentation\pages\payment_page.dart:191:            color: isBold ? const Color(0xFF5B4FC7) : Colors.black87,
+parents\pages\trajets\presentation\pages\payment_page.dart:210:              ? const Color(0xFF5B4FC7).withValues(alpha: 0.1)
+parents\pages\trajets\presentation\pages\payment_page.dart:213:            color: isSelected ? const Color(0xFF5B4FC7) : Colors.grey.shade300,
+parents\pages\trajets\presentation\pages\payment_page.dart:225:                  ? const Color(0xFF5B4FC7)
+parents\pages\trajets\presentation\pages\payment_page.dart:235:                    ? const Color(0xFF5B4FC7)
+parents\pages\trajets\presentation\pages\payment_page.dart:276:              borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
+parents\pages\trajets\presentation\pages\payment_page.dart:322:              borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
+parents\pages\trajets\presentation\pages\payment_page.dart:373:                        borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
+parents\pages\trajets\presentation\pages\payment_page.dart:422:                        borderSide: const BorderSide(color: Color(0xFF5B4FC7)),
+parents\pages\trajets\presentation\pages\payment_page.dart:491:            color: isSelected ? const Color(0xFF5B4FC7) : Colors.grey.shade300,
+parents\pages\trajets\presentation\pages\payment_page.dart:498:                    color: const Color(0xFF5B4FC7).withValues(alpha: 0.1),
+parents\pages\trajets\presentation\pages\payment_page.dart:531:                color: isSelected ? const Color(0xFF5B4FC7) : Colors.black87,
+parents\pages\trajets\presentation\pages\trip_detail_page.dart:641:              backgroundColor: const Color(0xFF5B4FC7),
+parents\pages\trajets\presentation\widgets\passengers_list_modal.dart:184:      return const Color(0xFF4CAF50); // Fallback
+parents\pages\trajets\presentation\widgets\passengers_list_modal.dart:186:      return const Color(0xFF4CAF50); // Fallback
+parents\pages\trajets\presentation\widgets\payment_success_dialog.dart:78:                  backgroundColor: const Color(0xFF5B4FC7),

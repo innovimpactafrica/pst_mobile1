@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class DriverDetailsModal extends StatelessWidget {
   final DriverModel driver;
@@ -29,7 +30,7 @@ class DriverDetailsModal extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Détails chauffeur',
+                  'driver_details'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -126,7 +127,7 @@ class DriverDetailsModal extends StatelessWidget {
                           ),
                         ),
                         value: driver.totalTrips.toString(),
-                        label: 'Trajets réussis',
+                        label: 'successful_trips'.tr(),
                       ),
 
                       _buildStatColumn(
@@ -137,7 +138,7 @@ class DriverDetailsModal extends StatelessWidget {
                         ),
                         iconColor: AppColors.success,
                         value: driver.rating.toString(),
-                        label: '${driver.totalReviews} avis',
+                        label: '${driver.totalReviews} ${'reviews'.tr()}',
                       ),
 
                       _buildStatColumn(
@@ -148,7 +149,7 @@ class DriverDetailsModal extends StatelessWidget {
                         ),
                         iconColor: AppColors.success,
                         value: '${driver.successRate.toStringAsFixed(0)}%',
-                        label: 'Taux de réussite',
+                        label: 'success_rate'.tr(),
                       ),
                     ],
                   ),
@@ -160,7 +161,7 @@ class DriverDetailsModal extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Informations du véhicule',
+                        'vehicle_info'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -209,12 +210,12 @@ class DriverDetailsModal extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          _buildVehicleInfoRow('Modèle', driver.vehicle!.model),
+                          _buildVehicleInfoRow('model'.tr(), driver.vehicle!.model),
                           const Divider(height: 24),
-                          _buildVehicleInfoRow('Plaque', driver.vehicle!.plate),
+                          _buildVehicleInfoRow('plate'.tr(), driver.vehicle!.plate),
                           const Divider(height: 24),
                           _buildVehicleInfoRow(
-                            'Couleur',
+                            'color'.tr(),
                             driver.vehicle!.color,
                           ),
                         ],
@@ -236,7 +237,7 @@ class DriverDetailsModal extends StatelessWidget {
                           },
                           icon: const Icon(Icons.phone, size: 18),
                           label: Text(
-                            'Appeler',
+                            'call'.tr(),
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
                             ),
@@ -264,7 +265,7 @@ class DriverDetailsModal extends StatelessWidget {
                             color: AppColors.success,
                           ),
                           label: Text(
-                            'Message',
+                            'message'.tr(),
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
                               color: AppColors.success,

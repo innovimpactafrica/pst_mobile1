@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class SubscriptionCard extends StatelessWidget {
   final String title;
@@ -103,7 +105,8 @@ class SubscriptionCard extends StatelessWidget {
                     ),
                     onPressed: onSelect,
                     child: Text(
-                      'Sélectionner',
+                    'subscription.select'.tr(),
+
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -128,8 +131,9 @@ class SubscriptionCard extends StatelessWidget {
         color: AppColors.primary,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
       ),
-      child: Text(
-        'Recommandé',
+     child: Text(
+  'subscription.recommended'.tr(),
+
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 12,

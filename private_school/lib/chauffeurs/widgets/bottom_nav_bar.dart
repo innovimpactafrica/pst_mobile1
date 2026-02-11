@@ -2,6 +2,7 @@
 // Path: lib/chauffeurs/widgets/bottom_nav_bar.dart
 
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 
 class BottomNavBar extends StatelessWidget {
@@ -51,22 +52,22 @@ class BottomNavBar extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Accueil',
+              icon: const Icon(Icons.home),
+              label: 'home'.tr(),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.route),
-              label: 'Mes trajets',
+              icon: const Icon(Icons.route),
+              label: 'my_trips'.tr(),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.credit_card),
-              label: 'Abonnement',
+              icon: const Icon(Icons.credit_card),
+              label: 'subscription'.tr(),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profil',
+              icon: const Icon(Icons.person),
+              label: 'profile'.tr(),
             ),
           ],
         ),

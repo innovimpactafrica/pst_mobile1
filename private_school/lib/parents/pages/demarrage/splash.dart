@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 import 'bienvenu.dart';
 
 
@@ -31,7 +32,7 @@ class _SplashState extends State<Splash> {
       body: Container(
         width: size.width,
         height: size.height,
-        color: Colors.white,
+        color: AppColors.white,
         child: Stack(
           alignment: Alignment.center,
           children: [

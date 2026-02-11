@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
@@ -15,8 +16,9 @@ import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_card_widget.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_detail_page.dart';
+import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tracking_page.dart'; // ✅ AJOUTÉ
 import 'package:private_school/parents/widgets/main_layout.dart';
-import 'discussion.dart';
+//import 'discussion.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -48,11 +50,11 @@ class HomePageContent extends StatefulWidget {
 class _HomePageContentState extends State<HomePageContent> {
   int _selectedIndex = 0;
 
-  void _openDiscussions(BuildContext context) {
+  /*void _openDiscussions(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const DiscussionsPage()),
     );
-  }
+  }*/
 
   void _openReportProblem(BuildContext context) {
     showModalBottomSheet(
@@ -185,7 +187,7 @@ class _HomePageContentState extends State<HomePageContent> {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: "Rechercher un trajet",
+                  hintText: "search_trip".tr(),
                   hintStyle: GoogleFonts.inter(
                     color: Colors.grey.shade400,
                     fontSize: AppConstants.fontSizeM,
@@ -229,6 +231,7 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  /// ✅ MODIFIÉ : Afficher la photo de profil depuis l'API
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -238,17 +241,20 @@ class _HomePageContentState extends State<HomePageContent> {
       decoration: const BoxDecoration(color: AppColors.success),
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-          String userName = "Utilisateur";
+          String userName = "user".tr();
+          String? userPhoto;
 
-          // ✅ CORRECTION : Vérification plus robuste
+          // ✅ RÉCUPÉRER LE NOM ET LA PHOTO
           if (authState is UserLoaded) {
             userName = authState.user.fullName;
+            userPhoto = authState.user.photo;
           } else if (authState is AuthAuthenticated && authState.user != null) {
             userName = authState.user!.fullName;
+            userPhoto = authState.user!.photo;
           } else if (authState is AuthLoading) {
-            userName = "Chargement...";
+            userName = "loading_text".tr();
           } else if (authState is AuthError) {
-            userName = "Erreur";
+            userName = "error_text".tr();
           }
 
           return Row(
@@ -256,25 +262,9 @@ class _HomePageContentState extends State<HomePageContent> {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: AppColors.white,
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/1.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.person,
-                            size: AppConstants.iconSizeXL,
-                            color: AppColors.success,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+                  // ✅ PHOTO DE PROFIL DEPUIS L'API
+                  _buildProfileAvatar(userPhoto),
+                  
                   const SizedBox(width: AppConstants.spacingL),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,7 +292,7 @@ class _HomePageContentState extends State<HomePageContent> {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => _openDiscussions(context),
+                    //onTap: () => _openDiscussions(context),
                     child: _buildNotifIconSvg('assets/icons/notif.svg', 1),
                   ),
                   const SizedBox(width: AppConstants.spacingL),
@@ -313,6 +303,60 @@ class _HomePageContentState extends State<HomePageContent> {
           );
         },
       ),
+    );
+  }
+
+  /// ✅ NOUVEAU : Widget pour afficher la photo de profil
+  Widget _buildProfileAvatar(String? photoUrl) {
+    // Pas de photo → Avatar par défaut
+    if (photoUrl == null || photoUrl.isEmpty) {
+      return CircleAvatar(
+        radius: 28,
+        backgroundColor: AppColors.white,
+        child: ClipOval(
+          child: Image.asset(
+            'assets/images/1.png',
+            width: 56,
+            height: 56,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(
+                Icons.person,
+                size: AppConstants.iconSizeXL,
+                color: AppColors.success,
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    // URL complète (commence par http:// ou https://)
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return CircleAvatar(
+        radius: 28,
+        backgroundColor: AppColors.white,
+        backgroundImage: NetworkImage(photoUrl),
+        onBackgroundImageError: (exception, stackTrace) {
+          debugPrint('⚠️ Erreur chargement photo: $exception');
+        },
+      );
+    }
+
+    // URL relative → Construire l'URL complète
+    final fullUrl = 'http://86.106.181.31:3000$photoUrl';
+    
+    debugPrint('🖼️ [HomePage] Loading profile photo: $fullUrl');
+
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: AppColors.white,
+      backgroundImage: NetworkImage(fullUrl),
+      onBackgroundImageError: (exception, stackTrace) {
+        debugPrint('⚠️ Erreur chargement photo: $exception');
+      },
+      // Fallback si l'image ne charge pas
+      child: const SizedBox.shrink(),
     );
   }
 
@@ -359,6 +403,7 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  /// ✅ MODIFIÉ : Navigation intelligente selon si le trajet est réservé
   Widget _buildTripCardsSection(List<TripModel> trips) {
     return SizedBox(
       height: 280,
@@ -367,6 +412,8 @@ class _HomePageContentState extends State<HomePageContent> {
         padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
         itemCount: trips.length,
         itemBuilder: (context, index) {
+          final trip = trips[index];
+          
           return Padding(
             padding: EdgeInsets.only(
               right: index < trips.length - 1 ? AppConstants.spacingL : 0,
@@ -374,21 +421,47 @@ class _HomePageContentState extends State<HomePageContent> {
             child: SizedBox(
               width: MediaQuery.of(context).size.width * 0.85,
               child: TripCardWidget(
-                trip: trips[index],
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TripDetailPage(trip: trips[index]),
-                    ),
-                  );
-                },
+                trip: trip,
+                onTap: () => _handleTripTap(context, trip),
               ),
             ),
           );
         },
       ),
     );
+  }
+
+  /// ✅ NOUVEAU : Gestion intelligente de la navigation
+  void _handleTripTap(BuildContext context, TripModel trip) {
+    final homeBloc = context.read<HomeBloc>();
+    final isReserved = homeBloc.isTripReserved(trip.id);
+
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🏠 [HomePage] TAP SUR CARD');
+    debugPrint('   Trip ID: ${trip.id}');
+    debugPrint('   Destination: ${trip.destination}');
+    debugPrint('   Status: ${trip.status}');
+    debugPrint('   Est réservé: $isReserved');
+    debugPrint('   → ${isReserved ? "TripTrackingPage" : "TripDetailPage"}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    if (isReserved) {
+      // ✅ Trajet RÉSERVÉ → Aller au suivi
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TripTrackingPage(trip: trip),
+        ),
+      );
+    } else {
+      // ✅ Trajet DISPONIBLE → Aller aux détails/réservation
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TripDetailPage(trip: trip),
+        ),
+      );
+    }
   }
 
   Widget _buildBottomNavigationBar() {
@@ -418,17 +491,17 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
             _buildNavItem(
               icon: Icons.people_rounded,
-              label: 'Enfants',
+              label: 'children'.tr(),
               index: 1,
             ),
             _buildNavItem(
               icon: Icons.route_rounded,
-              label: 'Mes trajets',
+              label: 'my_trips'.tr(),
               index: 2,
             ),
             _buildNavItem(
               icon: Icons.groups_rounded,
-              label: 'Groupes',
+              label: 'groups'.tr(),
               index: 3,
             ),
             _buildNavItem(

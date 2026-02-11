@@ -1,31 +1,132 @@
-import '../models/trip_model.dart';
+import 'package:flutter/material.dart';
 import '../services/trip_service.dart';
+import '../models/trip_model.dart';
 
 class TripRepository {
-  final TripService _tripService = TripService();
+  final TripService _service = TripService();
 
-  /// Get all trips from the API
-  /// This is what "Trajets disponibles" should call
-  Future<List<TripModel>> getAllTrips() async {
-    return await _tripService.getAllTrips();
-  }
-
-  /// Get only available trips (for "Trajets disponibles" tab)
-  /// For now, same as getAllTrips, but can be filtered later
+  /// ✅ GET /api/parents/trips/available
+  /// Récupère les trajets disponibles (pas encore réservés)
   Future<List<TripModel>> getAvailableTrips() async {
-    // Pour l'instant, on récupère tous les trajets
-    // Plus tard, on peut filtrer par statut "disponible" ou "en_attente"
-    return await _tripService.getAllTrips();
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔍 [TripRepository] GET AVAILABLE TRIPS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final trips = await _service.getAllTrips();
+
+      debugPrint('✅ [TripRepository] ${trips.length} trajets disponibles');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return trips;
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripRepository] ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
   }
 
-  /// Search for available trips with filters
+  /// ✅ GET /api/parents/trips
+  /// Récupère les trajets déjà réservés par le parent
+  Future<List<TripModel>> getMyReservations() async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔍 [TripRepository] GET MY RESERVATIONS');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final reservations = await _service.getMyReservations();
+
+      debugPrint('✅ [TripRepository] ${reservations.length} réservations');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return reservations;
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripRepository] ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
+  }
+
+  /// ✅ POST /api/parents/reservations
+  /// Réserver un trajet pour un ou plusieurs enfants
+  Future<Map<String, dynamic>> reserveTrip({
+    required String tripId,
+    required List<String> childIds,
+  }) async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🟢 [TripRepository] RESERVE TRIP');
+      debugPrint('   Trip: $tripId');
+      debugPrint('   Children: ${childIds.length}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final result = await _service.reserveTripForMultipleChildren(
+        tripId: tripId,
+        childIds: childIds,
+      );
+
+      debugPrint('✅ [TripRepository] Reservation successful');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripRepository] RESERVATION ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
+  }
+
+  /// ✅ DELETE /api/parents/reservations/{tripId}/{childId}
+  /// Annuler une réservation
+  Future<void> cancelReservation({
+    required String tripId,
+    required String childId,
+  }) async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔴 [TripRepository] CANCEL RESERVATION');
+      debugPrint('   Trip: $tripId');
+      debugPrint('   Child: $childId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      await _service.cancelReservation(
+        tripId: tripId,
+        childId: childId,
+      );
+
+      debugPrint('✅ [TripRepository] Cancellation successful');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripRepository] CANCEL ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
+  }
+
+  /// Rechercher des trajets
   Future<List<TripModel>> searchTrips({
     String? homeAddress,
     String? schoolAddress,
     String? departureTime,
     String? childId,
   }) async {
-    return await _tripService.searchTrips(
+    return await _service.searchTrips(
       homeAddress: homeAddress,
       schoolAddress: schoolAddress,
       departureTime: departureTime,
@@ -33,65 +134,29 @@ class TripRepository {
     );
   }
 
-  /// Get my reservations
-  Future<List<TripModel>> getMyReservations() async {
-    return await _tripService.getMyReservations();
-  }
-
-  /// Get trip details by ID
+  /// Obtenir les détails d'un trajet
   Future<TripModel> getTripDetails(String tripId) async {
-    return await _tripService.getTripDetails(tripId);
+    return await _service.getTripDetails(tripId);
   }
 
-  /// DEPRECATED: Use getTripDetails() instead
-  Future<TripModel?> getTripById(String id) async {
-    try {
-      return await _tripService.getTripDetails(id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Reserve a trip
-  Future<Map<String, dynamic>> reserveTrip({
-    required String tripId,
-    required String childId,
-  }) async {
-    return await _tripService.reserveTrip(
-      tripId: tripId,
-      childId: childId,
-    );
-  }
-
-  /// Cancel a reservation
-  Future<void> cancelReservation({
-    required String tripId,
-    required String childId,
-  }) async {
-    await _tripService.cancelReservation(
-      tripId: tripId,
-      childId: childId,
-    );
-  }
-
-  /// Get filter options
-  Future<Map<String, dynamic>> getFilterOptions() async {
-    return await _tripService.getFilterOptions();
-  }
-
-  /// Track trip in real-time
+  /// Suivre un trajet en temps réel
   Future<Map<String, dynamic>> trackTripRealtime(String tripId) async {
-    return await _tripService.trackTripRealtime(tripId);
+    return await _service.trackTripRealtime(tripId);
   }
 
-  /// Contact the driver
+  /// Contacter le chauffeur
   Future<Map<String, dynamic>> contactDriver({
     required String tripId,
     required String message,
   }) async {
-    return await _tripService.contactDriver(
+    return await _service.contactDriver(
       tripId: tripId,
       message: message,
     );
+  }
+
+  /// Obtenir les options de filtres disponibles
+  Future<Map<String, dynamic>> getFilterOptions() async {
+    return await _service.getFilterOptions();
   }
 }

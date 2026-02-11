@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
@@ -9,6 +10,7 @@ import '../widgets/trip_card_widget.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 import 'trip_detail_page.dart';
+import 'trip_tracking_page.dart'; // ✅ AJOUTÉ
 
 class TrajetsPage extends StatelessWidget {
   const TrajetsPage({super.key});
@@ -34,7 +36,9 @@ class TrajetsPageContent extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
+            // ══════════════════════════════════════════
+            // HEADER — inchangé
+            // ══════════════════════════════════════════
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -49,7 +53,7 @@ class TrajetsPageContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mes trajets',
+                    'my_trips'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -63,7 +67,9 @@ class TrajetsPageContent extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // TABS
+            // ══════════════════════════════════════════
+            // TABS — inchangé
+            // ══════════════════════════════════════════
             BlocBuilder<TripBloc, TripState>(
               builder: (context, state) {
                 int selectedTab = 0;
@@ -88,18 +94,8 @@ class TrajetsPageContent extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        _buildTabButton(
-                          context,
-                          'Trajets disponibles',
-                          0,
-                          selectedTab,
-                        ),
-                        _buildTabButton(
-                          context,
-                          'Mes réservations',
-                          1,
-                          selectedTab,
-                        ),
+                        _buildTabButton(context, 'available_trips'.tr(), 0, selectedTab),
+                        _buildTabButton(context, 'my_reservations'.tr(), 1, selectedTab),
                       ],
                     ),
                   ),
@@ -109,15 +105,15 @@ class TrajetsPageContent extends StatelessWidget {
 
             const SizedBox(height: 16),
 
+            // ══════════════════════════════════════════
             // CONTENT
+            // ══════════════════════════════════════════
             Expanded(
               child: BlocBuilder<TripBloc, TripState>(
                 builder: (context, state) {
                   if (state is TripLoading) {
                     return Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.success,
-                      ),
+                      child: CircularProgressIndicator(color: AppColors.success),
                     );
                   }
 
@@ -126,44 +122,25 @@ class TrajetsPageContent extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red.shade300,
-                          ),
+                          Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
                           const SizedBox(height: 16),
                           Text(
                             state.message,
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: Colors.red.shade700,
-                            ),
+                            style: GoogleFonts.inter(fontSize: 16, color: Colors.red.shade700),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () {
-                              context.read<TripBloc>().add(
-                                LoadAvailableTripsEvent(),
-                              );
+                              context.read<TripBloc>().add(LoadAvailableTripsEvent());
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.success,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: Text(
-                              'Réessayer',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                            child: Text('retry'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                           ),
                         ],
                       ),
@@ -186,8 +163,8 @@ class TrajetsPageContent extends StatelessWidget {
                             const SizedBox(height: 16),
                             Text(
                               state.selectedTabIndex == 0
-                                  ? 'Aucun trajet disponible'
-                                  : 'Aucune réservation',
+                                  ? 'no_available_trips'.tr()
+                                  : 'no_reservations'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -196,13 +173,11 @@ class TrajetsPageContent extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 40),
                               child: Text(
                                 state.selectedTabIndex == 0
-                                    ? 'Les trajets disponibles apparaîtront ici'
-                                    : 'Vos réservations apparaîtront ici',
+                                    ? 'available_trips_will_appear'.tr()
+                                    : 'reservations_will_appear'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   color: Colors.grey.shade500,
@@ -219,13 +194,9 @@ class TrajetsPageContent extends StatelessWidget {
                       color: AppColors.success,
                       onRefresh: () async {
                         if (state.selectedTabIndex == 0) {
-                          context.read<TripBloc>().add(
-                            LoadAvailableTripsEvent(),
-                          );
+                          context.read<TripBloc>().add(LoadAvailableTripsEvent());
                         } else {
-                          context.read<TripBloc>().add(
-                            LoadMyReservationsEvent(),
-                          );
+                          context.read<TripBloc>().add(LoadMyReservationsEvent());
                         }
                       },
                       child: ListView.builder(
@@ -235,16 +206,12 @@ class TrajetsPageContent extends StatelessWidget {
                           final trip = state.trips[index];
                           return TripCardWidget(
                             trip: trip,
-                            onTap: () {
-                              // Navigation vers la page de détails
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      TripDetailPage(trip: trip),
-                                ),
-                              );
-                            },
+                            onTap: () => _handleTripTap(
+                              context: context,
+                              trip: trip,
+                              // ✅ CLE : on passe l'index de l'onglet actif
+                              selectedTabIndex: state.selectedTabIndex,
+                            ),
                           );
                         },
                       ),
@@ -259,6 +226,44 @@ class TrajetsPageContent extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ══════════════════════════════════════════
+  // ✅ NAVIGATION INTELLIGENTE
+  //
+  // Tab 0 (Disponibles)  → TripDetailPage  (sélection enfants + réservation)
+  // Tab 1 (Réservations) → TripTrackingPage (suivi du trajet)
+  // ══════════════════════════════════════════
+  void _handleTripTap({
+    required BuildContext context,
+    required trip,
+    required int selectedTabIndex,
+  }) {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🔵 [TrajetsPage] TAP SUR CARD');
+    debugPrint('   Trip ID: ${trip.id}');
+    debugPrint('   Status: ${trip.status}');
+    debugPrint('   Onglet actif: $selectedTabIndex');
+    debugPrint('   → ${selectedTabIndex == 1 ? "TripTrackingPage" : "TripDetailPage"}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    if (selectedTabIndex == 1) {
+      // ✅ Trajet RÉSERVÉ → aller directement au suivi
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TripTrackingPage(trip: trip),
+        ),
+      );
+    } else {
+      // ✅ Trajet DISPONIBLE → aller à la sélection d'enfants
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TripDetailPage(trip: trip),
+        ),
+      );
+    }
   }
 
   Widget _buildTabButton(

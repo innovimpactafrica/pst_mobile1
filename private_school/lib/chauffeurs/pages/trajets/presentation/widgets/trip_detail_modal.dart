@@ -9,11 +9,8 @@ import '../../domain/bloc/trip_event.dart';
 import 'passengers_list_modal.dart';
 import 'schools_list_modal.dart';
 import 'trip_map_widget.dart';
-import '../../data/services/child_service.dart';
-import '../../../../../parents/pages/enfants/data/models/child_model.dart';
-import '../../../../../parents/pages/school/data/services/school_service.dart';
 
-/// Trip detail modal - Full screen design with Google Maps and real-time calculations
+/// Trip detail modal with passenger count validation
 class TripDetailModal extends StatefulWidget {
   final TripModel trip;
   const TripDetailModal({super.key, required this.trip});
@@ -23,70 +20,25 @@ class TripDetailModal extends StatefulWidget {
 }
 
 class _TripDetailModalState extends State<TripDetailModal> {
-  final ChildService _childService = ChildService();
-  final SchoolService _schoolService = SchoolService();
-  List<ChildModel> _children = [];
-  bool _loadingChildren = false;
-  
-  // ✅ NOUVEAU : Variable pour calculer l'heure d'arrivée
   int? _durationMinutes;
 
   @override
   void initState() {
     super.initState();
-    _enrichSchoolDataAndLoadChildren();
+    _logTripPassengers();
   }
 
-  /// Enrichir les données d'école puis charger les enfants
-  Future<void> _enrichSchoolDataAndLoadChildren() async {
-    if (widget.trip.schools.isEmpty) {
-      debugPrint('⚠️ [TripDetailModal] Aucune école associée au trajet');
-      return;
+  void _logTripPassengers() {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📋 [TripDetailModal] Trajet ID: ${widget.trip.id}');
+    debugPrint('👥 Passagers inscrits: ${widget.trip.passengers.length}');
+    debugPrint('🎯 Capacité totale: ${widget.trip.totalSeats}');
+    for (var passenger in widget.trip.passengers) {
+      debugPrint('   👤 ${passenger.name} (${passenger.school ?? "Aucune école"})');
     }
-
-    setState(() => _loadingChildren = true);
-
-    try {
-      final allSchools = await _schoolService.fetchSchools();
-      List<ChildModel> allChildren = [];
-
-      for (int i = 0; i < widget.trip.schools.length; i++) {
-        final tripSchool = widget.trip.schools[i];
-        
-        if (tripSchool.id == null) continue;
-
-        try {
-          final fullSchool = allSchools.firstWhere(
-            (s) => s.id == tripSchool.id,
-            orElse: () => tripSchool,
-          );
-          
-          final children = await _childService.getChildrenBySchool(fullSchool.id!);
-          allChildren.addAll(children);
-        } catch (e) {
-          debugPrint('❌ Erreur: $e');
-        }
-      }
-
-      setState(() {
-        _children = allChildren;
-        _loadingChildren = false;
-      });
-    } catch (e) {
-      setState(() => _loadingChildren = false);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors du chargement des passagers'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 
-  /// ✅ NOUVEAU : Callback quand le trajet est calculé
   void _onRouteCalculated(double distance, int duration) {
     setState(() {
       _durationMinutes = duration;
@@ -184,7 +136,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
-  /// ✅ NOUVELLE CARTE GOOGLE MAPS
   Widget _buildMap() {
     return Container(
       margin: const EdgeInsets.all(AppConstants.spacingXL),
@@ -243,7 +194,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${widget.trip.schools.length} ${widget.trip.schools.length > 1 ? "écoles desservies" : "école desservie"}',
+                      '${widget.trip.passengers.length}/${widget.trip.totalSeats} places réservées',
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeS,
                         color: AppColors.textSecondary,
@@ -258,7 +209,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
           
           const SizedBox(height: AppConstants.spacingXL),
           
-          // ✅ HEURE DE DÉPART RÉELLE
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -291,7 +241,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
                   ],
                 ),
               ),
-              // ✅ AFFICHER L'HEURE RÉELLE DU CHAUFFEUR
               Text(
                 widget.trip.time,
                 style: const TextStyle(
@@ -316,7 +265,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
             ),
           ),
           
-          // ✅ HEURE D'ARRIVÉE CALCULÉE
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -349,7 +297,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
                   ],
                 ),
               ),
-              // ✅ CALCULER L'HEURE D'ARRIVÉE BASÉE SUR LA DURÉE
               Text(
                 _calculateArrivalTime(),
                 style: const TextStyle(
@@ -366,7 +313,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   Widget _buildPassengersSection(BuildContext context) {
-    final passengerCount = _children.length;
+    final passengerCount = widget.trip.passengers.length;
     
     return GestureDetector(
       onTap: passengerCount > 0 ? () => _showPassengersList(context) : null,
@@ -390,89 +337,81 @@ class _TripDetailModalState extends State<TripDetailModal> {
             ),
           ],
         ),
-        child: _loadingChildren
-            ? const Row(
+        child: Row(
+          children: [
+            if (passengerCount > 0) ...[
+              _buildPassengerAvatars(),
+              const SizedBox(width: AppConstants.spacingM),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(AppConstants.spacingS),
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundLight,
+                  borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                ),
+                child: const Icon(
+                  Icons.people_outline,
+                  color: AppColors.textSecondary,
+                  size: AppConstants.iconSizeL,
+                ),
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  SizedBox(width: 12),
                   Text(
-                    'Chargement des passagers...',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeM,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  if (passengerCount > 0) ...[
-                    _buildPassengerAvatars(),
-                    const SizedBox(width: AppConstants.spacingM),
-                  ] else ...[
-                    Container(
-                      padding: const EdgeInsets.all(AppConstants.spacingS),
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundLight,
-                        borderRadius: BorderRadius.circular(AppConstants.radiusS),
-                      ),
-                      child: const Icon(
-                        Icons.people_outline,
-                        color: AppColors.textSecondary,
-                        size: AppConstants.iconSizeL,
-                      ),
-                    ),
-                    const SizedBox(width: AppConstants.spacingM),
-                  ],
-                  Text(
-                    '$passengerCount ${passengerCount > 1 ? "enfants" : "enfant"}',
+                    passengerCount > 0 ? 'Passagers inscrits' : 'Aucun passager',
                     style: const TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  const Spacer(),
-                  if (passengerCount > 0)
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      size: AppConstants.iconSizeS,
-                      color: AppColors.grey600,
+                  Text(
+                    '$passengerCount/${widget.trip.totalSeats}',
+                    style: const TextStyle(
+                      fontSize: AppConstants.fontSizeS,
+                      color: AppColors.textSecondary,
                     ),
+                  ),
                 ],
               ),
+            ),
+            if (passengerCount > 0)
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: AppConstants.iconSizeS,
+                color: AppColors.grey600,
+              ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPassengerAvatars() {
-    final displayChildren = _children.take(3).toList();
+    final displayPassengers = widget.trip.passengers.take(3).toList();
     return SizedBox(
       width: 80,
       height: AppConstants.avatarSizeM,
       child: Stack(
-        children: List.generate(displayChildren.length, (index) {
-          final child = displayChildren[index];
+        children: List.generate(displayPassengers.length, (index) {
+          final passenger = displayPassengers[index];
           return Positioned(
             left: index * 24.0,
             child: Container(
               width: AppConstants.avatarSizeM,
               height: AppConstants.avatarSizeM,
               decoration: BoxDecoration(
-                color: _getAvatarColor(child.name),
+                color: _getAvatarColor(passenger.name),
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.white, width: 2),
               ),
               child: Center(
                 child: Text(
-                  child.initials,
+                  passenger.initials,
                   style: const TextStyle(
                     color: AppColors.white,
                     fontSize: AppConstants.fontSizeS,
@@ -562,6 +501,9 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    // ✅ VALIDATION : Vérifier s'il y a au moins 1 passager
+    final hasPassengers = widget.trip.passengers.isNotEmpty;
+    
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingXL),
       decoration: BoxDecoration(
@@ -574,87 +516,130 @@ class _TripDetailModalState extends State<TripDetailModal> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          if (widget.trip.status == AppConstants.statusPending) ...[
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _showCancelDialog(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppConstants.spacingL + 2,
+          // ✅ NOUVEAU : Afficher un avertissement s'il n'y a pas de passagers
+          if (!hasPassengers && widget.trip.status == AppConstants.statusActive) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
+              padding: const EdgeInsets.all(AppConstants.spacingM),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(AppConstants.radiusM),
+                border: Border.all(color: const Color(0xFFF59E0B)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber,
+                    color: Color(0xFFF59E0B),
+                    size: 20,
                   ),
-                  side: const BorderSide(color: AppColors.error, width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                  const SizedBox(width: AppConstants.spacingM),
+                  Expanded(
+                    child: Text(
+                      'Vous devez avoir au moins 1 passager pour démarrer',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeS,
+                        color: const Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  'Rejeter',
-                  style: TextStyle(
-                    color: AppColors.error,
-                    fontSize: AppConstants.fontSizeL,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(width: AppConstants.spacingM),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _acceptTrip(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppConstants.spacingL + 2,
+          ],
+          
+          Row(
+            children: [
+              if (widget.trip.status == AppConstants.statusPending) ...[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _showCancelDialog(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      side: const BorderSide(color: AppColors.error, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                    ),
+                    child: const Text(
+                      'Rejeter',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontSize: AppConstants.fontSizeL,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                  ),
-                  elevation: 0,
                 ),
-                child: const Text(
-                  'Accepter',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: AppConstants.fontSizeL,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ] else if (widget.trip.status == AppConstants.statusActive) ...[
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _startTrip(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppConstants.spacingL + 2,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Démarrer le trajet',
+                const SizedBox(width: AppConstants.spacingM),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _acceptTrip(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Accepter',
                       style: TextStyle(
                         color: AppColors.white,
                         fontSize: AppConstants.fontSizeL,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: AppConstants.spacingS),
-                    Icon(Icons.arrow_forward, color: AppColors.white, size: 20),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ] else if (widget.trip.status == AppConstants.statusActive) ...[
+                Expanded(
+                  child: ElevatedButton(
+                    // ✅ VALIDATION : Désactiver si pas de passagers
+                    onPressed: hasPassengers ? () => _startTrip(context) : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.grey300,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Démarrer le trajet',
+                          style: TextStyle(
+                            color: hasPassengers ? AppColors.white : AppColors.grey600,
+                            fontSize: AppConstants.fontSizeL,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: AppConstants.spacingS),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: hasPassengers ? AppColors.white : AppColors.grey600,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -670,7 +655,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
       ),
       decoration: BoxDecoration(
         color: statusConfig['bgColor'],
-        borderRadius: BorderRadius.circular(AppConstants.radiusXL),
+        borderRadius: BorderRadius.circular(AppConstants.radiusXXL),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -706,10 +691,16 @@ class _TripDetailModalState extends State<TripDetailModal> {
           'label': 'En attente',
         };
       case AppConstants.statusActive:
-      case 'in_progress':
         return {
           'bgColor': AppColors.primary.withValues(alpha: 0.1),
           'textColor': AppColors.primary,
+          'label': 'Accepté',
+        };
+      case 'in_progress':
+      case 'started':
+        return {
+          'bgColor': const Color(0xFFDCFCE7),
+          'textColor': const Color(0xFF16A34A),
           'label': 'En cours',
         };
       case AppConstants.statusCompleted:
@@ -741,7 +732,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
     }
   }
 
-  /// ✅ NOUVEAU : Calculer l'heure d'arrivée basée sur la durée réelle
   String _calculateArrivalTime() {
     if (_durationMinutes == null) {
       return '--:--';
@@ -753,7 +743,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
         final hours = int.parse(parts[0]);
         final minutes = int.parse(parts[1]);
         
-        // Ajouter la durée du trajet
         final totalMinutes = hours * 60 + minutes + _durationMinutes!;
         final arrivalHour = (totalMinutes ~/ 60) % 24;
         final arrivalMinute = totalMinutes % 60;
@@ -778,18 +767,11 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   void _showPassengersList(BuildContext context) {
-    final passengers = _children.map((child) => Passenger(
-      id: child.id ?? '',
-      name: child.name,
-      school: child.schoolName,
-      isConfirmed: true,
-    )).toList();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => PassengersListModal(passengers: passengers),
+      builder: (context) => PassengersListModal(passengers: widget.trip.passengers),
     );
   }
 
@@ -814,6 +796,17 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   void _startTrip(BuildContext context) {
+    // ✅ Double vérification avant d'envoyer la requête
+    if (widget.trip.passengers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de démarrer: aucun passager inscrit'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(

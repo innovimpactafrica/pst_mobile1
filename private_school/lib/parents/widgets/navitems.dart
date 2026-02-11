@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter_svg/flutter_svg.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 import '../pages/acceuil/presentation/pages/home.dart';
-import '../utils/HexColor.dart';
 
 class MainScreen extends StatefulWidget {
   final bool off;
@@ -27,7 +26,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: pages[_selectedIndex],
-      backgroundColor: HexColor('#F5F7FA'),
+      backgroundColor: AppColors.background,
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
@@ -52,14 +51,14 @@ class PlaceholderPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: const Color(0xFF2C1E85),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.construction, size: 64, color: AppColors.grey400),
             const SizedBox(height: 16),
             Text(
               'Page $title',
@@ -68,7 +67,7 @@ class PlaceholderPage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'En cours de développement',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppColors.grey600),
             ),
           ],
         ),
@@ -92,10 +91,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppColors.blackOpacity10,
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -124,14 +123,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF2C1E85) : Colors.grey,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFF2C1E85) : Colors.grey,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

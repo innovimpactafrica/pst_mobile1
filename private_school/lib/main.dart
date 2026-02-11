@@ -1,4 +1,4 @@
-// Main App Entry Point - FINAL CORRECTED VERSION
+// Main App Entry Point - WITH MESSAGING BLOCS
 // Path: lib/main.dart
 
 import 'package:easy_localization/easy_localization.dart';
@@ -48,7 +48,13 @@ import 'package:private_school/parents/pages/school/domain/bloc/school_bloc.dart
 import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
 import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
 
-import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart';
+// Report BLoCs
+import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart' as driver_reports;
+import 'package:private_school/parents/pages/reports/domain/bloc/report_bloc.dart' as parent_reports;
+
+//  MESSAGING BLOCS - PARENT
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,7 +67,7 @@ void main() async {
   
   // Initialize API Client
   await ApiClient().init();
-  debugPrint('✅ API Client initialized');
+  debugPrint('API Client initialized');
 
   runApp(
     EasyLocalization(
@@ -73,11 +79,21 @@ void main() async {
       fallbackLocale: const Locale('fr'),
       child: MultiBlocProvider(
         providers: [
-          // Parent BLoCs
+          // ==================== PARENT BLOCS ====================
           BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
           BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+          BlocProvider(create: (_) => parent_reports.ReportBloc()),
+          BlocProvider(create: (context) => SchoolBloc()),
+          
+          // ✅ MESSAGING BLOCS - PARENT
+          BlocProvider<ConversationBloc>(
+            create: (context) => ConversationBloc(),
+          ),
+          BlocProvider<MessageBloc>(
+            create: (context) => MessageBloc(),
+          ),
 
-          // Driver BLoCs
+          // ==================== DRIVER BLOCS ====================
           BlocProvider<DriverAuthBloc>(
             create: (context) =>
                 DriverAuthBloc(repository: DriverAuthRepository()),
@@ -103,8 +119,7 @@ void main() async {
               repository: NotificationRepository(),
             )..add(const LoadNotificationsEvent()),
           ),
-          BlocProvider(create: (_) => ReportBloc()),
-           BlocProvider(create: (context) => SchoolBloc()),
+          BlocProvider(create: (_) => driver_reports.ReportBloc()),
         ],
         child: const MyApp(),
       ),
@@ -140,7 +155,7 @@ class MyApp extends StatelessWidget {
 
         // ==================== PARENT ROUTES ====================
         '/parent/connexion': (context) => const Connexion(),
-       '/parent/inscription': (context) => const ParentInscription(),
+        '/parent/inscription': (context) => const ParentInscription(),
         '/parent/creer-mdp': (context) => const PasswordCreationPage(),
         '/parent/verification': (context) => const Verification(),
         '/parent/mdp-oublie': (context) => const MdpOubliePage(),
@@ -153,7 +168,7 @@ class MyApp extends StatelessWidget {
         '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
         '/driver/dashboard': (context) => const DashboardPage(),
         
-        // 🆕 Driver Forgot Password System - 3 PAGES
+        // Driver Forgot Password System
         '/driver/forgot-password': (context) => const ForgotPasswordPage(),
         '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
         '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),

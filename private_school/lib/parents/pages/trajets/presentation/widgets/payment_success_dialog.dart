@@ -27,9 +27,7 @@ class PaymentSuccessDialog extends StatelessWidget {
               ),
               child: const Icon(Icons.check, color: Colors.green, size: 50),
             ),
-
             const SizedBox(height: 24),
-
             // TITRE
             Text(
               'Paiement effectué avec succès',
@@ -40,12 +38,10 @@ class PaymentSuccessDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 12),
-
             // MESSAGE
             Text(
-              'Lorem Ipsum is simply dummy text of the debugPrinting and typesetting industry.',
+              'Votre réservation a été confirmée. Vous pouvez maintenant suivre le trajet en temps réel.',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: Colors.grey.shade600,
@@ -53,25 +49,20 @@ class PaymentSuccessDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 32),
-
             // BOUTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Fermer le dialog
-                  Navigator.of(context).pop();
-                  // Fermer la page de paiement
-                  Navigator.of(context).pop();
-                  // Fermer la page de détails
-                  Navigator.of(context).pop();
-                  // Naviguer vers la page de suivi
-                  Navigator.of(context).push(
+                  // ✅ CORRECTION : pushAndRemoveUntil ferme TOUT la stack
+                  // (dialog + PaymentPage + TripDetailPage) et pousse TripTrackingPage
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (context) => TripTrackingPage(trip: trip),
+                      builder: (_) => TripTrackingPage(trip: trip),
                     ),
+                    // Garder seulement la première route (accueil/liste des trajets)
+                    (route) => route.isFirst,
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,158 +1,193 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:private_school/chauffeurs/pages/trajets/data/models/trip_model.dart';
-import 'package:private_school/core/network/api_client.dart';
+import 'package:flutter/material.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/utils/api_constants.dart';
+import '../models/trip_model.dart';
 
+/// Service for driver trip operations
 class TripService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<List<TripModel>> fetchTrips() async {
+  Future<List<TripModel>> getDriverTrips() async {
     try {
-      debugPrint('🚗 [TripService] Fetching trips from /api/drivers/trips...');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🚗 [TripService] Fetching trips from ${ApiConstants.driverTrips}...');
       
-      final response = await _apiClient.get('/api/drivers/trips');
+      final response = await _apiClient.get(ApiConstants.driverTrips);
       
-      debugPrint('🚗 [TripService] ========================================');
-      debugPrint('🚗 [TripService] RESPONSE RECEIVED');
-      debugPrint('🚗 [TripService] ========================================');
-      debugPrint('🚗 [TripService] Response type: ${response.data.runtimeType}');
+      debugPrint('✅ Response: ${response.statusCode}');
+      debugPrint('📦 Data type: ${response.data.runtimeType}');
       
-      // Afficher la réponse complète formatée
-      try {
-        final prettyJson = JsonEncoder.withIndent('  ').convert(response.data);
-        debugPrint('🚗 [TripService] Full response:\n$prettyJson');
-      } catch (e) {
-        debugPrint('🚗 [TripService] Response data: ${response.data}');
+      List<dynamic> tripsJson = [];
+      
+      if (response.data is Map<String, dynamic>) {
+        final map = response.data as Map<String, dynamic>;
+        if (map.containsKey('data') && map['data'] is List) {
+          tripsJson = map['data'] as List;
+        } else if (map.containsKey('trips') && map['trips'] is List) {
+          tripsJson = map['trips'] as List;
+        }
+      } else if (response.data is List) {
+        tripsJson = response.data as List;
       }
       
-      // Extraire les données selon la structure de la réponse
-      final List<dynamic> tripsData = response.data is List
-          ? response.data
-          : response.data['data'] ?? response.data['trips'] ?? [];
+      debugPrint('📊 Total trips: ${tripsJson.length}');
       
-      debugPrint('🚗 [TripService] Total trips count: ${tripsData.length}');
-      
-      final trips = tripsData
+      final trips = tripsJson
           .map((json) => TripModel.fromJson(json as Map<String, dynamic>))
           .toList();
       
-      debugPrint('✅ [TripService] ${trips.length} trips parsed successfully');
+      debugPrint('✅ ${trips.length} trip(s) parsed successfully');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
       return trips;
     } catch (e, stackTrace) {
-      debugPrint('❌ [TripService] ERROR FETCHING TRIPS');
       debugPrint('❌ [TripService] Error: $e');
-      debugPrint('❌ [TripService] Stack trace: $stackTrace');
-      throw Exception('Failed to load trips: $e');
+      debugPrint('Stack: $stackTrace\n');
+      rethrow;
     }
   }
 
-  /// ✅ SIMPLIFIÉ : Accepte UN SEUL school_id
-  Future<TripModel> createTrip({
+  /// Create a new trip
+  /// POST /api/drivers/trips
+  Future<Map<String, dynamic>> createTrip({
     required String startPoint,
     required String endPoint,
     required DateTime departureTime,
     required int capacityMax,
-    required int schoolId, // ✅ Un seul ID
-    bool isRecurring = false,
+    required int schoolId,
+    required bool isRecurring,
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🚗 [TripService] CREATING TRIP');
+      debugPrint('🟢 [TripService] CREATE TRIP');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📍 Start point: $startPoint');
-      debugPrint('📍 End point: $endPoint');
-      debugPrint('🕐 Departure time: ${departureTime.toIso8601String()}');
-      debugPrint('👥 Capacity max: $capacityMax');
-      debugPrint('🏫 School ID: $schoolId'); // ✅ Un seul ID
-      debugPrint('🔁 Is recurring: $isRecurring');
       
-      final requestData = {
+      final requestBody = {
         'start_point': startPoint,
         'end_point': endPoint,
         'departure_time': departureTime.toIso8601String(),
         'capacity_max': capacityMax,
-        'school_id': schoolId, // ✅ Un seul school_id
+        'school_id': schoolId,
         'is_recurring': isRecurring,
       };
       
-      debugPrint('📤 Request data: $requestData');
+      debugPrint('📤 REQUEST BODY:');
+      debugPrint('   start_point: $startPoint');
+      debugPrint('   end_point: $endPoint');
+      debugPrint('   departure_time: ${departureTime.toIso8601String()}');
+      debugPrint('   capacity_max: $capacityMax');
+      debugPrint('   school_id: $schoolId');
+      debugPrint('   is_recurring: $isRecurring');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       final response = await _apiClient.post(
-        '/api/drivers/trips',
-        data: requestData,
+        ApiConstants.driverTrips,
+        data: requestBody,
       );
       
-      debugPrint('✅ [TripService] Trip created successfully');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Data: ${response.data}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      return response.data as Map<String, dynamic>;
+    } catch (e, stackTrace) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ [TripService] CREATE TRIP ERROR');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
+    }
+  }
+
+  /// Start a trip
+  /// ✅ CORRIGÉ : PUT au lieu de POST
+  /// PUT /api/drivers/trips/{id}/start
+  Future<Map<String, dynamic>> startTrip(String tripId) async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🚀 [TripService] START TRIP: $tripId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      // ✅ CORRIGÉ : Utiliser PUT au lieu de POST
+      final response = await _apiClient.put(
+        ApiConstants.driverTripStart(tripId),
+      );
+      
+      debugPrint('✅ Trip started successfully');
       debugPrint('📦 Response: ${response.data}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
-      final tripData = response.data is Map
-          ? (response.data['data'] ?? response.data)
-          : response.data;
-      
-      return TripModel.fromJson(tripData as Map<String, dynamic>);
-    } catch (e, stackTrace) {
-      debugPrint('❌ [TripService] Error creating trip: $e');
-      debugPrint('📚 Stack trace: $stackTrace');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      throw Exception('Failed to create trip: $e');
-    }
-  }
-
-  Future<TripModel> startTrip(String tripId) async {
-    try {
-      debugPrint('🚗 [TripService] Starting trip $tripId...');
-      
-      final response = await _apiClient.put('/api/drivers/trips/$tripId/start');
-      
-      debugPrint('✅ [TripService] Trip $tripId started');
-      
-      final tripData = response.data is Map
-          ? (response.data['data'] ?? response.data)
-          : response.data;
-      
-      return TripModel.fromJson(tripData as Map<String, dynamic>);
+      return response.data as Map<String, dynamic>;
     } catch (e) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('❌ [TripService] Error starting trip: $e');
-      throw Exception('Failed to start trip: $e');
+      
+      // ✅ Gérer l'erreur 400 spécifiquement
+      if (e.toString().contains('400')) {
+        debugPrint('⚠️ Erreur 400: Pas d\'enfants inscrits ou date passée');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        throw Exception('Impossible de démarrer: aucun passager inscrit');
+      }
+      
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
-  Future<TripModel> completeTrip(String tripId) async {
+  /// Complete a trip
+  /// ✅ CORRIGÉ : PUT au lieu de POST
+  /// PUT /api/drivers/trips/{id}/completed
+  Future<Map<String, dynamic>> completeTrip(String tripId) async {
     try {
-      debugPrint('🚗 [TripService] Completing trip $tripId...');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('✅ [TripService] COMPLETE TRIP: $tripId');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      final response = await _apiClient.put('/api/drivers/trips/$tripId/completed');
+      // ✅ CORRIGÉ : Utiliser PUT au lieu de POST
+      final response = await _apiClient.put(
+        ApiConstants.driverTripCompleted(tripId),
+      );
       
-      debugPrint('✅ [TripService] Trip $tripId completed');
+      debugPrint('✅ Trip completed successfully');
+      debugPrint('📦 Response: ${response.data}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
-      final tripData = response.data is Map
-          ? (response.data['data'] ?? response.data)
-          : response.data;
-      
-      return TripModel.fromJson(tripData as Map<String, dynamic>);
+      return response.data as Map<String, dynamic>;
     } catch (e) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('❌ [TripService] Error completing trip: $e');
-      throw Exception('Failed to complete trip: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 
-  Future<void> cancelTrip(String tripId, String reason) async {
+  /// Cancel a trip
+  /// ✅ CORRIGÉ : PUT au lieu de POST
+  /// PUT /api/drivers/trips/{id}/canceled
+  Future<Map<String, dynamic>> cancelTrip(String tripId, String reason) async {
     try {
-      debugPrint('🚗 [TripService] Canceling trip $tripId...');
-      debugPrint('🚗 [TripService] Reason: $reason');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔴 [TripService] CANCEL TRIP: $tripId');
+      debugPrint('📝 Reason: $reason');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      await _apiClient.put(
-        '/api/drivers/trips/$tripId/canceled',
+      // ✅ CORRIGÉ : Utiliser PUT au lieu de POST
+      final response = await _apiClient.put(
+        ApiConstants.driverTripCanceled(tripId),
         data: {'reason': reason},
       );
       
-      debugPrint('✅ [TripService] Trip $tripId canceled');
+      debugPrint('✅ Trip canceled successfully');
+      debugPrint('📦 Response: ${response.data}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      return response.data as Map<String, dynamic>;
     } catch (e) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('❌ [TripService] Error canceling trip: $e');
-      throw Exception('Failed to cancel trip: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      rethrow;
     }
   }
 }

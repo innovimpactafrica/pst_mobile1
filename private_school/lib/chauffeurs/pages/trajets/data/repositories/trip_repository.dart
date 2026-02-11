@@ -1,27 +1,35 @@
-import '../models/trip_model.dart';
+import 'package:flutter/material.dart';
 import '../services/trip_service.dart';
+import '../models/trip_model.dart';
 
+/// Repository for managing driver trip data
 class TripRepository {
-  final TripService _service = TripService();
+  final TripService _tripService = TripService();
 
-  Future<List<TripModel>> getTrips() async {
+  /// Get all trips for the driver
+  Future<List<TripModel>> getDriverTrips() async {
     try {
-      return await _service.fetchTrips();
+      debugPrint('🔍 [TripRepository] GET DRIVER TRIPS');
+      return await _tripService.getDriverTrips();
     } catch (e) {
-      throw Exception('Failed to load trips: $e');
+      debugPrint('❌ [TripRepository] Error: $e\n');
+      rethrow;
     }
   }
 
-  Future<TripModel> createTrip({
+  /// Create a new trip
+  Future<Map<String, dynamic>> createTrip({
     required String startPoint,
     required String endPoint,
     required DateTime departureTime,
     required int capacityMax,
     required int schoolId,
-    bool isRecurring = false,
+    required bool isRecurring,
   }) async {
     try {
-      return await _service.createTrip(
+      debugPrint('🟢 [TripRepository] CREATE TRIP');
+      
+      return await _tripService.createTrip(
         startPoint: startPoint,
         endPoint: endPoint,
         departureTime: departureTime,
@@ -30,31 +38,41 @@ class TripRepository {
         isRecurring: isRecurring,
       );
     } catch (e) {
-      throw Exception('Failed to create trip: $e');
+      debugPrint('❌ [TripRepository] Error: $e\n');
+      rethrow;
     }
   }
 
-  Future<TripModel> startTrip(String tripId) async {
+  /// Start a trip
+  Future<Map<String, dynamic>> startTrip(String tripId) async {
     try {
-      return await _service.startTrip(tripId);
+      debugPrint('🚀 [TripRepository] START TRIP: $tripId');
+      return await _tripService.startTrip(tripId);
     } catch (e) {
-      throw Exception('Failed to start trip: $e');
+      debugPrint('❌ [TripRepository] Error: $e\n');
+      rethrow;
     }
   }
 
-  Future<TripModel> completeTrip(String tripId) async {
+  /// Complete a trip
+  Future<Map<String, dynamic>> completeTrip(String tripId) async {
     try {
-      return await _service.completeTrip(tripId);
+      debugPrint('✅ [TripRepository] COMPLETE TRIP: $tripId');
+      return await _tripService.completeTrip(tripId);
     } catch (e) {
-      throw Exception('Failed to complete trip: $e');
+      debugPrint('❌ [TripRepository] Error: $e\n');
+      rethrow;
     }
   }
 
-  Future<void> cancelTrip(String tripId, String reason) async {
+  /// Cancel a trip
+  Future<Map<String, dynamic>> cancelTrip(String tripId, String reason) async {
     try {
-      await _service.cancelTrip(tripId, reason);
+      debugPrint('🔴 [TripRepository] CANCEL TRIP: $tripId');
+      return await _tripService.cancelTrip(tripId, reason);
     } catch (e) {
-      throw Exception('Failed to cancel trip: $e');
+      debugPrint('❌ [TripRepository] Error: $e\n');
+      rethrow;
     }
   }
 }

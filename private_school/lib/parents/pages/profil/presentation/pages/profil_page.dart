@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:private_school/chauffeurs/pages/reports/presentation/pages/reports_page.dart';
+import 'package:private_school/chauffeurs/pages/profil/presentation/widgets/language_bottom_sheet.dart';
+import 'package:private_school/parents/pages/reports/presentation/pages/reports_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/profil_bloc.dart';
@@ -77,7 +79,7 @@ class ProfilPageContent extends StatelessWidget {
                       vertical: AppConstants.spacingXL + 4,
                     ),
                     child: Text(
-                      'Mon compte',
+                      'my_account'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeXXL,
                         fontWeight: FontWeight.bold,
@@ -126,7 +128,7 @@ class ProfilPageContent extends StatelessWidget {
                                 horizontal: AppConstants.spacingXL + 4,
                               ),
                               child: Text(
-                                'Général',
+                                'general'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: AppConstants.fontSizeL,
                                   fontWeight: FontWeight.w600,
@@ -139,7 +141,7 @@ class ProfilPageContent extends StatelessWidget {
                             // Menu items
                             MenuItemWidget(
                               icon: Icons.person_outline,
-                              title: 'Informations personnelles',
+                              title: 'personal_info'.tr(),
                               iconColor: AppColors.success,
                               onTap: () {
                                 Navigator.push(
@@ -156,7 +158,7 @@ class ProfilPageContent extends StatelessWidget {
 
                             MenuItemWidget(
                               icon: Icons.notifications_outlined,
-                              title: 'Notifications',
+                              title: 'notifications'.tr(),
                               iconColor: AppColors.success,
                               onTap: () {
                                 Navigator.push(
@@ -170,7 +172,7 @@ class ProfilPageContent extends StatelessWidget {
 
                             MenuItemWidget(
                               icon: Icons.receipt_long_outlined,
-                              title: 'Historiques des paiements',
+                              title: 'payment_history'.tr(),
                               iconColor: AppColors.success,
                               onTap: () {
                                 Navigator.push(
@@ -184,7 +186,7 @@ class ProfilPageContent extends StatelessWidget {
 
                             MenuItemWidget(
                               icon: Icons.flag_outlined,
-                              title: 'Mes signalements',
+                              title: 'my_reports'.tr(),
                               iconColor: AppColors.success,
                               onTap: () {
                                 Navigator.push(
@@ -198,7 +200,7 @@ class ProfilPageContent extends StatelessWidget {
 
                             MenuItemWidget(
                               icon: Icons.group_add_outlined,
-                              title: 'Inviter des amis',
+                              title: 'invite_friends'.tr(),
                               iconColor: AppColors.success,
                               onTap: () {
                                 Navigator.push(
@@ -212,17 +214,32 @@ class ProfilPageContent extends StatelessWidget {
 
                             MenuItemWidget(
                               icon: Icons.language,
-                              title: 'Langue',
+                              title: 'language'.tr(),
                               iconColor: AppColors.success,
-                              trailing: Text(
-                                'Français',
-                                style: GoogleFonts.inter(
-                                  fontSize: AppConstants.fontSizeM,
-                                  color: AppColors.textGrey,
-                                ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    context.locale.languageCode == 'fr'
+                                        ? 'language_french'.tr()
+                                        : 'language_english'.tr(),
+                                    style: GoogleFonts.inter(
+                                      fontSize: AppConstants.fontSizeM,
+                                      color: AppColors.textGrey,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: AppConstants.spacingXS,
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: AppColors.textSecondary,
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                               onTap: () {
-                                // Language selector to be implemented
+                                showLanguageBottomSheet(context);
                               },
                             ),
 
@@ -231,7 +248,7 @@ class ProfilPageContent extends StatelessWidget {
                             // Logout button
                             MenuItemWidget(
                               icon: Icons.logout,
-                              title: 'Se déconnecter',
+                              title: 'disconnect'.tr(),
                               iconColor: AppColors.error,
                               showChevron: false,
                               onTap: () {
@@ -396,7 +413,7 @@ class ProfilPageContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Utilisateur',
+                    'user'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeXL,
                       fontWeight: FontWeight.bold,
@@ -463,12 +480,12 @@ class ProfilPageContent extends StatelessWidget {
   showDialog(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text('Déconnexion', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-      content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+      title: Text('logout_title'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+      content: Text('logout_confirm'.tr()),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext), // Ferme juste le dialogue
-          child: Text('Annuler', style: GoogleFonts.inter(color: AppColors.textSecondary)),
+          child: Text('cancel'.tr(), style: GoogleFonts.inter(color: AppColors.textSecondary)),
         ),
         TextButton(
           onPressed: () {
@@ -480,7 +497,7 @@ class ProfilPageContent extends StatelessWidget {
             context.read<ProfilBloc>().add(LogoutEvent());
           },
           child: Text(
-            'Se déconnecter',
+            'disconnect'.tr(),
             style: GoogleFonts.inter(color: AppColors.error, fontWeight: FontWeight.w600),
           ),
         ),

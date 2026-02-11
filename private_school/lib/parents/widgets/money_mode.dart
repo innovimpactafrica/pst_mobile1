@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../utils/HexColor.dart';
+import 'package:private_school/core/utils/app_colors.dart';
 
 class PaymentModal extends StatefulWidget {
   final VoidCallback? onClose; // ✅ callback vers MdpOubliePage
@@ -26,14 +26,14 @@ class _PaymentModalState extends State<PaymentModal> {
           height: screenHeight * 0.92,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white, // ✅ fond blanc
+            color: AppColors.white,
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(20),
               bottomRight: Radius.circular(20),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: AppColors.blackOpacity10,
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -55,12 +55,12 @@ class _PaymentModalState extends State<PaymentModal> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: HexColor('#2F2884'),
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.grey),
+                        icon: const Icon(Icons.close, color: AppColors.textSecondary),
                         onPressed: () {
                           Navigator.pop(context);
                           if (widget.onClose != null){
@@ -78,9 +78,9 @@ class _PaymentModalState extends State<PaymentModal> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: HexColor('#F9FAFB'),
+                      color: AppColors.backgroundLight,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: HexColor('#E5E7EB')),
+                      border: Border.all(color: AppColors.borderLight),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -99,7 +99,7 @@ class _PaymentModalState extends State<PaymentModal> {
                               "Facturation annuelle",
                               style: TextStyle(
                                 fontSize: 13,
-                                color: HexColor('#6B7280'),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -108,7 +108,7 @@ class _PaymentModalState extends State<PaymentModal> {
                           "29.900 F cfa",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: HexColor('#2F2884'),
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -130,12 +130,12 @@ class _PaymentModalState extends State<PaymentModal> {
                           label: const Text("Carte bancaire"),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: isCard
-                                ? HexColor('#F3F0FF')
-                                : Colors.white,
+                                ? AppColors.primary.withValues(alpha: 0.1)
+                                : AppColors.white,
                             side: BorderSide(
                               color: isCard
-                                  ? HexColor('#2F2884')
-                                  : HexColor('#CBD5E1'),
+                                  ? AppColors.primary
+                                  : AppColors.borderLight,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -151,12 +151,12 @@ class _PaymentModalState extends State<PaymentModal> {
                           label: const Text("Mobile money"),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: !isCard
-                                ? HexColor('#F3F0FF')
-                                : Colors.white,
+                                ? AppColors.primary.withValues(alpha: 0.1)
+                                : AppColors.white,
                             side: BorderSide(
                               color: !isCard
-                                  ? HexColor('#2F2884')
-                                  : HexColor('#CBD5E1'),
+                                  ? AppColors.primary
+                                  : AppColors.borderLight,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -177,7 +177,7 @@ class _PaymentModalState extends State<PaymentModal> {
                   Text(
                     "En effectuant ce paiement, vous acceptez nos conditions générales d’utilisation et notre politique de confidentialité.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: HexColor('#6B7280')),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -274,7 +274,7 @@ class _PaymentModalState extends State<PaymentModal> {
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: HexColor('#38AA36'),
+              backgroundColor: AppColors.success,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(50),
@@ -283,7 +283,7 @@ class _PaymentModalState extends State<PaymentModal> {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               "Payer",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: AppColors.white, fontSize: 16),
             ),
           ),
         ),
@@ -311,7 +311,7 @@ class _PaymentModalState extends State<PaymentModal> {
   Widget _buildPayBox(String img, String label) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: HexColor('#E5E7EB')),
+        border: Border.all(color: AppColors.borderLight),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -323,7 +323,7 @@ class _PaymentModalState extends State<PaymentModal> {
             label,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: HexColor('#111827'),
+              color: AppColors.textPrimary,
             ),
           ),
         ],

@@ -1,79 +1,40 @@
+import 'package:private_school/chauffeurs/pages/trajets/data/models/trip_model.dart';
 
 
-import 'package:equatable/equatable.dart';
-import '../../data/models/trip_model.dart';
+/// Base state for trip management
+abstract class TripState {}
 
-abstract class TripState extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
-
+/// Initial state
 class TripInitial extends TripState {}
 
+/// Loading state - shown when fetching trips
 class TripLoading extends TripState {}
 
+/// Creating state - shown when creating a new trip
+class TripCreating extends TripState {}
+
+/// Trips loaded successfully
 class TripsLoaded extends TripState {
   final List<TripModel> trips;
 
-  TripsLoaded(this.trips);
-
-  @override
-  List<Object?> get props => [trips];
+  TripsLoaded({required this.trips});
 }
 
-class TripCreating extends TripState {}
+/// Trip created successfully
+class TripCreated extends TripState {}
 
-class TripCreated extends TripState {
-  final TripModel trip;
+/// Trip started successfully
+class TripStarted extends TripState {}
 
-  TripCreated(this.trip);
+/// Trip completed successfully  
+class TripCompleted extends TripState {}
 
-  @override
-  List<Object?> get props => [trip];
-}
+/// Trip canceled successfully
+class TripCanceled extends TripState {}
 
-class TripStarted extends TripState {
-  final TripModel trip;
-
-  TripStarted(this.trip);
-
-  @override
-  List<Object?> get props => [trip];
-}
-
-class TripCompleted extends TripState {
-  final TripModel trip;
-
-  TripCompleted(this.trip);
-
-  @override
-  List<Object?> get props => [trip];
-}
-
-class TripCanceled extends TripState {
-  final String tripId;
-
-  TripCanceled(this.tripId);
-
-  @override
-  List<Object?> get props => [tripId];
-}
-
-class TripLoaded extends TripState {
-  final TripModel trip;
-
-  TripLoaded(this.trip);
-
-  @override
-  List<Object?> get props => [trip];
-}
-
-
+/// Error state
 class TripError extends TripState {
   final String message;
 
   TripError(this.message);
-
-  @override
-  List<Object?> get props => [message];
 }

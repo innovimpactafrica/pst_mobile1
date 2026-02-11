@@ -103,8 +103,15 @@ class _AbonnementPageState extends State<AbonnementPage> {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
       builder: (context, state) {
         if (state is SubscriptionLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: AppColors.primary),
+                const SizedBox(height: 12),
+                Text('loading'.tr()),
+              ],
+            ),
           );
         }
 
@@ -141,7 +148,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.blackOpacity05,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -170,7 +177,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 Row(
                   children: [
                     Text(
-                      'my_subscription'.tr(), // "Mon abonnement"
+                      'my_subscription'.tr(), 
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -201,9 +208,10 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  hasSubscription
-                      ? '${'expiry_date'.tr()}: ${DateFormat('dd/MM/yyyy').format(_currentSubscription!.expiryDate)}'
-                      : 'no_active_subscription'.tr(),
+                 hasSubscription
+    ? '${'expires_on'.tr()}: ${DateFormat.yMd(context.locale.toString()).format(_currentSubscription!.expiryDate)}'
+    : 'no_active_subscription'.tr(),
+
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -264,7 +272,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withValues(alpha: 0.1) 
-              : const Color(0xFFF5F5F5), 
+              : AppColors.white, 
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -274,8 +282,8 @@ class _AbonnementPageState extends State<AbonnementPage> {
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: isSelected
-                  ? AppColors.primary // 🎨 Texte violet
-                  : AppColors.textPrimary, // 🎨 Texte noir
+                  ? AppColors.primary 
+                  : AppColors.textPrimary, 
             ),
           ),
         ),
@@ -330,13 +338,13 @@ class _AbonnementPageState extends State<AbonnementPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isAnnual
-              ? AppColors.primary // 🎨 Bordure violette pour annuel
-              : AppColors.border, // 🎨 Bordure grise pour mensuel
+              ? AppColors.primary
+              : AppColors.border,
           width: isAnnual ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.blackOpacity05,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -385,8 +393,9 @@ class _AbonnementPageState extends State<AbonnementPage> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Text(
-                isAnnual ? '/an' : '/mois',
+             Text(
+         isAnnual ? 'per_year'.tr() : 'per_month_short'.tr(),
+
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -487,7 +496,8 @@ class _AbonnementPageState extends State<AbonnementPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              message,
+             'error'.tr(),
+
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(color: AppColors.error),
             ),

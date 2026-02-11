@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/utils/app_colors.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class PlanToggle extends StatelessWidget {
   final bool isAnnual;
@@ -12,7 +14,8 @@ class PlanToggle extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Choisissez votre plan',
+          'choose_your_plan'.tr(),
+
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -30,14 +33,16 @@ class PlanToggle extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildOption(
-                  label: 'Mensuel',
+                 label: 'monthly'.tr(),
+
                   isSelected: !isAnnual,
                   onTap: () => onToggle(false),
                 ),
               ),
               Expanded(
                 child: _buildOption(
-                  label: 'Annuel',
+                 label: 'annual'.tr(),
+
                   isSelected: isAnnual,
                   onTap: () => onToggle(true),
                 ),

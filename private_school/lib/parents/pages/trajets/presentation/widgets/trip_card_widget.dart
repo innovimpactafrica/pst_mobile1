@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
@@ -87,7 +88,7 @@ class TripCardWidget extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              trip.startLocation ?? 'Point de départ',
+                              trip.startLocation ?? 'departure_point'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeS + 1,
                                 color: AppColors.textPrimary,
@@ -155,8 +156,8 @@ class TripCardWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       trip.schools.isNotEmpty 
-                          ? '${trip.schools.length} école${trip.schools.length > 1 ? 's' : ''}'
-                          : 'Aucune école',
+                          ? '${trip.schools.length} ${trip.schools.length > 1 ? 'schools_count'.tr() : 'school_count'.tr()}'
+                          : 'no_school'.tr(),
                       style: GoogleFonts.inter(
                         color: AppColors.success,
                         fontSize: AppConstants.fontSizeS,
@@ -174,7 +175,7 @@ class TripCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${trip.passengers.length}/${trip.totalSeats} places',
+                      '${trip.passengers.length}/${trip.totalSeats} ${'seats'.tr()}',
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeS,
                         color: AppColors.textSecondary,
@@ -198,9 +199,9 @@ class TripCardWidget extends StatelessWidget {
     final dateOnly = DateTime(date.year, date.month, date.day);
 
     if (dateOnly == today) {
-      return "Aujourd'hui";
+      return 'today'.tr();
     } else if (dateOnly == tomorrow) {
-      return "Demain";
+      return 'tomorrow'.tr();
     } else {
       return DateFormat('EEEE d MMMM', 'fr_FR').format(date);
     }
@@ -241,20 +242,20 @@ class TripCardWidget extends StatelessWidget {
       case 'started':
       case 'in_progress':
         badgeColor = AppColors.success;
-        badgeText = 'En cours';
+        badgeText = 'in_progress'.tr();
         break;
       case 'completed':
         badgeColor = AppColors.primary;
-        badgeText = 'Terminé';
+        badgeText = 'completed'.tr();
         break;
       case 'canceled':
         badgeColor = AppColors.error;
-        badgeText = 'Annulé';
+        badgeText = 'cancelled'.tr();
         break;
       case 'pending':
       default:
         badgeColor = AppColors.warning;
-        badgeText = 'En attente';
+        badgeText = 'pending'.tr();
     }
 
     return Container(

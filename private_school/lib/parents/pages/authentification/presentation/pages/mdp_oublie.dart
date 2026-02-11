@@ -245,7 +245,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                                 boxShadow: _isPhoneMode
                                     ? [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha:0.05),
+                                          color: AppColors.blackOpacity05,
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -303,7 +303,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                                 boxShadow: !_isPhoneMode
                                     ? [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha:0.05),
+                                          color: AppColors.blackOpacity05,
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -429,7 +429,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                               height: 24,
                               width: 24,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 strokeWidth: 2.5,
                               ),
                             )
@@ -438,7 +438,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                               style: TextStyle(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                     ),

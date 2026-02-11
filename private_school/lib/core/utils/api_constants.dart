@@ -64,6 +64,8 @@ class ApiConstants {
   static const String carpoolCalendar = '/api/parents/carpool/calendar';
   static const String carpoolConduite = '/api/parents/carpool/conduite';
 
+  static const String parentAllTrips = '/api/parents/trips';
+
   // ==================== DRIVER ENDPOINTS ====================
   
   // Dashboard

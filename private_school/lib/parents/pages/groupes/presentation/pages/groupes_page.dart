@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
@@ -72,7 +73,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Créer un groupe de covoiturage',
+                        'create_carpooling_group'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -87,7 +88,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Nom du groupe',
+                    'group_name'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -97,7 +98,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   const SizedBox(height: 8),
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Ex : sencov',
+                      hintText: 'group_name_example'.tr(),
                       hintStyle: GoogleFonts.inter(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -120,7 +121,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Membres',
+                    'members'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -131,7 +132,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   TextField(
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'email ou numéro de téléphone',
+                      hintText: 'email_or_phone_number'.tr(),
                       hintStyle: GoogleFonts.inter(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -170,7 +171,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                         elevation: 0,
                       ),
                       child: Text(
-                        'Créer',
+                        'create'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -209,7 +210,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Groupes',
+                    'groups'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -241,7 +242,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Rechercher',
+                    hintText: 'search'.tr(),
                     hintStyle: GoogleFonts.inter(
                       color: Colors.grey.shade400,
                       fontSize: 14,
@@ -339,7 +340,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                                 horizontal: 20,
                               ),
                               child: Text(
-                                'Mes groupes',
+                                'my_groups'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -370,7 +371,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          'Aucun groupe',
+                                          'no_groups'.tr(),
                                           style: GoogleFonts.inter(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
@@ -379,7 +380,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Créez votre premier groupe',
+                                          'create_your_first_group'.tr(),
                                           style: GoogleFonts.inter(
                                             fontSize: 14,
                                             color: Colors.grey.shade500,
@@ -413,7 +414,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                                 horizontal: 20,
                               ),
                               child: Text(
-                                'Groupe que vous pouvez rejoindre',
+                                'groups_you_can_join'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -498,7 +499,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Invitation à rejoindre',
+                  'invitation_to_join'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -507,7 +508,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Abdou Diallo vous invite à rejoindre Sencov',
+                  'invitation_message'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.grey.shade600,
@@ -628,7 +629,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${group.membersCount} membres',
+                    '${group.membersCount} ${'members'.tr()}',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -653,7 +654,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
           child: Text(
-            'Aucun groupe disponible',
+            'no_available_groups'.tr(),
             style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500),
           ),
         ),
@@ -742,7 +743,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
 
             // NOMBRE DE MEMBRES
             Text(
-              '${group.membersCount} membres',
+              '${group.membersCount} ${'members'.tr()}',
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: Colors.grey.shade600,

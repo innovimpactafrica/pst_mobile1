@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import '../../domain/bloc/auth_bloc.dart';
 import '../../domain/bloc/auth_event.dart';
@@ -44,8 +45,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         _passwordController.text.trim().isEmpty ||
         _confirmPasswordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez remplir tous les champs'),
+        SnackBar(
+          content: Text('please_fill_all_fields'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -56,8 +57,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(_emailController.text.trim())) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adresse email invalide'),
+        SnackBar(
+          content: Text('invalid_email'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -67,8 +68,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
     // Validation longueur mot de passe
     if (_passwordController.text.trim().length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le mot de passe doit contenir au moins 6 caractères'),
+        SnackBar(
+          content: Text('password_min_length'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -78,8 +79,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
     // Vérifier correspondance mots de passe
     if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Les mots de passe ne correspondent pas'),
+        SnackBar(
+          content: Text('passwords_do_not_match'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -93,8 +94,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
 
     if (firstName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez entrer votre prénom et nom'),
+        SnackBar(
+          content: Text('please_enter_first_last_name'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -131,17 +132,18 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
 
           // ✅ Afficher le message de succès
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Inscription réussie ! Connectez-vous maintenant.'),
+            SnackBar(
+              content: Text('registration_success_message'.tr()),
               backgroundColor: AppColors.successDark,
               duration: Duration(seconds: 2),
             ),
           );
 
-          // ✅ Rediriger vers la page de connexion après 2 secondes
+          
+          final navigator = Navigator.of(context);
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
-              Navigator.pushReplacementNamed(context, '/parent/connexion');
+              navigator.pushReplacementNamed('/parent/connexion');
             }
           });
         } else if (state is AuthError) {
@@ -220,8 +222,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
               height: 20,
             ),
             const SizedBox(width: 6),
-            const Text(
-              'Français',
+            Text(
+              'french'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -243,9 +245,9 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   }
 
   Widget _buildTitle() {
-    return const Center(
+    return Center(
       child: Text(
-        'Inscrivez-vous en un clic',
+        'sign_up_in_one_click'.tr(),
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -256,9 +258,9 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   }
 
   Widget _buildSubtitle() {
-    return const Center(
+    return Center(
       child: Text(
-        'Créer un compte maintenant et profitez\npleinement de l\'application.',
+        'create_account_description'.tr(),
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 14,
@@ -274,30 +276,30 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTextField(
-          label: 'Prénom et nom',
-          hint: 'Ex: Birima Diop',
+          label: 'first_last_name'.tr(),
+          hint: 'name_example'.tr(),
           controller: _nameController,
           icon: Icons.person_outline,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'Numéro de téléphone',
-          hint: 'Ex: 77 123 45 67',
+          label: 'phone_number'.tr(),
+          hint: 'phone_example'.tr(),
           controller: _phoneController,
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'Adresse email',
-          hint: 'Ex: bdiop@gmail.com',
+          label: 'email'.tr(),
+          hint: 'email_example'.tr(),
           controller: _emailController,
           icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
         _buildPasswordField(
-          label: 'Mot de passe',
+          label: 'password'.tr(),
           controller: _passwordController,
           obscureText: _obscurePassword,
           onToggleVisibility: () {
@@ -308,7 +310,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         ),
         const SizedBox(height: 16),
         _buildPasswordField(
-          label: 'Confirmer le mot de passe',
+          label: 'confirm_password'.tr(),
           controller: _confirmPasswordController,
           obscureText: _obscureConfirmPassword,
           onToggleVisibility: () {
@@ -471,8 +473,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             borderRadius: BorderRadius.circular(25),
           ),
         ),
-        child: const Text(
-          'S\'inscrire',
+        child: Text(
+          'sign_up'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -487,8 +489,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Vous avez déjà un compte ? ',
+          Text(
+            'already_have_account'.tr(),
             style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
@@ -498,8 +500,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             onTap: () {
               Navigator.pushReplacementNamed(context, '/parent/connexion');
             },
-            child: const Text(
-              'Se Connecter',
+            child: Text(
+              'login'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

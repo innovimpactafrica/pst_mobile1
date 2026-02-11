@@ -132,7 +132,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.only(
-                        top: 80, // ✅ ESPACE POUR LE CARD QUI FLOTTE
+                        top: 80, 
                         left: AppConstants.spacingXL + 4,
                         right: AppConstants.spacingXL + 4,
                         bottom: AppConstants.spacingXL + 4,
