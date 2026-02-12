@@ -18,7 +18,7 @@ class GroupesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GroupBloc(repository: GroupRepository())
-        ..add(LoadAllGroupsEvent()), // ✅ UN seul event qui charge tout en parallèle
+        ..add(LoadAllGroupsEvent()), 
       child: const GroupesPageContent(),
     );
   }
@@ -45,75 +45,22 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+      builder: (modalContext) => BlocProvider.value(
+        value: context.read<GroupBloc>(),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(modalContext).viewInsets.bottom),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'create_carpooling_group'.tr(),
-                        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text('group_name'.tr(), style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'group_name_example'.tr(),
-                      hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
-                      filled: true, fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.success)),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('members'.tr(), style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'email_or_phone_number'.tr(),
-                      hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
-                      filled: true, fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.success)),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success, foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text('create'.tr(), style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                ],
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: const _CreateGroupForm(), 
               ),
             ),
           ),
@@ -247,7 +194,6 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                     color: AppColors.success,
                     onRefresh: () async {
                       context.read<GroupBloc>().add(LoadAllGroupsEvent());
-                      // Attendre que l'état change
                       await Future.delayed(const Duration(milliseconds: 500));
                     },
                     child: SingleChildScrollView(
@@ -369,7 +315,6 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                     style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
                 const SizedBox(height: 2),
                 Text(
-                  // ✅ Vrai nom du groupe depuis l'API
                   invitation.groupName.isNotEmpty
                       ? invitation.groupName
                       : 'invitation_message'.tr(),
@@ -460,7 +405,6 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                   Text(group.name,
                       style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
                   const SizedBox(height: 4),
-                  // ✅ Données réelles
                   Text('${group.membersCount} ${'members'.tr()}',
                       style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600)),
                   if (group.schoolName != null && group.schoolName!.isNotEmpty)
@@ -546,6 +490,266 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// ✅ Widget formulaire de création (design original)
+// ─────────────────────────────────────────────
+class _CreateGroupForm extends StatefulWidget {
+  const _CreateGroupForm();
+
+  @override
+  State<_CreateGroupForm> createState() => _CreateGroupFormState();
+}
+
+class _CreateGroupFormState extends State<_CreateGroupForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _membersController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _membersController.dispose();
+    super.dispose();
+  }
+
+  void _createGroup(BuildContext context) {
+    if (!_formKey.currentState!.validate()) return;
+
+    // Séparer les emails/usernames par virgule, espace ou retour ligne
+    final memberEmails = _membersController.text
+        .split(RegExp(r'[,\s\n]+'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🟢 [CreateGroupForm] CREATE GROUP');
+    debugPrint('   Name: ${_nameController.text.trim()}');
+    debugPrint('   Description: ${_descriptionController.text.trim()}');
+    debugPrint('   Members: $memberEmails');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    context.read<GroupBloc>().add(
+      CreateGroupEvent(
+        name: _nameController.text.trim(),
+        memberEmails: memberEmails,
+        description: _descriptionController.text.trim().isNotEmpty
+            ? _descriptionController.text.trim()
+            : null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<GroupBloc, GroupState>(
+      listener: (context, state) {
+        if (state is GroupCreated) {
+          Navigator.pop(context);
+          context.read<GroupBloc>().add(LoadAllGroupsEvent());
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        } else if (state is GroupError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message, style: GoogleFonts.inter()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is GroupLoading;
+
+        return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'create_carpooling_group'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // NOM DU GROUPE
+              Text(
+                'group_name'.tr(),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  hintText: 'group_name_example'.tr(),
+                  hintStyle: GoogleFonts.inter(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.success),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Veuillez entrer un nom de groupe';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // DESCRIPTION (optionnel)
+              Text(
+                'Description (optionnel)',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  hintText: 'Groupe de covoiturage pour...',
+                  hintStyle: GoogleFonts.inter(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.success),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // MEMBRES
+              Text(
+                'members'.tr(),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _membersController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'email_or_phone_number'.tr(),
+                  hintStyle: GoogleFonts.inter(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.success),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // BOUTON CRÉER
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : () => _createGroup(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'create'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

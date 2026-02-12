@@ -130,9 +130,17 @@ class GroupRepository {
     }
   }
 
+  Future<void> proposeExchange(Planning planning, String reason) {
+  return _groupService.proposeExchange(
+    planning: planning,
+    reason: reason,
+  );
+}
+
+
   Future<void> requestReplacement({required String planningId, required String reason}) async {
     try {
-      await _groupService.proposeExchange(planningId: planningId, reason: reason);
+      await _groupService.proposeExchange(  planning: planning,, reason: reason);
     } catch (e) {
       throw Exception('Impossible de demander un remplacement: $e');
     }

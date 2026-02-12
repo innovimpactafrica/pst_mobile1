@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+
 class GroupModel {
   final String id;
   final String name;
@@ -184,19 +185,42 @@ class GroupMember {
 // ─────────────────────────────────────────────
 // PLANNING
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PLANNING - UPDATED pour correspondre à l'API
+// ─────────────────────────────────────────────
 class Planning {
   final String id;
   final DateTime date;
-  final String assignedTo;
-  final String status;
+  final String? driverId;        // driver_id de l'API
+  final String? driverName;      // driver_name de l'API
+  final String? driverPhone;     // driver_phone de l'API
+  final String? driverEmail;     // driver_email de l'API
+  final bool? isMyTurn;          // is_my_turn de l'API
+  final String status;           // status de l'API
   final String? replacementReason;
+  final String? startPoint;      // start_point de l'API
+  final String? endPoint;        // end_point de l'API
+  final String? departureTime;   // departure_time de l'API
+  final String? returnTime;      // return_time de l'API
+  final int? capacityMax;        // capacity_max de l'API
+  final String? notes;           // notes de l'API
 
   Planning({
     required this.id,
     required this.date,
-    required this.assignedTo,
+    this.driverId,
+    this.driverName,
+    this.driverPhone,
+    this.driverEmail,
+    this.isMyTurn,
     required this.status,
     this.replacementReason,
+    this.startPoint,
+    this.endPoint,
+    this.departureTime,
+    this.returnTime,
+    this.capacityMax,
+    this.notes,
   });
 
   factory Planning.fromJson(Map<String, dynamic> json) {
@@ -205,29 +229,85 @@ class Planning {
       date: json['date'] != null
           ? DateTime.tryParse(json['date']) ?? DateTime.now()
           : DateTime.now(),
-      assignedTo: json['assigned_to'] ?? '',
-      status: json['status'] ?? 'pending',
+      driverId: json['driver_id']?.toString(),
+      driverName: json['driver_name'],
+      driverPhone: json['driver_phone'],
+      driverEmail: json['driver_email'],
+      isMyTurn: json['is_my_turn'],
+      status: json['status'] ?? 'scheduled',
       replacementReason: json['replacement_reason'],
+      startPoint: json['start_point'],
+      endPoint: json['end_point'],
+      departureTime: json['departure_time'],
+      returnTime: json['return_time'],
+      capacityMax: json['capacity_max'],
+      notes: json['notes'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'date': date.toIso8601String(),
-    'assigned_to': assignedTo,
+    'driver_id': driverId,
+    'driver_name': driverName,
+    'driver_phone': driverPhone,
+    'driver_email': driverEmail,
+    'is_my_turn': isMyTurn,
     'status': status,
     'replacement_reason': replacementReason,
+    'start_point': startPoint,
+    'end_point': endPoint,
+    'departure_time': departureTime,
+    'return_time': returnTime,
+    'capacity_max': capacityMax,
+    'notes': notes,
   };
 
+  // ✅ GETTERS pour l'affichage
   bool get isConfirmed => status == 'confirmed';
-  bool get isPending => status == 'pending';
+  bool get isPending => status == 'scheduled' || status == 'pending';
   bool get needsReplacement => status == 'replacement_requested';
+  
+  // ✅ Nom à afficher (soit le driver_name, soit "Non assigné")
+  String get assignedTo {
+    if (isMyTurn == true) return 'Vous';
+    if (driverName != null && driverName!.isNotEmpty) return driverName!;
+    return 'Non assigné';
+  }
 
-  Planning copyWith({String? id, DateTime? date, String? assignedTo, String? status, String? replacementReason}) {
+  Planning copyWith({
+    String? id,
+    DateTime? date,
+    String? driverId,
+    String? driverName,
+    String? driverPhone,
+    String? driverEmail,
+    bool? isMyTurn,
+    String? status,
+    String? replacementReason,
+    String? startPoint,
+    String? endPoint,
+    String? departureTime,
+    String? returnTime,
+    int? capacityMax,
+    String? notes,
+  }) {
     return Planning(
-      id: id ?? this.id, date: date ?? this.date,
-      assignedTo: assignedTo ?? this.assignedTo, status: status ?? this.status,
+      id: id ?? this.id,
+      date: date ?? this.date,
+      driverId: driverId ?? this.driverId,
+      driverName: driverName ?? this.driverName,
+      driverPhone: driverPhone ?? this.driverPhone,
+      driverEmail: driverEmail ?? this.driverEmail,
+      isMyTurn: isMyTurn ?? this.isMyTurn,
+      status: status ?? this.status,
       replacementReason: replacementReason ?? this.replacementReason,
+      startPoint: startPoint ?? this.startPoint,
+      endPoint: endPoint ?? this.endPoint,
+      departureTime: departureTime ?? this.departureTime,
+      returnTime: returnTime ?? this.returnTime,
+      capacityMax: capacityMax ?? this.capacityMax,
+      notes: notes ?? this.notes,
     );
   }
 }

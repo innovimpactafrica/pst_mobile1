@@ -41,8 +41,7 @@ class UserModel {
   // 1. Définir l'adresse de base de ton serveur
   const String baseUrl = "http://86.106.181.31:3000";
 
-  // 2. Récupérer la valeur brute (on ajoute photo_profil ici)
-  String? rawPhoto = json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
+String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
 
   // 3. Si la photo existe et est un chemin relatif, on ajoute le domaine
   String? fullPhotoUrl;

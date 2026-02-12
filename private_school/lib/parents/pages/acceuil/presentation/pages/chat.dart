@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,64 +33,93 @@ class _ChatPageState extends State<ChatPage> {
   bool _isLoading = true;
   MessageModel? _editingMessage;
 
+  // ✅ GETTER PROTÉGÉ : Gère int et String
+  int get _conversationId {
+    final id = widget.conversation.id;
+    debugPrint('🔍 [ChatPage] conversation.id = $id (type: ${id.runtimeType})');
+    return id; // Déjà un int selon votre modèle
+  }
+
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
     
+    // ✅ Utiliser le getter protégé
     context.read<MessageBloc>().add(
-          LoadMessagesEvent(conversationId: widget.conversation.id),
+          LoadMessagesEvent(conversationId: _conversationId),
         );
   }
 
-  Future<void> _loadCurrentUser() async {
-    try {
-      final userDataRaw = await _storage.getUserData();
-      debugPrint('📦 getUserData brut type: ${userDataRaw.runtimeType}');
-      debugPrint('📦 getUserData brut: $userDataRaw');
+Future<void> _loadCurrentUser() async {
+  try {
+    final userDataRaw = await _storage.getUserData();
+    debugPrint('📦 getUserData type: ${userDataRaw?.runtimeType}');
+    debugPrint('📦 getUserData valeur: $userDataRaw');
 
-      int? extractedId;
+    int? extractedId;
 
-      if (userDataRaw != null) {
-        if (userDataRaw is Map<String, dynamic>) {
-          final dynamic idValue = userDataRaw['id'];
-          if (idValue is int) {
-            extractedId = idValue;
-          } else {
-            extractedId = int.tryParse(idValue?.toString() ?? '');
-          }
-        } else {
-          final userDataString = userDataRaw.toString();
-          try {
-            final decoded = jsonDecode(userDataString) as Map<String, dynamic>;
-            final dynamic idValue = decoded['id'];
-            if (idValue is int) {
-              extractedId = idValue;
-            } else {
-              extractedId = int.tryParse(idValue?.toString() ?? '');
-            }
-            debugPrint('✅ JSON décodé, id: $extractedId');
-          } catch (_) {
-            final idMatch = RegExp(r'\bid\s*:\s*(\d+)').firstMatch(userDataString);
-            if (idMatch != null) {
-              final matchedGroup = idMatch.group(1);
-              extractedId = int.tryParse(matchedGroup ?? '');
-              debugPrint('✅ ID extrait par regex: $extractedId');
+    if (userDataRaw != null && userDataRaw.isNotEmpty) {
+      debugPrint('📝 String à parser: $userDataRaw');
+
+      // ✅ MÉTHODE 1 : Parser JSON
+      try {
+        final decoded = jsonDecode(userDataRaw) as Map<String, dynamic>;
+        final dynamic idValue = decoded['id'];
+        
+        if (idValue is int) {
+          extractedId = idValue;
+          debugPrint('✅ ID extrait (JSON int): $extractedId');
+        } else if (idValue is String) {
+          extractedId = int.tryParse(idValue);
+          debugPrint('✅ ID extrait (JSON string): $extractedId');
+        } else if (idValue != null) {
+          extractedId = int.tryParse(idValue.toString());
+          debugPrint('✅ ID extrait (JSON autre): $extractedId');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Erreur parsing JSON: $e');
+        
+        // ✅ MÉTHODE 2 : Extraction par Regex
+        final patterns = [
+          RegExp(r'"id"\s*:\s*(\d+)'),
+          RegExp(r'id\s*:\s*(\d+)'),
+          RegExp(r"'id'\s*:\s*(\d+)"),
+          RegExp(r'id=(\d+)'),
+        ];
+
+        for (final pattern in patterns) {
+          final match = pattern.firstMatch(userDataRaw);
+          if (match != null && match.group(1) != null) {
+            extractedId = int.tryParse(match.group(1)!);
+            if (extractedId != null) {
+              debugPrint('✅ ID extrait (Regex): $extractedId');
+              break;
             }
           }
         }
       }
-
-      setState(() {
-        _currentUserId = extractedId;
-        _isLoading = false;
-      });
-      debugPrint('✅ Current user ID final: $_currentUserId');
-    } catch (e) {
-      debugPrint('❌ Erreur chargement utilisateur: $e');
-      setState(() => _isLoading = false);
     }
+
+    if (extractedId == null) {
+      debugPrint('⚠️ Impossible d\'extraire l\'ID utilisateur');
+    }
+
+    setState(() {
+      _currentUserId = extractedId;
+      _isLoading = false;
+    });
+    
+    debugPrint('✅ Current user ID final: $_currentUserId');
+  } catch (e, stackTrace) {
+    debugPrint('❌ Erreur chargement utilisateur: $e');
+    debugPrint('📋 StackTrace: $stackTrace');
+    setState(() {
+      _currentUserId = null;
+      _isLoading = false;
+    });
   }
+}
 
   int? _resolveCurrentUserId(List<MessageModel> messages) {
     if (_currentUserId != null) return _currentUserId;
@@ -238,8 +265,9 @@ class _ChatPageState extends State<ChatPage> {
         IconButton(
           icon: const Icon(Icons.refresh, color: AppColors.white),
           onPressed: () {
+            // ✅ Utiliser le getter protégé
             context.read<MessageBloc>().add(
-                  RefreshMessagesEvent(conversationId: widget.conversation.id),
+                  RefreshMessagesEvent(conversationId: _conversationId),
                 );
           },
         ),
@@ -256,8 +284,9 @@ class _ChatPageState extends State<ChatPage> {
           child: RefreshIndicator(
             color: AppColors.success,
             onRefresh: () async {
+              // ✅ Utiliser le getter protégé
               context.read<MessageBloc>().add(
-                    RefreshMessagesEvent(conversationId: widget.conversation.id),
+                    RefreshMessagesEvent(conversationId: _conversationId),
                   );
               await Future.delayed(const Duration(seconds: 1));
             },
@@ -512,8 +541,9 @@ class _ChatPageState extends State<ChatPage> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
+              // ✅ Utiliser le getter protégé
               context.read<MessageBloc>().add(
-                    LoadMessagesEvent(conversationId: widget.conversation.id),
+                    LoadMessagesEvent(conversationId: _conversationId),
                   );
             },
             icon: const Icon(Icons.refresh),
@@ -532,8 +562,9 @@ class _ChatPageState extends State<ChatPage> {
     if (content.isEmpty) return;
 
     if (_editingMessage != null) {
+      // ✅ Utiliser le getter protégé
       context.read<MessageBloc>().add(UpdateMessageEvent(
-            conversationId: widget.conversation.id,
+            conversationId: _conversationId,
             messageId: _editingMessage!.id,
             content: content,
           ));
@@ -544,8 +575,9 @@ class _ChatPageState extends State<ChatPage> {
       if (state is MessageLoaded && state.isReplying) {
         replyToId = state.replyToId;
       }
+      // ✅ Utiliser le getter protégé
       context.read<MessageBloc>().add(SendMessageEvent(
-            conversationId: widget.conversation.id,
+            conversationId: _conversationId,
             content: content,
             replyToId: replyToId,
           ));
@@ -635,8 +667,9 @@ class _ChatPageState extends State<ChatPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
+              // ✅ Utiliser le getter protégé
               context.read<MessageBloc>().add(DeleteMessageEvent(
-                    conversationId: widget.conversation.id,
+                    conversationId: _conversationId,
                     messageId: message.id,
                   ));
             },

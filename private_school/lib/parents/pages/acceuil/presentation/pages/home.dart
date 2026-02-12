@@ -3,69 +3,38 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
-import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
-import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
-import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
-import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
+import 'package:private_school/parents/pages/profil/domain/bloc/profil_bloc.dart';
+import 'package:private_school/parents/pages/profil/domain/bloc/profil_event.dart';
+import 'package:private_school/parents/pages/profil/data/repositories/user_repository.dart';
 import 'package:private_school/parents/pages/profil/presentation/pages/notifications_page.dart';
+import 'package:private_school/parents/pages/profil/presentation/pages/personal_info_page.dart';
+import 'package:private_school/parents/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart';
-import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_card_widget.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_detail_page.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tracking_page.dart';
+import 'package:private_school/parents/pages/acceuil/presentation/pages/discussion.dart';
 import 'package:private_school/parents/widgets/main_layout.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (context) =>
-              HomeBloc(repository: TripRepository())..add(LoadDriversEvent()),
-        ),
-        BlocProvider(
-          create: (context) => AuthBloc()..add(const LoadCurrentUserEvent()),
-        ),
-        BlocProvider(
-        create: (context) => ConversationBloc(
-          repository: MessagingRepository(), 
-        )..add(LoadConversationsEvent()), 
-      ),
-      ],
-      child: const HomePageContent(),
-    );
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class HomePageContent extends StatefulWidget {
-  const HomePageContent({super.key});
-
-  @override
-  State<HomePageContent> createState() => _HomePageContentState();
-}
-
-class _HomePageContentState extends State<HomePageContent> {
+class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  void _openReportProblem(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const ReportProblemModal(),
-    );
-  }
+  // ✅ PAS DE initState() ni didChangeDependencies() !
+  // Les events sont appelés dans main.dart
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +66,10 @@ class _HomePageContentState extends State<HomePageContent> {
                                   ),
                                 );
                               } else if (state is HomeLoaded) {
-                                return _buildTripCardsSection(context, state.trips);
+                                return _buildTripCardsSection(
+                                  context,
+                                  state.trips,
+                                );
                               } else if (state is HomeError) {
                                 return SizedBox(
                                   height: 280,
@@ -151,10 +123,7 @@ class _HomePageContentState extends State<HomePageContent> {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 3,
-                ),
+                border: Border.all(color: AppColors.primary, width: 3),
               ),
               child: const Icon(
                 Icons.location_on,
@@ -222,17 +191,12 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
               ],
             ),
-            child: Icon(
-              Icons.tune,
-              color: Colors.grey.shade600,
-              size: 22,
-            ),
+            child: Icon(Icons.tune, color: Colors.grey.shade600, size: 22),
           ),
         ],
       ),
     );
   }
-
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -246,17 +210,12 @@ class _HomePageContentState extends State<HomePageContent> {
           String userName = "user".tr();
           String? userPhoto;
 
-        
           if (authState is UserLoaded) {
             userName = authState.user.fullName;
             userPhoto = authState.user.photo;
-          } else if (authState is AuthAuthenticated && authState.user != null) {
-            userName = authState.user!.fullName;
-            userPhoto = authState.user!.photo;
-          } else if (authState is AuthLoading) {
-            userName = "loading_text".tr();
-          } else if (authState is AuthError) {
-            userName = "error_text".tr();
+          } else if (authState is AuthAuthenticated) {
+            userName = authState.user?.fullName ?? "user".tr();
+            userPhoto = authState.user?.photo;
           }
 
           return Row(
@@ -264,9 +223,7 @@ class _HomePageContentState extends State<HomePageContent> {
             children: [
               Row(
                 children: [
-                  
                   _buildProfileAvatar(userPhoto),
-                  
                   const SizedBox(width: AppConstants.spacingL),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +231,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       Text(
                         AppConstants.labelGreeting,
                         style: GoogleFonts.inter(
-                          color: AppColors.whiteOpacity20.withValues(alpha: 0.9),
+                          color: AppColors.white.withValues(alpha: 0.7),
                           fontSize: AppConstants.fontSizeM,
                         ),
                       ),
@@ -291,36 +248,25 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                 ],
               ),
-              // Dans _buildHeader (home.dart)
-Row(
-  children: [
-    _buildNotifIconSvg(
-      'assets/icons/notif.svg', 
-      1, 
-      () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NotificationsPage()),
-        );
-      }
-    ),
-    const SizedBox(width: AppConstants.spacingL),
-    // Icône Notifications ou Paramètres
-    _buildNotifIconSvg(
-      'assets/icons/Settings.svg', 
-      0, 
-      () {
-        debugPrint("⚙️ Navigation vers Paramètres");
-       Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NotificationsPage()),
-        );
-      }
-      }
-    ),
-  ],
-),
-)
+              Row(
+                children: [
+                  _buildNotifIconSvg('assets/icons/notif.svg', 1, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const DiscussionsPage()),
+                    );
+                  }),
+                  const SizedBox(width: AppConstants.spacingL),
+                  _buildNotifIconSvg('assets/icons/Settings.svg', 0, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const NotificationsPage()),
+                    );
+                  }),
+                ],
+              ),
             ],
           );
         },
@@ -328,106 +274,101 @@ Row(
     );
   }
 
-  /// ✅ Widget pour afficher la photo de profil
+  // ✅ VOTRE CODE DE PHOTO QUI FONCTIONNE
   Widget _buildProfileAvatar(String? photoUrl) {
-    // Pas de photo → Avatar par défaut
-    if (photoUrl == null || photoUrl.isEmpty) {
-      return CircleAvatar(
+    debugPrint('🖼️ Photo URL affichée dans le Header: $photoUrl');
+
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => ProfilBloc(
+                repository: UserRepository(),
+              )..add(LoadUserProfileEvent()),
+              child: const PersonalInfoPage(),
+            ),
+          ),
+        );
+
+        if (!mounted) return;
+        context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+      },
+      child: CircleAvatar(
         radius: 28,
         backgroundColor: AppColors.white,
         child: ClipOval(
-          child: Image.asset(
-            'assets/images/1.png',
-            width: 56,
-            height: 56,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.person,
-                size: AppConstants.iconSizeXL,
-                color: AppColors.success,
-              );
-            },
-          ),
+          child: (photoUrl == null || photoUrl.isEmpty)
+              ? const Icon(
+                  Icons.person,
+                  size: 35,
+                  color: AppColors.success,
+                )
+              : Image.network(
+                  photoUrl,
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    debugPrint('❌ Erreur affichage image: $error');
+                    return const Icon(Icons.person,
+                        size: 35, color: AppColors.success);
+                  },
+                ),
         ),
-      );
-    }
-
-    // URL complète
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return CircleAvatar(
-        radius: 28,
-        backgroundColor: AppColors.white,
-        backgroundImage: NetworkImage(photoUrl),
-        onBackgroundImageError: (exception, stackTrace) {
-          debugPrint('⚠️ Erreur chargement photo: $exception');
-        },
-      );
-    }
-
-    // URL relative
-    final fullUrl = 'http://86.106.181.31:3000$photoUrl';
-    
-    debugPrint('🖼️ [HomePage] Loading profile photo: $fullUrl');
-
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: AppColors.white,
-      backgroundImage: NetworkImage(fullUrl),
-      onBackgroundImageError: (exception, stackTrace) {
-        debugPrint('⚠️ Erreur chargement photo parent: $exception');
-      },
+      ),
     );
   }
 
-  Widget _buildNotifIconSvg(String svgPath, int notifCount, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap, // C'est ici que l'action se déclenche
-    behavior: HitTestBehavior.opaque, // Pour que toute la zone soit cliquable
-    child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        SizedBox(
-          width: 44,
-          height: 44,
-          child: Center(
-            child: SvgPicture.asset(
-              svgPath,
-              width: 30,
-              height: 30,
-              colorFilter: const ColorFilter.mode(
-                AppColors.white,
-                BlendMode.srcIn,
-              ),
-            ),
-          ),
-        ),
-        if (notifCount > 0)
-          Positioned(
-            right: 2,
-            top: 2,
-            child: Container(
-              padding: const EdgeInsets.all(3),
-              decoration: const BoxDecoration(
-                color: AppColors.error,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                notifCount.toString(),
-                style: const TextStyle(
-                  fontSize: AppConstants.fontSizeXS,
-                  color: AppColors.white,
-                  fontWeight: FontWeight.bold,
+  Widget _buildNotifIconSvg(
+      String svgPath, int notifCount, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: SvgPicture.asset(
+                svgPath,
+                width: 30,
+                height: 30,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.white,
+                  BlendMode.srcIn,
                 ),
               ),
             ),
           ),
-      ],
-    ),
-  );
-}
+          if (notifCount > 0)
+            Positioned(
+              right: 2,
+              top: 2,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  notifCount.toString(),
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSizeXS,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-  /// ✅ MODIFIÉ : Section cards avec navigation intelligente
   Widget _buildTripCardsSection(BuildContext context, List<TripModel> trips) {
     if (trips.isEmpty) {
       return const SizedBox(
@@ -451,7 +392,7 @@ Row(
           final trip = trips[index];
           final homeBloc = context.read<HomeBloc>();
           final isReserved = homeBloc.isTripReserved(trip.id);
-          
+
           return Padding(
             padding: EdgeInsets.only(
               right: index < trips.length - 1 ? AppConstants.spacingL : 0,
@@ -460,7 +401,7 @@ Row(
               width: MediaQuery.of(context).size.width * 0.85,
               child: TripCardWidget(
                 trip: trip,
-                isReserved: isReserved, // ✅ Passer le statut réservé
+                isReserved: isReserved,
                 onTap: () => _handleTripTap(context, trip, isReserved),
               ),
             ),
@@ -470,32 +411,16 @@ Row(
     );
   }
 
-  /// ✅ NOUVEAU : Gestion intelligente de la navigation
   void _handleTripTap(BuildContext context, TripModel trip, bool isReserved) {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🏠 [HomePage] TAP SUR CARD');
-    debugPrint('   Trip ID: ${trip.id}');
-    debugPrint('   Destination: ${trip.destination}');
-    debugPrint('   Status: ${trip.status}');
-    debugPrint('   Est réservé: $isReserved');
-    debugPrint('   → ${isReserved ? "TripTrackingPage ✅" : "TripDetailPage 📝"}');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
     if (isReserved) {
-      // ✅ Trajet RÉSERVÉ → Aller au suivi
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => TripTrackingPage(trip: trip),
-        ),
+        MaterialPageRoute(builder: (_) => TripTrackingPage(trip: trip)),
       );
     } else {
-      // ✅ Trajet DISPONIBLE → Aller aux détails/réservation
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => TripDetailPage(trip: trip),
-        ),
+        MaterialPageRoute(builder: (_) => TripDetailPage(trip: trip)),
       );
     }
   }
@@ -521,30 +446,19 @@ Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(
-              icon: Icons.home_rounded,
-              label: AppConstants.labelHome,
-              index: 0,
-            ),
+                icon: Icons.home_rounded,
+                label: AppConstants.labelHome,
+                index: 0),
             _buildNavItem(
-              icon: Icons.people_rounded,
-              label: 'children'.tr(),
-              index: 1,
-            ),
+                icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
             _buildNavItem(
-              icon: Icons.route_rounded,
-              label: 'my_trips'.tr(),
-              index: 2,
-            ),
+                icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
             _buildNavItem(
-              icon: Icons.groups_rounded,
-              label: 'groups'.tr(),
-              index: 3,
-            ),
+                icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
             _buildNavItem(
-              icon: Icons.person_rounded,
-              label: AppConstants.labelProfile,
-              index: 4,
-            ),
+                icon: Icons.person_rounded,
+                label: AppConstants.labelProfile,
+                index: 4),
           ],
         ),
       ),
@@ -559,18 +473,13 @@ Row(
     if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => const MainLayout(initialIndex: 1),
-        ),
+        MaterialPageRoute(builder: (_) => const MainLayout(initialIndex: 1)),
       );
     }
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
+  Widget _buildNavItem(
+      {required IconData icon, required String label, required int index}) {
     final bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => _onBottomNavTap(index),
@@ -612,12 +521,19 @@ Row(
           'assets/icons/13.svg',
           width: 28,
           height: 28,
-          colorFilter: const ColorFilter.mode(
-            AppColors.white,
-            BlendMode.srcIn,
-          ),
+          colorFilter:
+              const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
         ),
       ),
+    );
+  }
+
+  void _openReportProblem(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ReportProblemModal(),
     );
   }
 }

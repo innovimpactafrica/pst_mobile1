@@ -185,24 +185,27 @@ class GroupService {
   // ─────────────────────────────────────────────
   // POST /api/parents/carpool/invitations — Inviter une famille
   // ─────────────────────────────────────────────
+// Dans GroupService (group_service.dart)
 Future<void> inviteMember({
-    required String groupId,
-    String? email,
-    String? phone,
-  }) async {
-    try {
-      await _apiClient.post(
-        ApiConstants.carpoolInvitations,
-        data: {
-          'group_id': groupId, // Changé groupId -> group_id
-          if (email != null) 'parent_email': email, // Changé email -> parent_email
-          if (phone != null) 'phone': phone,
-        },
-      );
-    } catch (e) {
-      throw Exception('Unable to invite member: $e');
-    }
+  required String groupId,
+  String? email,
+  String? phone,
+}) async {
+  try {
+    await _apiClient.post(
+      ApiConstants.carpoolInvitations,
+      data: {
+        // ✅ On convertit l'ID en int car le backend semble le demander pour les routes carpool
+        'group_id': int.tryParse(groupId) ?? groupId, 
+        if (email != null) 'parent_email': email.trim(), // ✅ Ajout du .trim() par sécurité
+        if (phone != null) 'phone': phone.trim(),
+      },
+    );
+  } catch (e) {
+    // On propage l'erreur exacte du serveur pour mieux debugger
+    throw e; 
   }
+}
 
   // ─────────────────────────────────────────────
   // PUT /api/parents/carpool/invitations — Répondre à invitation
@@ -247,31 +250,55 @@ Future<void> respondToInvitation({
   // CALENDRIER
   // ─────────────────────────────────────────────
   Future<List<Planning>> fetchGroupCalendar(String groupId) async {
-    try {
-      final response = await _apiClient.get(
-        ApiConstants.carpoolCalendar,
-        queryParameters: {'groupId': groupId},
-      );
-      final List<dynamic> data = _extractList(response.data, ['data', 'calendar']);
-      return data.map((json) => Planning.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      throw Exception('Unable to load calendar: $e');
-    }
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/calendar?group_id=$groupId');
+    final response = await _apiClient.get(
+      ApiConstants.carpoolCalendar,
+      queryParameters: {'group_id': groupId}, // ✅ CHANGÉ: groupId -> group_id
+    );
+    final List<dynamic> data = _extractList(response.data, ['data', 'calendar']);
+    debugPrint('✅ [GroupService] ${data.length} plannings chargés');
+    return data.map((json) => Planning.fromJson(json as Map<String, dynamic>)).toList();
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchGroupCalendar error: $e');
+    throw Exception('Unable to load calendar: $e');
   }
+}
 
+  // ✅ MÉTHODE CORRIGÉE : addToCalendar
+  // Correspond au format attendu par l'API POST /api/parents/carpool/calendar
   Future<Planning> addToCalendar({
     required String groupId,
     required DateTime date,
     required String assignedTo,
   }) async {
     try {
+      debugPrint('📅 [GroupService] POST /api/parents/carpool/calendar');
+      debugPrint('   group_id: $groupId');
+      debugPrint('   date: ${date.toIso8601String()}');
+      
+      // ✅ Format selon le Swagger API
       final response = await _apiClient.post(
         ApiConstants.carpoolCalendar,
-        data: {'groupId': groupId, 'date': date.toIso8601String(), 'assignedTo': assignedTo},
+        data: {
+          'group_id': int.parse(groupId), // ✅ snake_case + int
+          'date': date.toIso8601String().split('T')[0], // ✅ Format "2026-02-19"
+          'departure_time': '08:00:00', // ✅ OBLIGATOIRE - Heure par défaut
+          // Champs optionnels selon le Swagger
+          'driver_id': 0, // Auto-assigné
+          'start_point': 'Point de départ', // À adapter selon vos besoins
+          'end_point': 'Point d\'arrivée', // À adapter selon vos besoins
+          'return_time': '16:00:00', // Heure de retour par défaut
+          'capacity_max': 4, // Capacité par défaut
+          'notes': assignedTo, // Utilise assignedTo comme note
+        },
       );
+      
+      debugPrint('✅ [GroupService] Planning ajouté');
       final data = response.data is Map ? (response.data['data'] ?? response.data) : response.data;
       return Planning.fromJson(data as Map<String, dynamic>);
     } catch (e) {
+      debugPrint('❌ [GroupService] addToCalendar error: $e');
       throw Exception('Unable to add to calendar: $e');
     }
   }
@@ -296,13 +323,30 @@ Future<void> respondToInvitation({
   // ─────────────────────────────────────────────
   // ÉCHANGES / REMPLACEMENTS
   // ─────────────────────────────────────────────
-  Future<void> proposeExchange({required String planningId, required String reason}) async {
-    try {
-      await _apiClient.post(ApiConstants.carpoolConduite, data: {'planningId': planningId, 'reason': reason});
-    } catch (e) {
-      throw Exception('Unable to propose exchange: $e');
-    }
+Future<void> proposeExchange({
+  required Planning planning,
+  required String reason,
+}) async {
+  try {
+    debugPrint('📤 [GroupService] POST /api/parents/carpool/conduite');
+    debugPrint('   group_id: ${planning.groupId}');
+    debugPrint('   original_date: ${planning.date.toIso8601String()}');
+
+    await _apiClient.post(
+      ApiConstants.carpoolConduite,
+      data: {
+        'group_id': int.parse(planning.groupId),
+        'original_date': planning.date.toIso8601String().split('T')[0],
+        'exchange_type': 'replacement',
+        'reason': reason,
+      },
+    );
+  } catch (e) {
+    debugPrint('❌ proposeExchange error: $e');
+    throw Exception('Unable to propose exchange: $e');
   }
+}
+
 
   Future<List<Map<String, dynamic>>> fetchExchangeProposals(String groupId) async {
     try {

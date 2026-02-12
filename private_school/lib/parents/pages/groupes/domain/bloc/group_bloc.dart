@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/parents/pages/groupes/data/models/group_model.dart';
 import '../../data/repositories/group_repository.dart';
 import 'group_event.dart';
 import 'group_state.dart';
@@ -94,16 +95,32 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     }
   }
 
-  Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState> emit) async {
-    emit(GroupLoading());
-    try {
-      final group = await repository.getGroupById(event.groupId);
-      emit(GroupDetailsLoaded(group: group));
-    } catch (e) {
-      debugPrint('❌ Details error: $e');
-      emit(GroupError(message: 'Erreur chargement groupe: $e'));
-    }
+Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState> emit) async {
+  emit(GroupLoading());
+  try {
+    debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
+    
+    // ✅ Charger GROUPE + PLANNINGS en parallèle
+    final results = await Future.wait([
+      repository.getGroupById(event.groupId),
+      repository.getGroupCalendar(event.groupId), // ✅ AJOUT : charge les plannings
+    ]);
+
+    final group = results[0] as GroupModel;
+    final plannings = results[1] as List<Planning>;
+
+    debugPrint('✅ Groupe chargé: ${group.name}');
+    debugPrint('✅ ${plannings.length} plannings chargés');
+
+    // ✅ Mettre à jour le groupe avec les plannings
+    final groupWithPlannings = group.copyWith(plannings: plannings);
+
+    emit(GroupDetailsLoaded(group: groupWithPlannings));
+  } catch (e) {
+    debugPrint('❌ Details error: $e');
+    emit(GroupError(message: 'Erreur chargement groupe: $e'));
   }
+}
 
   // ─────────────────────────────────────────────
   // ✅ CRÉER UN GROUPE — POST /api/parents/carpool/groups
@@ -146,8 +163,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // ✅ REJOINDRE — PUT /api/parents/carpool/invitations
+
   // "Rejoindre" = accepter l'invitation du groupe
   // ─────────────────────────────────────────────
   Future<void> _onJoinGroup(JoinGroupEvent event, Emitter<GroupState> emit) async {
@@ -157,10 +173,18 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
       debugPrint('✅ Groupe rejoint');
       emit(GroupJoined(groupId: event.groupId));
       add(LoadAllGroupsEvent());
-    } catch (e) {
-      debugPrint('❌ Join error: $e');
-      emit(GroupError(message: 'Erreur: $e'));
-    }
+    } 
+ catch (e) {
+  debugPrint('❌ Invite error: $e');
+  // On essaie d'extraire le message d'erreur de l'API s'il existe
+  String errorMessage = 'Erreur invitation';
+  if (e.toString().contains('Aucun parent trouvé')) {
+    errorMessage = 'Cet email ne correspond à aucun compte parent.';
+  } else {
+    errorMessage = e.toString();
+  }
+  emit(GroupError(message: errorMessage));
+}
   }
 
   // ─────────────────────────────────────────────

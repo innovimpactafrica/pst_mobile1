@@ -60,24 +60,30 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
   Widget build(BuildContext context) {
     // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
     return BlocConsumer<GroupBloc, GroupState>(
-      listener: (context, state) {
-        if (state is GroupCreated) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        } else if (state is GroupError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message, style: GoogleFonts.inter()),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
+     listener: (context, state) {
+  if (state is GroupCreated) {
+    // ✅ 1. Fermer le modal
+    Navigator.pop(context);
+    
+    // ✅ 2. Recharger la liste des groupes
+    context.read<GroupBloc>().add(LoadAllGroupsEvent());
+    
+    // ✅ 3. Afficher le succès
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  } else if (state is GroupError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.message, style: GoogleFonts.inter()),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+},
       builder: (context, state) {
         final isLoading = state is GroupLoading;
 
@@ -160,43 +166,6 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                         }
                         return null;
                       },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // DESCRIPTION (optionnel)
-                    Text(
-                      'Description (optionnel)',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        hintText: 'Groupe de covoiturage pour...',
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.grey.shade400,
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.success),
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 16),
 

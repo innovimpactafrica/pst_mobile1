@@ -17,8 +17,9 @@ import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
-import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart';
+import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart' as driver_trip;
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
+//import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_event.dart';
 import 'package:private_school/core/network/api_client.dart';
 import 'package:private_school/pages/role_selection_page.dart';
 
@@ -52,9 +53,15 @@ import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dar
 import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart' as driver_reports;
 import 'package:private_school/parents/pages/reports/domain/bloc/report_bloc.dart' as parent_reports;
 
-//  MESSAGING BLOCS - PARENT
+// MESSAGING BLOCS - PARENT
 import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
+
+// ✅ HOME BLOC - PARENT (AJOUTÉ)
+import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
+import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart' as parent_trip;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,12 +92,23 @@ void main() async {
           BlocProvider(create: (_) => parent_reports.ReportBloc()),
           BlocProvider(create: (context) => SchoolBloc()),
           
+          // ✅ HOME BLOC - PARENT (AJOUTÉ)
+          BlocProvider<HomeBloc>(
+            create: (context) => HomeBloc(
+              repository: parent_trip.TripRepository(),
+            )..add(LoadDriversEvent()),
+          ),
+          
           // ✅ MESSAGING BLOCS - PARENT
           BlocProvider<ConversationBloc>(
-            create: (context) => ConversationBloc(),
+            create: (context) => ConversationBloc(
+              repository: MessagingRepository(),
+            ),
           ),
           BlocProvider<MessageBloc>(
-            create: (context) => MessageBloc(),
+            create: (context) => MessageBloc(
+              repository: MessagingRepository(),
+            ),
           ),
 
           // ==================== DRIVER BLOCS ====================
@@ -107,7 +125,7 @@ void main() async {
             ),
           ),
           BlocProvider(
-            create: (context) => TripBloc(repository: TripRepository()),
+            create: (context) => TripBloc(repository: driver_trip.TripRepository()),
           ),
           BlocProvider<DriverProfileBloc>(
             create: (context) => DriverProfileBloc(
