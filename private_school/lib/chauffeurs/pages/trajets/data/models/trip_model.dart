@@ -7,15 +7,25 @@ class TripModel {
   final String? startLocation;
   final DateTime date;
   final String time;
+  final String? returnTime;
+  final String tripType;
   final int totalSeats;
   final int availableSeats;
   final double? price;
   final String status;
+  final String? returnStatus;
   final List<Passenger> passengers;
   final List<SchoolModel> schools;
   final DateTime? startedAt;
   final DateTime? completedAt;
   final String? cancelReason;
+  
+  // Coordonnées GPS pour afficher l'itinéraire sur la carte
+  final double? startLatitude;
+  final double? startLongitude;
+  final double? endLatitude;
+  final double? endLongitude;
+  final int? estimatedDuration; // Durée estimée en minutes
 
   TripModel({
     required this.id,
@@ -24,15 +34,23 @@ class TripModel {
     this.startLocation,
     required this.date,
     required this.time,
+    this.returnTime,
+    this.tripType = 'aller',
     required this.totalSeats,
     required this.availableSeats,
     this.price,
     this.status = 'pending',
+    this.returnStatus,
     this.passengers = const [],
     this.schools = const [],
     this.startedAt,
     this.completedAt,
     this.cancelReason,
+    this.startLatitude,
+    this.startLongitude,
+    this.endLatitude,
+    this.endLongitude,
+    this.estimatedDuration,
   });
 
   bool get isActive => status == 'active' || status == 'started' || status == 'in_progress';
@@ -82,6 +100,16 @@ class TripModel {
       return [];
     }
 
+    String? _extractTime(dynamic departureTime) {
+      if (departureTime == null) return null;
+      try {
+        final dt = DateTime.parse(departureTime.toString());
+        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } catch (e) {
+        return null;
+      }
+    }
+
     return TripModel(
       // 🔥 CORRECTION : L'id peut être int ou String, on force la conversion
       id: (json['id'] ?? json['_id'] ?? '').toString(),
@@ -95,7 +123,9 @@ class TripModel {
       
       // Date et heure
       date: parseDate(json['departure_time'] ?? json['date']),
-      time: (json['time'] ?? '00:00').toString(),
+      time: _extractTime(json['departure_time']) ?? (json['time'] ?? '00:00').toString(),
+      returnTime: _extractTime(json['return_departure_time']),
+      tripType: (json['trip_type'] ?? 'aller').toString(),
       
       // Nombres
       totalSeats: safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0),
@@ -106,6 +136,7 @@ class TripModel {
       
       // Status
       status: (json['status'] ?? 'pending').toString().toLowerCase(),
+      returnStatus: json['return_status']?.toString().toLowerCase(),
       
       // Listes
       passengers: json['passengers'] != null
@@ -119,6 +150,13 @@ class TripModel {
       startedAt: json['startedAt'] != null ? parseDate(json['startedAt']) : null,
       completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
       cancelReason: json['cancelReason']?.toString(),
+      
+      // Coordonnées GPS
+      startLatitude: json['start_latitude'] != null ? (json['start_latitude'] as num).toDouble() : null,
+      startLongitude: json['start_longitude'] != null ? (json['start_longitude'] as num).toDouble() : null,
+      endLatitude: json['end_latitude'] != null ? (json['end_latitude'] as num).toDouble() : null,
+      endLongitude: json['end_longitude'] != null ? (json['end_longitude'] as num).toDouble() : null,
+      estimatedDuration: json['estimated_duration'] != null ? safeInt(json['estimated_duration']) : null,
     );
   }
 
@@ -130,15 +168,23 @@ class TripModel {
       'startLocation': startLocation,
       'date': date.toIso8601String(),
       'time': time,
+      'returnTime': returnTime,
+      'tripType': tripType,
       'totalSeats': totalSeats,
       'availableSeats': availableSeats,
       'price': price,
       'status': status,
+      'returnStatus': returnStatus,
       'passengers': passengers.map((p) => p.toJson()).toList(),
       'schools': schools.map((s) => s.toJson()).toList(),
       'startedAt': startedAt?.toIso8601String(),
       'completedAt': completedAt?.toIso8601String(),
       'cancelReason': cancelReason,
+      'start_latitude': startLatitude,
+      'start_longitude': startLongitude,
+      'end_latitude': endLatitude,
+      'end_longitude': endLongitude,
+      'estimated_duration': estimatedDuration,
     };
   }
 
@@ -149,10 +195,13 @@ class TripModel {
     String? startLocation,
     DateTime? date,
     String? time,
+    String? returnTime,
+    String? tripType,
     int? totalSeats,
     int? availableSeats,
     double? price,
     String? status,
+    String? returnStatus,
     List<Passenger>? passengers,
     List<SchoolModel>? schools,
     DateTime? startedAt,
@@ -166,10 +215,13 @@ class TripModel {
       startLocation: startLocation ?? this.startLocation,
       date: date ?? this.date,
       time: time ?? this.time,
+      returnTime: returnTime ?? this.returnTime,
+      tripType: tripType ?? this.tripType,
       totalSeats: totalSeats ?? this.totalSeats,
       availableSeats: availableSeats ?? this.availableSeats,
       price: price ?? this.price,
       status: status ?? this.status,
+      returnStatus: returnStatus ?? this.returnStatus,
       passengers: passengers ?? this.passengers,
       schools: schools ?? this.schools,
       startedAt: startedAt ?? this.startedAt,
@@ -198,22 +250,33 @@ class Passenger {
     this.avatarColor,
   });
 
-  String get initials {
-    final parts = name.split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+ String get initials {
+  if (name.isEmpty) return '?';
+  
+  final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+  
+  if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }
+  
+  if (parts.isNotEmpty && parts[0].isNotEmpty) {
+    return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+  }
+  
+  return '?';
+}
 
   factory Passenger.fromJson(Map<String, dynamic> json) {
+    // Extraire et nettoyer le nom
+    String rawName = (json['child_name'] ?? json['name'] ?? json['nom'] ?? '').toString().trim();
+    
     return Passenger(
-      id: (json['_id'] ?? json['id'] ?? '').toString(),
-      name: (json['name'] ?? json['nom'] ?? '').toString(),
-      phone: json['phone']?.toString() ?? json['telephone']?.toString(),
+      id: (json['child_id'] ?? json['_id'] ?? json['id'] ?? '').toString(),
+      name: rawName.isEmpty ? 'Enfant' : rawName,
+      phone: json['parent_phone']?.toString() ?? json['phone']?.toString() ?? json['telephone']?.toString(),
       isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
       photo: json['photo']?.toString() ?? json['image']?.toString(),
-      school: json['school']?.toString() ?? json['ecole']?.toString(),
+      school: json['school_name']?.toString() ?? json['school']?.toString() ?? json['ecole']?.toString(),
       avatarColor: json['avatarColor']?.toString() ?? json['couleur']?.toString(),
     );
   }

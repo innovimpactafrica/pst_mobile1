@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../parents/pages/school/data/models/school_model.dart';
@@ -9,7 +10,7 @@ import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
 import '../../data/services/child_service.dart';
-
+import '../../../../../shared/widgets/place_autocomplete_field.dart';
 class CreateTripModal extends StatefulWidget {
   const CreateTripModal({super.key});
 
@@ -22,6 +23,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
   final _dateController = TextEditingController();
   final _startPointController = TextEditingController();
   final _timeController = TextEditingController();
+  final _returnTimeController = TextEditingController();
   final _passengersController = TextEditingController();
 
   final SchoolService _schoolService = SchoolService();
@@ -29,6 +31,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  TimeOfDay? _selectedReturnTime;
   
   // ✅ Une seule école
   List<SchoolModel> _schools = [];
@@ -38,6 +41,12 @@ class _CreateTripModalState extends State<CreateTripModal> {
   // ✅ Compteur d'enfants
   int _childrenCount = 0;
   bool _loadingChildrenCount = false;
+
+  // ✅ Coordonnées GPS pour le mapping et calcul de durée
+  double? _startLatitude;
+  double? _startLongitude;
+  double? _endLatitude;
+  double? _endLongitude;
 
   @override
   void initState() {
@@ -68,8 +77,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
       setState(() => _loadingSchools = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors du chargement des écoles'),
+          SnackBar(
+            content: Text('error_loading_schools'.tr()),
             backgroundColor: AppColors.error,
           ),
         );
@@ -119,6 +128,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
     _dateController.dispose();
     _startPointController.dispose();
     _timeController.dispose();
+    _returnTimeController.dispose();
     _passengersController.dispose();
     super.dispose();
   }
@@ -130,8 +140,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
         if (state is TripCreated) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Trajet créé avec succès !'),
+            SnackBar(
+              content: Text('trip_created_successfully'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -164,7 +174,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildCompactField(
-                        label: 'Date',
+                        label: 'date'.tr(),
                         controller: _dateController,
                         hint: '12/02/2026',
                         readOnly: true,
@@ -172,10 +182,19 @@ class _CreateTripModalState extends State<CreateTripModal> {
                         onTap: _selectDate,
                       ),
                       const SizedBox(height: 16),
-                      _buildCompactField(
-                        label: 'Point de départ',
+                      PlaceAutocompleteField(
+                        label: 'start_point'.tr(),
+                        hint: 'Ex: Ouakam, Almadies...',
                         controller: _startPointController,
-                        hint: 'EX: almadie 2',
+                        onPlaceSelected: (details) {
+                          setState(() {
+                            _startLatitude = details.latitude;
+                            _startLongitude = details.longitude;
+                          });
+                          debugPrint('✅ Point de départ sélectionné:');
+                          debugPrint('   📍 ${details.address}');
+                          debugPrint('   🌍 Lat: ${details.latitude}, Lng: ${details.longitude}');
+                        },
                       ),
                       const SizedBox(height: 16),
                       
@@ -184,7 +203,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       
                       const SizedBox(height: 16),
                       _buildCompactField(
-                        label: 'Heure de départ',
+                        label: 'departure_time'.tr(),
                         controller: _timeController,
                         hint: '10 : 20',
                         readOnly: true,
@@ -193,7 +212,16 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       ),
                       const SizedBox(height: 16),
                       _buildCompactField(
-                        label: 'Nombres de passagers',
+                        label: 'return_time'.tr(),
+                        controller: _returnTimeController,
+                        hint: '14 : 30',
+                        readOnly: true,
+                        suffixIcon: Icons.access_time,
+                        onTap: _selectReturnTime,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildCompactField(
+                        label: 'number_of_passengers'.tr(),
                         controller: _passengersController,
                         hint: '5',
                         keyboardType: TextInputType.number,
@@ -682,6 +710,34 @@ class _CreateTripModalState extends State<CreateTripModal> {
     }
   }
 
+  Future<void> _selectReturnTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedReturnTime ?? TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedReturnTime = picked;
+        final hour = picked.hour.toString().padLeft(2, '0');
+        final minute = picked.minute.toString().padLeft(2, '0');
+        _returnTimeController.text = '$hour : $minute';
+      });
+    }
+  }
+
   String _getErrorMessage(String error) {
     if (error.contains('passé')) {
       return 'La date et l\'heure doivent être dans le futur';
@@ -726,12 +782,12 @@ class _CreateTripModalState extends State<CreateTripModal> {
         return;
       }
 
-      if (_selectedDate == null || _selectedTime == null) {
+      if (_selectedDate == null || _selectedTime == null || _selectedReturnTime == null) {
         debugPrint('❌ Date ou heure manquante');
         debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Veuillez sélectionner la date et l\'heure'),
+            content: Text('Veuillez sélectionner la date, l\'heure de départ et l\'heure de retour'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -744,6 +800,14 @@ class _CreateTripModalState extends State<CreateTripModal> {
         _selectedDate!.day,
         _selectedTime!.hour,
         _selectedTime!.minute,
+      );
+
+      final returnTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedReturnTime!.hour,
+        _selectedReturnTime!.minute,
       );
 
       if (departureTime.isBefore(DateTime.now())) {
@@ -780,7 +844,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
       debugPrint('   📍 Point de départ: ${_startPointController.text.trim()}');
       debugPrint('   🏫 École: ${_selectedSchool!.name}');
       debugPrint('   🆔 School ID: ${_selectedSchool!.id}');
-      debugPrint('   🕐 Date/Heure: $departureTime');
+      debugPrint('   🕐 Date/Heure départ: $departureTime');
+      debugPrint('   🕐 Date/Heure retour: $returnTime');
       debugPrint('   👥 Capacité: $capacity');
       debugPrint('   👶 Enfants inscrits: $_childrenCount');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -790,9 +855,14 @@ class _CreateTripModalState extends State<CreateTripModal> {
               startPoint: _startPointController.text.trim(),
               endPoint: _selectedSchool!.name,
               departureTime: departureTime,
+              returnTime: returnTime,
               capacityMax: capacity,
-              schoolId: _selectedSchool!.id!, // ✅ Un seul ID
+              schoolId: _selectedSchool!.id!,
               isRecurring: false,
+              startLatitude: _startLatitude,
+              startLongitude: _startLongitude,
+              endLatitude: _endLatitude,
+              endLongitude: _endLongitude,
             ),
           );
     } else {

@@ -49,6 +49,7 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
         licenseNumber: event.licenseNumber,
         vehicleType: event.vehicleType,
         vehicleColor: event.vehicleColor,
+        capacity: event.capacity,
         licenseFile: event.licenseFile,
         idCardFile: event.idCardFile,
         vehicleFile: event.vehicleFile,

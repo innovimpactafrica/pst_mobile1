@@ -22,9 +22,14 @@ class TripRepository {
     required String startPoint,
     required String endPoint,
     required DateTime departureTime,
+    required DateTime returnTime,
     required int capacityMax,
     required int schoolId,
     required bool isRecurring,
+    double? startLatitude,
+    double? startLongitude,
+    double? endLatitude,
+    double? endLongitude,
   }) async {
     try {
       debugPrint('🟢 [TripRepository] CREATE TRIP');
@@ -33,9 +38,14 @@ class TripRepository {
         startPoint: startPoint,
         endPoint: endPoint,
         departureTime: departureTime,
+        returnTime: returnTime,
         capacityMax: capacityMax,
         schoolId: schoolId,
         isRecurring: isRecurring,
+        startLatitude: startLatitude,
+        startLongitude: startLongitude,
+        endLatitude: endLatitude,
+        endLongitude: endLongitude,
       );
     } catch (e) {
       debugPrint('❌ [TripRepository] Error: $e\n');
@@ -44,10 +54,10 @@ class TripRepository {
   }
 
   /// Start a trip
-  Future<Map<String, dynamic>> startTrip(String tripId) async {
+  Future<Map<String, dynamic>> startTrip(String tripId, {String? direction}) async {
     try {
-      debugPrint('🚀 [TripRepository] START TRIP: $tripId');
-      return await _tripService.startTrip(tripId);
+      debugPrint('🚀 [TripRepository] START TRIP: $tripId (${direction ?? "aller"})');
+      return await _tripService.startTrip(tripId, direction: direction);
     } catch (e) {
       debugPrint('❌ [TripRepository] Error: $e\n');
       rethrow;
@@ -55,10 +65,10 @@ class TripRepository {
   }
 
   /// Complete a trip
-  Future<Map<String, dynamic>> completeTrip(String tripId) async {
+  Future<Map<String, dynamic>> completeTrip(String tripId, {String? direction}) async {
     try {
-      debugPrint('✅ [TripRepository] COMPLETE TRIP: $tripId');
-      return await _tripService.completeTrip(tripId);
+      debugPrint('✅ [TripRepository] COMPLETE TRIP: $tripId (${direction ?? "aller"})');
+      return await _tripService.completeTrip(tripId, direction: direction);
     } catch (e) {
       debugPrint('❌ [TripRepository] Error: $e\n');
       rethrow;

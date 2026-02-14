@@ -23,6 +23,7 @@ class DriverRegisterEvent extends DriverAuthEvent {
   final String? licenseNumber;
   final String? vehicleType;
   final String? vehicleColor;
+  final int? capacity;
   final File? licenseFile;
   final File? idCardFile;
   final File? vehicleFile;
@@ -36,6 +37,7 @@ class DriverRegisterEvent extends DriverAuthEvent {
     this.licenseNumber,
     this.vehicleType,
     this.vehicleColor,
+    this.capacity,
     this.licenseFile,
     this.idCardFile,
     this.vehicleFile,

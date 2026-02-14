@@ -188,25 +188,29 @@ class GroupMember {
 // ─────────────────────────────────────────────
 // PLANNING - UPDATED pour correspondre à l'API
 // ─────────────────────────────────────────────
+// ✅ AJOUTEZ ce champ dans votre modèle Planning (group_model.dart)
+
 class Planning {
   final String id;
+  final String groupId;  // ✅ AJOUTÉ pour proposeExchange
   final DateTime date;
-  final String? driverId;        // driver_id de l'API
-  final String? driverName;      // driver_name de l'API
-  final String? driverPhone;     // driver_phone de l'API
-  final String? driverEmail;     // driver_email de l'API
-  final bool? isMyTurn;          // is_my_turn de l'API
-  final String status;           // status de l'API
+  final String? driverId;
+  final String? driverName;
+  final String? driverPhone;
+  final String? driverEmail;
+  final bool? isMyTurn;
+  final String status;
   final String? replacementReason;
-  final String? startPoint;      // start_point de l'API
-  final String? endPoint;        // end_point de l'API
-  final String? departureTime;   // departure_time de l'API
-  final String? returnTime;      // return_time de l'API
-  final int? capacityMax;        // capacity_max de l'API
-  final String? notes;           // notes de l'API
+  final String? startPoint;
+  final String? endPoint;
+  final String? departureTime;
+  final String? returnTime;
+  final int? capacityMax;
+  final String? notes;
 
   Planning({
     required this.id,
+    required this.groupId,  // ✅ AJOUTÉ
     required this.date,
     this.driverId,
     this.driverName,
@@ -226,6 +230,7 @@ class Planning {
   factory Planning.fromJson(Map<String, dynamic> json) {
     return Planning(
       id: json['id']?.toString() ?? '',
+      groupId: json['group_id']?.toString() ?? '',  // ✅ AJOUTÉ
       date: json['date'] != null
           ? DateTime.tryParse(json['date']) ?? DateTime.now()
           : DateTime.now(),
@@ -247,6 +252,7 @@ class Planning {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'group_id': groupId,  // ✅ AJOUTÉ
     'date': date.toIso8601String(),
     'driver_id': driverId,
     'driver_name': driverName,
@@ -263,12 +269,10 @@ class Planning {
     'notes': notes,
   };
 
-  // ✅ GETTERS pour l'affichage
   bool get isConfirmed => status == 'confirmed';
   bool get isPending => status == 'scheduled' || status == 'pending';
   bool get needsReplacement => status == 'replacement_requested';
   
-  // ✅ Nom à afficher (soit le driver_name, soit "Non assigné")
   String get assignedTo {
     if (isMyTurn == true) return 'Vous';
     if (driverName != null && driverName!.isNotEmpty) return driverName!;
@@ -277,6 +281,7 @@ class Planning {
 
   Planning copyWith({
     String? id,
+    String? groupId,  // ✅ AJOUTÉ
     DateTime? date,
     String? driverId,
     String? driverName,
@@ -294,6 +299,7 @@ class Planning {
   }) {
     return Planning(
       id: id ?? this.id,
+      groupId: groupId ?? this.groupId,  // ✅ AJOUTÉ
       date: date ?? this.date,
       driverId: driverId ?? this.driverId,
       driverName: driverName ?? this.driverName,

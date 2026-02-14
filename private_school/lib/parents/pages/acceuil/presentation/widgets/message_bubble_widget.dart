@@ -9,14 +9,14 @@ import '../../data/models/message_model.dart';
 
 class MessageBubbleWidget extends StatelessWidget {
   final MessageModel message;
-  final bool isCurrentUser;
+  final bool isMe;
   final VoidCallback? onLongPress;
   final VoidCallback? onReply;
 
   const MessageBubbleWidget({
     super.key,
     required this.message,
-    required this.isCurrentUser,
+    required this.isMe,
     this.onLongPress,
     this.onReply,
   });
@@ -32,11 +32,11 @@ class MessageBubbleWidget extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment:
-              isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+              isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Avatar (pour les autres utilisateurs)
-            if (!isCurrentUser) ...[
+            if (!isMe) ...[
               CircleAvatar(
                 radius: 16,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
@@ -57,12 +57,12 @@ class MessageBubbleWidget extends StatelessWidget {
             // Message bubble
             Flexible(
               child: Column(
-                crossAxisAlignment: isCurrentUser
+                crossAxisAlignment: isMe
                     ? CrossAxisAlignment.end
                     : CrossAxisAlignment.start,
                 children: [
                   // Sender name (pour les messages de groupe)
-                  if (!isCurrentUser)
+                  if (!isMe)
                     Padding(
                       padding: const EdgeInsets.only(left: 12, bottom: 2),
                       child: Text(
@@ -85,14 +85,14 @@ class MessageBubbleWidget extends StatelessWidget {
                       vertical: AppConstants.spacingS,
                     ),
                     decoration: BoxDecoration(
-                      color: isCurrentUser
-                          ? AppColors.primary
+                      color: isMe
+                          ? AppColors.success
                           : Colors.grey.shade200,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isCurrentUser ? 16 : 4),
-                        bottomRight: Radius.circular(isCurrentUser ? 4 : 16),
+                        bottomLeft: Radius.circular(isMe ? 16 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 16),
                       ),
                     ),
                     child: Column(
@@ -102,7 +102,7 @@ class MessageBubbleWidget extends StatelessWidget {
                           message.content,
                           style: GoogleFonts.inter(
                             fontSize: AppConstants.fontSizeM,
-                            color: isCurrentUser
+                            color: isMe
                                 ? AppColors.white
                                 : AppColors.textPrimary,
                             height: 1.4,
@@ -116,7 +116,7 @@ class MessageBubbleWidget extends StatelessWidget {
                               message.formattedTime,
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeXS,
-                                color: isCurrentUser
+                                color: isMe
                                     ? AppColors.white.withValues(alpha: 0.7)
                                     : Colors.grey.shade600,
                               ),
@@ -128,13 +128,13 @@ class MessageBubbleWidget extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: AppConstants.fontSizeXS,
                                   fontStyle: FontStyle.italic,
-                                  color: isCurrentUser
+                                  color: isMe
                                       ? AppColors.white.withValues(alpha: 0.7)
                                       : Colors.grey.shade600,
                                 ),
                               ),
                             ],
-                            if (isCurrentUser) ...[
+                            if (isMe) ...[
                               const SizedBox(width: 4),
                               Icon(
                                 message.isRead
@@ -156,7 +156,7 @@ class MessageBubbleWidget extends StatelessWidget {
             ),
 
             // Spacing pour l'alignement
-            if (isCurrentUser) const SizedBox(width: 8),
+            if (isMe) const SizedBox(width: 8),
           ],
         ),
       ),
@@ -166,19 +166,19 @@ class MessageBubbleWidget extends StatelessWidget {
   Widget _buildReplyPreview() {
     return Container(
       margin: EdgeInsets.only(
-        left: isCurrentUser ? 0 : 12,
-        right: isCurrentUser ? 12 : 0,
+        left: isMe ? 0 : 12,
+        right: isMe ? 12 : 0,
         bottom: 4,
       ),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isCurrentUser
-            ? AppColors.primary.withValues(alpha: 0.2)
+        color: isMe
+            ? AppColors.success.withValues(alpha: 0.2)
             : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
-            color: isCurrentUser ? AppColors.primary : AppColors.textSecondary,
+            color: isMe ? AppColors.success : AppColors.textSecondary,
             width: 3,
           ),
         ),
@@ -191,7 +191,7 @@ class MessageBubbleWidget extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeS,
               fontWeight: FontWeight.w600,
-              color: isCurrentUser ? AppColors.primary : AppColors.textPrimary,
+              color: isMe ? AppColors.success : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 2),

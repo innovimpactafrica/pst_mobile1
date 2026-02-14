@@ -40,11 +40,14 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
 
     debugPrint('🔄 [RequestReplacementModal] REQUEST REPLACEMENT');
     debugPrint('   PlanningId: ${widget.planning.id}');
+    debugPrint('   GroupId: ${widget.planning.groupId}');
+    debugPrint('   Date: ${widget.planning.date}');
     debugPrint('   Reason: ${_reasonController.text.trim()}');
 
+    // ✅ CORRIGÉ : Passer l'objet Planning complet, pas juste l'ID
     context.read<GroupBloc>().add(
       RequestReplacementEvent(
-        planningId: widget.planning.id,
+        planning: widget.planning,  // ✅ CHANGÉ : planning au lieu de planningId
         reason: _reasonController.text.trim(),
       ),
     );
@@ -52,7 +55,6 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is ReplacementRequested) {

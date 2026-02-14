@@ -58,6 +58,12 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     _colorController.text = vehicle?.color ?? '';
     _plateController.text = vehicle?.plate ?? '';
     _capacityController.text = vehicle?.capacity?.toString() ?? '';
+    
+    debugPrint('🚗 [VehicleInfoPage] Initializing with data:');
+    debugPrint('   Brand: ${vehicle?.brand}');
+    debugPrint('   Color: ${vehicle?.color}');
+    debugPrint('   Plate: ${vehicle?.plate}');
+    debugPrint('   Capacity: ${vehicle?.capacity}');
   }
 
   Future<void> _pickVehicleImage() async {
@@ -155,6 +161,18 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
             state is DriverProfileLoaded ? state.profile : widget.profile;
 
         final vehicle = profile.vehicle;
+        
+        // Mettre à jour les contrôleurs si le profil a changé
+        if (state is DriverProfileLoaded || state is DriverProfileUpdated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_isEditMode) {
+              _brandController.text = vehicle?.brand ?? '';
+              _colorController.text = vehicle?.color ?? '';
+              _plateController.text = vehicle?.plate ?? '';
+              _capacityController.text = vehicle?.capacity?.toString() ?? '';
+            }
+          });
+        }
 
         return BlocListener<DriverProfileBloc, DriverProfileState>(
           listener: (context, state) {

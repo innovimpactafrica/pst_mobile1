@@ -24,9 +24,6 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     on<SelectGroupTabEvent>(_onSelectGroupTab);
   }
 
-  // ─────────────────────────────────────────────
-  // ✅ CHARGER TOUT EN PARALLÈLE — résout la course condition
-  // ─────────────────────────────────────────────
   Future<void> _onLoadAllGroups(
     LoadAllGroupsEvent event,
     Emitter<GroupState> emit,
@@ -36,7 +33,6 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     debugPrint('🔵 [GroupBloc] LOAD ALL GROUPS (parallel)');
 
     try {
-      // ✅ Appels parallèles — pas séquentiels
       final results = await Future.wait([
         repository.getMyGroups(),
         repository.getAvailableGroups(),
@@ -63,14 +59,12 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     }
   }
 
-  // Garder compatibilité — délèguent vers LoadAllGroupsEvent
   Future<void> _onLoadMyGroups(LoadMyGroupsEvent event, Emitter<GroupState> emit) async {
     add(LoadAllGroupsEvent());
   }
 
   Future<void> _onLoadAvailableGroups(LoadAvailableGroupsEvent event, Emitter<GroupState> emit) async {
     if (state is GroupsLoaded) {
-      // Rafraîchir seulement la liste disponible sans bloquer l'UI
       try {
         final groups = await repository.getAvailableGroups();
         final current = state as GroupsLoaded;
@@ -95,36 +89,31 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     }
   }
 
-Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState> emit) async {
-  emit(GroupLoading());
-  try {
-    debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
-    
-    // ✅ Charger GROUPE + PLANNINGS en parallèle
-    final results = await Future.wait([
-      repository.getGroupById(event.groupId),
-      repository.getGroupCalendar(event.groupId), // ✅ AJOUT : charge les plannings
-    ]);
+  Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState> emit) async {
+    emit(GroupLoading());
+    try {
+      debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
+      
+      final results = await Future.wait([
+        repository.getGroupById(event.groupId),
+        repository.getGroupCalendar(event.groupId),
+      ]);
 
-    final group = results[0] as GroupModel;
-    final plannings = results[1] as List<Planning>;
+      final group = results[0] as GroupModel;
+      final plannings = results[1] as List<Planning>;
 
-    debugPrint('✅ Groupe chargé: ${group.name}');
-    debugPrint('✅ ${plannings.length} plannings chargés');
+      debugPrint('✅ Groupe chargé: ${group.name}');
+      debugPrint('✅ ${plannings.length} plannings chargés');
 
-    // ✅ Mettre à jour le groupe avec les plannings
-    final groupWithPlannings = group.copyWith(plannings: plannings);
+      final groupWithPlannings = group.copyWith(plannings: plannings);
 
-    emit(GroupDetailsLoaded(group: groupWithPlannings));
-  } catch (e) {
-    debugPrint('❌ Details error: $e');
-    emit(GroupError(message: 'Erreur chargement groupe: $e'));
+      emit(GroupDetailsLoaded(group: groupWithPlannings));
+    } catch (e) {
+      debugPrint('❌ Details error: $e');
+      emit(GroupError(message: 'Erreur chargement groupe: $e'));
+    }
   }
-}
 
-  // ─────────────────────────────────────────────
-  // ✅ CRÉER UN GROUPE — POST /api/parents/carpool/groups
-  // ─────────────────────────────────────────────
   Future<void> _onCreateGroup(CreateGroupEvent event, Emitter<GroupState> emit) async {
     emit(GroupLoading());
     try {
@@ -143,9 +132,6 @@ Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState
     }
   }
 
-  // ─────────────────────────────────────────────
-  // ✅ INVITER — POST /api/parents/carpool/invitations
-  // ─────────────────────────────────────────────
   Future<void> _onInviteMember(InviteMemberEvent event, Emitter<GroupState> emit) async {
     try {
       debugPrint('📨 [GroupBloc] INVITE MEMBER to ${event.groupId}');
@@ -159,13 +145,16 @@ Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState
       add(LoadGroupDetailsEvent(event.groupId));
     } catch (e) {
       debugPrint('❌ Invite error: $e');
-      emit(GroupError(message: 'Erreur invitation: $e'));
+      String errorMessage = 'Erreur invitation';
+      if (e.toString().contains('Aucun parent trouvé')) {
+        errorMessage = 'Cet email ne correspond à aucun compte parent.';
+      } else {
+        errorMessage = e.toString();
+      }
+      emit(GroupError(message: errorMessage));
     }
   }
 
-
-  // "Rejoindre" = accepter l'invitation du groupe
-  // ─────────────────────────────────────────────
   Future<void> _onJoinGroup(JoinGroupEvent event, Emitter<GroupState> emit) async {
     try {
       debugPrint('🔵 [GroupBloc] JOIN GROUP: ${event.groupId}');
@@ -173,23 +162,12 @@ Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState
       debugPrint('✅ Groupe rejoint');
       emit(GroupJoined(groupId: event.groupId));
       add(LoadAllGroupsEvent());
-    } 
- catch (e) {
-  debugPrint('❌ Invite error: $e');
-  // On essaie d'extraire le message d'erreur de l'API s'il existe
-  String errorMessage = 'Erreur invitation';
-  if (e.toString().contains('Aucun parent trouvé')) {
-    errorMessage = 'Cet email ne correspond à aucun compte parent.';
-  } else {
-    errorMessage = e.toString();
-  }
-  emit(GroupError(message: errorMessage));
-}
+    } catch (e) {
+      debugPrint('❌ Join error: $e');
+      emit(GroupError(message: 'Erreur rejoindre groupe: $e'));
+    }
   }
 
-  // ─────────────────────────────────────────────
-  // ✅ RÉPONDRE À INVITATION — PUT /api/parents/carpool/invitations
-  // ─────────────────────────────────────────────
   Future<void> _onRespondToInvitation(
     RespondToInvitationEvent event,
     Emitter<GroupState> emit,
@@ -209,34 +187,44 @@ Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState
     }
   }
 
-
   Future<void> _onCreatePlanning(CreatePlanningEvent event, Emitter<GroupState> emit) async {
-  emit(GroupLoading()); 
-  try {
-    debugPrint('[GroupBloc] CREATE PLANNING for ${event.groupId}');
-    await repository.createPlanning(
-      groupId: event.groupId,
-      startDate: event.startDate,
-      endDate: event.endDate,
-    );
-    debugPrint('✅ Planning créé');
-    emit(PlanningCreated());
-    // On recharge les détails pour voir le nouveau planning
-    add(LoadGroupDetailsEvent(event.groupId)); 
-  } catch (e) {
-    debugPrint('❌ Planning error: $e');
-    emit(GroupError(message: 'Erreur planning: $e'));
-  }
-}
-
-  Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupState> emit) async {
+    emit(GroupLoading()); 
     try {
-      await repository.requestReplacement(planningId: event.planningId, reason: event.reason);
-      emit(ReplacementRequested());
+      debugPrint('[GroupBloc] CREATE PLANNING for ${event.groupId}');
+      await repository.createPlanning(
+        groupId: event.groupId,
+        startDate: event.startDate,
+        endDate: event.endDate,
+      );
+      debugPrint('✅ Planning créé');
+      emit(PlanningCreated());
+      add(LoadGroupDetailsEvent(event.groupId)); 
     } catch (e) {
-      emit(GroupError(message: 'Erreur remplacement: $e'));
+      debugPrint('❌ Planning error: $e');
+      emit(GroupError(message: 'Erreur planning: $e'));
     }
   }
+
+// ✅ Remplacez la méthode _onRequestReplacement dans group_bloc.dart
+
+Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupState> emit) async {
+  try {
+    debugPrint('[GroupBloc] REQUEST REPLACEMENT');
+    debugPrint('   Planning ID: ${event.planning.id}');
+    debugPrint('   Group ID: ${event.planning.groupId}');
+    debugPrint('   Date: ${event.planning.date}');
+    debugPrint('   Reason: ${event.reason}');
+    
+    await repository.requestReplacement(
+      planning: event.planning,  // ✅ Passer l'objet Planning complet
+      reason: event.reason,
+    );
+    emit(ReplacementRequested());
+  } catch (e) {
+    debugPrint('❌ [GroupBloc] RequestReplacement error: $e');
+    emit(GroupError(message: 'Erreur remplacement: $e'));
+  }
+}
 
   Future<void> _onRespondToReplacement(RespondToReplacementEvent event, Emitter<GroupState> emit) async {
     try {

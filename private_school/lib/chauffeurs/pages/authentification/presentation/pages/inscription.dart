@@ -29,6 +29,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
   final _brandController = TextEditingController();
   final _colorController = TextEditingController();
   final _plateController = TextEditingController();
+  final _capacityController = TextEditingController();
 
   File? _licenseFile;
   File? _idCardFile;
@@ -45,6 +46,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
     _brandController.dispose();
     _colorController.dispose();
     _plateController.dispose();
+    _capacityController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -93,6 +95,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
     final nameParts = _nameController.text.trim().split(' ');
     final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    final capacity = int.tryParse(_capacityController.text.trim());
 
     context.read<DriverAuthBloc>().add(
       DriverRegisterEvent(
@@ -103,10 +106,11 @@ class _InscriptionPageState extends State<InscriptionPage> {
         password: _passwordController.text.trim(),
         licenseNumber: _plateController.text.trim(),
         vehicleType: _brandController.text.trim(),
-        vehicleColor: _colorController.text.trim(),  
-        licenseFile: _licenseFile,                   
-        idCardFile: _idCardFile,                     
-        vehicleFile: _vehiclePhotoFile,              
+        vehicleColor: _colorController.text.trim(),
+        capacity: capacity,
+        licenseFile: _licenseFile,
+        idCardFile: _idCardFile,
+        vehicleFile: _vehiclePhotoFile,
       ),
     );
   }
@@ -289,6 +293,13 @@ class _InscriptionPageState extends State<InscriptionPage> {
             'Immatriculation du véhicule',
             'Ex: AA-2535-01',
             _plateController,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            'Capacité (nombre de places)',
+            'Ex: 12',
+            _capacityController,
+            keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 40),
           _buildContinueButton(),

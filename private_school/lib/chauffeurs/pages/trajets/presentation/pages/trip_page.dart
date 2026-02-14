@@ -170,17 +170,22 @@ class _TripPageState extends State<TripPage>
   }
 
   Widget _buildUpcomingTrips(List<TripModel> trips) {
-    // ✅ CORRECTION: Ajouter 'in_progress' au filtre
     final upcomingTrips = trips
-        .where((trip) =>
-            trip.status == 'pending' ||
-            trip.status == 'active' ||
-            trip.status == 'started' ||
-            trip.status == 'in_progress')  
+        .where((trip) {
+          // Trajet annulé = historique
+          if (trip.status == 'canceled') return false;
+          
+          // Trajet complètement terminé (aller ET retour) = historique
+          if (trip.status == 'completed' && trip.returnStatus == 'completed') return false;
+          
+          // Tous les autres cas = à venir
+          // (pending, in_progress, completed avec retour pending)
+          return true;
+        })
         .toList();
 
     debugPrint('📊 [TripPage] Upcoming trips: ${upcomingTrips.length}');
-    debugPrint('📊 [TripPage] Upcoming statuses: ${upcomingTrips.map((t) => t.status).toList()}');
+    debugPrint('📊 [TripPage] Upcoming statuses: ${upcomingTrips.map((t) => '${t.status}/${t.returnStatus}').toList()}');
 
     if (upcomingTrips.isEmpty) {
       return _buildEmptyState('Aucun trajet à venir');
@@ -206,8 +211,16 @@ class _TripPageState extends State<TripPage>
 
   Widget _buildHistoryTrips(List<TripModel> trips) {
     final historyTrips = trips
-        .where((trip) =>
-            trip.status == 'completed' || trip.status == 'canceled')
+        .where((trip) {
+          // Trajet annulé = historique
+          if (trip.status == 'canceled') return true;
+          
+          // Trajet complètement terminé (aller ET retour) = historique
+          if (trip.status == 'completed' && trip.returnStatus == 'completed') return true;
+          
+          // Tous les autres = à venir
+          return false;
+        })
         .toList();
 
     debugPrint('📊 [TripPage] History trips: ${historyTrips.length}');

@@ -99,45 +99,34 @@ class PassengersListModal extends StatelessWidget {
   }
 
   Widget _buildPassengerItem(Passenger passenger) {
-    // Convert hex color to Color with fallback
-    Color avatarColor = _parseColor(passenger.avatarColor ?? '#4CAF50');
+    const Color avatarBgColor = Color(0xFFE8F5E9);
+    const Color avatarTextColor = Color(0xFF4CAF50);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          // Avatar with initials or photo
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: avatarColor.withValues(alpha: 0.15),
+              color: avatarBgColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: (passenger.photo?.isNotEmpty ?? false)
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/images/${passenger.photo}',
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildInitialsAvatar(
-                            passenger.initials,
-                            avatarColor,
-                          );
-                        },
-                      ),
-                    )
-                  : _buildInitialsAvatar(passenger.initials, avatarColor),
+              child: Text(
+                passenger.initials,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: avatarTextColor,
+                ),
+              ),
             ),
           ),
 
           const SizedBox(width: 12),
 
-          // Passenger info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,26 +157,4 @@ class PassengersListModal extends StatelessWidget {
     );
   }
 
-  Widget _buildInitialsAvatar(String initials, Color color) {
-    return Text(
-      initials,
-      style: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: color,
-      ),
-    );
-  }
-
-  Color _parseColor(String hexColor) {
-    try {
-      final hex = hexColor.replaceAll('#', '');
-      if (hex.length == 6) {
-        return Color(int.parse('FF$hex', radix: 16));
-      }
-      return AppColors.success;
-    } catch (e) {
-      return AppColors.success;
-    }
-  }
 }

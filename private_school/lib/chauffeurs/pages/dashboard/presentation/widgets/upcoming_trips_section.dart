@@ -78,6 +78,9 @@ class UpcomingTripsSection extends StatelessWidget {
         ? DateTime.tryParse(trip['date'].toString()) ?? DateTime.now()
         : DateTime.now();
     final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
+    final schools = trip is Map && trip['schools'] != null && trip['schools'] is List
+        ? (trip['schools'] as List).length
+        : 0;
     
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');
 
@@ -224,7 +227,7 @@ class UpcomingTripsSection extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '2 écoles desservies',
+                  '$schools école${schools > 1 ? 's' : ''} desservie${schools > 1 ? 's' : ''}',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.white.withValues(alpha: 0.8),

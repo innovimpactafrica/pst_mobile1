@@ -93,14 +93,25 @@ class TripCardWidget extends StatelessWidget {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.white, width: 2),
                     ),
-                    child: const Icon(
-                      Icons.directions_car,
-                      color: AppColors.white,
-                      size: 12,
+                    child: ClipOval(
+                      child: Image.network(
+                        trip.vehiclePhotoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          debugPrint('! Erreur chargement photo véhicule');
+                          return Container(
+                            color: AppColors.primary,
+                            child: const Icon(
+                              Icons.directions_car,
+                              color: AppColors.white,
+                              size: 12,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),

@@ -65,6 +65,7 @@ class DriverAuthService {
     String? licenseNumber,
     String? vehicleType,
     String? vehicleColor,
+    int? capacity,
     File? licenseFile,
     File? idCardFile,
     File? vehicleFile,
@@ -76,27 +77,39 @@ class DriverAuthService {
         'phone': phone,
         'email': email,
         'password': password,
-        'licenseNumber': licenseNumber,
-        'vehicleType': vehicleType,
-        'vehicleColor': vehicleColor,
       };
+      
+      // Ajouter les informations du véhicule si présentes
+      if (licenseNumber != null && licenseNumber.isNotEmpty) {
+        dataMap['vehicle_plate'] = licenseNumber; // Immatriculation
+      }
+      if (vehicleType != null && vehicleType.isNotEmpty) {
+        dataMap['vehicle_brand'] = vehicleType; // Marque
+      }
+      if (vehicleColor != null && vehicleColor.isNotEmpty) {
+        dataMap['vehicle_color'] = vehicleColor; // Couleur
+      }
+      if (capacity != null) {
+        dataMap['capacity'] = capacity; // Capacité
+      }
 
+      // Ajouter les fichiers
       if (licenseFile != null) {
-        dataMap['licensePhoto'] = await MultipartFile.fromFile(
+        dataMap['license_document'] = await MultipartFile.fromFile(
           licenseFile.path,
-          filename: 'license.jpg',
+          filename: 'license_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
       }
       if (idCardFile != null) {
-        dataMap['idCardPhoto'] = await MultipartFile.fromFile(
+        dataMap['id_document'] = await MultipartFile.fromFile(
           idCardFile.path,
-          filename: 'idcard.jpg',
+          filename: 'idcard_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
       }
       if (vehicleFile != null) {
-        dataMap['vehiclePhoto'] = await MultipartFile.fromFile(
+        dataMap['vehicle_photo'] = await MultipartFile.fromFile(
           vehicleFile.path,
-          filename: 'vehicle.jpg',
+          filename: 'vehicle_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
       }
 

@@ -72,6 +72,12 @@ class MessagingService {
       final token = await _storage.getAccessToken();
       final url = Uri.parse('${BaseUrl.current}/api/conversations');
       
+      final requestBody = {
+        'other_user_id': otherUserId,
+      };
+      
+      debugPrint('📤 Request Body: $requestBody');
+      
       final response = await http.post(
         url,
         headers: {
@@ -79,9 +85,7 @@ class MessagingService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'other_user_id': otherUserId,
-        }),
+        body: json.encode(requestBody),
       );
       
       debugPrint('📊 Status Code: ${response.statusCode}');

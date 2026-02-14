@@ -35,6 +35,9 @@ class _DocumentsPageState extends State<DocumentsPage> {
     super.initState();
     debugPrint('📄 [DocumentsPage] Initialized');
     debugPrint('📄 [DocumentsPage] Driver ID: ${widget.profile.driver.id}');
+    debugPrint('📄 [DocumentsPage] License Document: ${widget.profile.driver.licenseDocument}');
+    debugPrint('📄 [DocumentsPage] ID Document: ${widget.profile.driver.idDocument}');
+    debugPrint('📄 [DocumentsPage] Vehicle Photo: ${widget.profile.driver.vehiclePhoto}');
   }
 
   Future<void> _pickDocument(String type) async {

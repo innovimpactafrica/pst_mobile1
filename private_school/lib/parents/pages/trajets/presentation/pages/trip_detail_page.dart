@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../../../enfants/data/models/child_model.dart';
@@ -8,10 +9,13 @@ import '../widgets/driver_details_modal.dart';
 import '../widgets/passengers_list_modal.dart';
 import '../widgets/schools_list_modal.dart';
 import '../widgets/select_children_modal.dart';
-import '../pages/payment_page.dart';                          // ✅ AJOUTÉ
+import '../pages/payment_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../data/repositories/trip_repository.dart';
 import '../../../enfants/domain/bloc/child_bloc.dart';
+import '../../../acceuil/presentation/pages/chat.dart';
+import '../../../acceuil/data/services/messaging_service.dart';
+import '../../../acceuil/domain/bloc/message_bloc.dart';
 
 class TripDetailPage extends StatefulWidget {
   final TripModel trip;
@@ -157,11 +161,15 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                         CircleAvatar(
                                           radius: 28,
                                           backgroundColor: Colors.grey.shade200,
-                                          backgroundImage: widget.trip.driver?.photo != null
-                                              ? AssetImage('assets/images/${widget.trip.driver!.photo}')
+                                          backgroundImage: widget.trip.hasDriverPhoto
+                                              ? NetworkImage(widget.trip.driverPhotoUrl)
                                               : null,
-                                          onBackgroundImageError: (_, __) {},
-                                          child: widget.trip.driver?.photo == null
+                                          onBackgroundImageError: widget.trip.hasDriverPhoto
+                                              ? (_, __) {
+                                                  debugPrint('! Erreur chargement photo chauffeur');
+                                                }
+                                              : null,
+                                          child: !widget.trip.hasDriverPhoto
                                               ? Icon(Icons.person, color: Colors.grey.shade600, size: 28)
                                               : null,
                                         ),
@@ -203,7 +211,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                   children: [
                                     Expanded(
                                       child: ElevatedButton.icon(
-                                        onPressed: () {},
+                                        onPressed: () => _callDriver(context),
                                         icon: const Icon(Icons.phone, size: 18),
                                         label: Text('Appeler', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                                         style: ElevatedButton.styleFrom(
@@ -217,7 +225,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: OutlinedButton.icon(
-                                        onPressed: () {},
+                                        onPressed: () => _openChatWithDriver(context),
                                         icon: Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.success),
                                         label: Text('Message', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.success)),
                                         style: OutlinedButton.styleFrom(
@@ -462,7 +470,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
             child: ElevatedButton(
               onPressed: _showChildrenSelectionModal,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5B4FC7),
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -472,7 +480,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 _selectedChildren.isEmpty
                     ? 'Sélectionner les enfants'
                     : 'Réserver pour ${_selectedChildren.length} enfant(s)',
-                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
               ),
             ),
           ),
@@ -547,6 +555,80 @@ class _TripDetailPageState extends State<TripDetailPage> {
       backgroundColor: Colors.transparent,
       builder: (context) => SchoolsListModal(schools: widget.trip.schools),
     );
+  }
+
+  void _callDriver(BuildContext context) async {
+    final phone = widget.trip.driver?.phone ?? widget.trip.driverPhone;
+    if (phone == null || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _openChatWithDriver(BuildContext context) async {
+    if (widget.trip.driver == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final messagingService = MessagingService();
+      final conversation = await messagingService.createOrGetDirectConversation(
+        otherUserId: int.parse(widget.trip.driver!.id),
+      );
+
+      if (!context.mounted) return;
+      Navigator.pop(context);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => MessageBloc(),
+            child: ChatPage(conversation: conversation),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'ouverture du chat: $e', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _showChildrenSelectionModal() {

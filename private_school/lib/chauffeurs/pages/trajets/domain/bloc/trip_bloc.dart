@@ -52,7 +52,8 @@ class TripBloc extends Bloc<TripEvent, TripState> {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('📍 Start: ${event.startPoint}');
       debugPrint('🎯 End: ${event.endPoint}');
-      debugPrint('🕐 Time: ${event.departureTime}');
+      debugPrint('🕐 Departure: ${event.departureTime}');
+      debugPrint('🕐 Return: ${event.returnTime}');
       debugPrint('👥 Capacity: ${event.capacityMax}');
       debugPrint('🏫 School ID: ${event.schoolId}');
       debugPrint('🔄 Recurring: ${event.isRecurring}');
@@ -62,9 +63,14 @@ class TripBloc extends Bloc<TripEvent, TripState> {
         startPoint: event.startPoint,
         endPoint: event.endPoint,
         departureTime: event.departureTime,
+        returnTime: event.returnTime,
         capacityMax: event.capacityMax,
         schoolId: event.schoolId,
         isRecurring: event.isRecurring,
+        startLatitude: event.startLatitude,
+        startLongitude: event.startLongitude,
+        endLatitude: event.endLatitude,
+        endLongitude: event.endLongitude,
       );
       
       debugPrint('✅ Trip created successfully');
@@ -108,9 +114,9 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      debugPrint('🚀 [TripBloc] START TRIP: ${event.tripId}');
+      debugPrint('🚀 [TripBloc] START TRIP: ${event.tripId} (${event.direction ?? "aller"})');
       
-      await repository.startTrip(event.tripId);
+      await repository.startTrip(event.tripId, direction: event.direction);
       
       debugPrint('✅ Trip started\n');
       
@@ -130,9 +136,9 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      debugPrint('✅ [TripBloc] COMPLETE TRIP: ${event.tripId}');
+      debugPrint('✅ [TripBloc] COMPLETE TRIP: ${event.tripId} (${event.direction ?? "aller"})');
       
-      await repository.completeTrip(event.tripId);
+      await repository.completeTrip(event.tripId, direction: event.direction);
       
       debugPrint('✅ Trip completed\n');
       

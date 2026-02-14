@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/parents/pages/acceuil/data/services/messaging_service.dart';
+import 'package:private_school/parents/pages/acceuil/presentation/pages/chat.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -57,15 +62,21 @@ class DriverDetailsModal extends StatelessWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.grey.shade200,
-                        backgroundImage: AssetImage(
-                          'assets/images/${driver.photo}',
-                        ),
-                        onBackgroundImageError: (_, __) {},
-                        /*child: Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.grey.shade600,
-                        ),*/
+                        backgroundImage: driver.photo != null && driver.photo!.isNotEmpty
+                            ? NetworkImage(driver.photo!)
+                            : null,
+                        onBackgroundImageError: driver.photo != null && driver.photo!.isNotEmpty
+                            ? (_, __) {
+                                debugPrint('! Erreur chargement photo chauffeur');
+                              }
+                            : null,
+                        child: driver.photo == null || driver.photo!.isEmpty
+                            ? Icon(
+                                Icons.person,
+                                size: 60,
+                                color: Colors.grey.shade600,
+                              )
+                            : null,
                       ),
                       Positioned(
                         bottom: 0,
@@ -182,19 +193,27 @@ class DriverDetailsModal extends StatelessWidget {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          'assets/images/${driver.vehicle!.photo}',
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Center(
-                              child: Icon(
-                                Icons.directions_bus,
-                                size: 80,
-                                color: Colors.grey.shade400,
+                        child: driver.vehicle!.photo != null && driver.vehicle!.photo!.isNotEmpty
+                            ? Image.network(
+                                driver.vehicle!.photo!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.directions_bus,
+                                      size: 80,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Center(
+                                child: Icon(
+                                  Icons.directions_bus,
+                                  size: 80,
+                                  color: Colors.grey.shade400,
+                                ),
                               ),
-                            );
-                          },
-                        ),
                       ),
                     ),
 
@@ -230,11 +249,7 @@ class DriverDetailsModal extends StatelessWidget {
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Appeler le chauffeur
-                            Navigator.pop(context);
-                            // TODO: Lancer l'appel
-                          },
+                          onPressed: () => _callDriver(context),
                           icon: const Icon(Icons.phone, size: 18),
                           label: Text(
                             'call'.tr(),
@@ -255,10 +270,7 @@ class DriverDetailsModal extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // TODO: Ouvrir messagerie
-                          },
+                          onPressed: () => _openChat(context),
                           icon: Icon(
                             Icons.chat_bubble_outline,
                             size: 18,
@@ -347,5 +359,73 @@ class DriverDetailsModal extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _openChat(BuildContext context) async {
+    Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final messagingService = MessagingService();
+      final conversation = await messagingService.createOrGetDirectConversation(
+        otherUserId: int.parse(driver.id),
+      );
+
+      if (!context.mounted) return;
+      Navigator.pop(context);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => MessageBloc(),
+            child: ChatPage(conversation: conversation),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'ouverture du chat: $e', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _callDriver(BuildContext context) async {
+    final phone = driver.phone;
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    Navigator.pop(context);
+    
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

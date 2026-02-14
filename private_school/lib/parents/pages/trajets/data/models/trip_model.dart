@@ -88,8 +88,7 @@ class TripModel {
                              (driverPhoto != null && driverPhoto!.isNotEmpty);
   String get driverPhotoUrl => driver?.photo ?? driverPhoto ?? '';
   
-  bool get hasVehiclePhoto => vehiclePhoto != null && vehiclePhoto!.isNotEmpty && 
-                              !vehiclePhoto!.contains('drive.google.com'); // ⚠️ Exclure Google Drive
+  bool get hasVehiclePhoto => vehiclePhoto != null && vehiclePhoto!.isNotEmpty;
   String get vehiclePhotoUrl => vehiclePhoto ?? '';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {

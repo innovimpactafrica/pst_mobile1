@@ -53,9 +53,17 @@ class GroupRepository {
     }
   }
 
-  Future<GroupModel> updateGroup({required String groupId, String? name, String? description}) async {
+  Future<GroupModel> updateGroup({
+    required String groupId,
+    String? name,
+    String? description,
+  }) async {
     try {
-      return await _groupService.updateGroup(groupId: groupId, name: name, description: description);
+      return await _groupService.updateGroup(
+        groupId: groupId,
+        name: name,
+        description: description,
+      );
     } catch (e) {
       throw Exception('Impossible de modifier le groupe: $e');
     }
@@ -69,12 +77,20 @@ class GroupRepository {
     }
   }
 
-  Future<void> inviteMember({required String groupId, String? email, String? phone}) async {
+  Future<void> inviteMember({
+    required String groupId,
+    String? email,
+    String? phone,
+  }) async {
     if ((email == null || email.isEmpty) && (phone == null || phone.isEmpty)) {
       throw Exception('Email ou téléphone requis');
     }
     try {
-      await _groupService.inviteMember(groupId: groupId, email: email, phone: phone);
+      await _groupService.inviteMember(
+        groupId: groupId,
+        email: email,
+        phone: phone,
+      );
     } catch (e) {
       throw Exception('Impossible d\'inviter le membre: $e');
     }
@@ -86,20 +102,26 @@ class GroupRepository {
       return await _groupService.fetchInvitationsTyped();
     } catch (e) {
       debugPrint('❌ Repository: getInvitations - $e');
-      return []; // Ne pas bloquer l'UI si les invitations échouent
+      return [];
     }
   }
 
   /// ✅ PUT /api/parents/carpool/invitations — accepter ou refuser
-  Future<void> respondToInvitation({required String invitationId, required bool accept}) async {
+  Future<void> respondToInvitation({
+    required String invitationId,
+    required bool accept,
+  }) async {
     try {
-      await _groupService.respondToInvitation(invitationId: invitationId, accept: accept);
+      await _groupService.respondToInvitation(
+        invitationId: invitationId,
+        accept: accept,
+      );
     } catch (e) {
       throw Exception('Impossible de répondre à l\'invitation: $e');
     }
   }
 
-  /// ✅ "Rejoindre" = accepter l'invitation via PUT /api/parents/carpool/invitations
+  /// ✅ "Rejoindre" = accepter l'invitation
   Future<void> joinGroup(String groupId) async {
     try {
       debugPrint('🔵 [GroupRepository] joinGroup: $groupId');
@@ -118,11 +140,19 @@ class GroupRepository {
     }
   }
 
-  Future<void> createPlanning({required String groupId, required DateTime startDate, required DateTime endDate}) async {
+  Future<void> createPlanning({
+    required String groupId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
     try {
       DateTime current = startDate;
       while (current.isBefore(endDate) || current.isAtSameMomentAs(endDate)) {
-        await _groupService.addToCalendar(groupId: groupId, date: current, assignedTo: 'Auto-assigné');
+        await _groupService.addToCalendar(
+          groupId: groupId,
+          date: current,
+          assignedTo: 'Auto-assigné',
+        );
         current = current.add(const Duration(days: 1));
       }
     } catch (e) {
@@ -130,25 +160,38 @@ class GroupRepository {
     }
   }
 
-  Future<void> proposeExchange(Planning planning, String reason) {
-  return _groupService.proposeExchange(
-    planning: planning,
-    reason: reason,
-  );
+// ✅ Remplacez la méthode requestReplacement dans group_repository.dart
+
+Future<void> requestReplacement({
+  required Planning planning,  // ✅ CHANGÉ : Planning complet
+  required String reason,
+}) async {
+  try {
+    debugPrint('🔄 [GroupRepository] requestReplacement');
+    debugPrint('   planningId: ${planning.id}');
+    debugPrint('   groupId: ${planning.groupId}');
+    debugPrint('   date: ${planning.date}');
+    debugPrint('   reason: $reason');
+    
+    await _groupService.proposeExchange(
+      planning: planning,  // ✅ Passer l'objet complet
+      reason: reason,
+    );
+  } catch (e) {
+    debugPrint('❌ [GroupRepository] requestReplacement error: $e');
+    throw Exception('Impossible de demander un remplacement: $e');
+  }
 }
 
-
-  Future<void> requestReplacement({required String planningId, required String reason}) async {
+  Future<void> respondToReplacement({
+    required String planningId,
+    required bool accept,
+  }) async {
     try {
-      await _groupService.proposeExchange(  planning: planning,, reason: reason);
-    } catch (e) {
-      throw Exception('Impossible de demander un remplacement: $e');
-    }
-  }
-
-  Future<void> respondToReplacement({required String planningId, required bool accept}) async {
-    try {
-      await _groupService.respondToExchange(proposalId: planningId, accept: accept);
+      await _groupService.respondToExchange(
+        proposalId: planningId,
+        accept: accept,
+      );
     } catch (e) {
       throw Exception('Impossible de répondre: $e');
     }

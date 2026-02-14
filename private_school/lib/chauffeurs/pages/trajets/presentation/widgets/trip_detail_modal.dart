@@ -76,7 +76,11 @@ class _TripDetailModalState extends State<TripDetailModal> {
             ),
           ),
           if (widget.trip.status == AppConstants.statusPending ||
-              widget.trip.status == AppConstants.statusActive)
+              widget.trip.status == 'in_progress' ||
+              widget.trip.status == 'started' ||
+              widget.trip.status == 'partially_completed' ||
+              widget.trip.returnStatus == 'in_progress' ||
+              (widget.trip.status == 'completed' && widget.trip.returnStatus == 'pending'))
             _buildActionButtons(context),
         ],
       ),
@@ -148,6 +152,21 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   Widget _buildTripInfoCard() {
+    final isAllerCompleted = widget.trip.status == 'completed' || widget.trip.status == 'partially_completed';
+    final isRetourPending = widget.trip.returnStatus == 'pending';
+    final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
+    final showReturnInfo = (isAllerCompleted && isRetourPending) || isRetourInProgress;
+    
+    final startPoint = showReturnInfo 
+        ? widget.trip.destination 
+        : (widget.trip.startLocation ?? 'Non renseigné');
+    final endPoint = showReturnInfo 
+        ? (widget.trip.startLocation ?? 'Non renseigné') 
+        : widget.trip.destination;
+    final departureTime = showReturnInfo && widget.trip.returnTime != null
+        ? widget.trip.returnTime! 
+        : widget.trip.time;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
       padding: const EdgeInsets.all(AppConstants.spacingXL),
@@ -231,7 +250,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.trip.startLocation ?? 'Non renseigné',
+                      startPoint,
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
@@ -242,7 +261,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                 ),
               ),
               Text(
-                widget.trip.time,
+                departureTime,
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeM,
                   fontWeight: FontWeight.w600,
@@ -287,7 +306,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.trip.destination,
+                      endPoint,
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
@@ -405,7 +424,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
               width: AppConstants.avatarSizeM,
               height: AppConstants.avatarSizeM,
               decoration: BoxDecoration(
-                color: _getAvatarColor(passenger.name),
+                color: const Color(0xFFE8F5E9),
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.white, width: 2),
               ),
@@ -413,7 +432,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                 child: Text(
                   passenger.initials,
                   style: const TextStyle(
-                    color: AppColors.white,
+                    color: Color(0xFF4CAF50),
                     fontSize: AppConstants.fontSizeS,
                     fontWeight: FontWeight.bold,
                   ),
@@ -501,8 +520,15 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    // ✅ VALIDATION : Vérifier s'il y a au moins 1 passager
     final hasPassengers = widget.trip.passengers.isNotEmpty;
+    final isAllerCompleted = widget.trip.status == 'completed' || widget.trip.status == 'partially_completed';
+    final isRetourPending = widget.trip.returnStatus == 'pending';
+    final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
+    final showReturnButton = isAllerCompleted && isRetourPending;
+    final showCompleteReturnButton = isRetourInProgress;
+    
+    debugPrint('🔵 [TripDetailModal] Status: ${widget.trip.status}, ReturnStatus: ${widget.trip.returnStatus}');
+    debugPrint('🔵 [TripDetailModal] showReturnButton: $showReturnButton, showCompleteReturnButton: $showCompleteReturnButton');
     
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingXL),
@@ -579,32 +605,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                 const SizedBox(width: AppConstants.spacingM),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _acceptTrip(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Accepter',
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: AppConstants.fontSizeL,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ] else if (widget.trip.status == AppConstants.statusActive) ...[
-                Expanded(
-                  child: ElevatedButton(
-                    // ✅ VALIDATION : Désactiver si pas de passagers
-                    onPressed: hasPassengers ? () => _startTrip(context) : null,
+                    onPressed: hasPassengers ? () => _acceptTrip(context) : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.grey300,
@@ -631,6 +632,112 @@ class _TripDetailModalState extends State<TripDetailModal> {
                         Icon(
                           Icons.arrow_forward,
                           color: hasPassengers ? AppColors.white : AppColors.grey600,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else if (widget.trip.status == 'in_progress' || widget.trip.status == 'started') ...[
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _completeTrip(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Terminer le trajet',
+                          style: TextStyle(
+                            color: AppColors.white,
+                            fontSize: AppConstants.fontSizeL,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: AppConstants.spacingS),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else if (showReturnButton) ...[
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: hasPassengers ? () => _startReturnTrip(context) : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.grey300,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Démarrer le retour',
+                          style: TextStyle(
+                            color: hasPassengers ? AppColors.white : AppColors.grey600,
+                            fontSize: AppConstants.fontSizeL,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: AppConstants.spacingS),
+                        Icon(
+                          Icons.arrow_forward,
+                          color: hasPassengers ? AppColors.white : AppColors.grey600,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else if (showCompleteReturnButton) ...[
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _completeReturnTrip(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppConstants.spacingL + 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Terminer le retour',
+                          style: TextStyle(
+                            color: AppColors.white,
+                            fontSize: AppConstants.fontSizeL,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: AppConstants.spacingS),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.white,
                           size: 20,
                         ),
                       ],
@@ -683,6 +790,24 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   Map<String, dynamic> _getStatusConfig() {
+    // Si l'aller est terminé et le retour est en attente
+    if ((widget.trip.status == 'completed' || widget.trip.status == 'partially_completed') && widget.trip.returnStatus == 'pending') {
+      return {
+        'bgColor': const Color(0xFFFEF3C7),
+        'textColor': const Color(0xFFF59E0B),
+        'label': 'Partiellement terminé',
+      };
+    }
+    
+    // Si le retour est en cours
+    if (widget.trip.returnStatus == 'in_progress') {
+      return {
+        'bgColor': const Color(0xFFDCFCE7),
+        'textColor': const Color(0xFF16A34A),
+        'label': 'En cours (retour)',
+      };
+    }
+    
     switch (widget.trip.status) {
       case AppConstants.statusPending:
         return {
@@ -755,17 +880,6 @@ class _TripDetailModalState extends State<TripDetailModal> {
     return '--:--';
   }
 
-  Color _getAvatarColor(String name) {
-    final colors = [
-      const Color(0xFF3B82F6),
-      const Color(0xFF10B981),
-      const Color(0xFFF59E0B),
-      const Color(0xFFEF4444),
-      const Color(0xFF8B5CF6),
-    ];
-    return colors[name.hashCode % colors.length];
-  }
-
   void _showPassengersList(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -785,18 +899,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   void _acceptTrip(BuildContext context) {
-    context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trajet accepté avec succès'),
-        backgroundColor: AppColors.success,
-      ),
-    );
-  }
-
-  void _startTrip(BuildContext context) {
-    // ✅ Double vérification avant d'envoyer la requête
+    // Vérifier qu'il y a au moins 1 passager
     if (widget.trip.passengers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -807,11 +910,55 @@ class _TripDetailModalState extends State<TripDetailModal> {
       return;
     }
 
+    // Accepter = Démarrer le trajet directement
     context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Trajet démarré'),
+        content: Text('Trajet démarré avec succès'),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _completeTrip(BuildContext context) {
+    context.read<TripBloc>().add(CompleteTripEvent(widget.trip.id));
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Trajet terminé avec succès'),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _startReturnTrip(BuildContext context) {
+    if (widget.trip.passengers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible de démarrer: aucun passager inscrit'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    context.read<TripBloc>().add(StartTripEvent(widget.trip.id, direction: 'retour'));
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Trajet retour démarré'),
+        backgroundColor: AppColors.success,
+      ),
+    );
+  }
+
+  void _completeReturnTrip(BuildContext context) {
+    context.read<TripBloc>().add(CompleteTripEvent(widget.trip.id, direction: 'retour'));
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Trajet retour terminé avec succès'),
         backgroundColor: AppColors.success,
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/review_page.dart';
@@ -195,7 +196,8 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
               padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppConstants.radiusL),
@@ -207,6 +209,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeL,
                 fontWeight: FontWeight.w600,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -380,7 +383,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () => _callDriver(context),
             icon: const Icon(Icons.phone),
             label: const Text('Appeler'),
             style: ElevatedButton.styleFrom(
@@ -525,5 +528,31 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       backgroundColor: Colors.transparent,
       builder: (_) => SchoolsListModal(schools: widget.trip.schools),
     );
+  }
+
+  void _callDriver(BuildContext context) async {
+    final phone = widget.trip.driver?.phone ?? widget.trip.driverPhone;
+    if (phone == null || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

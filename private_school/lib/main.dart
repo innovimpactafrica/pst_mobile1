@@ -25,6 +25,7 @@ import 'package:private_school/pages/role_selection_page.dart';
 
 // Parent imports
 import 'package:private_school/parents/pages/acceuil/presentation/pages/home.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/connexion.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/creer_mdp.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/mdp_oublie.dart';
@@ -88,7 +89,9 @@ void main() async {
         providers: [
           // ==================== PARENT BLOCS ====================
           BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
-          BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+          BlocProvider<AuthBloc>(
+            create: (context) => AuthBloc()..add(const LoadCurrentUserEvent()),
+          ),
           BlocProvider(create: (_) => parent_reports.ReportBloc()),
           BlocProvider(create: (context) => SchoolBloc()),
           

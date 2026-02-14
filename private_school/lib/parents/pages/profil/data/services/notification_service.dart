@@ -5,14 +5,14 @@ import '../models/notification_model.dart';
 class NotificationService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Récupérer toutes les notifications du parent
+  /// Récupérer toutes les notifications du parent connecté
   Future<List<NotificationModel>> fetchNotifications() async {
     try {
       debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('📥 [NotificationService] GET /api/notifications');
+      debugPrint('📥 [NotificationService] GET /api/notifications/user');
       debugPrint('═══════════════════════════════════════════════════════');
       
-      final response = await _apiClient.get('/api/notifications');
+      final response = await _apiClient.get('/api/notifications/user');
       
       debugPrint('📦 Response: ${response.data}');
       

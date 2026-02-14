@@ -36,10 +36,20 @@ class TripService {
           .map((json) => TripModel.fromJson(json as Map<String, dynamic>))
           .toList();
       
+      // ✅ FILTRER les trajets passés (garder seulement aujourd'hui et futurs)
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      final filteredTrips = trips.where((trip) {
+        final tripDate = DateTime(trip.date.year, trip.date.month, trip.date.day);
+        return !tripDate.isBefore(today); // Garder aujourd'hui et futurs
+      }).toList();
+      
       debugPrint('✅ ${trips.length} trip(s) parsed successfully');
+      debugPrint('🔍 ${filteredTrips.length} trip(s) after filtering past dates');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
-      return trips;
+      return filteredTrips;
     } catch (e, stackTrace) {
       debugPrint('❌ [TripService] Error: $e');
       debugPrint('Stack: $stackTrace\n');
@@ -53,9 +63,14 @@ class TripService {
     required String startPoint,
     required String endPoint,
     required DateTime departureTime,
+    required DateTime returnTime,
     required int capacityMax,
     required int schoolId,
     required bool isRecurring,
+    double? startLatitude,
+    double? startLongitude,
+    double? endLatitude,
+    double? endLongitude,
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -66,15 +81,21 @@ class TripService {
         'start_point': startPoint,
         'end_point': endPoint,
         'departure_time': departureTime.toIso8601String(),
+        'return_departure_time': returnTime.toIso8601String(),
         'capacity_max': capacityMax,
         'school_id': schoolId,
         'is_recurring': isRecurring,
+        if (startLatitude != null) 'start_latitude': startLatitude,
+        if (startLongitude != null) 'start_longitude': startLongitude,
+        if (endLatitude != null) 'end_latitude': endLatitude,
+        if (endLongitude != null) 'end_longitude': endLongitude,
       };
       
       debugPrint('📤 REQUEST BODY:');
       debugPrint('   start_point: $startPoint');
       debugPrint('   end_point: $endPoint');
       debugPrint('   departure_time: ${departureTime.toIso8601String()}');
+      debugPrint('   return_departure_time: ${returnTime.toIso8601String()}');
       debugPrint('   capacity_max: $capacityMax');
       debugPrint('   school_id: $schoolId');
       debugPrint('   is_recurring: $isRecurring');
@@ -103,16 +124,18 @@ class TripService {
   /// Start a trip
   /// ✅ CORRIGÉ : PUT au lieu de POST
   /// PUT /api/drivers/trips/{id}/start
-  Future<Map<String, dynamic>> startTrip(String tripId) async {
+  Future<Map<String, dynamic>> startTrip(String tripId, {String? direction}) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🚀 [TripService] START TRIP: $tripId');
+      debugPrint('🚀 [TripService] START TRIP: $tripId (${direction ?? "aller"})');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      // ✅ CORRIGÉ : Utiliser PUT au lieu de POST
-      final response = await _apiClient.put(
-        ApiConstants.driverTripStart(tripId),
-      );
+      String url = ApiConstants.driverTripStart(tripId);
+      if (direction != null) {
+        url += '?direction=$direction';
+      }
+      
+      final response = await _apiClient.put(url);
       
       debugPrint('✅ Trip started successfully');
       debugPrint('📦 Response: ${response.data}');
@@ -123,7 +146,6 @@ class TripService {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('❌ [TripService] Error starting trip: $e');
       
-      // ✅ Gérer l'erreur 400 spécifiquement
       if (e.toString().contains('400')) {
         debugPrint('⚠️ Erreur 400: Pas d\'enfants inscrits ou date passée');
         debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -138,16 +160,19 @@ class TripService {
   /// Complete a trip
   /// ✅ CORRIGÉ : PUT au lieu de POST
   /// PUT /api/drivers/trips/{id}/completed
-  Future<Map<String, dynamic>> completeTrip(String tripId) async {
+  Future<Map<String, dynamic>> completeTrip(String tripId, {String? direction}) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('✅ [TripService] COMPLETE TRIP: $tripId');
+      debugPrint('✅ [TripService] COMPLETE TRIP: $tripId (${direction ?? "aller"})');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
+      String url = ApiConstants.driverTripCompleted(tripId);
+      if (direction != null) {
+        url += '?direction=$direction';
+      }
+      
       // ✅ CORRIGÉ : Utiliser PUT au lieu de POST
-      final response = await _apiClient.put(
-        ApiConstants.driverTripCompleted(tripId),
-      );
+      final response = await _apiClient.put(url);
       
       debugPrint('✅ Trip completed successfully');
       debugPrint('📦 Response: ${response.data}');

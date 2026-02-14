@@ -77,9 +77,9 @@ class TripCardWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              // ✅ CORRIGÉ : Utiliser totalSeats au lieu de passengers.length
+             
               Text(
-                '${trip.totalSeats} passagers',
+                '${trip.totalSeats} place disponible pour ce vehicule ',
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeS,
                   color: AppColors.textSecondary,
@@ -95,12 +95,38 @@ class TripCardWidget extends StatelessWidget {
   }
 
   Widget _buildRoute() {
+    final isReturnTrip = ((trip.status == 'completed' || trip.status == 'partially_completed') && trip.returnStatus == 'pending') || trip.returnStatus == 'in_progress';
+    final start = isReturnTrip ? trip.destination : (trip.startLocation ?? 'Point de départ');
+    final end = isReturnTrip ? (trip.startLocation ?? 'Point de départ') : trip.destination;
+    final displayTime = isReturnTrip && trip.returnTime != null ? trip.returnTime! : trip.time;
+    
     return Column(
       children: [
-        _buildLocationRow(
-          icon: Icons.radio_button_checked,
-          location: trip.startLocation ?? 'Point de départ',
-          iconColor: AppColors.primary,
+        Row(
+          children: [
+            const Icon(Icons.radio_button_checked, color: AppColors.primary, size: AppConstants.iconSizeM),
+            const SizedBox(width: AppConstants.spacingM),
+            Expanded(
+              child: Text(
+                start,
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeM,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              displayTime,
+              style: const TextStyle(
+                fontSize: AppConstants.fontSizeM,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
         ),
         
         Container(
@@ -111,39 +137,28 @@ class TripCardWidget extends StatelessWidget {
           ),
         ),
         
-        _buildLocationRow(
-          icon: Icons.location_on,
-          location: trip.destination,
-          iconColor: AppColors.error,
+        Row(
+          children: [
+            const Icon(Icons.location_on, color: AppColors.error, size: AppConstants.iconSizeM),
+            const SizedBox(width: AppConstants.spacingM),
+            Expanded(
+              child: Text(
+                end,
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeM,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildLocationRow({
-    required IconData icon,
-    required String location,
-    required Color iconColor,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: iconColor, size: AppConstants.iconSizeM),
-        const SizedBox(width: AppConstants.spacingM),
-        Expanded(
-          child: Text(
-            location,
-            style: const TextStyle(
-              fontSize: AppConstants.fontSizeM,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildFooter() {
     final schoolCount = trip.schools.length;
@@ -206,6 +221,24 @@ class TripCardWidget extends StatelessWidget {
   }
 
   Map<String, dynamic> _getStatusConfig() {
+    // Si l'aller est terminé et le retour est en attente
+    if ((trip.status == 'completed' || trip.status == 'partially_completed') && trip.returnStatus == 'pending') {
+      return {
+        'bgColor': const Color(0xFFFEF3C7),
+        'textColor': const Color(0xFFF59E0B),
+        'label': 'Partiellement terminé',
+      };
+    }
+    
+    // Si le retour est en cours
+    if (trip.returnStatus == 'in_progress') {
+      return {
+        'bgColor': const Color(0xFFDCFCE7),
+        'textColor': const Color(0xFF16A34A),
+        'label': 'En cours (retour)',
+      };
+    }
+    
     switch (trip.status) {
       case AppConstants.statusPending:
         return {

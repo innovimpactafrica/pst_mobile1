@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:private_school/parents/pages/groupes/data/models/group_model.dart';
 
 abstract class GroupEvent extends Equatable {
   @override
@@ -47,12 +48,13 @@ class CreatePlanningEvent extends GroupEvent {
   List<Object?> get props => [groupId, startDate, endDate];
 }
 
+
 class RequestReplacementEvent extends GroupEvent {
-  final String planningId;
+  final Planning planning;  
   final String reason;
-  RequestReplacementEvent({required this.planningId, required this.reason});
+  RequestReplacementEvent({required this.planning, required this.reason});
   @override
-  List<Object?> get props => [planningId, reason];
+  List<Object?> get props => [planning, reason];
 }
 
 class RespondToReplacementEvent extends GroupEvent {
@@ -70,8 +72,6 @@ class JoinGroupEvent extends GroupEvent {
   List<Object?> get props => [groupId];
 }
 
-/// ✅ Répondre à une invitation (accepter=rejoindre / refuser)
-/// PUT /api/parents/carpool/invitations
 class RespondToInvitationEvent extends GroupEvent {
   final String invitationId;
   final bool accept;

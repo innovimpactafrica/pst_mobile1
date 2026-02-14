@@ -280,150 +280,107 @@ Future<void> _loadCurrentUser() async {
 
     return Column(
       children: [
+        if (state.isReplying) _buildReplyPreview(state),
         Expanded(
-          child: RefreshIndicator(
-            color: AppColors.success,
-            onRefresh: () async {
-              // ✅ Utiliser le getter protégé
-              context.read<MessageBloc>().add(
-                    RefreshMessagesEvent(conversationId: _conversationId),
-                  );
-              await Future.delayed(const Duration(seconds: 1));
-            },
-            child: ListView.builder(
-              controller: _scrollController,
-              padding:
-                  const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
-              itemCount: state.messages.length,
-              itemBuilder: (context, index) {
-                final message = state.messages[index];
-                final isCurrentUser = effectiveUserId != null &&
-                    message.isSentByCurrentUser(effectiveUserId);
-
-                bool showDate = index == 0 ||
-                    message.formattedDate !=
-                        state.messages[index - 1].formattedDate;
-
-                return Column(
-                  children: [
-                    if (showDate) _buildDateSeparator(message.formattedDate),
-                    MessageBubbleWidget(
-                      message: message,
-                      isCurrentUser: isCurrentUser,
-                      onLongPress: () =>
-                          _showMessageOptions(message, isCurrentUser),
-                      onReply: () => _setReplyToMessage(message),
-                    ),
-                  ],
-                );
-              },
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingM,
+              vertical: AppConstants.spacingS,
             ),
+            itemCount: state.messages.length,
+            itemBuilder: (context, index) {
+              final message = state.messages[index];
+              final isMe = effectiveUserId != null &&
+                  message.senderId == effectiveUserId;
+
+              bool showDateSeparator = false;
+              if (index == 0) {
+                showDateSeparator = true;
+              } else {
+                final prevMessage = state.messages[index - 1];
+                final prevDate = DateTime(
+                  prevMessage.createdAt.year,
+                  prevMessage.createdAt.month,
+                  prevMessage.createdAt.day,
+                );
+                final currentDate = DateTime(
+                  message.createdAt.year,
+                  message.createdAt.month,
+                  message.createdAt.day,
+                );
+                showDateSeparator = !prevDate.isAtSameMomentAs(currentDate);
+              }
+
+              return Column(
+                children: [
+                  if (showDateSeparator) _buildDateSeparator(message.createdAt),
+                  MessageBubbleWidget(
+                    message: message,
+                    isMe: isMe,
+                    onLongPress: () => _showMessageOptions(message, isMe),
+                    onReply: () => _setReplyTo(message),
+                  ),
+                ],
+              );
+            },
           ),
         ),
-        if (state.isReplying) _buildReplyBar(state),
-        if (_editingMessage != null) _buildEditBar(),
-        _buildInput(),
+        _buildMessageInput(state),
       ],
     );
   }
 
-  Widget _buildDateSeparator(String date) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Center(
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildReplyPreview(MessageLoaded state) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.spacingS),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingM,
+        vertical: AppConstants.spacingS,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          left: BorderSide(
+            color: AppColors.success,
+            width: 3,
           ),
-          child: Text(date,
-              style: GoogleFonts.inter(
-                  fontSize: 12, color: Colors.grey.shade700)),
         ),
       ),
-    );
-  }
-
-  Widget _buildReplyBar(MessageLoaded state) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      color: AppColors.white,
       child: Row(
         children: [
-          Container(
-            width: 3,
-            height: 36,
-            color: AppColors.success,
-          ),
-          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Répondre à ${state.replyToSenderName ?? ''}',
+                  'Répondre à ${state.replyToSenderName ?? "Inconnu"}',
                   style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.success),
+                    fontSize: AppConstants.fontSizeS,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.success,
+                  ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   state.replyToContent ?? '',
                   style: GoogleFonts.inter(
-                      fontSize: 12, color: Colors.grey.shade600),
-                  maxLines: 1,
+                    fontSize: AppConstants.fontSizeS,
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 18),
-            onPressed: () => context
-                .read<MessageBloc>()
-                .add(const CancelReplyToMessageEvent()),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditBar() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      color: Colors.amber.shade50,
-      child: Row(
-        children: [
-          Container(width: 3, height: 36, color: Colors.amber),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Modifier le message',
-                    style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.amber.shade800)),
-                Text(
-                  _editingMessage?.content ?? '',
-                  style: GoogleFonts.inter(
-                      fontSize: 12, color: Colors.grey.shade600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, size: 18),
+            icon: const Icon(Icons.close, size: 20),
             onPressed: () {
-              setState(() {
-                _editingMessage = null;
-                _messageController.clear();
-              });
+              context.read<MessageBloc>().add(
+                    const CancelReplyToMessageEvent(),
+                  );
             },
           ),
         ],
@@ -431,64 +388,241 @@ Future<void> _loadCurrentUser() async {
     );
   }
 
-  Widget _buildInput() {
+  Widget _buildDateSeparator(DateTime date) {
+    String dateText;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(date.year, date.month, date.day);
+
+    if (messageDate == today) {
+      dateText = 'Aujourd\'hui';
+    } else if (messageDate == today.subtract(const Duration(days: 1))) {
+      dateText = 'Hier';
+    } else {
+      dateText = '${date.day}/${date.month}/${date.year}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: AppColors.grey400)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
+            child: Text(
+              dateText,
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeS,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: AppColors.grey400)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageInput(MessageLoaded state) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.only(
+        left: AppConstants.spacingM,
+        right: AppConstants.spacingM,
+        top: AppConstants.spacingS,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppConstants.spacingS,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, -2))
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(24),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _messageController,
+              decoration: InputDecoration(
+                hintText: _editingMessage != null
+                    ? 'Modifier le message...'
+                    : 'Écrire un message...',
+                hintStyle: GoogleFonts.inter(
+                  color: AppColors.textSecondary,
+                  fontSize: AppConstants.fontSizeM,
                 ),
-                child: TextField(
-                  controller: _messageController,
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(
-                    hintText: _editingMessage != null
-                        ? 'Modifier...'
-                        : 'Écrire un message...',
-                    hintStyle:
-                        GoogleFonts.inter(color: Colors.grey.shade600),
-                    border: InputBorder.none,
-                  ),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacingM,
+                  vertical: AppConstants.spacingS,
+                ),
+                prefixIcon: _editingMessage != null
+                    ? IconButton(
+                        icon: const Icon(Icons.close, color: AppColors.error),
+                        onPressed: _cancelEdit,
+                      )
+                    : null,
               ),
+              maxLines: null,
+              textCapitalization: TextCapitalization.sentences,
             ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: _sendOrUpdate,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: _editingMessage != null
-                      ? Colors.amber
-                      : AppColors.success,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  _editingMessage != null ? Icons.check : Icons.send,
-                  color: AppColors.white,
-                  size: 20,
-                ),
+          ),
+          const SizedBox(width: AppConstants.spacingS),
+          CircleAvatar(
+            backgroundColor: AppColors.success,
+            child: IconButton(
+              icon: Icon(
+                _editingMessage != null ? Icons.check : Icons.send,
+                color: AppColors.white,
+                size: 20,
               ),
+              onPressed: () => _sendOrUpdateMessage(state),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sendOrUpdateMessage(MessageLoaded state) {
+    final content = _messageController.text.trim();
+    if (content.isEmpty) return;
+
+    if (_editingMessage != null) {
+      context.read<MessageBloc>().add(
+            UpdateMessageEvent(
+              conversationId: _conversationId,
+              messageId: _editingMessage!.id,
+              content: content,
+            ),
+          );
+      _cancelEdit();
+    } else {
+      context.read<MessageBloc>().add(
+            SendMessageEvent(
+              conversationId: _conversationId,
+              content: content,
+              replyToId: state.replyToId,
+            ),
+          );
+    }
+
+    _messageController.clear();
+  }
+
+  void _setReplyTo(MessageModel message) {
+    context.read<MessageBloc>().add(
+          SetReplyToMessageEvent(
+            messageId: message.id,
+            messageContent: message.content,
+            senderName: message.senderName,
+          ),
+        );
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingMessage = null;
+      _messageController.clear();
+    });
+  }
+
+  void _showMessageOptions(MessageModel message, bool isMe) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.reply),
+              title: const Text('Répondre'),
+              onTap: () {
+                Navigator.pop(context);
+                _setReplyTo(message);
+              },
+            ),
+            if (isMe) ...[
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Modifier'),
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _editingMessage = message;
+                    _messageController.text = message.content;
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: AppColors.error),
+                title: const Text('Supprimer', style: TextStyle(color: AppColors.error)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteMessage(message);
+                },
+              ),
+            ],
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.cancel, color: AppColors.textSecondary),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(context),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDeleteMessage(MessageModel message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Supprimer le message',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Voulez-vous vraiment supprimer ce message ?',
+          style: GoogleFonts.inter(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Annuler',
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              this.context.read<MessageBloc>().add(
+                    DeleteMessageEvent(
+                      conversationId: _conversationId,
+                      messageId: message.id,
+                    ),
+                  );
+            },
+            child: Text(
+              'Supprimer',
+              style: GoogleFonts.inter(
+                color: AppColors.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -501,183 +635,93 @@ Future<void> _loadCurrentUser() async {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.chat_bubble_outline,
-                    size: 64, color: Colors.grey.shade400),
-                const SizedBox(height: 16),
-                Text('Aucun message',
-                    style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary)),
-                Text('Envoyez le premier message !',
-                    style: GoogleFonts.inter(
-                        fontSize: 14, color: Colors.grey.shade600)),
+                Icon(
+                  Icons.chat_bubble_outline,
+                  size: 80,
+                  color: AppColors.grey400,
+                ),
+                const SizedBox(height: AppConstants.spacingL),
+                Text(
+                  'Aucun message',
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeXL,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppConstants.spacingS),
+                Text(
+                  'Commencez la conversation',
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeM,
+                    color: AppColors.grey600,
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        _buildInput(),
+        _buildMessageInput(MessageLoaded(
+          conversationId: _conversationId,
+          messages: const [],
+        )),
       ],
     );
   }
 
   Widget _buildErrorState(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-          const SizedBox(height: 16),
-          Text('Erreur',
-              style: GoogleFonts.inter(
-                  fontSize: 18, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(message,
-                style: GoogleFonts.inter(color: Colors.grey.shade600),
-                textAlign: TextAlign.center),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () {
-              // ✅ Utiliser le getter protégé
-              context.read<MessageBloc>().add(
-                    LoadMessagesEvent(conversationId: _conversationId),
-                  );
-            },
-            icon: const Icon(Icons.refresh),
-            label: const Text('Réessayer'),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                foregroundColor: AppColors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _sendOrUpdate() {
-    final content = _messageController.text.trim();
-    if (content.isEmpty) return;
-
-    if (_editingMessage != null) {
-      // ✅ Utiliser le getter protégé
-      context.read<MessageBloc>().add(UpdateMessageEvent(
-            conversationId: _conversationId,
-            messageId: _editingMessage!.id,
-            content: content,
-          ));
-      setState(() => _editingMessage = null);
-    } else {
-      final state = context.read<MessageBloc>().state;
-      int? replyToId;
-      if (state is MessageLoaded && state.isReplying) {
-        replyToId = state.replyToId;
-      }
-      // ✅ Utiliser le getter protégé
-      context.read<MessageBloc>().add(SendMessageEvent(
-            conversationId: _conversationId,
-            content: content,
-            replyToId: replyToId,
-          ));
-    }
-    _messageController.clear();
-  }
-
-  void _setReplyToMessage(MessageModel message) {
-    context.read<MessageBloc>().add(SetReplyToMessageEvent(
-          messageId: message.id,
-          messageContent: message.content,
-          senderName: message.senderName,
-        ));
-  }
-
-  void _showMessageOptions(MessageModel message, bool isCurrentUser) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2)),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.reply, color: AppColors.success),
-              title: const Text('Répondre'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _setReplyToMessage(message);
-              },
-            ),
-            if (isCurrentUser) ...[
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.amber),
-                title: const Text('Modifier'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _messageController.text = message.content;
-                  setState(() => _editingMessage = message);
-                },
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.spacingXL),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: AppColors.error,
+                  ),
+                  const SizedBox(height: AppConstants.spacingL),
+                  Text(
+                    'Erreur',
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeXL,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.error,
+                    ),
+                  ),
+                  const SizedBox(height: AppConstants.spacingS),
+                  Text(
+                    message,
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeM,
+                      color: AppColors.grey600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppConstants.spacingL),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MessageBloc>().add(
+                            LoadMessagesEvent(conversationId: _conversationId),
+                          );
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Réessayer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: AppColors.white,
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                leading:
-                    const Icon(Icons.delete, color: AppColors.error),
-                title: const Text('Supprimer',
-                    style: TextStyle(color: AppColors.error)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  _confirmDelete(message);
-                },
-              ),
-            ],
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.cancel, color: Colors.grey),
-              title: const Text('Annuler'),
-              onTap: () => Navigator.pop(ctx),
             ),
-            const SizedBox(height: 8),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  void _confirmDelete(MessageModel message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer le message'),
-        content: const Text(
-            'Êtes-vous sûr de vouloir supprimer ce message ?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annuler')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              // ✅ Utiliser le getter protégé
-              context.read<MessageBloc>().add(DeleteMessageEvent(
-                    conversationId: _conversationId,
-                    messageId: message.id,
-                  ));
-            },
-            child: const Text('Supprimer',
-                style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
