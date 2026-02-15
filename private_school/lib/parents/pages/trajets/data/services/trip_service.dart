@@ -114,7 +114,7 @@ class TripService {
       debugPrint('📊 MES RÉSERVATIONS: ${tripsJson.length}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // Parser les réservations
+      // Parser les réservations avec logs détaillés
       final reservations = <TripModel>[];
       for (int i = 0; i < tripsJson.length; i++) {
         try {
@@ -122,15 +122,36 @@ class TripService {
           debugPrint('');
           debugPrint('📋 Réservation ${i + 1}/${tripsJson.length}:');
           debugPrint('   Trip ID: ${tripJson['id']}');
+          debugPrint('   Driver ID: ${tripJson['driver_id']}');
           debugPrint('   Status: ${tripJson['status']}');
-          debugPrint('   Start: ${tripJson['start_point']}');
-          debugPrint('   End: ${tripJson['end_point']}');
+          
+          // 🔍 LOGS DÉTAILLÉS DES DONNÉES CHAUFFEUR
+          debugPrint('');
+          debugPrint('   👨‍✈️ DONNÉES CHAUFFEUR REÇUES:');
+          debugPrint('   - driver_name: ${tripJson['driver_name']}');
+          debugPrint('   - driver_phone: ${tripJson['driver_phone']}');
+          debugPrint('   - driver_rating: ${tripJson['driver_rating']}');
+          debugPrint('   - driver_photo: ${tripJson['driver_photo']}');
+          debugPrint('   - vehicle_plate: ${tripJson['vehicle_plate']}');
+          debugPrint('   - vehicle_photo: ${tripJson['vehicle_photo']}');
+          debugPrint('');
           
           final trip = TripModel.fromJson(tripJson);
           reservations.add(trip);
+          
+          // 🔍 LOGS APRÈS PARSING
+          debugPrint('   📦 APRÈS PARSING TripModel:');
+          debugPrint('   - driverName: ${trip.driverName}');
+          debugPrint('   - driverPhoto: ${trip.driverPhoto}');
+          debugPrint('   - vehiclePhoto: ${trip.vehiclePhoto}');
+          debugPrint('   - hasDriverPhoto: ${trip.hasDriverPhoto}');
+          debugPrint('   - hasVehiclePhoto: ${trip.hasVehiclePhoto}');
+          debugPrint('   - driverPhotoUrl: ${trip.driverPhotoUrl}');
+          debugPrint('   - vehiclePhotoUrl: ${trip.vehiclePhotoUrl}');
           debugPrint('   ✅ Parsé avec succès');
-        } catch (e) {
+        } catch (e, stack) {
           debugPrint('   ❌ Error: $e');
+          debugPrint('   Stack: $stack');
         }
       }
 

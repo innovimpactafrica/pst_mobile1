@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
@@ -32,21 +34,69 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-
-  // ✅ PAS DE initState() ni didChangeDependencies() !
-  // Les events sont appelés dans main.dart
+  LatLng? _homeLocation;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.success,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildHeader(context),
-                Expanded(
+  void initState() {
+    super.initState();
+    _loadHomeAddress();
+  }
+
+  void _loadHomeAddress() async {
+    final authState = context.read<AuthBloc>().state;
+    String? address;
+    
+    if (authState is AuthAuthenticated && authState.user != null) {
+      address = authState.user!.address;
+    } else if (authState is UserLoaded) {
+      address = authState.user.address;
+    }
+    
+    if (address != null && address.isNotEmpty) {
+      // Géocoder l'adresse pour obtenir les coordonnées
+      final coords = await _geocodeAddress(address);
+      if (coords != null) {
+        setState(() {
+          _homeLocation = coords;
+        });
+      } else {
+        setState(() {
+          _homeLocation = const LatLng(14.6937, -17.4441); // Dakar par défaut
+        });
+      }
+    } else {
+      setState(() {
+        _homeLocation = const LatLng(14.6937, -17.4441);
+      });
+    }
+  }
+  
+  Future<LatLng?> _geocodeAddress(String address) async {
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        return LatLng(locations.first.latitude, locations.first.longitude);
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur géocodage: $e');
+    }
+    return null;
+  }
+
+  @override
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white, // ← FOND BLANC
+    body: SafeArea(
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: Container(
+                  color: AppColors.white, 
                   child: Stack(
                     children: [
                       _buildMapBackground(context),
@@ -61,7 +111,7 @@ class _HomePageState extends State<HomePage> {
                                   height: 280,
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                      color: AppColors.white,
+                                      color: AppColors.success,
                                     ),
                                   ),
                                 );
@@ -92,48 +142,51 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-              ],
-            ),
-            _buildBottomNavigationBar(),
-            _buildFloatingActionButton(context),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMapBackground(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.grey.shade200),
-      child: Stack(
-        children: [
-          Center(
-            child: Icon(
-              Icons.map_outlined,
-              size: AppConstants.iconSizeXXXL + 16,
-              color: Colors.grey.shade300,
-            ),
-          ),
-          Positioned(
-            top: 150,
-            left: MediaQuery.of(context).size.width * 0.4,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 3),
               ),
-              child: const Icon(
-                Icons.location_on,
-                color: AppColors.primary,
-                size: AppConstants.iconSizeM,
-              ),
-            ),
+            ],
           ),
+          _buildBottomNavigationBar(),
+          _buildFloatingActionButton(context),
         ],
       ),
+    ),
+  );
+}
+
+  Widget _buildMapBackground(BuildContext context) {
+    if (_homeLocation == null) {
+      return Container(
+        decoration: BoxDecoration(color: Colors.grey.shade200),
+        child: const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(
+        target: _homeLocation!,
+        zoom: 14,
+      ),
+      onMapCreated: (controller) {
+        // Controller stocké mais non utilisé pour l'instant
+      },
+      markers: {
+        Marker(
+          markerId: const MarkerId('home'),
+          position: _homeLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueViolet,
+          ),
+          infoWindow: const InfoWindow(
+            title: 'Mon domicile',
+          ),
+        ),
+      },
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
     );
   }
 

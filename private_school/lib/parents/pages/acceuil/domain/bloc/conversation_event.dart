@@ -30,16 +30,16 @@ class RefreshConversationsEvent extends ConversationEvent {
 
 class CreateDirectConversationEvent extends ConversationEvent {
   final int otherUserId;
+  final String? initialMessage; // ← Ajouter ce champ
 
-  const CreateDirectConversationEvent({required this.otherUserId});
+  const CreateDirectConversationEvent({
+    required this.otherUserId,
+    this.initialMessage,
+  });
 
   @override
-  List<Object?> get props => [otherUserId];
-
-  @override
-  String toString() => 'CreateDirectConversationEvent(otherUserId: $otherUserId)';
+  List<Object?> get props => [otherUserId, initialMessage];
 }
-
 class CreateGroupConversationEvent extends ConversationEvent {
   final String name;
   final List<int> memberIds;

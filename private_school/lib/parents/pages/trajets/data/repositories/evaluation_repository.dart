@@ -6,36 +6,40 @@ class EvaluationRepository {
 
   Future<EvaluationModel> createEvaluation({
     required int tripId,
+    required int driverId,
     required int rating,
-    String? badge,
     String? comment,
   }) async {
     return await _service.createEvaluation(
       tripId: tripId,
+      driverId: driverId,
       rating: rating,
-      badge: badge,
       comment: comment,
     );
   }
 
-  Future<List<EvaluationModel>> getAllEvaluations() async {
-    return await _service.getAllEvaluations();
-  }
-
-  Future<EvaluationModel> getEvaluationById(int id) async {
-    return await _service.getEvaluationById(id);
+  Future<List<EvaluationModel>> getDriverEvaluations({
+    required int driverId,
+    int? minRating,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    return await _service.getDriverEvaluations(
+      driverId: driverId,
+      minRating: minRating,
+      limit: limit,
+      offset: offset,
+    );
   }
 
   Future<EvaluationModel> updateEvaluation({
     required int id,
     int? rating,
-    String? badge,
     String? comment,
   }) async {
     return await _service.updateEvaluation(
       id: id,
       rating: rating,
-      badge: badge,
       comment: comment,
     );
   }

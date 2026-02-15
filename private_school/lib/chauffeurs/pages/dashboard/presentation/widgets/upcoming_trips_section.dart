@@ -78,9 +78,18 @@ class UpcomingTripsSection extends StatelessWidget {
         ? DateTime.tryParse(trip['date'].toString()) ?? DateTime.now()
         : DateTime.now();
     final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
-    final schools = trip is Map && trip['schools'] != null && trip['schools'] is List
-        ? (trip['schools'] as List).length
-        : 0;
+    
+    // ✅ FIX: Gérer schools comme liste OU nombre
+    int schools = 0;
+    if (trip is Map && trip['schools'] != null) {
+      if (trip['schools'] is List) {
+        schools = (trip['schools'] as List).length;
+      } else if (trip['schools'] is int) {
+        schools = trip['schools'] as int;
+      } else {
+        schools = int.tryParse(trip['schools'].toString()) ?? 0;
+      }
+    }
     
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');
 

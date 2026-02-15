@@ -10,7 +10,7 @@ import '../widgets/trip_card_widget.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 import 'trip_detail_page.dart';
-import 'trip_tracking_page.dart'; // ✅ AJOUTÉ
+import 'trip_tracking_page.dart';
 
 class TrajetsPage extends StatelessWidget {
   const TrajetsPage({super.key});
@@ -30,197 +30,317 @@ class TrajetsPageContent extends StatelessWidget {
   const TrajetsPageContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ══════════════════════════════════════════
-            // HEADER — inchangé
-            // ══════════════════════════════════════════
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.success,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey.shade50,
+    body: Column(
+      children: [
+        _buildGreenHeader(),
+        Expanded(
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              
+              // Tabs dans la zone blanche
+              _buildTabsSection(),
+              
+              const SizedBox(height: 16),
+              
+              // Liste des trajets
+              Expanded(
+                child: _buildTripsList(),
               ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+ /// ══════════════════════════════════════════
+/// HEADER VERT (SANS coins arrondis en bas)
+/// ══════════════════════════════════════════
+Widget _buildGreenHeader() {
+  return Container(
+    width: double.infinity,
+    color: AppColors.success, 
+    child: SafeArea(
+      bottom: false, 
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Text(
+          'my_trips'.tr(),
+          style: GoogleFonts.inter(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            height: 1.2,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+  /// ══════════════════════════════════════════
+/// TABS AVEC FOND GRIS (design Figma)
+/// ══════════════════════════════════════════
+Widget _buildTabsSection() {
+  return BlocBuilder<TripBloc, TripState>(
+    builder: (context, state) {
+      int selectedTab = 0;
+      if (state is TripLoaded) {
+        selectedTab = state.selectedTabIndex;
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200, // ← FOND GRIS au lieu de blanc
+            borderRadius: BorderRadius.circular(19),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              _buildTabButton(
+                context,
+                'available_trips'.tr(),
+                0,
+                selectedTab,
+              ),
+              _buildTabButton(
+                context,
+                'my_reservations'.tr(),
+                1,
+                selectedTab,
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+  /// ══════════════════════════════════════════
+  /// BOUTON DE TAB INDIVIDUEL
+  /// ══════════════════════════════════════════
+  Widget _buildTabButton(
+  BuildContext context,
+  String label,
+  int tabIndex,
+  int selectedTabIndex,
+) {
+  final isSelected = tabIndex == selectedTabIndex;
+
+  return Expanded(
+    child: GestureDetector(
+      onTap: () {
+        context.read<TripBloc>().add(SelectTripTabEvent(tabIndex));
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          // ✅ INVERSION : Blanc quand sélectionné, transparent sinon
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          // ✅ Ombre légère sur le tab sélectionné
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            // ✅ INVERSION : Vert quand sélectionné, gris sinon
+            color: isSelected ? AppColors.primary: Colors.grey.shade600,
+            letterSpacing: -0.2,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+  /// ══════════════════════════════════════════
+  /// LISTE DES TRAJETS
+  /// ══════════════════════════════════════════
+  Widget _buildTripsList() {
+    return BlocBuilder<TripBloc, TripState>(
+      builder: (context, state) {
+        // ─────────────────────────────────────
+        // LOADING
+        // ─────────────────────────────────────
+        if (state is TripLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: AppColors.success,
+              strokeWidth: 2.5,
+            ),
+          );
+        }
+
+        // ─────────────────────────────────────
+        // ERROR
+        // ─────────────────────────────────────
+        if (state is TripError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red.shade300,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    'my_trips'.tr(),
+                    state.message,
                     style: GoogleFonts.inter(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontSize: 16,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<TripBloc>().add(LoadAvailableTripsEvent());
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text(
+                      'retry'.tr(),
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
                 ],
               ),
             ),
+          );
+        }
 
-            const SizedBox(height: 16),
+        // ─────────────────────────────────────
+        // LOADED
+        // ─────────────────────────────────────
+        if (state is TripLoaded) {
+          // Liste vide
+          if (state.trips.isEmpty) {
+            return _buildEmptyState(state.selectedTabIndex);
+          }
 
-            // ══════════════════════════════════════════
-            // TABS — inchangé
-            // ══════════════════════════════════════════
-            BlocBuilder<TripBloc, TripState>(
-              builder: (context, state) {
-                int selectedTab = 0;
-                if (state is TripLoaded) {
-                  selectedTab = state.selectedTabIndex;
-                }
-
+          // Liste avec données
+          return RefreshIndicator(
+            color: AppColors.success,
+            backgroundColor: Colors.white,
+            strokeWidth: 2.5,
+            onRefresh: () async {
+              if (state.selectedTabIndex == 0) {
+                context.read<TripBloc>().add(LoadAvailableTripsEvent());
+              } else {
+                context.read<TripBloc>().add(LoadMyReservationsEvent());
+              }
+            },
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: state.trips.length,
+              itemBuilder: (context, index) {
+                final trip = state.trips[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        _buildTabButton(context, 'available_trips'.tr(), 0, selectedTab),
-                        _buildTabButton(context, 'my_reservations'.tr(), 1, selectedTab),
-                      ],
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TripCardWidget(
+                    trip: trip,
+                    onTap: () => _handleTripTap(
+                      context: context,
+                      trip: trip,
+                      selectedTabIndex: state.selectedTabIndex,
                     ),
                   ),
                 );
               },
             ),
+          );
+        }
 
-            const SizedBox(height: 16),
+        return const SizedBox.shrink();
+      },
+    );
+  }
 
-            // ══════════════════════════════════════════
-            // CONTENT
-            // ══════════════════════════════════════════
-            Expanded(
-              child: BlocBuilder<TripBloc, TripState>(
-                builder: (context, state) {
-                  if (state is TripLoading) {
-                    return Center(
-                      child: CircularProgressIndicator(color: AppColors.success),
-                    );
-                  }
-
-                  if (state is TripError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                          const SizedBox(height: 16),
-                          Text(
-                            state.message,
-                            style: GoogleFonts.inter(fontSize: 16, color: Colors.red.shade700),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<TripBloc>().add(LoadAvailableTripsEvent());
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.success,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: Text('retry'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (state is TripLoaded) {
-                    if (state.trips.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              state.selectedTabIndex == 0
-                                  ? Icons.directions_bus_outlined
-                                  : Icons.bookmark_border,
-                              size: 80,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              state.selectedTabIndex == 0
-                                  ? 'no_available_trips'.tr()
-                                  : 'no_reservations'.tr(),
-                              style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 40),
-                              child: Text(
-                                state.selectedTabIndex == 0
-                                    ? 'available_trips_will_appear'.tr()
-                                    : 'reservations_will_appear'.tr(),
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      color: AppColors.success,
-                      onRefresh: () async {
-                        if (state.selectedTabIndex == 0) {
-                          context.read<TripBloc>().add(LoadAvailableTripsEvent());
-                        } else {
-                          context.read<TripBloc>().add(LoadMyReservationsEvent());
-                        }
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: state.trips.length,
-                        itemBuilder: (context, index) {
-                          final trip = state.trips[index];
-                          return TripCardWidget(
-                            trip: trip,
-                            onTap: () => _handleTripTap(
-                              context: context,
-                              trip: trip,
-                              // ✅ CLE : on passe l'index de l'onglet actif
-                              selectedTabIndex: state.selectedTabIndex,
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
+  /// ══════════════════════════════════════════
+  /// ÉTAT VIDE (pas de trajets)
+  /// ══════════════════════════════════════════
+  Widget _buildEmptyState(int selectedTabIndex) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              selectedTabIndex == 0
+                  ? Icons.directions_bus_outlined
+                  : Icons.bookmark_border,
+              size: 80,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              selectedTabIndex == 0
+                  ? 'no_available_trips'.tr()
+                  : 'no_reservations'.tr(),
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              selectedTabIndex == 0
+                  ? 'available_trips_will_appear'.tr()
+                  : 'reservations_will_appear'.tr(),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -228,12 +348,12 @@ class TrajetsPageContent extends StatelessWidget {
     );
   }
 
-  // ══════════════════════════════════════════
-  // ✅ NAVIGATION INTELLIGENTE
-  //
-  // Tab 0 (Disponibles)  → TripDetailPage  (sélection enfants + réservation)
-  // Tab 1 (Réservations) → TripTrackingPage (suivi du trajet)
-  // ══════════════════════════════════════════
+  /// ══════════════════════════════════════════
+  /// NAVIGATION INTELLIGENTE
+  ///
+  /// Tab 0 (Disponibles)  → TripDetailPage  (sélection enfants + réservation)
+  /// Tab 1 (Réservations) → TripTrackingPage (suivi du trajet)
+  /// ══════════════════════════════════════════
   void _handleTripTap({
     required BuildContext context,
     required trip,
@@ -264,38 +384,5 @@ class TrajetsPageContent extends StatelessWidget {
         ),
       );
     }
-  }
-
-  Widget _buildTabButton(
-    BuildContext context,
-    String label,
-    int tabIndex,
-    int selectedTabIndex,
-  ) {
-    final isSelected = tabIndex == selectedTabIndex;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          context.read<TripBloc>().add(SelectTripTabEvent(tabIndex));
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.success : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? Colors.white : Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

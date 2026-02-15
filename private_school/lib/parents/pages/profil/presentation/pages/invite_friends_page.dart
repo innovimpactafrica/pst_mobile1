@@ -1,10 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../../core/utils/app_colors.dart';
 
-class InviteFriendsPage extends StatelessWidget {
+class InviteFriendsPage extends StatefulWidget {
   const InviteFriendsPage({super.key});
+
+  @override
+  State<InviteFriendsPage> createState() => _InviteFriendsPageState();
+}
+
+class _InviteFriendsPageState extends State<InviteFriendsPage> {
+  List<Contact> _contacts = [];
+  List<Contact> _filteredContacts = [];
+  bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  
+  // Lien d'invitation (remplacez par votre vrai lien)
+  final String _inviteLink = 'https://privateschool.app/invite?ref=USER123';
+  final String _inviteMessage = '🚌 Rejoignez-moi sur Private School Transport ! Une app sécurisée pour le transport scolaire. Téléchargez maintenant : ';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+    _searchController.addListener(_filterContacts);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadContacts() async {
+    try {
+      if (await FlutterContacts.requestPermission()) {
+        final contacts = await FlutterContacts.getContacts(
+          withProperties: true,
+          withPhoto: false,
+        );
+        setState(() {
+          _contacts = contacts.where((c) => c.phones.isNotEmpty).toList();
+          _filteredContacts = _contacts;
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Permission d\'accès aux contacts refusée', style: GoogleFonts.inter()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur chargement contacts: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _filterContacts() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredContacts = _contacts.where((contact) {
+        final name = contact.displayName.toLowerCase();
+        return name.contains(query);
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +127,7 @@ class InviteFriendsPage extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         child: TextField(
+          controller: _searchController,
           decoration: InputDecoration(
             hintText: 'Trouver des amis',
             hintStyle: GoogleFonts.inter(
@@ -83,30 +154,35 @@ class InviteFriendsPage extends StatelessWidget {
             imagePath: 'assets/icons/link.svg',
             color: AppColors.success,
             isSvg: true,
+            onTap: _copyLink,
           ),
           _buildSocialButton(
             label: 'WhatsApp',
             imagePath: 'assets/icons/whatsapp.svg',
             color: AppColors.whatsapp,
             isSvg: true,
+            onTap: _shareViaWhatsApp,
           ),
           _buildSocialButton(
             label: 'Instagram',
             imagePath: 'assets/icons/instagram.svg',
             color: AppColors.instagram,
             isSvg: true,
+            onTap: _shareViaInstagram,
           ),
           _buildSocialButton(
             label: 'Messenger',
             imagePath: 'assets/icons/messenger.svg',
             color: AppColors.messenger,
             isSvg: true,
+            onTap: _shareViaMessenger,
           ),
           _buildSocialButton(
             label: 'Twitter',
             imagePath: 'assets/images/twiter.jpeg',
             color: AppColors.twitter,
-            isSvg: false, // ✅ Pour Twitter qui est un JPEG
+            isSvg: false,
+            onTap: _shareViaTwitter,
           ),
         ],
       ),
@@ -118,47 +194,51 @@ class InviteFriendsPage extends StatelessWidget {
     required String imagePath,
     required Color color,
     required bool isSvg,
+    required VoidCallback onTap,
   }) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          child: Center(
-            child: isSvg
-                ? SvgPicture.asset(
-                    imagePath,
-                    width: 28,
-                    height: 28,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  )
-                : ClipOval(
-                    child: Image.asset(
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Center(
+              child: isSvg
+                  ? SvgPicture.asset(
                       imagePath,
                       width: 28,
                       height: 28,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.image,
-                          color: Colors.white,
-                          size: 28,
-                        );
-                      },
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : ClipOval(
+                      child: Image.asset(
+                        imagePath,
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.image,
+                            color: Colors.white,
+                            size: 28,
+                          );
+                        },
+                      ),
                     ),
-                  ),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textPrimary),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textPrimary),
+          ),
+        ],
+      ),
     );
   }
 
@@ -180,41 +260,43 @@ class InviteFriendsPage extends StatelessWidget {
   }
 
   Widget _buildFriendsList() {
+    if (_isLoading) {
+      return const Expanded(
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.success),
+        ),
+      );
+    }
+
+    if (_filteredContacts.isEmpty) {
+      return Expanded(
+        child: Center(
+          child: Text(
+            _contacts.isEmpty 
+                ? 'Aucun contact disponible'
+                : 'Aucun contact trouvé',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppColors.textGrey,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Expanded(
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          _buildFriendCard(
-            name: 'Moussa Faye',
-            phone: '+221 77 123 45 67',
-            photo: 'assets/images/friend1.png',
-          ),
-          _buildFriendCard(
-            name: 'Michel Correa',
-            phone: '+221 77 123 45 67',
-            photo: 'assets/images/friend2.png',
-          ),
-          _buildFriendCard(
-            name: 'Jules Mendy',
-            phone: '+221 77 000 33 27',
-            photo: 'assets/images/friend3.png',
-          ),
-          _buildFriendCard(
-            name: 'Edouard Faye',
-            phone: '+221 77 000 33 27',
-            photo: 'assets/images/friend4.png',
-          ),
-          _buildFriendCard(
-            name: 'John Doe',
-            phone: '+221 77 765 43 21',
-            photo: 'assets/images/friend5.png',
-          ),
-          _buildFriendCard(
-            name: 'Lamine Coly',
-            phone: '+221 77 123 45 67',
-            photo: 'assets/images/friend6.png',
-          ),
-        ],
+        itemCount: _filteredContacts.length,
+        itemBuilder: (context, index) {
+          final contact = _filteredContacts[index];
+          final phone = contact.phones.isNotEmpty ? contact.phones.first.number : '';
+          return _buildFriendCard(
+            name: contact.displayName,
+            phone: phone,
+            contact: contact,
+          );
+        },
       ),
     );
   }
@@ -222,7 +304,7 @@ class InviteFriendsPage extends StatelessWidget {
   Widget _buildFriendCard({
     required String name,
     required String phone,
-    required String photo,
+    required Contact contact,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -240,22 +322,27 @@ class InviteFriendsPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildAvatar(photo),
+          _buildAvatar(name),
           const SizedBox(width: 12),
           Expanded(child: _buildFriendInfo(name, phone)),
-          _buildInviteButton(),
+          _buildInviteButton(contact),
         ],
       ),
     );
   }
 
-  Widget _buildAvatar(String photo) {
+  Widget _buildAvatar(String name) {
     return CircleAvatar(
       radius: 28,
-      backgroundColor: AppColors.imagePlaceholder,
-      backgroundImage: AssetImage(photo),
-      onBackgroundImageError: (_, __) {},
-      child: Icon(Icons.person, color: AppColors.textGrey, size: 28),
+      backgroundColor: AppColors.success.withValues(alpha: 0.2),
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: AppColors.success,
+        ),
+      ),
     );
   }
 
@@ -280,11 +367,9 @@ class InviteFriendsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInviteButton() {
+  Widget _buildInviteButton(Contact contact) {
     return ElevatedButton(
-      onPressed: () {
-        // TODO: Envoyer invitation
-      },
+      onPressed: () => _inviteContact(contact),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
@@ -304,5 +389,303 @@ class InviteFriendsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // MÉTHODES DE PARTAGE
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  void _copyLink() async {
+    await Clipboard.setData(ClipboardData(text: _inviteLink));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lien copié !', style: GoogleFonts.inter()),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _shareViaWhatsApp() async {
+    final message = '$_inviteMessage$_inviteLink';
+    final url = Uri.parse('whatsapp://send?text=${Uri.encodeComponent(message)}');
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: utiliser share_plus
+        await Share.share(message, subject: 'Invitation Private School Transport');
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur WhatsApp: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _shareViaInstagram() async {
+    final message = '$_inviteMessage$_inviteLink';
+    
+    try {
+      // Instagram Stories - nécessite une image, donc on utilise share_plus
+      await Share.share(
+        message,
+        subject: 'Invitation Private School Transport',
+      );
+    } catch (e) {
+      debugPrint('❌ Erreur Instagram: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Instagram non disponible', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _shareViaMessenger() async {
+    final message = '$_inviteMessage$_inviteLink';
+    
+    try {
+      // Essayer d'ouvrir Messenger
+      final url = Uri.parse('fb-messenger://share?link=${Uri.encodeComponent(_inviteLink)}&app_id=YOUR_APP_ID');
+      
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: utiliser share_plus
+        await Share.share(message, subject: 'Invitation Private School Transport');
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur Messenger: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _shareViaTwitter() async {
+    final message = '$_inviteMessage$_inviteLink';
+    final text = Uri.encodeComponent(message);
+    
+    try {
+      // Essayer Twitter/X app (nouveau schéma)
+      final twitterUrl = Uri.parse('twitter://post?message=$text');
+      final xUrl = Uri.parse('x://post?message=$text');
+      
+      bool launched = false;
+      
+      // Essayer X (nouveau nom de Twitter)
+      if (await canLaunchUrl(xUrl)) {
+        await launchUrl(xUrl, mode: LaunchMode.externalApplication);
+        launched = true;
+      } else if (await canLaunchUrl(twitterUrl)) {
+        await launchUrl(twitterUrl, mode: LaunchMode.externalApplication);
+        launched = true;
+      }
+      
+      if (!launched) {
+        // Fallback vers le web
+        final webUrl = Uri.parse('https://twitter.com/intent/tweet?text=$text');
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur Twitter: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _inviteContact(Contact contact) async {
+    if (contact.phones.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Aucun numéro de téléphone', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final phone = contact.phones.first.number.replaceAll(RegExp(r'[^0-9+]'), '');
+    final message = '$_inviteMessage$_inviteLink';
+    
+    // Afficher un dialogue pour choisir la méthode d'invitation
+    if (!mounted) return;
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textGrey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Inviter ${contact.displayName}',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildInviteOption(
+              icon: Icons.message,
+              label: 'SMS',
+              color: AppColors.success,
+              onTap: () {
+                Navigator.pop(context);
+                _sendViaSMS(phone, message);
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildInviteOption(
+              icon: Icons.chat,
+              label: 'WhatsApp',
+              color: AppColors.whatsapp,
+              onTap: () {
+                Navigator.pop(context);
+                _sendViaWhatsAppToContact(phone, message);
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildInviteOption(
+              icon: Icons.share,
+              label: 'Autres options',
+              color: AppColors.textGrey,
+              onTap: () {
+                Navigator.pop(context);
+                Share.share(message, subject: 'Invitation Private School Transport');
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInviteOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textGrey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendViaSMS(String phone, String message) async {
+    try {
+      final smsUrl = Uri.parse('sms:$phone?body=${Uri.encodeComponent(message)}');
+      if (await canLaunchUrl(smsUrl)) {
+        await launchUrl(smsUrl);
+      } else {
+        throw Exception('SMS non disponible');
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur SMS: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Impossible d\'envoyer le SMS', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendViaWhatsAppToContact(String phone, String message) async {
+    try {
+      // Nettoyer le numéro de téléphone
+      final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+      final url = Uri.parse('whatsapp://send?phone=$cleanPhone&text=${Uri.encodeComponent(message)}');
+      
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('WhatsApp non disponible');
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur WhatsApp: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('WhatsApp non installé', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

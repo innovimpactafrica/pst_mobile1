@@ -43,6 +43,7 @@ class TripRepository {
       debugPrint('✅ [TripRepository] ${reservations.length} réservations');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
+      // ⚠️ L'enrichissement est désactivé car l'API retourne déjà les infos du chauffeur
       return reservations;
     } catch (e, stackTrace) {
       debugPrint('');

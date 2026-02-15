@@ -24,20 +24,25 @@ class MessagingRepository {
   }
 
   Future<ConversationModel> createOrGetDirectConversation({
-    required int otherUserId,
-  }) async {
-    debugPrint('🔄 MessagingRepository.createOrGetDirectConversation');
-    try {
-      final conversation = await _service.createOrGetDirectConversation(
-        otherUserId: otherUserId,
-      );
-      debugPrint('✅ Repository: Conversation créée/récupérée');
-      return conversation;
-    } catch (e) {
-      debugPrint('❌ Repository Error: $e');
-      rethrow;
-    }
+  required int otherUserId,
+  String? initialMessage,
+}) async {
+  debugPrint('🔄 MessagingRepository.createOrGetDirectConversation');
+  debugPrint('👤 otherUserId: $otherUserId');
+  debugPrint('💬 initialMessage: ${initialMessage ?? "null"}');
+  
+  try {
+    final conversation = await _service.createOrGetDirectConversation(
+      otherUserId: otherUserId,
+      initialMessage: initialMessage,
+    );
+    debugPrint('✅ Repository: Conversation créée/récupérée');
+    return conversation;
+  } catch (e) {
+    debugPrint('❌ Repository Error: $e');
+    rethrow;
   }
+}
 
   Future<ConversationModel> createGroupConversation({
     required String name,

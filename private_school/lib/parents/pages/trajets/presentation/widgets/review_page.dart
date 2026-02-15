@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/trip_model.dart';
 import '../../data/repositories/evaluation_repository.dart';
-import 'review_submitted_dialog.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 class ReviewPage extends StatefulWidget {
@@ -332,78 +331,81 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Future<void> _submitReview() async {
-    if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('please_give_rating'.tr(), style: GoogleFonts.inter()),
-          backgroundColor: Colors.orange,
+  if (_rating == 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('please_give_rating'.tr(), style: GoogleFonts.inter()),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
+  }
+
+  setState(() {
+    _isSubmitting = true;
+  });
+
+  try {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🟢 [ReviewPage] ENVOI ÉVALUATION');
+    debugPrint('📤 Trip ID: ${widget.trip.id}');
+    debugPrint('📤 Rating: $_rating');
+    debugPrint('📤 Badge: $_selectedBadge');
+    debugPrint('📤 Comment: ${_commentController.text}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // Envoyer l'évaluation
+    final evaluation = await _repository.createEvaluation(
+      tripId: int.parse(widget.trip.id),
+      driverId: int.parse(widget.trip.driverId!),
+      rating: _rating,
+      comment: _commentController.text.trim().isNotEmpty 
+          ? _commentController.text.trim() 
+          : null,
+    );
+
+    debugPrint('✅ Évaluation créée: ${evaluation.id}');
+
+    if (!mounted) return;
+
+    // ✅ CORRECTION : Un seul pop() pour fermer ReviewPage
+    Navigator.pop(context, true); // ← Retourne 'true' pour indiquer succès
+
+    // Afficher snackbar de succès
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Avis envoyé avec succès ! ✅',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
-      );
-      return;
-    }
+        backgroundColor: AppColors.success,
+        duration: const Duration(seconds: 2),
+      ),
+    );
 
-    setState(() {
-      _isSubmitting = true;
-    });
+  } catch (e) {
+    debugPrint('❌ Erreur: $e');
 
-    try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟢 [ReviewPage] ENVOI ÉVALUATION');
-      debugPrint('📤 Trip ID: ${widget.trip.id}');
-      debugPrint('📤 Rating: $_rating');
-      debugPrint('📤 Badge: $_selectedBadge');
-      debugPrint('📤 Comment: ${_commentController.text}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    if (!mounted) return;
 
-      // Envoyer l'évaluation au backend
-      final evaluation = await _repository.createEvaluation(
-        tripId: int.parse(widget.trip.id),
-        rating: _rating,
-        badge: _selectedBadge,
-        comment: _commentController.text.trim().isNotEmpty 
-            ? _commentController.text.trim() 
-            : null,
-      );
-
-      debugPrint('✅ Évaluation créée avec succès');
-      debugPrint('   ID: ${evaluation.id}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-      if (!mounted) return;
-
-      // Afficher le dialog de confirmation
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const ReviewSubmittedDialog(),
-      );
-
-      if (!mounted) return;
-
-      // Fermer la page review après le dialog
-      Navigator.pop(context);
-      Navigator.pop(context); // Retour au tracking
-
-    } catch (e) {
-      debugPrint('❌ Erreur envoi évaluation: $e');
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${'error_sending_review'.tr()}: $e',
-            style: GoogleFonts.inter(),
-          ),
-          backgroundColor: Colors.red,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          e.toString().contains('déjà évalué')
+              ? 'Vous avez déjà évalué ce trajet'
+              : 'Erreur lors de l\'envoi: $e',
+          style: GoogleFonts.inter(),
         ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
+}
 }

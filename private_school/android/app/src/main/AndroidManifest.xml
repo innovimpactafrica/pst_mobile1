@@ -4,6 +4,10 @@
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.INTERNET" />
   
+  <!-- Permissions pour les contacts -->
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
+  <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+  
   <application
     android:label="private_school"
     android:name="${applicationName}"
@@ -54,6 +58,25 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
+        </intent>
+        <!-- WhatsApp -->
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+        <!-- Instagram -->
+        <package android:name="com.instagram.android" />
+        <!-- Messenger -->
+        <package android:name="com.facebook.orca" />
+        <!-- Twitter/X -->
+        <package android:name="com.twitter.android" />
+        <package android:name="com.twitter.android.lite" />
+        <!-- SMS -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="sms" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="smsto" />
         </intent>
     </queries>
 </manifest>

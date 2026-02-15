@@ -1,4 +1,4 @@
-// Messaging Service - API Communication Layer
+// Messaging Service - API Communication Layer - CORRECTED
 // Path: parents/pages/acceuil/data/services/messaging_service.dart
 
 import 'dart:convert';
@@ -64,17 +64,28 @@ class MessagingService {
   /// POST /api/conversations - Créer ou récupérer une conversation directe
   Future<ConversationModel> createOrGetDirectConversation({
     required int otherUserId,
+    String? initialMessage,
   }) async {
     debugPrint('🔄 MessagingService.createOrGetDirectConversation - START');
     debugPrint('👤 otherUserId: $otherUserId');
+    debugPrint('💬 initialMessage: ${initialMessage ?? "null"}');
     
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations');
+      debugPrint('🔑 Token récupéré: ${token?.substring(0, 20)}...');
       
-      final requestBody = {
+      final url = Uri.parse('${BaseUrl.current}/api/conversations');
+      debugPrint('📡 URL: $url');
+      
+      // ✅ FIX : N'envoyer initial_message QUE s'il n'est pas vide
+      final requestBody = <String, dynamic>{
         'other_user_id': otherUserId,
       };
+      
+      // N'ajouter initial_message que s'il existe et n'est pas vide
+      if (initialMessage != null && initialMessage.trim().isNotEmpty) {
+        requestBody['initial_message'] = initialMessage.trim();
+      }
       
       debugPrint('📤 Request Body: $requestBody');
       
@@ -97,9 +108,25 @@ class MessagingService {
         
         debugPrint('✅ Conversation créée/récupérée avec succès');
         return ConversationModel.fromJson(conversationJson);
+      } else if (response.statusCode == 400) {
+        // Erreur de validation
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Requête invalide';
+        debugPrint('❌ Erreur de validation: $errorMessage');
+        throw Exception('Validation échouée: $errorMessage');
+      } else if (response.statusCode == 404) {
+        // Utilisateur non trouvé
+        debugPrint('❌ Utilisateur $otherUserId non trouvé');
+        throw Exception('Utilisateur introuvable');
+      } else if (response.statusCode == 500) {
+        // Erreur serveur
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Erreur serveur';
+        debugPrint('❌ Erreur serveur: $errorMessage');
+        throw Exception('Erreur serveur: $errorMessage');
       } else {
-        debugPrint('❌ Erreur HTTP: ${response.statusCode}');
-        throw Exception('Erreur lors de la création de la conversation: ${response.statusCode}');
+        debugPrint('❌ Erreur HTTP inattendue: ${response.statusCode}');
+        throw Exception('Erreur HTTP: ${response.statusCode}');
       }
     } catch (e, stackTrace) {
       debugPrint('❌ Exception dans createOrGetDirectConversation: $e');
@@ -115,11 +142,24 @@ class MessagingService {
   }) async {
     debugPrint('🔄 MessagingService.createGroupConversation - START');
     debugPrint('📛 Nom du groupe: $name');
-    debugPrint('👥 Membres: $memberIds');
+    debugPrint('👥 Membres: $memberIds (${memberIds.length} membres)');
     
     try {
       final token = await _storage.getAccessToken();
       final url = Uri.parse('${BaseUrl.current}/api/conversations/group');
+      
+      // ✅ FIX : Vérifier qu'il y a au moins 2 membres
+      if (memberIds.length < 2) {
+        debugPrint('⚠️ ATTENTION: Moins de 2 membres sélectionnés!');
+        throw Exception('Au moins 2 membres sont requis pour créer un groupe');
+      }
+      
+      final requestBody = {
+        'name': name.trim(),
+        'member_ids': memberIds,
+      };
+      
+      debugPrint('📤 Request Body: $requestBody');
       
       final response = await http.post(
         url,
@@ -128,10 +168,7 @@ class MessagingService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'name': name,
-          'member_ids': memberIds,
-        }),
+        body: json.encode(requestBody),
       );
       
       debugPrint('📊 Status Code: ${response.statusCode}');
@@ -143,6 +180,12 @@ class MessagingService {
         
         debugPrint('✅ Conversation de groupe créée avec succès');
         return ConversationModel.fromJson(conversationJson);
+      } else if (response.statusCode == 400) {
+        // Erreur de validation
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Requête invalide';
+        debugPrint('❌ Erreur de validation: $errorMessage');
+        throw Exception(errorMessage);
       } else {
         debugPrint('❌ Erreur HTTP: ${response.statusCode}');
         throw Exception('Erreur lors de la création du groupe: ${response.statusCode}');

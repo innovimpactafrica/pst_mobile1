@@ -19,11 +19,31 @@ class NotificationService {
       if (response.data != null) {
         final List<dynamic> notificationsList = response.data['notifications'] ?? response.data['data'] ?? [];
         
-        debugPrint('✅ ${notificationsList.length} notification(s) récupérée(s)');
+        debugPrint('📊 ${notificationsList.length} notification(s) reçue(s) du backend');
         
-        return notificationsList
+        final allNotifications = notificationsList
             .map((json) => NotificationModel.fromJson(json))
             .toList();
+        
+        // ✅ FILTRER : Garder uniquement les notifications pour les parents
+        final filteredNotifications = allNotifications.where((notif) {
+          final type = notif.type.toLowerCase();
+          
+          // Exclure les notifications admin/système
+          if (type.contains('admin') || 
+              type.contains('system') || 
+              type.contains('driver_only') ||
+              type.contains('chauffeur_only')) {
+            debugPrint('🚫 Notification filtrée (admin/system): ${notif.title}');
+            return false;
+          }
+          
+          return true;
+        }).toList();
+        
+        debugPrint('✅ ${filteredNotifications.length} notification(s) après filtrage');
+        
+        return filteredNotifications;
       }
       
       return [];

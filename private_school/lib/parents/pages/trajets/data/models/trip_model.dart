@@ -22,6 +22,7 @@ class TripModel {
   final DriverModel? driver;
   
   // ===== Mobile enriched fields =====
+  final String? driverName;
   final String? driverPhone;
   final int? driverRating;
   final String? driverPhoto;
@@ -45,6 +46,7 @@ class TripModel {
     this.completedAt,
     this.cancelReason,
     this.driver,
+    this.driverName,
     this.driverPhone,
     this.driverRating,
     this.driverPhoto,
@@ -79,8 +81,12 @@ class TripModel {
   }
   
   String get duration => '1h 00min';
-  String get driverName => driver?.fullName ?? 'Chauffeur non assigné';
+  String get driverNameDisplay => driver?.fullName ?? driverName ?? 'Chauffeur non assigné';
   String get driverImg => driver?.photo ?? driverPhoto ?? '';
+  
+  // ✅ Rating réel du chauffeur
+  double get driverRatingValue => driver?.rating ?? driverRating?.toDouble() ?? 0.0;
+  String get driverRatingDisplay => driverRatingValue > 0 ? driverRatingValue.toStringAsFixed(1) : 'N/A';
   
   String get formattedDate => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   
@@ -88,8 +94,9 @@ class TripModel {
                              (driverPhoto != null && driverPhoto!.isNotEmpty);
   String get driverPhotoUrl => driver?.photo ?? driverPhoto ?? '';
   
-  bool get hasVehiclePhoto => vehiclePhoto != null && vehiclePhoto!.isNotEmpty;
-  String get vehiclePhotoUrl => vehiclePhoto ?? '';
+  bool get hasVehiclePhoto => (driver?.vehicle?.photo != null && driver!.vehicle!.photo!.isNotEmpty) ||
+                              (vehiclePhoto != null && vehiclePhoto!.isNotEmpty);
+  String get vehiclePhotoUrl => driver?.vehicle?.photo ?? vehiclePhoto ?? '';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -152,34 +159,60 @@ class TripModel {
     // ===== MOBILE DRIVER FIELDS (avec URL complètes) =====
     const String baseUrl = "http://86.106.181.31:3000";
     
-    final mobileDriverName = json['driver_name']?.toString();
-    final mobileDriverPhone = json['driver_phone']?.toString();
-    final mobileDriverRating = json['driver_rating'] is int
-        ? json['driver_rating']
-        : (json['driver_rating'] is String
-            ? int.tryParse(json['driver_rating'])
-            : null);
+    // ✅ Si on a un objet driver, utiliser ses données
+    String? mobileDriverName;
+    String? mobileDriverPhone;
+    int? mobileDriverRating;
+    String? mobileDriverPhoto;
+    String? mobileVehiclePlate;
+    String? mobileVehiclePhoto;
     
-    // ✅ PHOTO CHAUFFEUR avec URL complète
-    String? mobileDriverPhoto = json['driver_photo']?.toString();
-    if (mobileDriverPhoto != null && mobileDriverPhoto.isNotEmpty) {
-      if (!mobileDriverPhoto.startsWith('http')) {
-        mobileDriverPhoto = '$baseUrl$mobileDriverPhoto';
+    if (parsedDriver != null) {
+      // Utiliser les données du DriverModel parsé
+      mobileDriverName = parsedDriver.fullName;
+      mobileDriverPhone = parsedDriver.phone;
+      mobileDriverRating = parsedDriver.rating.toInt();
+      mobileDriverPhoto = parsedDriver.photo; // Déjà avec URL complète
+      mobileVehiclePlate = parsedDriver.vehicle?.plate;
+      mobileVehiclePhoto = parsedDriver.vehicle?.photo; // Déjà avec URL complète
+      
+      // ✅ Récupérer vehicle_photo depuis documents si disponible
+      if (json['driver']['documents'] != null && json['driver']['documents']['vehicle_photo'] != null) {
+        String? docVehiclePhoto = json['driver']['documents']['vehicle_photo']?.toString();
+        if (docVehiclePhoto != null && docVehiclePhoto.isNotEmpty) {
+          if (!docVehiclePhoto.startsWith('http')) {
+            mobileVehiclePhoto = '$baseUrl$docVehiclePhoto';
+          } else {
+            mobileVehiclePhoto = docVehiclePhoto;
+          }
+        }
       }
-    }
-    
-    final mobileVehiclePlate = json['vehicle_plate']?.toString();
-    
-    // ✅ PHOTO VÉHICULE avec URL complète (sauf Google Drive)
-    String? mobileVehiclePhoto = json['vehicle_photo']?.toString();
-    if (mobileVehiclePhoto != null && mobileVehiclePhoto.isNotEmpty) {
-      // Si ce n'est PAS Google Drive ET que c'est un chemin relatif
-      if (!mobileVehiclePhoto.startsWith('http')) {
-        mobileVehiclePhoto = '$baseUrl$mobileVehiclePhoto';
+    } else {
+      // Fallback : utiliser les champs mobiles directs
+      mobileDriverName = json['driver_name']?.toString();
+      mobileDriverPhone = json['driver_phone']?.toString();
+      mobileDriverRating = json['driver_rating'] is int
+          ? json['driver_rating']
+          : (json['driver_rating'] is String
+              ? int.tryParse(json['driver_rating'])
+              : null);
+      
+      // ✅ PHOTO CHAUFFEUR avec URL complète
+      mobileDriverPhoto = json['driver_photo']?.toString();
+      if (mobileDriverPhoto != null && mobileDriverPhoto.isNotEmpty) {
+        if (!mobileDriverPhoto.startsWith('http')) {
+          mobileDriverPhoto = '$baseUrl$mobileDriverPhoto';
+        }
       }
-      // Si c'est Google Drive, on le garde mais on sait qu'il ne s'affichera pas
-      if (mobileVehiclePhoto.contains('drive.google.com')) {
-        debugPrint('⚠️ Photo véhicule est un lien Google Drive (non affichable)');
+      
+      mobileVehiclePlate = json['vehicle_plate']?.toString();
+      
+      // ✅ PHOTO VÉHICULE avec URL complète
+      mobileVehiclePhoto = json['vehicle_photo']?.toString();
+      if (mobileVehiclePhoto != null && mobileVehiclePhoto.isNotEmpty) {
+        if (!mobileVehiclePhoto.startsWith('http')) {
+          mobileVehiclePhoto = '$baseUrl$mobileVehiclePhoto';
+        }
       }
     }
 
@@ -192,7 +225,7 @@ class TripModel {
         lastName: nameParts.length > 1 ? nameParts.skip(1).join(' ') : '',
         email: '',
         phone: mobileDriverPhone ?? '',
-        photo: mobileDriverPhoto, // ✅ URL COMPLÈTE
+        photo: mobileDriverPhoto,
       );
     }
 
@@ -240,6 +273,7 @@ class TripModel {
       completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
       cancelReason: json['cancelReason']?.toString(),
       driver: parsedDriver,
+      driverName: mobileDriverName,
       driverPhone: mobileDriverPhone,
       driverRating: mobileDriverRating,
       driverPhoto: mobileDriverPhoto, // ✅ URL COMPLÈTE

@@ -73,6 +73,7 @@ class ApiConstants {
   
   // Profile (GET and PUT use same endpoint)
   static const String driverProfile = '/api/drivers/profile';
+  static String driverProfileById(String id) => '/api/drivers/$id/profile';
   
   // Admin endpoint to update driver by ID (for documents and vehicle)
 

@@ -127,7 +127,7 @@ class TripCardWidget extends StatelessWidget {
               children: [
                 // Nom du chauffeur
                 Text(
-                  trip.driverName,
+                  trip.driverNameDisplay,
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
                     fontSize: AppConstants.fontSizeL - 1,

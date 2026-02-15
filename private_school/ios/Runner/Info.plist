@@ -45,5 +45,20 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Nous avons besoin de votre position pour afficher votre adresse</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Nous avons besoin de votre position pour afficher votre adresse</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Nous avons besoin d'accéder à vos contacts pour vous permettre d'inviter vos amis</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>instagram</string>
+		<string>fb-messenger</string>
+		<string>twitter</string>
+		<string>x</string>
+		<string>sms</string>
+	</array>
 </dict>
 </plist>

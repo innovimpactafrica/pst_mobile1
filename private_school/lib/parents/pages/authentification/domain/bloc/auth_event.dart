@@ -10,24 +10,26 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// ✅ Event : Inscription d'un parent - AVEC password optionnel
+/// ✅ Event : Inscription d'un parent - AVEC password et homeAddress
 class RegisterEvent extends AuthEvent {
   final String firstName;
   final String lastName;
   final String phone;
   final String email;
-  final String? password; // ← AJOUTÉ
+  final String? password;
+  final String? homeAddress;
 
   const RegisterEvent({
     required this.firstName,
     required this.lastName,
     required this.phone,
     required this.email,
-    this.password, // ← OPTIONNEL
+    this.password,
+    this.homeAddress,
   });
 
   @override
-  List<Object?> get props => [firstName, lastName, phone, email, password];
+  List<Object?> get props => [firstName, lastName, phone, email, password, homeAddress];
 }
 
 /// ✅ Event : Connexion d'un parent

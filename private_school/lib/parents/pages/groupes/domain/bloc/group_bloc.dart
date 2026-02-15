@@ -25,39 +25,68 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
   }
 
   Future<void> _onLoadAllGroups(
-    LoadAllGroupsEvent event,
-    Emitter<GroupState> emit,
-  ) async {
-    emit(GroupLoading());
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔵 [GroupBloc] LOAD ALL GROUPS (parallel)');
+  LoadAllGroupsEvent event,
+  Emitter<GroupState> emit,
+) async {
+  emit(GroupLoading());
+  debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  debugPrint('🔵 [GroupBloc] LOAD ALL GROUPS (parallel)');
+  
+  try {
+    final results = await Future.wait([
+      repository.getMyGroups(),
+      repository.getAvailableGroups(),
+      repository.getInvitations(),
+    ]);
 
-    try {
-      final results = await Future.wait([
-        repository.getMyGroups(),
-        repository.getAvailableGroups(),
-        repository.getInvitations(),
-      ]);
+    final myGroups = results[0] as List<GroupModel>;
+    final availableGroupsRaw = results[1] as List<GroupModel>;
+    final invitationsRaw = results[2] as List<GroupInvitation>;
 
-      final myGroups = results[0] as dynamic;
-      final availableGroups = results[1] as dynamic;
-      final invitationsRaw = results[2] as dynamic;
-
-      debugPrint('✅ Mes groupes: ${myGroups.length}');
-      debugPrint('✅ Groupes disponibles: ${availableGroups.length}');
-      debugPrint('✅ Invitations: ${invitationsRaw.length}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-      emit(GroupsLoaded(
-        myGroups: List.from(myGroups),
-        availableGroups: List.from(availableGroups),
-        invitations: List.from(invitationsRaw),
-      ));
-    } catch (e) {
-      debugPrint('❌ [GroupBloc] LoadAll error: $e\n');
-      emit(GroupError(message: 'Erreur chargement groupes: $e'));
+    debugPrint('');
+    debugPrint('📊 DONNÉES BRUTES REÇUES:');
+    debugPrint('   Mes groupes: ${myGroups.length}');
+    for (var g in myGroups) {
+      debugPrint('      - ID: ${g.id}, Nom: ${g.name}, Membres: ${g.members.length}');
     }
+    debugPrint('   Groupes disponibles (brut): ${availableGroupsRaw.length}');
+    for (var g in availableGroupsRaw) {
+      debugPrint('      - ID: ${g.id}, Nom: ${g.name}');
+    }
+    debugPrint('   Invitations: ${invitationsRaw.length}');
+    for (var inv in invitationsRaw) {
+      debugPrint('      - ID: ${inv.id}, Groupe: ${inv.groupName}, Status: ${inv.status}');
+    }
+
+    // ✅ FILTRER : Enlever de "disponibles" les groupes où je suis déjà membre OU j'ai une invitation
+    final myGroupIds = myGroups.map((g) => g.id).toSet();
+    final invitationGroupIds = invitationsRaw.map((inv) => inv.groupId).toSet();
+    
+    final filteredAvailableGroups = availableGroupsRaw
+        .where((group) => !myGroupIds.contains(group.id) && !invitationGroupIds.contains(group.id))
+        .toList();
+
+    debugPrint('');
+    debugPrint('🔍 FILTRAGE:');
+    debugPrint('   IDs de mes groupes: ${myGroupIds.toList()}');
+    debugPrint('   IDs avec invitation: ${invitationGroupIds.toList()}');
+    debugPrint('   Groupes disponibles (après filtre): ${filteredAvailableGroups.length}');
+    for (var g in filteredAvailableGroups) {
+      debugPrint('      - ID: ${g.id}, Nom: ${g.name}');
+    }
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    emit(GroupsLoaded(
+      myGroups: myGroups,
+      availableGroups: filteredAvailableGroups,
+      invitations: invitationsRaw,
+    ));
+  } catch (e, stack) {
+    debugPrint('❌ [GroupBloc] LoadAll error: $e');
+    debugPrint('Stack: $stack\n');
+    emit(GroupError(message: 'Erreur chargement groupes: $e'));
   }
+}
 
   Future<void> _onLoadMyGroups(LoadMyGroupsEvent event, Emitter<GroupState> emit) async {
     add(LoadAllGroupsEvent());

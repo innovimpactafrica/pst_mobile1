@@ -804,34 +804,38 @@ class _NewConversationContentState extends State<_NewConversationContent> {
     widget.onConversationCreated();
   }
 
-  void _createGroupConversation() {
-    final groupName = _groupNameController.text.trim();
-    if (groupName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez entrer un nom de groupe'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    if (_selectedMembers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez sélectionner au moins un membre'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    context.read<ConversationBloc>().add(
-          CreateGroupConversationEvent(
-            name: groupName,
-            memberIds: _selectedMembers.toList(),
-          ),
-        );
-    widget.onConversationCreated();
+ void _createGroupConversation() {
+  final groupName = _groupNameController.text.trim();
+  if (groupName.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez entrer un nom de groupe'),
+        backgroundColor: AppColors.error,
+      ),
+    );
+    return;
   }
+
+  // ✅ FIX : Vérifier qu'il y a AU MOINS 2 MEMBRES
+  if (_selectedMembers.length < 2) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez sélectionner au moins 2 membres pour créer un groupe'),
+        backgroundColor: AppColors.error,
+        duration: Duration(seconds: 3),
+      ),
+    );
+    return;
+  }
+
+  debugPrint('🎯 Création du groupe avec ${_selectedMembers.length} membres: $_selectedMembers');
+
+  context.read<ConversationBloc>().add(
+        CreateGroupConversationEvent(
+          name: groupName,
+          memberIds: _selectedMembers.toList(),
+        ),
+      );
+  widget.onConversationCreated();
+}
 }

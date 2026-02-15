@@ -8,13 +8,14 @@ import '../services/auth_service.dart';
 class AuthRepository {
   final AuthService _authService = AuthService();
 
-  /// ✅ Inscription - AVEC password optionnel
+  /// ✅ Inscription - AVEC password et homeAddress
   Future<Map<String, dynamic>> register({
     required String firstName,
     required String lastName,
     required String phone,
     required String email,
-    String? password, // ← AJOUTÉ
+    String? password,
+    String? homeAddress,
   }) async {
     try {
       return await _authService.registerParent(
@@ -22,7 +23,8 @@ class AuthRepository {
         lastName: lastName,
         phone: phone,
         email: email,
-        password: password, // ← PASSÉ au service
+        password: password,
+        homeAddress: homeAddress,
       );
     } catch (e) {
       debugPrint('❌ Repository: Register failed - $e');

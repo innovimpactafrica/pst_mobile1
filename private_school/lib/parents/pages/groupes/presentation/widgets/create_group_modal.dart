@@ -57,40 +57,35 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
-    return BlocConsumer<GroupBloc, GroupState>(
-     listener: (context, state) {
-  if (state is GroupCreated) {
-    // ✅ 1. Fermer le modal
-    Navigator.pop(context);
-    
-    // ✅ 2. Recharger la liste des groupes
-    context.read<GroupBloc>().add(LoadAllGroupsEvent());
-    
-    // ✅ 3. Afficher le succès
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
-        backgroundColor: AppColors.success,
-      ),
-    );
-  } else if (state is GroupError) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(state.message, style: GoogleFonts.inter()),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-},
-      builder: (context, state) {
-        final isLoading = state is GroupLoading;
-
-        return Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+  @override
+Widget build(BuildContext context) {
+  return BlocConsumer<GroupBloc, GroupState>(
+    listener: (context, state) {
+      if (state is GroupCreated) {
+        Navigator.pop(context);
+        context.read<GroupBloc>().add(LoadAllGroupsEvent());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
+            backgroundColor: AppColors.success,
           ),
+        );
+      } else if (state is GroupError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.message, style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    },
+    builder: (context, state) {
+      final isLoading = state is GroupLoading;
+
+      return GestureDetector(
+        // ✅ AJOUTÉ : Fermer le clavier en tapant en dehors
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -99,8 +94,14 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
             ),
           ),
           child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+            // ✅ AJOUTÉ : SingleChildScrollView pour scroll avec clavier
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24, // ✅ Important
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -111,12 +112,14 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Créer un groupe de covoiturage',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        Expanded(
+                          child: Text(
+                            'Créer un groupe de covoiturage',
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -139,6 +142,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
+                      textInputAction: TextInputAction.next, // ✅ AJOUTÉ
                       decoration: InputDecoration(
                         hintText: 'Ex : sencov',
                         hintStyle: GoogleFonts.inter(
@@ -169,6 +173,44 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                     ),
                     const SizedBox(height: 16),
 
+                    // DESCRIPTION (optionnel)
+                    Text(
+                      'Description (optionnel)',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _descriptionController,
+                      maxLines: 2,
+                      textInputAction: TextInputAction.next, // ✅ AJOUTÉ
+                      decoration: InputDecoration(
+                        hintText: 'Décrivez le groupe...',
+                        hintStyle: GoogleFonts.inter(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppColors.success),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     // MEMBRES
                     Text(
                       'Membres (optionnel)',
@@ -182,6 +224,11 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                     TextFormField(
                       controller: _membersController,
                       maxLines: 3,
+                      textInputAction: TextInputAction.done, // ✅ AJOUTÉ
+                      onFieldSubmitted: (_) {
+                        // ✅ Fermer le clavier quand on appuie sur "Terminé"
+                        FocusScope.of(context).unfocus();
+                      },
                       decoration: InputDecoration(
                         hintText: 'email ou numéro de téléphone\nSéparez par des virgules',
                         hintStyle: GoogleFonts.inter(
@@ -206,7 +253,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                     ),
                     const SizedBox(height: 32),
 
-                    // BOUTON CRÉER
+                    // ✅ BOUTON CRÉER (maintenant visible)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -223,7 +270,8 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                         ),
                         child: isLoading
                             ? const SizedBox(
-                                height: 20, width: 20,
+                                height: 20,
+                                width: 20,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -243,8 +291,9 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 }

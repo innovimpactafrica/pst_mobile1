@@ -19,17 +19,15 @@ class AuthService {
     required String phone,
     required String email,
     String? password,
+    String? homeAddress,
   }) async {
     try {
       debugPrint('📤 Registering parent: $email');
 
-      // ✅ CORRECTION : Le backend attend "name" (firstName + lastName combinés)
       final fullName = '$firstName $lastName'.trim();
 
-      // ✅ CORRECTION : Le téléphone doit être au format international
       String formattedPhone = phone.trim();
       if (!formattedPhone.startsWith('+')) {
-        // Si le numéro ne commence pas par +, ajouter +221 (Sénégal)
         if (formattedPhone.startsWith('221')) {
           formattedPhone = '+$formattedPhone';
         } else {
@@ -38,15 +36,19 @@ class AuthService {
       }
 
       final Map<String, dynamic> data = {
-        'name': fullName,              // ← CORRIGÉ : "name" au lieu de firstName/lastName
-        'phone': formattedPhone,       // ← CORRIGÉ : Format international
+        'name': fullName,
+        'phone': formattedPhone,
         'email': email,
       };
 
-      // Ajouter le password si fourni
       if (password != null && password.isNotEmpty) {
         data['password'] = password;
         debugPrint('🔐 Password included in registration');
+      }
+
+      if (homeAddress != null && homeAddress.isNotEmpty) {
+        data['home_address'] = homeAddress;
+        debugPrint('🏠 Home address included: $homeAddress');
       }
 
       debugPrint('📤 Sending data: $data');
@@ -58,7 +60,6 @@ class AuthService {
 
       debugPrint('✅ Registration successful');
 
-      // Si le backend renvoie un token, le sauvegarder
       final token = response.data['token'] ?? response.data['accessToken'];
       if (token != null) {
         await _storage.saveAccessToken(token);

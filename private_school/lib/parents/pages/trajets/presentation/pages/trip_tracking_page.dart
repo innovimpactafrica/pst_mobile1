@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/parents/pages/trajets/data/models/evaluation_model.dart';
+import 'package:private_school/parents/pages/trajets/data/repositories/evaluation_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
@@ -20,6 +22,9 @@ class TripTrackingPage extends StatefulWidget {
 
 class _TripTrackingPageState extends State<TripTrackingPage> {
   int? _durationMinutes;
+   List<EvaluationModel> _evaluations = []; // ← AJOUTÉ
+  bool _isLoadingEvaluations = false; // ← AJOUTÉ
+  final _evaluationRepository = EvaluationRepository(); // ← AJOUTÉ
 
   @override
   void initState() {
@@ -31,7 +36,41 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     debugPrint('   Driver: ${widget.trip.driverName}');
     debugPrint('   Driver Photo: ${widget.trip.driver?.photo}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+     _loadEvaluations(); // ← AJOUTÉ
   }
+
+  Future<void> _loadEvaluations() async {
+  if (widget.trip.driverId == null) return;
+
+  setState(() {
+    _isLoadingEvaluations = true;
+  });
+
+  try {
+    debugPrint('🔍 [TripTrackingPage] Chargement des évaluations...');
+    
+    final evaluations = await _evaluationRepository.getDriverEvaluations(
+      driverId: int.parse(widget.trip.driverId!),
+      limit: 10,
+    );
+
+    debugPrint('✅ ${evaluations.length} évaluation(s) chargée(s)');
+
+    if (mounted) {
+      setState(() {
+        _evaluations = evaluations;
+        _isLoadingEvaluations = false;
+      });
+    }
+  } catch (e) {
+    debugPrint('❌ Erreur chargement évaluations: $e');
+    if (mounted) {
+      setState(() {
+        _isLoadingEvaluations = false;
+      });
+    }
+  }
+}
 
   void _onRouteCalculated(double distance, int duration) {
     setState(() => _durationMinutes = duration);
@@ -131,7 +170,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                       child: Column(
                         children: [
                           // ✅ DRIVER CARD avec vraies infos
-                          if (widget.trip.driverName.isNotEmpty)
+                          if (widget.trip.driverName?.isNotEmpty ?? false)
                             _driverCard(),
 
                           const SizedBox(height: AppConstants.spacingM),
@@ -174,47 +213,53 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
 
       // BOTTOM BUTTON — inchangé
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(AppConstants.spacingXL),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.blackOpacity05,
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ReviewPage(trip: widget.trip),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              'Donner un avis',
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeL,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white,
-              ),
-            ),
+  padding: const EdgeInsets.all(AppConstants.spacingXL),
+  decoration: BoxDecoration(
+    color: AppColors.white,
+    boxShadow: [
+      BoxShadow(
+        color: AppColors.blackOpacity05,
+        blurRadius: 10,
+        offset: const Offset(0, -2),
+      ),
+    ],
+  ),
+  child: SafeArea(
+    child: ElevatedButton(
+      onPressed: () async {
+        // ✅ Attendre le retour de ReviewPage
+        final result = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReviewPage(trip: widget.trip),
           ),
+        );
+
+        // ✅ Si avis envoyé, recharger les évaluations
+        if (result == true) {
+          _loadEvaluations();
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+        ),
+        elevation: 0,
+      ),
+      child: Text(
+        'Donner un avis',
+        style: GoogleFonts.inter(
+          fontSize: AppConstants.fontSizeL,
+          fontWeight: FontWeight.w600,
+          color: AppColors.white,
         ),
       ),
+    ),
+  ),
+),
     );
   }
 
@@ -255,7 +300,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               children: [
                 // NOM
                 Text(
-                  widget.trip.driverName,
+                  widget.trip.driverName ?? '',
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.w600,
@@ -345,7 +390,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   Widget _buildDriverAvatar(driver) {
     final photoUrl = driver?.photo as String?;
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
-    final name = widget.trip.driverName;
+    final name = widget.trip.driverName ?? '';
 
     // Calcul des initiales
     final parts = name.trim().split(' ');
@@ -501,17 +546,218 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   }
 
   Widget _reviewsSection() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        'Avis',
-        style: GoogleFonts.inter(
-          fontSize: AppConstants.fontSizeL,
-          fontWeight: FontWeight.bold,
-        ),
+  // Calcul de la moyenne
+  final avgRating = _evaluations.isEmpty
+      ? 0.0
+      : _evaluations.map((e) => e.rating).reduce((a, b) => a + b) / _evaluations.length;
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // HEADER avec moyenne
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Avis',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (_evaluations.isNotEmpty)
+            Row(
+              children: [
+                Text(
+                  avgRating.toStringAsFixed(1),
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.warning,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.star, color: AppColors.warning, size: 20),
+                const SizedBox(width: 4),
+                Text(
+                  '(${_evaluations.length})',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
-    );
+
+      const SizedBox(height: 16),
+
+      // GRAPHIQUE DES ÉTOILES
+      if (_evaluations.isNotEmpty) _buildRatingBars(),
+
+      const SizedBox(height: 20),
+
+      // LISTE DES AVIS
+      if (_isLoadingEvaluations)
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: CircularProgressIndicator(color: AppColors.success),
+          ),
+        )
+      else if (_evaluations.isEmpty)
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Aucun avis pour le moment',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ),
+        )
+      else
+        Column(
+          children: _evaluations.take(3).map((eval) => _buildEvaluationCard(eval)).toList(),
+        ),
+    ],
+  );
+}
+
+// ✅ Graphique des étoiles (comme sur Figma)
+Widget _buildRatingBars() {
+  final counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+  for (var eval in _evaluations) {
+    counts[eval.rating] = (counts[eval.rating] ?? 0) + 1;
   }
+
+  return Column(
+    children: [5, 4, 3, 2, 1].map((star) {
+      final count = counts[star] ?? 0;
+      final percentage = _evaluations.isEmpty ? 0.0 : count / _evaluations.length;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Text('$star', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(width: 4),
+            Icon(Icons.star, size: 14, color: AppColors.warning),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percentage,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation(
+                    star == 5 ? AppColors.success :
+                    star >= 3 ? AppColors.warning : AppColors.error,
+                  ),
+                  minHeight: 6,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 30,
+              child: Text(
+                '$count',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
+
+// ✅ Carte d'évaluation individuelle
+Widget _buildEvaluationCard(EvaluationModel eval) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade50,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.grey.shade200),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            // Avatar
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: AppColors.success.withValues(alpha: 0.1),
+              child: Text(
+                eval.parentName != null && eval.parentName!.isNotEmpty
+                    ? eval.parentName![0].toUpperCase()
+                    : '?',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    eval.parentName ?? 'Anonyme',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      ...List.generate(5, (index) {
+                        return Icon(
+                          index < eval.rating ? Icons.star : Icons.star_border,
+                          size: 14,
+                          color: AppColors.warning,
+                        );
+                      }),
+                      const SizedBox(width: 8),
+                      Text(
+                        eval.formattedDate,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (eval.comment != null && eval.comment!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            eval.comment!,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
+}
 
   void _showPassengersList() {
     showModalBottomSheet(

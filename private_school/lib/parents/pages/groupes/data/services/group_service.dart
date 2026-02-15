@@ -16,7 +16,16 @@ class GroupService {
       debugPrint('✅ [GroupService] Response: ${response.statusCode}');
 
       final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
-      final groups = data
+      
+      // ✅ FILTRER : Ne garder QUE les groupes avec membership_status = "accepted"
+      final filteredData = data.where((json) {
+        final status = json['membership_status']?.toString();
+        return status == 'accepted';
+      }).toList();
+      
+      debugPrint('📊 Groupes bruts: ${data.length}, Après filtre (accepted): ${filteredData.length}');
+      
+      final groups = filteredData
           .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
@@ -40,7 +49,16 @@ class GroupService {
       );
 
       final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
-      final groups = data
+      
+      // ✅ FILTRER : Exclure les groupes où j'ai déjà une relation (accepted, pending, declined)
+      final filteredData = data.where((json) {
+        final status = json['membership_status']?.toString();
+        return status == null || status.isEmpty; // Seulement les groupes sans relation
+      }).toList();
+      
+      debugPrint('📊 Groupes bruts: ${data.length}, Après filtre (sans relation): ${filteredData.length}');
+      
+      final groups = filteredData
           .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
           .toList();
 

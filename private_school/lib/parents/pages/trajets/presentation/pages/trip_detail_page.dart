@@ -584,7 +584,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
   }
 
   void _openChatWithDriver(BuildContext context) async {
-    if (widget.trip.driver == null) {
+    // Vérifier si on a un driver_id
+    final driverId = widget.trip.driverId;
+    if (driverId == null || driverId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
@@ -603,7 +605,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     try {
       final messagingService = MessagingService();
       final conversation = await messagingService.createOrGetDirectConversation(
-        otherUserId: int.parse(widget.trip.driver!.id),
+        otherUserId: int.parse(driverId),
       );
 
       if (!context.mounted) return;

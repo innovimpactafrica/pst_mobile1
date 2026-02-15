@@ -110,63 +110,83 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   // ==================== CREATE CONVERSATIONS ====================
 
   Future<void> _onCreateDirectConversation(
-    CreateDirectConversationEvent event,
-    Emitter<ConversationState> emit,
-  ) async {
-    debugPrint('🔄 ConversationBloc._onCreateDirectConversation - START');
-    debugPrint('👤 otherUserId: ${event.otherUserId}');
+  CreateDirectConversationEvent event,
+  Emitter<ConversationState> emit,
+) async {
+  debugPrint('🔄 ConversationBloc._onCreateDirectConversation - START');
+  debugPrint('👤 otherUserId: ${event.otherUserId}');
+  debugPrint('💬 initialMessage: ${event.initialMessage ?? "null"}');
 
-    emit(const ConversationCreating());
+  emit(const ConversationCreating());
 
-    try {
-      final conversation = await repository.createOrGetDirectConversation(
-        otherUserId: event.otherUserId,
-      );
-      debugPrint('✅ Conversation directe créée: ${conversation.displayName}');
+  try {
+    final conversation = await repository.createOrGetDirectConversation(
+      otherUserId: event.otherUserId,
+      initialMessage: event.initialMessage,
+    );
+    debugPrint('✅ Conversation directe créée: ${conversation.displayName}');
 
-      emit(ConversationCreated(conversation: conversation));
+    emit(ConversationCreated(conversation: conversation));
 
-      // Recharger toutes les conversations
-      add(const LoadConversationsEvent());
-    } catch (e, stackTrace) {
-      debugPrint('❌ Erreur lors de la création de la conversation: $e');
-      debugPrint('📋 StackTrace: $stackTrace');
-      emit(ConversationError(
-        message: 'Impossible de créer la conversation',
-        error: e,
-      ));
+    // Recharger toutes les conversations
+    add(const LoadConversationsEvent());
+  } catch (e, stackTrace) {
+    debugPrint('❌ Erreur lors de la création de la conversation: $e');
+    debugPrint('📋 StackTrace: $stackTrace');
+    
+    // Message d'erreur plus explicite selon le type d'erreur
+    String errorMessage = 'Impossible de créer la conversation';
+    if (e.toString().contains('Utilisateur introuvable')) {
+      errorMessage = 'Cet utilisateur n\'existe pas';
+    } else if (e.toString().contains('Erreur serveur')) {
+      errorMessage = 'Problème de connexion au serveur';
     }
+    
+    emit(ConversationError(
+      message: errorMessage,
+      error: e,
+    ));
   }
+}
 
-  Future<void> _onCreateGroupConversation(
-    CreateGroupConversationEvent event,
-    Emitter<ConversationState> emit,
-  ) async {
-    debugPrint('🔄 ConversationBloc._onCreateGroupConversation - START');
-    debugPrint('📛 Nom: ${event.name}, Membres: ${event.memberIds.length}');
+ Future<void> _onCreateGroupConversation(
+  CreateGroupConversationEvent event,
+  Emitter<ConversationState> emit,
+) async {
+  debugPrint('🔄 ConversationBloc._onCreateGroupConversation - START');
+  debugPrint('📛 Nom: ${event.name}, Membres: ${event.memberIds} (${event.memberIds.length} personnes)');
 
-    emit(const ConversationCreating());
+  emit(const ConversationCreating());
 
-    try {
-      final conversation = await repository.createGroupConversation(
-        name: event.name,
-        memberIds: event.memberIds,
-      );
-      debugPrint('✅ Conversation de groupe créée: ${conversation.displayName}');
+  try {
+    final conversation = await repository.createGroupConversation(
+      name: event.name,
+      memberIds: event.memberIds,
+    );
+    debugPrint('✅ Conversation de groupe créée: ${conversation.displayName}');
 
-      emit(ConversationCreated(conversation: conversation));
+    emit(ConversationCreated(conversation: conversation));
 
-      // Recharger toutes les conversations
-      add(const LoadConversationsEvent());
-    } catch (e, stackTrace) {
-      debugPrint('❌ Erreur lors de la création du groupe: $e');
-      debugPrint('📋 StackTrace: $stackTrace');
-      emit(ConversationError(
-        message: 'Impossible de créer le groupe',
-        error: e,
-      ));
+    // Recharger toutes les conversations
+    add(const LoadConversationsEvent());
+  } catch (e, stackTrace) {
+    debugPrint('❌ Erreur lors de la création du groupe: $e');
+    debugPrint('📋 StackTrace: $stackTrace');
+    
+    // ✅ Message d'erreur plus explicite
+    String errorMessage = 'Impossible de créer le groupe';
+    if (e.toString().contains('Au moins 2')) {
+      errorMessage = 'Sélectionnez au moins 2 membres pour créer un groupe';
+    } else if (e.toString().contains('Validation')) {
+      errorMessage = 'Données invalides. Vérifiez le nom et les membres';
     }
+    
+    emit(ConversationError(
+      message: errorMessage,
+      error: e,
+    ));
   }
+}
 
   // ==================== ARCHIVE CONVERSATIONS ====================
 

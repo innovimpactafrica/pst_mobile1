@@ -4,6 +4,8 @@ class EvaluationModel {
   final int? id;
   final int tripId;
   final int? driverId;
+  final int? parentId;
+  final String? parentName;
   final int rating; // Note de 1 à 5
   final String? badge; // ponctuel, professionnel, sympathique
   final String? comment;
@@ -13,11 +15,19 @@ class EvaluationModel {
     this.id,
     required this.tripId,
     this.driverId,
+    this.parentId,
+    this.parentName,
     required this.rating,
     this.badge,
     this.comment,
     this.createdAt,
   });
+
+  // Getter pour la date formatée
+  String get formattedDate {
+    if (createdAt == null) return '';
+    return '${createdAt!.day}/${createdAt!.month}/${createdAt!.year}';
+  }
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -25,7 +35,7 @@ class EvaluationModel {
     debugPrint('   ID: ${json['id']}');
     debugPrint('   Trip ID: ${json['trip_id']}');
     debugPrint('   Rating: ${json['rating']}');
-    debugPrint('   Badge: ${json['badge']}');
+    debugPrint('   Parent: ${json['parent_name']}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     return EvaluationModel(
@@ -34,6 +44,10 @@ class EvaluationModel {
       driverId: json['driver_id'] != null 
           ? int.tryParse(json['driver_id'].toString()) 
           : null,
+      parentId: json['parent_id'] != null 
+          ? int.tryParse(json['parent_id'].toString()) 
+          : null,
+      parentName: json['parent_name']?.toString(),
       rating: int.parse(json['rating'].toString()),
       badge: json['badge']?.toString(),
       comment: json['comment']?.toString(),
@@ -48,6 +62,8 @@ class EvaluationModel {
       if (id != null) 'id': id,
       'trip_id': tripId,
       if (driverId != null) 'driver_id': driverId,
+      if (parentId != null) 'parent_id': parentId,
+      if (parentName != null) 'parent_name': parentName,
       'rating': rating,
       if (badge != null) 'badge': badge,
       if (comment != null && comment!.isNotEmpty) 'comment': comment,
@@ -59,6 +75,8 @@ class EvaluationModel {
     int? id,
     int? tripId,
     int? driverId,
+    int? parentId,
+    String? parentName,
     int? rating,
     String? badge,
     String? comment,
@@ -68,6 +86,8 @@ class EvaluationModel {
       id: id ?? this.id,
       tripId: tripId ?? this.tripId,
       driverId: driverId ?? this.driverId,
+      parentId: parentId ?? this.parentId,
+      parentName: parentName ?? this.parentName,
       rating: rating ?? this.rating,
       badge: badge ?? this.badge,
       comment: comment ?? this.comment,

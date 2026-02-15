@@ -18,7 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
-  /// ✅ Handler : Inscription - AVEC password optionnel
+  /// ✅ Handler : Inscription - AVEC password et homeAddress
   Future<void> _onRegister(
     RegisterEvent event,
     Emitter<AuthState> emit,
@@ -34,6 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         phone: event.phone,
         email: event.email,
         password: event.password,
+        homeAddress: event.homeAddress,
       );
 
       debugPrint('✅ BLoC: Registration result: $result');

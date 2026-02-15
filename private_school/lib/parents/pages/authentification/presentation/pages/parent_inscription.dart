@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/google_maps_config.dart';
+import 'package:private_school/parents/widgets/address_picker_widget.dart';
 import '../../domain/bloc/auth_bloc.dart';
 import '../../domain/bloc/auth_event.dart';
 import '../../domain/bloc/auth_state.dart';
@@ -23,6 +25,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _homeAddressController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -34,6 +37,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _homeAddressController.dispose();
     super.dispose();
   }
 
@@ -43,7 +47,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         _phoneController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
-        _confirmPasswordController.text.trim().isEmpty) {
+        _confirmPasswordController.text.trim().isEmpty ||
+        _homeAddressController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('please_fill_all_fields'.tr()),
@@ -102,14 +107,15 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       return;
     }
 
-    // ✅ Envoyer l'inscription AVEC le password
+    // ✅ Envoyer l'inscription AVEC le password, l'adresse et les coordonnées
     context.read<AuthBloc>().add(
           RegisterEvent(
             firstName: firstName,
             lastName: lastName,
             phone: _phoneController.text.trim(),
             email: _emailController.text.trim(),
-            password: _passwordController.text.trim(), // ← PASSWORD INCLUS
+            password: _passwordController.text.trim(),
+            homeAddress: _homeAddressController.text.trim(),
           ),
         );
   }
@@ -298,6 +304,14 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
+        AddressPickerWidget(
+          controller: _homeAddressController,
+          googleApiKey: GoogleMapsConfig.apiKey,
+          onLocationSelected: (lat, lng) {
+            // Coordonnées reçues mais non utilisées pour l'instant
+          },
+        ),
+        const SizedBox(height: 16),
         _buildPasswordField(
           label: 'password'.tr(),
           controller: _passwordController,
@@ -458,6 +472,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       ],
     );
   }
+
+
 
   Widget _buildRegisterButton() {
     return SizedBox(
