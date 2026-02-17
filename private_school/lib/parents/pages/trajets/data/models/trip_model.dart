@@ -148,9 +148,13 @@ class TripModel {
     }
 
     DriverModel? parsedDriver;
+    String? extractedUserId;
     if (json['driver'] != null && json['driver'] is Map) {
       try {
         parsedDriver = DriverModel.fromJson(json['driver'] as Map<String, dynamic>);
+
+        extractedUserId = json['driver']['user_id']?.toString();
+        debugPrint('✅ user_id extrait du driver: $extractedUserId');
       } catch (e) {
         debugPrint('❌ Erreur parsing driver: $e');
       }

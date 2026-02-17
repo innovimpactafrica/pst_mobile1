@@ -57,6 +57,13 @@ class RequestReplacementEvent extends GroupEvent {
   List<Object?> get props => [planning, reason];
 }
 
+class ConfirmPlanningEvent extends GroupEvent {
+  final String planningId;
+  ConfirmPlanningEvent(this.planningId);
+  @override
+  List<Object?> get props => [planningId];
+}
+
 class RespondToReplacementEvent extends GroupEvent {
   final String planningId;
   final bool accept;

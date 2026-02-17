@@ -21,7 +21,7 @@ class JoinGroupModal extends StatelessWidget {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Groupe rejoint ! ✅', style: GoogleFonts.inter()),
+              content: Text('Vous avez rejoint le groupe ! 🎉', style: GoogleFonts.inter()), // ✅ CHANGÉ
               backgroundColor: AppColors.success,
             ),
           );
@@ -108,7 +108,7 @@ class JoinGroupModal extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // ✅ CORRIGÉ : Affiche createdBy (le nom) au lieu de l'ID
+                    // CRÉÉ PAR
                     Text(
                       'Créé par ${group.createdBy}, ${_formatDate(group.createdAt)}',
                       style: GoogleFonts.inter(
@@ -141,7 +141,7 @@ class JoinGroupModal extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // ✅ COMPTEUR MEMBRES CORRIGÉ
+                    // COMPTEUR MEMBRES
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -178,14 +178,14 @@ class JoinGroupModal extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // BOUTON REJOINDRE
+                    // ✅ BOUTON REJOINDRE (adhésion directe)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isLoading
                             ? null
                             : () {
-                                debugPrint('🔵 [JoinGroupModal] Join group: ${group.id}');
+                                debugPrint('🔵 [JoinGroupModal] Rejoindre groupe DIRECT: ${group.id}');
                                 context.read<GroupBloc>().add(JoinGroupEvent(group.id));
                               },
                         style: ElevatedButton.styleFrom(
@@ -206,12 +206,19 @@ class JoinGroupModal extends StatelessWidget {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(
-                                'Rejoindre le groupe',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.group_add, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Rejoindre maintenant', // ✅ CHANGÉ : texte plus clair
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                       ),
                     ),

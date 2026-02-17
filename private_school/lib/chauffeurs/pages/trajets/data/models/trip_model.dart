@@ -66,6 +66,13 @@ class TripModel {
       return int.tryParse(value.toString()) ?? 0;
     }
 
+    double? safeDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     DateTime parseDate(dynamic value) {
       if (value == null) return DateTime.now();
       if (value is DateTime) return value;
@@ -132,7 +139,7 @@ class TripModel {
       availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
       
       // Prix optionnel
-      price: json['price'] != null ? (json['price'] as num).toDouble() : null,
+      price: safeDouble(json['price']),
       
       // Status
       status: (json['status'] ?? 'pending').toString().toLowerCase(),
@@ -152,11 +159,11 @@ class TripModel {
       cancelReason: json['cancelReason']?.toString(),
       
       // Coordonnées GPS
-      startLatitude: json['start_latitude'] != null ? (json['start_latitude'] as num).toDouble() : null,
-      startLongitude: json['start_longitude'] != null ? (json['start_longitude'] as num).toDouble() : null,
-      endLatitude: json['end_latitude'] != null ? (json['end_latitude'] as num).toDouble() : null,
-      endLongitude: json['end_longitude'] != null ? (json['end_longitude'] as num).toDouble() : null,
-      estimatedDuration: json['estimated_duration'] != null ? safeInt(json['estimated_duration']) : null,
+      startLatitude: safeDouble(json['start_latitude']),
+      startLongitude: safeDouble(json['start_longitude']),
+      endLatitude: safeDouble(json['end_latitude']),
+      endLongitude: safeDouble(json['end_longitude']),
+      estimatedDuration: safeInt(json['estimated_duration']),
     );
   }
 

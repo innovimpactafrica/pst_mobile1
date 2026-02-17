@@ -306,30 +306,40 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
 
   /// ✅ SECTION INFO (écoles + "X enfants inscrits / Y places")
   Widget _buildInfoSection() {
+    final registeredCount = trip.passengers.length;
+    final totalPlaces = trip.totalSeats > 0 ? trip.totalSeats : 0;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Écoles
-        Row(
-          children: [
-            const Icon(
-              Icons.school,
-              size: 16,
-              color: AppColors.success,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              trip.schools.isNotEmpty 
-                  ? '${trip.schools.length} ${trip.schools.length > 1 ? 'écoles desservies' : 'école desservie'}'
-                  : 'Aucune école',
-              style: GoogleFonts.inter(
+        Flexible(
+          child: Row(
+            children: [
+              const Icon(
+                Icons.school,
+                size: 16,
                 color: AppColors.success,
-                fontSize: AppConstants.fontSizeS,
-                fontWeight: FontWeight.w500,
               ),
-            ),
-          ],
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  trip.schools.isNotEmpty 
+                      ? '${trip.schools.length} ${trip.schools.length > 1 ? 'écoles desservies' : 'école desservie'}'
+                      : 'Aucune école',
+                  style: GoogleFonts.inter(
+                    color: AppColors.success,
+                    fontSize: AppConstants.fontSizeS,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
+        
+        const SizedBox(width: 8),
         
         // ✅ "X enfants inscrits / Y places"
         Row(
@@ -341,10 +351,11 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
             ),
             const SizedBox(width: 4),
             Text(
-              '${trip.passengers.length} enfants inscrits / ${trip.totalSeats}',
+              '$registeredCount/$totalPlaces',
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeS,
                 color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

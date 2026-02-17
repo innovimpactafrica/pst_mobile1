@@ -1,11 +1,51 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
+import '../../../../../core/storage/secure_storage.dart';
 import '../models/child_model.dart';
 
 class ChildService {
   final ApiClient _apiClient = ApiClient();
+  final SecureStorage _storage = SecureStorage();
+
+  /// ✅ MÉTHODE DE DEBUG : Décoder et afficher le token
+  Future<void> _debugToken() async {
+    try {
+      final token = await _storage.getAccessToken();
+      
+      if (token == null) {
+        debugPrint('⚠️ AUCUN TOKEN TROUVÉ !');
+        return;
+      }
+
+      debugPrint('🔑 Token (30 premiers caractères): ${token.substring(0, 30)}...');
+      
+      // Décoder le payload du JWT
+      final parts = token.split('.');
+      if (parts.length >= 2) {
+        try {
+          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final decoded = jsonDecode(payload);
+          
+          debugPrint('👤 TOKEN PAYLOAD:');
+          debugPrint('   User ID: ${decoded['id']}');
+          debugPrint('   Role: ${decoded['role']}');
+          
+          // Convertir timestamp en date lisible
+          if (decoded['exp'] != null) {
+            final expDate = DateTime.fromMillisecondsSinceEpoch(decoded['exp'] * 1000);
+            debugPrint('   Expire le: $expDate');
+          }
+        } catch (e) {
+          debugPrint('⚠️ Erreur décodage token: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur debug token: $e');
+    }
+  }
 
   /// ✅ Récupérer tous les enfants du parent connecté
   Future<List<ChildModel>> fetchChildren() async {
@@ -13,11 +53,19 @@ class ChildService {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🔵 [ChildService] GET CHILDREN');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      // ✅ LOG CRITIQUE : Vérifier le token
+      await _debugToken();
+      
+      debugPrint('');
+      debugPrint('📤 Endpoint: ${ApiConstants.children}');
 
       final response = await _apiClient.get(ApiConstants.children);
 
-      debugPrint('✅ [ChildService] Response received: ${response.statusCode}');
-      debugPrint('📦 [ChildService] Data: ${response.data}');
+      debugPrint('');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Type: ${response.data.runtimeType}');
+      debugPrint('📦 Response Data: ${response.data}');
 
       // Extraire les enfants de la réponse
       final List<dynamic> childrenJson;
@@ -32,7 +80,18 @@ class ChildService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [ChildService] ${childrenJson.length} enfant(s) trouvé(s)');
+      debugPrint('');
+      debugPrint('📊 ENFANTS TROUVÉS: ${childrenJson.length}');
+      
+      // ✅ LOG : Afficher les détails de chaque enfant
+      for (var i = 0; i < childrenJson.length; i++) {
+        final child = childrenJson[i];
+        debugPrint('   Enfant $i:');
+        debugPrint('      - ID: ${child['id']}');
+        debugPrint('      - Nom: ${child['name'] ?? child['firstname']} ${child['lastname'] ?? ''}');
+        debugPrint('      - Parent ID: ${child['parent_id']}'); // ← CRITIQUE
+      }
+      
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return childrenJson
@@ -50,6 +109,11 @@ class ChildService {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🟢 [ChildService] POST CREATE CHILD');
+      
+      // ✅ LOG CRITIQUE : Vérifier le token
+      await _debugToken();
+      
+      debugPrint('');
       debugPrint('📤 Data to send: ${child.toJson()}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
@@ -58,8 +122,8 @@ class ChildService {
         data: child.toJson(),
       );
 
-      debugPrint('✅ [ChildService] Response received: ${response.statusCode}');
-      debugPrint('📦 [ChildService] Data: ${response.data}');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Data: ${response.data}');
 
       // Extraire l'enfant créé
       final Map<String, dynamic> childData;
@@ -76,7 +140,8 @@ class ChildService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [ChildService] Enfant créé: ${childData['name']}');
+      debugPrint('✅ Enfant créé: ${childData['name']}');
+      debugPrint('   Parent ID: ${childData['parent_id']}'); // ← LOG
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return ChildModel.fromJson(childData);
@@ -105,8 +170,8 @@ class ChildService {
         data: child.toJson(),
       );
 
-      debugPrint('✅ [ChildService] Response received: ${response.statusCode}');
-      debugPrint('📦 [ChildService] Data: ${response.data}');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Data: ${response.data}');
 
       // Extraire l'enfant mis à jour
       final Map<String, dynamic> childData;
@@ -123,7 +188,7 @@ class ChildService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [ChildService] Enfant mis à jour: ${childData['name']}');
+      debugPrint('✅ Enfant mis à jour: ${childData['name']}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return ChildModel.fromJson(childData);
@@ -146,8 +211,8 @@ class ChildService {
         ApiConstants.childById(childId),
       );
 
-      debugPrint('✅ [ChildService] Response received: ${response.statusCode}');
-      debugPrint('✅ [ChildService] Enfant supprimé');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('✅ Enfant supprimé');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     } catch (e) {
       debugPrint('❌ [ChildService] Error deleting child: $e');
@@ -168,8 +233,8 @@ class ChildService {
         ApiConstants.childById(childId),
       );
 
-      debugPrint('✅ [ChildService] Response received: ${response.statusCode}');
-      debugPrint('📦 [ChildService] Data: ${response.data}');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Data: ${response.data}');
 
       // Extraire l'enfant
       final Map<String, dynamic> childData;
@@ -186,7 +251,7 @@ class ChildService {
         throw Exception('Format de réponse invalide');
       }
 
-      debugPrint('✅ [ChildService] Enfant trouvé: ${childData['name']}');
+      debugPrint('✅ Enfant trouvé: ${childData['name']}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return ChildModel.fromJson(childData);
@@ -255,9 +320,9 @@ class ChildService {
         data: data,
       );
 
-      debugPrint('✅ [ChildService] Response: ${response.statusCode}');
-      debugPrint('📦 [ChildService] Data: ${response.data}');
-      debugPrint('✅ [ChildService] Horaires mis à jour pour l\'enfant $childId');
+      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint('📦 Response Data: ${response.data}');
+      debugPrint('✅ Horaires mis à jour pour l\'enfant $childId');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     } catch (e) {
       debugPrint('❌ [ChildService] Error updating schedule: $e');

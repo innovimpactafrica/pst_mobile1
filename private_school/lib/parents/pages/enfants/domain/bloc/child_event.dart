@@ -68,3 +68,11 @@ class UpdateChildScheduleEvent extends ChildEvent {
   @override
   List<Object?> get props => [childId, schedule];
 }
+
+// Dans child_event.dart (AJOUTEZ ce nouveau event)
+class ClearChildrenCacheEvent extends ChildEvent {
+  const ClearChildrenCacheEvent();
+  
+  @override
+  List<Object?> get props => [];
+}

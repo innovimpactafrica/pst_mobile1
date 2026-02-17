@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/parents/pages/acceuil/data/models/conversation_model.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_event.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_state.dart';
+import 'package:private_school/parents/pages/acceuil/presentation/pages/chat.dart';
 import 'package:private_school/parents/pages/trajets/data/models/evaluation_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/evaluation_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -443,9 +449,9 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
         const SizedBox(width: AppConstants.spacingM),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: Icon(Icons.chat, color: AppColors.success),
-            label: Text('Message', style: TextStyle(color: AppColors.success)),
+  onPressed: _openChatWithDriver,  
+  icon: Icon(Icons.chat, color: AppColors.success),
+  label: Text('Message', style: TextStyle(color: AppColors.success)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.success),
               padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
@@ -779,6 +785,7 @@ Widget _buildEvaluationCard(EvaluationModel eval) {
   void _callDriver(BuildContext context) async {
     final phone = widget.trip.driver?.phone ?? widget.trip.driverPhone;
     if (phone == null || phone.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
@@ -792,13 +799,161 @@ Widget _buildEvaluationCard(EvaluationModel eval) {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
         ),
       );
     }
   }
+
+Future<void> _openChatWithDriver() async {
+  // ✅ Extraire user_id du driver
+  final driverUserId = widget.trip.driver?.userId;
+  
+  if (driverUserId == null || driverUserId.isEmpty) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
+        backgroundColor: AppColors.error,
+      ),
+    );
+    return;
+  }
+
+  try {
+    final driverUserIdInt = int.parse(driverUserId);
+    
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('💬 [TripTrackingPage] OUVERTURE DU CHAT');
+    debugPrint('   User ID: $driverUserIdInt ← POUR MESSAGERIE');
+    debugPrint('   Driver ID: ${widget.trip.driverId} ← RÉFÉRENCE');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    if (!mounted) return;
+    
+    // Vérifier si la conversation existe déjà
+    final currentState = context.read<ConversationBloc>().state;
+    ConversationModel? existingConversation;
+    
+    if (currentState is ConversationLoaded) {
+      try {
+        existingConversation = currentState.conversations.firstWhere(
+          (conv) => conv.otherUserId == driverUserIdInt,
+        );
+        debugPrint('✅ Conversation existante trouvée: ${existingConversation.id}');
+      } catch (e) {
+        debugPrint('🔍 Aucune conversation existante, création...');
+      }
+    }
+    
+    if (existingConversation != null) {
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatPage(conversation: existingConversation!),
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      final dialogContext = context;
+      showDialog(
+        context: dialogContext,
+        barrierDismissible: false,
+        builder: (ctx) => Center(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.success),
+                  const SizedBox(height: 16),
+                  Text('Ouverture de la conversation...', style: GoogleFonts.inter()),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      
+      if (!mounted) return;
+      context.read<ConversationBloc>().add(
+        CreateDirectConversationEvent(otherUserId: driverUserIdInt),
+      );
+      
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      int attempts = 0;
+      const maxAttempts = 30;
+      
+      while (attempts < maxAttempts) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        if (!mounted) {
+          Navigator.of(dialogContext, rootNavigator: true).pop();
+          return;
+        }
+        
+        final state = context.read<ConversationBloc>().state;
+        
+        if (state is ConversationCreated) {
+          Navigator.of(dialogContext, rootNavigator: true).pop();
+          
+          if (!mounted) return;
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatPage(conversation: state.conversation),
+            ),
+          );
+          return;
+        } else if (state is ConversationLoaded) {
+          try {
+            final conversation = state.conversations.firstWhere(
+              (conv) => conv.otherUserId == driverUserIdInt,
+            );
+            
+            Navigator.of(dialogContext, rootNavigator: true).pop();
+            
+            if (!mounted) return;
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatPage(conversation: conversation),
+              ),
+            );
+            return;
+          } catch (e) {
+            // Conversation pas encore dans la liste
+          }
+        } else if (state is ConversationError) {
+          Navigator.of(dialogContext, rootNavigator: true).pop();
+          throw Exception(state.message);
+        }
+        
+        attempts++;
+      }
+      
+      if (mounted) {
+        Navigator.of(dialogContext, rootNavigator: true).pop();
+        throw Exception('Timeout lors de la création de la conversation');
+      }
+    }
+  } catch (e) {
+    debugPrint('❌ Erreur ouverture chat: $e');
+    
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Impossible d\'ouvrir la conversation: $e', style: GoogleFonts.inter()),
+        backgroundColor: AppColors.error,
+      ),
+    );
+  }
+}
 }

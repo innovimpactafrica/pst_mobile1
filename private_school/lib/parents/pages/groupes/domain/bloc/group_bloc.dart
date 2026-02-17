@@ -17,6 +17,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     on<CreateGroupEvent>(_onCreateGroup);
     on<InviteMemberEvent>(_onInviteMember);
     on<CreatePlanningEvent>(_onCreatePlanning);
+    on<ConfirmPlanningEvent>(_onConfirmPlanning);
     on<RequestReplacementEvent>(_onRequestReplacement);
     on<RespondToReplacementEvent>(_onRespondToReplacement);
     on<JoinGroupEvent>(_onJoinGroup);
@@ -40,39 +41,48 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     ]);
 
     final myGroups = results[0] as List<GroupModel>;
-    final availableGroupsRaw = results[1] as List<GroupModel>;
+    final allGroupsRaw = results[1] as List<GroupModel>;
     final invitationsRaw = results[2] as List<GroupInvitation>;
 
     debugPrint('');
     debugPrint('📊 DONNÉES BRUTES REÇUES:');
     debugPrint('   Mes groupes: ${myGroups.length}');
     for (var g in myGroups) {
-      debugPrint('      - ID: ${g.id}, Nom: ${g.name}, Membres: ${g.members.length}');
+      debugPrint('      - ID: ${g.id}, Nom: ${g.name}');
     }
-    debugPrint('   Groupes disponibles (brut): ${availableGroupsRaw.length}');
-    for (var g in availableGroupsRaw) {
+    debugPrint('   Tous les groupes (brut): ${allGroupsRaw.length}');
+    for (var g in allGroupsRaw) {
       debugPrint('      - ID: ${g.id}, Nom: ${g.name}');
     }
     debugPrint('   Invitations: ${invitationsRaw.length}');
     for (var inv in invitationsRaw) {
-      debugPrint('      - ID: ${inv.id}, Groupe: ${inv.groupName}, Status: ${inv.status}');
+      debugPrint('      - ID: ${inv.id}, Groupe: ${inv.groupName}');
     }
 
-    // ✅ FILTRER : Enlever de "disponibles" les groupes où je suis déjà membre OU j'ai une invitation
+    // ✅ FILTRAGE : Enlever mes groupes ET les groupes avec invitation
     final myGroupIds = myGroups.map((g) => g.id).toSet();
     final invitationGroupIds = invitationsRaw.map((inv) => inv.groupId).toSet();
     
-    final filteredAvailableGroups = availableGroupsRaw
-        .where((group) => !myGroupIds.contains(group.id) && !invitationGroupIds.contains(group.id))
-        .toList();
+    final filteredAvailableGroups = allGroupsRaw.where((group) {
+      final isMyGroup = myGroupIds.contains(group.id);
+      final hasInvitation = invitationGroupIds.contains(group.id);
+      final isAvailable = !isMyGroup && !hasInvitation;
+      
+      debugPrint('   Groupe ${group.id} (${group.name}):');
+      debugPrint('      - Est mon groupe? $isMyGroup');
+      debugPrint('      - A une invitation? $hasInvitation');
+      debugPrint('      - → Disponible? $isAvailable');
+      
+      return isAvailable;
+    }).toList();
 
     debugPrint('');
-    debugPrint('🔍 FILTRAGE:');
+    debugPrint('🔍 RÉSULTAT FINAL:');
     debugPrint('   IDs de mes groupes: ${myGroupIds.toList()}');
     debugPrint('   IDs avec invitation: ${invitationGroupIds.toList()}');
-    debugPrint('   Groupes disponibles (après filtre): ${filteredAvailableGroups.length}');
+    debugPrint('   Groupes disponibles: ${filteredAvailableGroups.length}');
     for (var g in filteredAvailableGroups) {
-      debugPrint('      - ID: ${g.id}, Nom: ${g.name}');
+      debugPrint('      ✅ ID: ${g.id}, Nom: ${g.name}');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
@@ -119,29 +129,72 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
   }
 
   Future<void> _onLoadGroupDetails(LoadGroupDetailsEvent event, Emitter<GroupState> emit) async {
-    emit(GroupLoading());
-    try {
-      debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
+  emit(GroupLoading());
+  try {
+    debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
+    
+    // ✅ AJOUT : Charger aussi les demandes de remplacement
+    final results = await Future.wait([
+      repository.getGroupById(event.groupId),
+      repository.getGroupCalendar(event.groupId),
+      repository.getGroupMembers(event.groupId),
+      repository.getReplacementRequests(event.groupId), // ✅ NOUVEAU
+    ]);
+
+    final group = results[0] as GroupModel;
+    final plannings = results[1] as List<Planning>;
+    final members = results[2] as List<GroupMember>;
+    final replacementRequests = results[3] as List<Map<String, dynamic>>; // ✅ NOUVEAU
+
+    debugPrint('✅ Groupe chargé: ${group.name}');
+    debugPrint('✅ ${plannings.length} plannings chargés');
+    debugPrint('✅ ${members.length} membre(s) chargé(s)');
+    debugPrint('✅ ${replacementRequests.length} demande(s) de remplacement'); // ✅ NOUVEAU
+
+    // ✅ NOUVEAU : Enrichir les plannings avec les demandes de remplacement
+    debugPrint('');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 [LoadGroupDetails] Enrichissement des plannings');
+    
+    final enrichedPlannings = plannings.map((planning) {
+      // Chercher si ce planning a une demande de remplacement
+      final matchingRequest = replacementRequests.firstWhere(
+        (req) => req['calendar_id']?.toString() == planning.id,
+        orElse: () => {},
+      );
       
-      final results = await Future.wait([
-        repository.getGroupById(event.groupId),
-        repository.getGroupCalendar(event.groupId),
-      ]);
+      if (matchingRequest.isNotEmpty) {
+        debugPrint('   Planning ${planning.id} a une demande:');
+        debugPrint('      Demandeur: ${matchingRequest['requester_name']}');
+        debugPrint('      Motif: ${matchingRequest['reason']}');
+        debugPrint('      Statut: ${matchingRequest['status']}');
+        
+        return planning.copyWith(
+          needsReplacement: matchingRequest['status'] == 'pending',
+          replacementReason: matchingRequest['reason']?.toString(),
+          replacementRequesterId: matchingRequest['requester_id']?.toString(),
+          replacementRequesterName: matchingRequest['requester_name']?.toString(),
+        );
+      }
+      
+      return planning;
+    }).toList();
+    
+    debugPrint('   Plannings avec demande: ${enrichedPlannings.where((p) => p.needsReplacement).length}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      final group = results[0] as GroupModel;
-      final plannings = results[1] as List<Planning>;
+    // ✅ Utiliser les plannings enrichis
+    final groupWithData = group.copyWith(
+      plannings: enrichedPlannings, // ✅ CHANGÉ : utiliser enrichedPlannings
+      members: members,
+    );
 
-      debugPrint('✅ Groupe chargé: ${group.name}');
-      debugPrint('✅ ${plannings.length} plannings chargés');
-
-      final groupWithPlannings = group.copyWith(plannings: plannings);
-
-      emit(GroupDetailsLoaded(group: groupWithPlannings));
-    } catch (e) {
-      debugPrint('❌ Details error: $e');
-      emit(GroupError(message: 'Erreur chargement groupe: $e'));
-    }
+    emit(GroupDetailsLoaded(group: groupWithData));
+  } catch (e) {
+    debugPrint('❌ Details error: $e');
+    emit(GroupError(message: 'Erreur chargement groupe: $e'));
   }
+}
 
   Future<void> _onCreateGroup(CreateGroupEvent event, Emitter<GroupState> emit) async {
     emit(GroupLoading());
@@ -234,6 +287,18 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     }
   }
 
+  Future<void> _onConfirmPlanning(ConfirmPlanningEvent event, Emitter<GroupState> emit) async {
+    try {
+      debugPrint('[GroupBloc] CONFIRM PLANNING: ${event.planningId}');
+      await repository.confirmPlanning(planningId: event.planningId);
+      emit(PlanningConfirmed());
+      // ✅ Pas besoin de recharger ici, c'est fait dans la page
+    } catch (e) {
+      debugPrint('❌ Confirm error: $e');
+      emit(GroupError(message: 'Erreur confirmation: $e'));
+    }
+  }
+
 // ✅ Remplacez la méthode _onRequestReplacement dans group_bloc.dart
 
 Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupState> emit) async {
@@ -245,10 +310,12 @@ Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupS
     debugPrint('   Reason: ${event.reason}');
     
     await repository.requestReplacement(
-      planning: event.planning,  // ✅ Passer l'objet Planning complet
+      planning: event.planning,
       reason: event.reason,
     );
     emit(ReplacementRequested());
+    // ✅ Recharger les détails du groupe après la demande
+    add(LoadGroupDetailsEvent(event.planning.groupId));
   } catch (e) {
     debugPrint('❌ [GroupBloc] RequestReplacement error: $e');
     emit(GroupError(message: 'Erreur remplacement: $e'));

@@ -1,6 +1,7 @@
 class DriverModel {
   final String id;
-  final String firstName;
+  final String? userId;
+  final String firstName;  
   final String lastName;
   final String phone;
   final String email;
@@ -17,10 +18,11 @@ class DriverModel {
   final double successRate;
   final String memberSince;
   final VehicleModel? vehicle;
-  final String? status; // ✅ AJOUTÉ pour compatibilité
+  final String? status; 
 
   DriverModel({
     required this.id,
+     this.userId, 
     required this.firstName,
     required this.lastName,
     required this.phone,
@@ -93,9 +95,12 @@ class DriverModel {
     // 3. Extraction des données du véhicule 
     final vehicleData = json['vehicle'] as Map<String, dynamic>?;
 
+    final userId = json['user_id']?.toString();
+
     return DriverModel(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       firstName: firstName,
+      userId: userId,
       lastName: lastName,
       phone: (json['phone'] ?? json['telephone'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
@@ -133,6 +138,7 @@ class DriverModel {
       'id': id,
       'firstName': firstName,
       'lastName': lastName,
+      'userId': userId,
       'phone': phone,
       'email': email,
       'address': address,
@@ -153,6 +159,7 @@ class DriverModel {
 
   DriverModel copyWith({
     String? id,
+    String? userId,
     String? firstName,
     String? lastName,
     String? phone,
@@ -174,6 +181,7 @@ class DriverModel {
     return DriverModel(
       id: id ?? this.id,
       firstName: firstName ?? this.firstName,
+      userId: userId ?? this.userId,
       lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
       email: email ?? this.email,

@@ -435,6 +435,17 @@ Widget build(BuildContext context) {
       );
     }
 
+    // ✅ LOG pour vérifier les données
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 [HomePage] TRAJETS CHARGÉS: ${trips.length}');
+    for (var trip in trips) {
+      debugPrint('   Trajet ${trip.id}:');
+      debugPrint('      Passagers: ${trip.passengers.length}');
+      debugPrint('      Places totales: ${trip.totalSeats}');
+      debugPrint('      Destination: ${trip.destination}');
+    }
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
     return SizedBox(
       height: 280,
       child: ListView.builder(

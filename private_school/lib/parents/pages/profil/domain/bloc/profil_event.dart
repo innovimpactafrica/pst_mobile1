@@ -3,6 +3,8 @@
 
 import 'dart:io';
 import 'package:private_school/core/models/user_model.dart';
+import '../../../enfants/domain/bloc/child_bloc.dart';
+import '../../../acceuil/domain/bloc/home_bloc.dart';
 
 
 abstract class ProfilEvent {}
@@ -52,4 +54,9 @@ class UpdateProfilePhotoFromPathEvent extends ProfilEvent {
 class DeleteProfilePhotoEvent extends ProfilEvent {}
 
 /// Déconnexion
-class LogoutEvent extends ProfilEvent {}
+class LogoutEvent extends ProfilEvent {
+  final ChildBloc? childBloc;
+  final HomeBloc? homeBloc;
+  
+  LogoutEvent({this.childBloc, this.homeBloc});
+}

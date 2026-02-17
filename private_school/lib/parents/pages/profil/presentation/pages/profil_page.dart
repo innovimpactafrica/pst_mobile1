@@ -6,6 +6,8 @@ import 'package:private_school/chauffeurs/pages/profil/presentation/widgets/lang
 import 'package:private_school/parents/pages/reports/presentation/pages/reports_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
+import '../../../enfants/domain/bloc/child_bloc.dart';
+import '../../../acceuil/domain/bloc/home_bloc.dart';
 import '../../domain/bloc/profil_bloc.dart';
 import '../../domain/bloc/profil_event.dart';
 import '../../domain/bloc/profil_state.dart';
@@ -42,7 +44,7 @@ class ProfilPageContent extends StatelessWidget {
         listener: (context, state) {
           if (state is LogoutSuccess) {
             Navigator.of(context).pushNamedAndRemoveUntil(
-              '/parent/connexion', // ✅ Correspond exactement à ton main.dart
+              '/role-selection',
               (route) => false,
             );
           } else if (state is ProfilError) {
@@ -492,9 +494,15 @@ class ProfilPageContent extends StatelessWidget {
             // 1. On ferme le dialogue
             Navigator.pop(dialogContext);
             
-            // 2. On déclenche l'événement de déconnexion dans le BLoC
-            // C'est ce qui va appeler UserService.logout()
-            context.read<ProfilBloc>().add(LogoutEvent());
+            // 2. ✅ Récupérer les BLoCs si disponibles
+            final childBloc = context.read<ChildBloc?>();
+            final homeBloc = context.read<HomeBloc?>();
+            
+            // 3. On déclenche l'événement de déconnexion dans le BLoC
+            context.read<ProfilBloc>().add(LogoutEvent(
+              childBloc: childBloc,
+              homeBloc: homeBloc,
+            ));
           },
           child: Text(
             'disconnect'.tr(),

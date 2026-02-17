@@ -61,8 +61,11 @@ String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
         (fullName.length > 1 ? fullName.sublist(1).join(' ') : ''),
     email: json['email'] ?? '',
     phone: json['phone'] ?? json['telephone'],
-    address: json['address'] ?? json['adresse'] ?? json['home_address'],
-    photo: fullPhotoUrl, // On utilise l'URL complète ici
+   address: json['home_address'] ??  
+         json['address'] ??       
+         json['adresse'] ??       
+         json['homeAddress'],     
+    photo: fullPhotoUrl, 
     role: json['role'],
     createdAt: json['createdAt'] != null
         ? DateTime.tryParse(json['createdAt'])

@@ -18,6 +18,7 @@ class ChildBloc extends Bloc<ChildEvent, ChildState> {
     on<DeleteChildEvent>(_onDeleteChild);
     on<SearchChildrenEvent>(_onSearchChildren);
     on<UpdateChildScheduleEvent>(_onUpdateChildSchedule);
+    on<ClearChildrenCacheEvent>(_onClearCache);
   }
 
   /// ✅ Handle loading children - CORRIGÉ
@@ -310,4 +311,12 @@ Future<void> _onUpdateChildSchedule(
     }
   }
 }
+
+  Future<void> _onClearCache(
+    ClearChildrenCacheEvent evt,
+    Emitter<ChildState> emit,
+  ) async {
+    debugPrint('🧹 [ChildBloc] Clearing children cache');
+    emit(const ChildInitialState());
+  }
 }

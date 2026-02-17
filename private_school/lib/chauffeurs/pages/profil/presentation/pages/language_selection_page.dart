@@ -80,6 +80,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                         // TODO: Ajouter ici la logique pour changer la locale (ex: Bloc ou EasyLocalization)
                       },
                       child: Container(
+                        
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppConstants.spacingXL,
                           vertical: AppConstants.spacingL + 4,

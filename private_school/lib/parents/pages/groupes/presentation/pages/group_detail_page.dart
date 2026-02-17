@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
+import 'package:private_school/parents/pages/groupes/presentation/widgets/confirm_planning_banner.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
@@ -86,13 +87,21 @@ class GroupDetailPageContent extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
                     child: Text(
                       initialGroup.name,
-                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -100,7 +109,11 @@ class GroupDetailPageContent extends StatelessWidget {
                   BlocBuilder<GroupBloc, GroupState>(
                     builder: (context, state) {
                       return IconButton(
-                        icon: const Icon(Icons.person_add, color: Colors.white, size: 24),
+                        icon: const Icon(
+                          Icons.person_add,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                         onPressed: () {
                           final groupId = state is GroupDetailsLoaded
                               ? state.group.id
@@ -110,7 +123,8 @@ class GroupDetailPageContent extends StatelessWidget {
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
                             builder: (_) => BlocProvider.value(
-                              value: context.read<GroupBloc>(), // ✅ PARTAGE le BLoC
+                              value: context
+                                  .read<GroupBloc>(), // ✅ PARTAGE le BLoC
                               child: InviteMemberModal(groupId: groupId),
                             ),
                           );
@@ -128,7 +142,9 @@ class GroupDetailPageContent extends StatelessWidget {
             BlocBuilder<GroupBloc, GroupState>(
               builder: (context, state) {
                 int selectedTab = 0;
-                if (state is GroupDetailsLoaded) selectedTab = state.selectedTabIndex;
+                if (state is GroupDetailsLoaded) {
+                  selectedTab = state.selectedTabIndex;
+                }
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
@@ -137,13 +153,22 @@ class GroupDetailPageContent extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
                       ],
                     ),
                     child: Row(
                       children: [
                         _buildTabButton(context, 'Planning', 0, selectedTab),
-                        _buildTabButton(context, 'Membres(${initialGroup.membersCount})', 1, selectedTab),
+                        _buildTabButton(
+                          context,
+                          'Membres(${initialGroup.membersCount})',
+                          1,
+                          selectedTab,
+                        ),
                         _buildTabButton(context, 'Historiques', 2, selectedTab),
                       ],
                     ),
@@ -161,7 +186,21 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is PlanningCreated) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Planning créé avec succès ✅', style: GoogleFonts.inter()),
+                        content: Text(
+                          'Planning créé avec succès ✅',
+                          style: GoogleFonts.inter(),
+                        ),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
+                  if (state is PlanningConfirmed) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Planning confirmé ✅',
+                          style: GoogleFonts.inter(),
+                        ),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -169,7 +208,10 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is MemberInvited) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Invitation envoyée ✅', style: GoogleFonts.inter()),
+                        content: Text(
+                          'Invitation envoyée ✅',
+                          style: GoogleFonts.inter(),
+                        ),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -177,7 +219,10 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is ReplacementRequested) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Demande de remplacement envoyée', style: GoogleFonts.inter()),
+                        content: Text(
+                          'Demande de remplacement envoyée',
+                          style: GoogleFonts.inter(),
+                        ),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -185,7 +230,10 @@ class GroupDetailPageContent extends StatelessWidget {
                   if (state is GroupError) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(state.message, style: GoogleFonts.inter()),
+                        content: Text(
+                          state.message,
+                          style: GoogleFonts.inter(),
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -193,12 +241,19 @@ class GroupDetailPageContent extends StatelessWidget {
                 },
                 builder: (context, state) {
                   if (state is GroupLoading) {
-                    return Center(child: CircularProgressIndicator(color: AppColors.success));
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.success,
+                      ),
+                    );
                   }
                   if (state is GroupDetailsLoaded) {
                     return _buildTabContent(context, state);
                   }
-                  return _buildTabContent(context, GroupDetailsLoaded(group: initialGroup));
+                  return _buildTabContent(
+                    context,
+                    GroupDetailsLoaded(group: initialGroup),
+                  );
                 },
               ),
             ),
@@ -213,11 +268,15 @@ class GroupDetailPageContent extends StatelessWidget {
 
           if (selectedTab != 0) return const SizedBox.shrink();
 
-          final groupId = state is GroupDetailsLoaded ? state.group.id : initialGroup.id;
+          final groupId = state is GroupDetailsLoaded
+              ? state.group.id
+              : initialGroup.id;
 
           return FloatingActionButton(
             onPressed: () {
-              debugPrint('📅 [FAB] Opening CreatePlanningModal for group: $groupId');
+              debugPrint(
+                '📅 [FAB] Opening CreatePlanningModal for group: $groupId',
+              );
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -236,11 +295,17 @@ class GroupDetailPageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildTabButton(BuildContext context, String label, int tabIndex, int selectedTabIndex) {
+  Widget _buildTabButton(
+    BuildContext context,
+    String label,
+    int tabIndex,
+    int selectedTabIndex,
+  ) {
     final isSelected = tabIndex == selectedTabIndex;
     return Expanded(
       child: GestureDetector(
-        onTap: () => context.read<GroupBloc>().add(SelectGroupTabEvent(tabIndex)),
+        onTap: () =>
+            context.read<GroupBloc>().add(SelectGroupTabEvent(tabIndex)),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -275,191 +340,299 @@ class GroupDetailPageContent extends StatelessWidget {
   }
 
   Widget _buildPlanningTab(BuildContext context, GroupModel group) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          if (group.plannings.any((p) => !p.isConfirmed))
-            Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange.shade200),
-              ),
+  final now = DateTime.now();
+  final todayPlannings = group.plannings.where((p) {
+    return p.date.year == now.year &&
+        p.date.month == now.month &&
+        p.date.day == now.day;
+  }).toList();
+
+  String currentUserId = '';
+  final authState = context.read<AuthBloc>().state;
+  if (authState is AuthAuthenticated && authState.user != null) {
+    currentUserId = authState.user!.id;
+  } else if (authState is UserLoaded) {
+    currentUserId = authState.user.id;
+  }
+
+  // ✅ Séparer les plannings
+  final pendingReplacements = todayPlannings
+      .where((p) => p.needsReplacement)
+      .toList();
+  
+  // ✅ Plannings qui nécessitent confirmation
+  final needsConfirmation = todayPlannings.where((p) {
+    final isMyTurn = p.isMyTurn == true || 
+                    p.driverId == currentUserId ||
+                    (p.driverId == null && group.creatorId == currentUserId);
+    
+    return isMyTurn && !p.isConfirmed && !p.needsReplacement;
+  }).toList();
+  
+  final otherPlannings = todayPlannings
+      .where((p) => !pendingReplacements.contains(p) && !needsConfirmation.contains(p))
+      .toList();
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: [
+        //  Banner de confirmation EN PREMIER
+        if (needsConfirmation.isNotEmpty)
+          ...needsConfirmation.map(
+            (planning) => ConfirmPlanningBanner(
+              planningId: planning.id,
+              groupId: group.id,
+            ),
+          ),
+
+        // Cards de remplacement
+        if (pendingReplacements.isNotEmpty)
+          ...pendingReplacements.map(
+            (planning) => _buildPendingReplacementCard(context, planning, group),
+          ),
+
+        // Message vide
+        if (todayPlannings.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber, color: Colors.orange.shade700),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Planning à confirmer',
-                                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.orange.shade900)),
-                            const SizedBox(height: 4),
-                            Text(
-                                'Veuillez confirmer votre disponibilité pour les jours où vous êtes assigné(e)',
-                                style: GoogleFonts.inter(fontSize: 12, color: Colors.orange.shade800)),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: Colors.orange.shade700, size: 20),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Text('Confirmer', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
+                  Icon(Icons.calendar_today, size: 64, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text('Aucun planning aujourd\'hui',
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+                  const SizedBox(height: 8),
+                  Text('Créez votre premier planning',
+                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
                 ],
               ),
             ),
-          if (group.plannings.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
+          )
+        else
+          ...otherPlannings.map(
+            (planning) => _buildPlanningCard(context, planning, group),
+          ),
+      ],
+    ),
+  );
+}
+
+  Widget _buildPendingReplacementCard(
+    BuildContext context,
+    Planning planning,
+    GroupModel group,
+  ) {
+    String dateStr;
+    try {
+      dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
+      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+    } catch (e) {
+      dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
+      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+    }
+
+    String currentUserId = '';
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is AuthAuthenticated && authState.user != null) {
+      currentUserId = authState.user!.id;
+    } else if (authState is UserLoaded) {
+      currentUserId = authState.user.id;
+    }
+
+    bool isMyRequest =
+        planning.isMyTurn == true || planning.driverId == currentUserId;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.orange.shade700),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.calendar_today, size: 64, color: Colors.grey.shade300),
-                    const SizedBox(height: 16),
-                    Text('Aucun planning',
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
-                    const SizedBox(height: 8),
-                    Text('Créez votre premier planning',
-                        style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                    Text(
+                      isMyRequest
+                          ? 'Demande de remplacement en attente'
+                          : 'Remplacement demandé',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dateStr,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            )
-          else
-            ...group.plannings.map((planning) => _buildPlanningCard(context, planning, group)),
+            ],
+          ),
+          if (!isMyRequest) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<GroupBloc>(),
+                      child: RespondReplacementModal(planning: planning),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Répondre',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-// ✅ VERSION CORRIGÉE avec logique pour créateur de groupe
-// Remplacez _buildPlanningCard dans group_detail_page.dart
+  Widget _buildPlanningCard(
+    BuildContext context,
+    Planning planning,
+    GroupModel group,
+  ) {
+    String dateStr;
+    try {
+      dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
+      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+    } catch (e) {
+      dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
+      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+    }
 
-Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel group) {
-  String dateStr;
-  try {
-    dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
-    dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
-  } catch (e) {
-    dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
-    dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
-  }
+    // ✅ Récupérer les informations de l'utilisateur connecté
+    String currentUserInitials = 'MN';
+    String currentUserId = '';
+    final authState = context.read<AuthBloc>().state;
 
-  // ✅ Récupérer les informations de l'utilisateur connecté
-  String currentUserInitials = 'MN';
-  String currentUserId = '';
-  final authState = context.read<AuthBloc>().state;
-  
-  if (authState is AuthAuthenticated && authState.user != null) {
-    currentUserInitials = authState.user!.initials;
-    currentUserId = authState.user!.id;
-  } else if (authState is UserLoaded) {
-    currentUserInitials = authState.user.initials;
-    currentUserId = authState.user.id;
-  }
+    if (authState is AuthAuthenticated && authState.user != null) {
+      currentUserInitials = authState.user!.initials;
+      currentUserId = authState.user!.id;
+    } else if (authState is UserLoaded) {
+      currentUserInitials = authState.user.initials;
+      currentUserId = authState.user.id;
+    }
 
-  debugPrint('🔍 [PlanningCard] Planning ID: ${planning.id}');
-  debugPrint('   Date: ${planning.date}');
-  debugPrint('   driver_id: ${planning.driverId}');
-  debugPrint('   driver_name: ${planning.driverName}');
-  debugPrint('   is_my_turn: ${planning.isMyTurn}');
-  debugPrint('   status: ${planning.status}');
-  debugPrint('   currentUserId: $currentUserId');
-  debugPrint('   group.creatorId: ${group.creatorId}');
+    debugPrint('🔍 [PlanningCard] Planning ID: ${planning.id}');
+    debugPrint('   Date: ${planning.date}');
+    debugPrint('   driver_id: ${planning.driverId}');
+    debugPrint('   driver_name: ${planning.driverName}');
+    debugPrint('   is_my_turn: ${planning.isMyTurn}');
+    debugPrint('   status: ${planning.status}');
+    debugPrint('   currentUserId: $currentUserId');
+    debugPrint('   group.creatorId: ${group.creatorId}');
 
-  // ✅ NOUVELLE LOGIQUE : Déterminer l'état du planning
-  bool isMyTurn = false;
-  bool isUnassigned = planning.driverName == null && planning.driverId == null;
-  
-  // Si pas de driver assigné ET que je suis le créateur du groupe
-  // OU si is_my_turn est explicitement true
-  // OU si driver_id correspond à mon ID
-  if (planning.isMyTurn == true) {
-    isMyTurn = true;
-  } else if (planning.driverId != null && planning.driverId == currentUserId) {
-    isMyTurn = true;
-  } else if (isUnassigned && group.creatorId == currentUserId) {
-    // ✅ SI non assigné ET je suis créateur → c'est mon tour par défaut
-    isMyTurn = true;
-    isUnassigned = false; // Ce n'est plus "non assigné", c'est MON tour
-  }
+    // ✅ NOUVELLE LOGIQUE : Déterminer l'état du planning
+    bool isMyTurn = false;
+    bool isUnassigned =
+        planning.driverName == null && planning.driverId == null;
 
-  final bool needsReplacement = planning.needsReplacement;
-  final bool isConfirmed = planning.isConfirmed;
+    // Si pas de driver assigné ET que je suis le créateur du groupe
+    // OU si is_my_turn est explicitement true
+    // OU si driver_id correspond à mon ID
+    if (planning.isMyTurn == true) {
+      isMyTurn = true;
+    } else if (planning.driverId != null &&
+        planning.driverId == currentUserId) {
+      isMyTurn = true;
+    } else if (isUnassigned && group.creatorId == currentUserId) {
+      // ✅ SI non assigné ET je suis créateur → c'est mon tour par défaut
+      isMyTurn = true;
+      isUnassigned = false; // Ce n'est plus "non assigné", c'est MON tour
+    }
 
-  debugPrint('   → isMyTurn: $isMyTurn');
-  debugPrint('   → isUnassigned: $isUnassigned');
+    final bool needsReplacement = planning.needsReplacement;
+    final bool isConfirmed = planning.isConfirmed;
 
-  // ✅ Définir l'affichage selon l'état
-  String displayName;
-  String displayInitials;
-  Color avatarColor;
-  Color initialsColor;
+    debugPrint('   → isMyTurn: $isMyTurn');
+    debugPrint('   → isUnassigned: $isUnassigned');
 
-  if (isUnassigned) {
-    // État 1 : Non assigné (vraiment personne)
-    displayName = 'Non assigné';
-    displayInitials = 'NA';
-    avatarColor = Colors.grey.shade200;
-    initialsColor = Colors.grey.shade700;
-  } else if (isMyTurn) {
-    // États 2 & 3 : C'est mon tour
-    displayName = 'Vous';
-    displayInitials = currentUserInitials;
-    avatarColor = AppColors.success.withValues(alpha: 0.2);
-    initialsColor = AppColors.success;
-  } else {
-    // État 4 : Quelqu'un d'autre
-    displayName = planning.driverName ?? 'Non assigné';
-    final nameParts = displayName.split(' ');
-    displayInitials = nameParts.map((n) => n.isNotEmpty ? n[0] : '').take(2).join().toUpperCase();
-    avatarColor = Colors.grey.shade200;
-    initialsColor = Colors.grey.shade700;
-  }
+    // ✅ Vérifier si le remplacement a été accepté
+    final bool replacementAccepted = planning.isReplacementAccepted;
 
-  return GestureDetector(
-    // ✅ La carte complète est cliquable uniquement si c'est mon tour ET pas de remplacement
-    onTap: (isMyTurn && !needsReplacement)
-        ? () {
-            debugPrint('🔄 [PlanningCard] Card tapped - Opening RequestReplacementModal');
-            
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => BlocProvider.value(
-                value: context.read<GroupBloc>(),
-                child: RequestReplacementModal(planning: planning),
-              ),
-            );
-          }
-        : null,
-    child: Container(
+    // ✅ Définir l'affichage selon l'état
+    String displayName;
+    String displayInitials;
+    Color avatarColor;
+    Color initialsColor;
+
+    if (replacementAccepted && planning.replacementAcceptedByName != null) {
+      // État 5 : Remplacement accepté par quelqu'un
+      displayName = planning.replacementAcceptedByName!;
+      final nameParts = displayName.split(' ');
+      displayInitials = nameParts
+          .map((n) => n.isNotEmpty ? n[0] : '')
+          .take(2)
+          .join()
+          .toUpperCase();
+      avatarColor = AppColors.success.withValues(alpha: 0.2);
+      initialsColor = AppColors.success;
+    } else if (isUnassigned) {
+      // État 1 : Non assigné (vraiment personne)
+      displayName = 'Non assigné';
+      displayInitials = 'NA';
+      avatarColor = Colors.grey.shade200;
+      initialsColor = Colors.grey.shade700;
+    } else if (isMyTurn) {
+      // États 2 & 3 : C'est mon tour
+      displayName = 'Vous';
+      displayInitials = currentUserInitials;
+      avatarColor = AppColors.success.withValues(alpha: 0.2);
+      initialsColor = AppColors.success;
+    } else {
+      // État 4 : Quelqu'un d'autre
+      displayName = planning.driverName ?? 'Non assigné';
+      final nameParts = displayName.split(' ');
+      displayInitials = nameParts
+          .map((n) => n.isNotEmpty ? n[0] : '')
+          .take(2)
+          .join()
+          .toUpperCase();
+      avatarColor = Colors.grey.shade200;
+      initialsColor = Colors.grey.shade700;
+    }
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -470,7 +643,7 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -497,7 +670,7 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
                 ),
               ),
               const SizedBox(width: 12),
-              
+
               // ✅ DATE ET NOM
               Expanded(
                 child: Column(
@@ -522,11 +695,14 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
                   ],
                 ),
               ),
-              
+
               // ✅ BADGE/ICÔNE DE STATUT
               if (isUnassigned && !needsReplacement)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(4),
@@ -540,20 +716,30 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
                     ),
                   ),
                 )
+              else if (replacementAccepted)
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 18),
+                )
               else if (isConfirmed && !isMyTurn)
                 Icon(Icons.check_circle, color: AppColors.success, size: 20),
             ],
           ),
-          
+
           // ✅ BOUTON "Remplacer ma journée"
-          if (isMyTurn && !needsReplacement) ...[
+          if (isMyTurn && isConfirmed && !needsReplacement && !replacementAccepted) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () {
                   debugPrint('🔄 [PlanningCard] Button pressed');
-                  
+
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
@@ -584,55 +770,10 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
               ),
             ),
           ],
-          
-          // ✅ "Remplacement demandé"
-          if (needsReplacement) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => BlocProvider.value(
-                    value: context.read<GroupBloc>(),
-                    child: RespondReplacementModal(planning: planning),
-                  ),
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.sync, color: Colors.orange.shade700, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Remplacement demandé',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange.shade900,
-                        ),
-                      ),
-                    ),
-                    Icon(Icons.chevron_right, color: Colors.orange.shade700, size: 18),
-                  ],
-                ),
-              ),
-            ),
-          ],
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMembersTab(BuildContext context, GroupModel group) {
     return SingleChildScrollView(
@@ -644,13 +785,26 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Rechercher',
-                hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
-                prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
+                hintStyle: GoogleFonts.inter(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Colors.grey.shade500,
+                  size: 22,
+                ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -661,7 +815,13 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(40),
-                child: Text('Aucun membre', style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                child: Text(
+                  'Aucun membre',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
               ),
             )
           else
@@ -678,16 +838,32 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
-            decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.2), shape: BoxShape.circle),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
             child: Center(
-              child: Text(member.displayInitials,
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.success)),
+              child: Text(
+                member.displayInitials,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -695,14 +871,33 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(member.name, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                Text(
+                  member.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(member.role, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600)),
+                Text(
+                  member.role,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(member.availability,
-              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.success)),
+          Text(
+            member.availability,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.success,
+            ),
+          ),
         ],
       ),
     );
@@ -710,8 +905,20 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
 
   Widget _buildHistoryTab(BuildContext context, GroupModel group) {
     final historyItems = [
-      {'date': 'Vendredi 24 janvier', 'time': '10:23', 'from': 'Moussa Fall', 'to': 'Aïssatou Diop', 'reason': 'déplacement personnelle'},
-      {'date': 'Lundi 2 janvier', 'time': '08:14', 'from': 'Aïssatou Diop', 'to': 'Moussa Fall', 'reason': 'Panne de voiture'},
+      {
+        'date': 'Vendredi 24 janvier',
+        'time': '10:23',
+        'from': 'Moussa Fall',
+        'to': 'Aïssatou Diop',
+        'reason': 'déplacement personnelle',
+      },
+      {
+        'date': 'Lundi 2 janvier',
+        'time': '08:14',
+        'from': 'Aïssatou Diop',
+        'to': 'Moussa Fall',
+        'reason': 'Panne de voiture',
+      },
     ];
 
     return SingleChildScrollView(
@@ -722,53 +929,102 @@ Widget _buildPlanningCard(BuildContext context, Planning planning, GroupModel gr
                 const SizedBox(height: 40),
                 Icon(Icons.history, size: 64, color: Colors.grey.shade300),
                 const SizedBox(height: 16),
-                Text('Aucun historique',
-                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+                Text(
+                  'Aucun historique',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text('Les trajets passés apparaîtront ici',
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                Text(
+                  'Les trajets passés apparaîtront ici',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
               ]
             : historyItems
-                .map((item) => Container(
+                  .map(
+                    (item) => Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
                         ],
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 40, height: 40,
-                            decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle),
-                            child: Center(child: Icon(Icons.sync, color: Colors.orange.shade600, size: 20)),
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.sync,
+                                color: Colors.orange.shade600,
+                                size: 20,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item['date']!,
-                                    style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                                Text(
+                                  item['date']!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
-                                Text('${item['from']} → ${item['to']}',
-                                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade700)),
+                                Text(
+                                  '${item['from']} → ${item['to']}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
-                                Text('Raison : ${item['reason']}',
-                                    style:
-                                        GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+                                Text(
+                                  'Raison : ${item['reason']}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          Text(item['time']!, style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade500)),
+                          Text(
+                            item['time']!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
                         ],
                       ),
-                    ))
-                .toList(),
+                    ),
+                  )
+                  .toList(),
       ),
     );
   }

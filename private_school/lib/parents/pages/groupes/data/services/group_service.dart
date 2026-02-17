@@ -7,87 +7,118 @@ class GroupService {
   final ApiClient _apiClient = ApiClient();
 
   // ─────────────────────────────────────────────
-  // GET /api/parents/carpool/groups — Mes groupes
+  // Mes groupes
   // ─────────────────────────────────────────────
   Future<List<GroupModel>> fetchMyGroups() async {
-    try {
-      debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups');
-      final response = await _apiClient.get(ApiConstants.carpoolGroups);
-      debugPrint('✅ [GroupService] Response: ${response.statusCode}');
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups');
+    final response = await _apiClient.get(ApiConstants.carpoolGroups);
+    debugPrint('✅ [GroupService] Response: ${response.statusCode}');
 
-      final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
+    final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
+    
+    debugPrint('');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 [fetchMyGroups] ANALYSE DES GROUPES REÇUS');
+    debugPrint('   Total brut: ${data.length}');
+    
+    // ✅ FILTRER : Ne garder QUE les groupes où je suis VRAIMENT membre
+    final filteredData = data.where((json) {
+      final status = json['membership_status']?.toString();
+      final isCreator = json['is_creator'] == true;
+      final groupId = json['id'];
+      final groupName = json['name'];
+      final isValid = status == 'accepted' || isCreator;
       
-      // ✅ FILTRER : Ne garder QUE les groupes avec membership_status = "accepted"
-      final filteredData = data.where((json) {
-        final status = json['membership_status']?.toString();
-        return status == 'accepted';
-      }).toList();
+      debugPrint('   Group $groupId: $groupName');
+      debugPrint('      membership_status: "$status"');
+      debugPrint('      is_creator: $isCreator');
+      debugPrint('      → ${isValid ? "✅ INCLUS (membre valide)" : "❌ EXCLU (pas membre)"}');
       
-      debugPrint('📊 Groupes bruts: ${data.length}, Après filtre (accepted): ${filteredData.length}');
-      
-      final groups = filteredData
-          .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      return isValid;
+    }).toList();
+    
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 RÉSULTAT FINAL:');
+    debugPrint('   Groupes valides: ${filteredData.length}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    final groups = filteredData
+        .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
+        .toList();
 
-      debugPrint('✅ [GroupService] ${groups.length} my groups loaded');
-      return groups;
-    } catch (e) {
-      debugPrint('❌ [GroupService] fetchMyGroups error: $e');
-      throw Exception('Unable to load groups: $e');
-    }
+    return groups;
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchMyGroups error: $e');
+    throw Exception('Unable to load groups: $e');
   }
+}
 
   // ─────────────────────────────────────────────
   // GET /api/parents/carpool/groups?available=true
   // ─────────────────────────────────────────────
-  Future<List<GroupModel>> fetchAvailableGroups() async {
-    try {
-      debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups?available=true');
-      final response = await _apiClient.get(
-        ApiConstants.carpoolGroups,
-        queryParameters: {'available': true},
-      );
+  // ─────────────────────────────────────────────
+// ✅ CORRECTION : Groupes disponibles (sans relation avec moi)
+// ─────────────────────────────────────────────
+Future<List<GroupModel>> fetchAvailableGroups() async {
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups');
+    
+    // ✅ Appeler le même endpoint que fetchMyGroups (sans paramètre available)
+    final response = await _apiClient.get(ApiConstants.carpoolGroups);
 
-      final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
-      
-      // ✅ FILTRER : Exclure les groupes où j'ai déjà une relation (accepted, pending, declined)
-      final filteredData = data.where((json) {
-        final status = json['membership_status']?.toString();
-        return status == null || status.isEmpty; // Seulement les groupes sans relation
-      }).toList();
-      
-      debugPrint('📊 Groupes bruts: ${data.length}, Après filtre (sans relation): ${filteredData.length}');
-      
-      final groups = filteredData
-          .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+    final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
+    
+    debugPrint('');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📊 [fetchAvailableGroups] TOUS LES GROUPES REÇUS');
+    debugPrint('   Total brut: ${data.length}');
+    
+    // ✅ Retourner TOUS les groupes (le filtrage sera fait dans le BLoC)
+    final groups = data
+        .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
+        .toList();
 
-      debugPrint('✅ [GroupService] ${groups.length} available groups loaded');
-      return groups;
-    } catch (e) {
-      debugPrint('❌ [GroupService] fetchAvailableGroups error: $e');
-      throw Exception('Unable to load available groups: $e');
-    }
+    debugPrint('   Groupes retournés: ${groups.length}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    return groups;
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchAvailableGroups error: $e');
+    throw Exception('Unable to load available groups: $e');
   }
+}
 
   Future<GroupModel> fetchGroupById(String groupId) async {
-    try {
-      final response = await _apiClient.get(
-        ApiConstants.carpoolGroups,
-        queryParameters: {'groupId': groupId},
-      );
+  try {
+    debugPrint('🔍 [GroupService] GET GROUP BY ID: $groupId');
+    
+    final response = await _apiClient.get(
+      ApiConstants.carpoolGroups,
+      queryParameters: {'groupId': groupId},
+    );
 
-      final List<dynamic> dataList = _extractList(response.data, ['data', 'groups']);
-      
-      if (dataList.isNotEmpty) {
-        return GroupModel.fromJson(dataList.first as Map<String, dynamic>);
-      } else {
-        throw Exception('Groupe non trouvé');
-      }
-    } catch (e) {
-      throw Exception('Unable to load group: $e');
+    final List<dynamic> dataList = _extractList(response.data, ['data', 'groups']);
+    
+    debugPrint('📊 Groupes reçus: ${dataList.length}');
+    for (var json in dataList) {
+      debugPrint('   - ID: ${json['id']}, Nom: ${json['name']}');
     }
+    
+    // ✅ FILTRER : Chercher le groupe avec l'ID exact
+    final matchingGroup = dataList.firstWhere(
+      (json) => json['id'].toString() == groupId,
+      orElse: () => throw Exception('Groupe $groupId non trouvé dans la réponse'),
+    );
+    
+    debugPrint('✅ Groupe trouvé: ${matchingGroup['name']} (ID: ${matchingGroup['id']})');
+    
+    return GroupModel.fromJson(matchingGroup as Map<String, dynamic>);
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchGroupById error: $e');
+    throw Exception('Unable to load group: $e');
   }
+}
 
   Future<GroupModel> createGroup({
     required String name,
@@ -236,21 +267,28 @@ class GroupService {
   }
 
   // ─────────────────────────────────────────────
-  // ✅ joinGroup — PUT /api/parents/carpool/invitations avec accept=true
+  // ✅ joinGroup — Demande d'adhésion à un groupe public
+  // PUT /api/parents/carpool/invitations avec groupId
   // ─────────────────────────────────────────────
-  Future<void> joinGroup({required String groupId}) async {
-    try {
-      debugPrint('🔵 [GroupService] JOIN GROUP: $groupId');
-      await _apiClient.put(
-        ApiConstants.carpoolInvitations,
-        data: {'groupId': groupId, 'accept': true},
-      );
-      debugPrint('✅ [GroupService] Joined group');
-    } catch (e) {
-      debugPrint('❌ [GroupService] joinGroup error: $e');
-      throw Exception('Unable to join group: $e');
-    }
+Future<void> joinGroup({required String groupId}) async {
+  try {
+    debugPrint('🔵 [GroupService] JOIN GROUP (adhésion directe): $groupId');
+    
+    // ✅ CORRECTION : Envoyer la bonne structure selon votre API
+    await _apiClient.put(
+      ApiConstants.carpoolInvitations,
+      data: {
+        'groupId': int.tryParse(groupId) ?? groupId,
+        'action': 'accept', // ✅ OU 'accept' selon votre backend
+      },
+    );
+    
+    debugPrint('✅ [GroupService] Groupe rejoint avec succès');
+  } catch (e) {
+    debugPrint('❌ [GroupService] joinGroup error: $e');
+    throw Exception('Unable to join group: $e');
   }
+}
 
   // ─────────────────────────────────────────────
   // CALENDRIER
@@ -271,6 +309,54 @@ class GroupService {
     }
   }
 
+  // ─────────────────────────────────────────────
+// GET /api/parents/carpool/groups/{groupId}/members
+// ─────────────────────────────────────────────
+Future<List<GroupMember>> fetchGroupMembers(String groupId) async {
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups/$groupId/members');
+    
+    final response = await _apiClient.get(
+      '${ApiConstants.carpoolGroups}/$groupId/members',
+    );
+
+    debugPrint('📊 Response status: ${response.statusCode}');
+    
+   // ✅ CORRECTION : Les membres sont dans response.data.data.members
+final dynamic responseBody = response.data;
+final List<dynamic> data;
+
+if (responseBody is Map && responseBody['data'] is Map) {
+  // Structure: { "data": { "members": [...] } }
+  data = (responseBody['data']['members'] as List?) ?? [];
+} else {
+  // Fallback : essayer avec _extractList
+  data = _extractList(responseBody, ['data', 'members']);
+}
+
+debugPrint('✅ [GroupService] ${data.length} membre(s) récupéré(s)');
+    
+    debugPrint('✅ [GroupService] ${data.length} membre(s) récupéré(s)');
+    
+    if (data.isEmpty) {
+      debugPrint('⚠️ Aucun membre trouvé pour le groupe $groupId');
+      return [];
+    }
+    
+    // Debug : Afficher les membres
+    for (var member in data) {
+      debugPrint('   - ${member['name'] ?? member['full_name']}');
+    }
+    
+    return data
+        .map((json) => GroupMember.fromJson(json as Map<String, dynamic>))
+        .toList();
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchGroupMembers error: $e');
+    return [];
+  }
+}
+
   Future<Planning> addToCalendar({
     required String groupId,
     required DateTime date,
@@ -287,7 +373,6 @@ class GroupService {
           'group_id': int.parse(groupId),
           'date': date.toIso8601String().split('T')[0],
           'departure_time': '08:00:00',
-          'driver_id': 0,
           'start_point': 'Point de départ',
           'end_point': 'Point d\'arrivée',
           'return_time': '16:00:00',
@@ -330,35 +415,69 @@ class GroupService {
     await _apiClient.delete(ApiConstants.carpoolCalendar, data: {'calendarId': calendarId});
   }
 
+  Future<void> confirmCalendar({required String calendarId}) async {
+    try {
+      debugPrint('📝 [GroupService] POST /api/parents/carpool/calendar/$calendarId/confirm');
+      await _apiClient.post(
+        '${ApiConstants.carpoolCalendar}/$calendarId/confirm',
+      );
+      debugPrint('✅ [GroupService] Planning confirmé');
+    } catch (e) {
+      debugPrint('❌ [GroupService] confirmCalendar error: $e');
+      throw Exception('Unable to confirm calendar: $e');
+    }
+  }
+
+  /// Récupérer les demandes de remplacement actives d'un groupe
+Future<List<Map<String, dynamic>>> fetchReplacementRequests(String groupId) async {
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups/$groupId/replacement-requests');
+    
+    final response = await _apiClient.get(
+      '${ApiConstants.carpoolGroups}/$groupId/replacement-requests',
+    );
+    
+    final List<dynamic> data = _extractList(
+      response.data, 
+      ['data', 'replacement_requests', 'requests']
+    );
+    
+    debugPrint('✅ [GroupService] ${data.length} demande(s) de remplacement trouvée(s)');
+    
+    // Debug : Afficher les demandes
+    for (var request in data) {
+      debugPrint('   - Calendar ID: ${request['calendar_id']}');
+      debugPrint('     Demandeur: ${request['requester_name']}');
+      debugPrint('     Motif: ${request['reason']}');
+    }
+    
+    return data.cast<Map<String, dynamic>>();
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchReplacementRequests error: $e');
+    return [];
+  }
+}
+
   // ─────────────────────────────────────────────
   // ÉCHANGES / REMPLACEMENTS
-  // ─────────────────────────────────────────────
-  // ✅ REMPLACEZ la méthode proposeExchange dans group_service.dart
-// SUPPRIMEZ l'ancienne version et gardez seulement celle-ci
 
 Future<void> proposeExchange({
   required Planning planning,
   required String reason,
 }) async {
   try {
-    debugPrint('📤 [GroupService] POST /api/parents/carpool/conduite');
-    debugPrint('   group_id: ${planning.groupId}');
+    debugPrint('📤 [GroupService] POST /api/parents/carpool/calendar/${planning.id}/replace');
     debugPrint('   calendar_id: ${planning.id}');
-    debugPrint('   original_date: ${planning.date.toIso8601String().split('T')[0]}');
     debugPrint('   reason: $reason');
     
+    // ✅ BON ENDPOINT
     await _apiClient.post(
-      ApiConstants.carpoolConduite,
+      '${ApiConstants.carpoolCalendar}/${planning.id}/replace',
       data: {
-        'group_id': int.parse(planning.groupId),
-        'calendar_id': int.parse(planning.id),
-        'original_date': planning.date.toIso8601String().split('T')[0],
-        'exchange_type': 'request',
-        'message': reason,
-        'target_driver_id': 0,
-        'proposed_date': planning.date.toIso8601String().split('T')[0],
+        'reason': reason,
       },
     );
+    
     debugPrint('✅ [GroupService] Demande de remplacement envoyée');
   } catch (e) {
     debugPrint('❌ [GroupService] proposeExchange error: $e');
@@ -397,6 +516,7 @@ Future<void> proposeExchange({
       throw Exception('Unable to respond to exchange: $e');
     }
   }
+
 
   // ─────────────────────────────────────────────
   // HELPER — extraire liste depuis réponse API

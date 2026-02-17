@@ -1,6 +1,8 @@
 // Service d'authentification - CORRIGÉ pour récupérer la photo
 // Chemin: lib/parents/authentification/data/services/auth_service.dart
 
+import 'dart:convert';
+
 import 'package:private_school/core/models/user_model.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/storage/secure_storage.dart';
@@ -11,116 +13,127 @@ class AuthService {
   final ApiClient _apiClient = ApiClient();
   final SecureStorage _storage = SecureStorage();
 
-  /// ✅ INSCRIPTION d'un parent - FORMAT CORRIGÉ
-  /// Endpoint: POST /api/auth/register-parent
-  Future<Map<String, dynamic>> registerParent({
-    required String firstName,
-    required String lastName,
-    required String phone,
-    required String email,
-    String? password,
-    String? homeAddress,
-  }) async {
-    try {
-      debugPrint('📤 Registering parent: $email');
+Future<Map<String, dynamic>> registerParent({
+  required String firstName,
+  required String lastName,
+  required String phone,
+  required String email,
+  String? password,
+  String? homeAddress,
+}) async {
+  try {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📤 [AuthService] INSCRIPTION PARENT');
+    debugPrint('   firstName: $firstName');
+    debugPrint('   lastName: $lastName');
+    debugPrint('   phone: $phone');
+    debugPrint('   email: $email');
+    debugPrint('   password: ${password != null ? "***" : "null"}');
+    debugPrint('   homeAddress: $homeAddress');  // ← LOG CRITIQUE
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      final fullName = '$firstName $lastName'.trim();
+    final fullName = '$firstName $lastName'.trim();
 
-      String formattedPhone = phone.trim();
-      if (!formattedPhone.startsWith('+')) {
-        if (formattedPhone.startsWith('221')) {
-          formattedPhone = '+$formattedPhone';
-        } else {
-          formattedPhone = '+221$formattedPhone';
-        }
+    String formattedPhone = phone.trim();
+    if (!formattedPhone.startsWith('+')) {
+      if (formattedPhone.startsWith('221')) {
+        formattedPhone = '+$formattedPhone';
+      } else {
+        formattedPhone = '+221$formattedPhone';
       }
-
-      final Map<String, dynamic> data = {
-        'name': fullName,
-        'phone': formattedPhone,
-        'email': email,
-      };
-
-      if (password != null && password.isNotEmpty) {
-        data['password'] = password;
-        debugPrint('🔐 Password included in registration');
-      }
-
-      if (homeAddress != null && homeAddress.isNotEmpty) {
-        data['home_address'] = homeAddress;
-        debugPrint('🏠 Home address included: $homeAddress');
-      }
-
-      debugPrint('📤 Sending data: $data');
-
-      final response = await _apiClient.post(
-        ApiConstants.registerParent,
-        data: data,
-      );
-
-      debugPrint('✅ Registration successful');
-
-      final token = response.data['token'] ?? response.data['accessToken'];
-      if (token != null) {
-        await _storage.saveAccessToken(token);
-        debugPrint('✅ Token saved from registration');
-      }
-
-      return {
-        'success': true,
-        'message': response.data['message'] ?? 'Inscription réussie',
-        'data': response.data,
-        'token': token,
-      };
-    } catch (e) {
-      debugPrint('❌ Registration error: $e');
-      throw Exception('Erreur lors de l\'inscription: $e');
     }
-  }
 
-  /// ✅ CONNEXION d'un parent
-  /// Endpoint: POST /api/auth/login/parent
-  Future<Map<String, dynamic>> loginParent({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      debugPrint('📤 Logging in parent: $email');
+    final Map<String, dynamic> data = {
+      'name': fullName,
+      'phone': formattedPhone,
+      'email': email,
+    };
 
-      final response = await _apiClient.post(
-        ApiConstants.loginParent,
-        data: {'email': email, 'password': password},
-      );
-
-      debugPrint('✅ Login successful');
-      debugPrint('📦 Login response: ${response.data}');
-
-      // Extraire le token et les données utilisateur
-      final token = response.data['token'] ?? response.data['accessToken'];
-      final userData = response.data['user'] ?? response.data['data'];
-
-      // Sauvegarder le token
-      if (token != null) {
-        await _storage.saveAccessToken(token);
-        debugPrint('✅ Token saved');
-      }
-
-      // Sauvegarder les données utilisateur (en JSON)
-      if (userData != null) {
-        await _storage.saveUserData(userData.toString());
-        debugPrint('✅ User data saved');
-      }
-
-      return {
-        'success': true,
-        'token': token,
-        'user': userData != null ? UserModel.fromJson(userData) : null,
-      };
-    } catch (e) {
-      debugPrint('❌ Login error: $e');
-      throw Exception('Email ou mot de passe incorrect');
+    if (password != null && password.isNotEmpty) {
+      data['password'] = password;
+      debugPrint('🔐 Password included');
     }
+
+    if (homeAddress != null && homeAddress.isNotEmpty) {
+      data['home_address'] = homeAddress;  // ✅ snake_case pour le backend
+      debugPrint('🏠 Home address included: $homeAddress');
+    }
+
+    debugPrint('📤 Data sent to API: $data');
+
+    final response = await _apiClient.post(
+      ApiConstants.registerParent,
+      data: data,
+    );
+
+    debugPrint('✅ Registration response:');
+    debugPrint('   Status: ${response.statusCode}');
+    debugPrint('   Data: ${response.data}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    final token = response.data['token'] ?? response.data['accessToken'];
+    if (token != null) {
+      await _storage.saveAccessToken(token);
+      debugPrint('✅ Token saved');
+    }
+
+    return {
+      'success': true,
+      'message': response.data['message'] ?? 'Inscription réussie',
+      'data': response.data,
+      'token': token,
+    };
+  } catch (e) {
+    debugPrint('❌ Registration error: $e');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    throw Exception('Erreur lors de l\'inscription: $e');
   }
+}
+
+
+ Future<Map<String, dynamic>> loginParent({
+  required String email,
+  required String password,
+}) async {
+  try {
+    debugPrint('📤 Logging in parent: $email');
+    debugPrint('🧹 Clearing old session...');
+    await _storage.clearAll();
+
+    final response = await _apiClient.post(
+      ApiConstants.loginParent,
+      data: {'email': email, 'password': password},
+    );
+
+    debugPrint('✅ Login successful');
+    debugPrint('📦 Login response: ${response.data}');
+
+    // Extraire le token et les données utilisateur
+    final token = response.data['token'] ?? response.data['accessToken'];
+    final userData = response.data['user'] ?? response.data['data'];
+
+    // Sauvegarder le token
+    if (token != null) {
+      await _storage.saveAccessToken(token);
+      debugPrint('✅ Token saved: ${token.substring(0, 20)}...');
+    }
+
+    // ✅ FIX CRITIQUE : Sauvegarder en JSON valide
+    if (userData != null) {
+      await _storage.saveUserData(jsonEncode(userData));  // ✅ Utiliser jsonEncode
+      debugPrint('✅ User data saved: ${userData['id']} - ${userData['name']}');
+    }
+
+    return {
+      'success': true,
+      'token': token,
+      'user': userData != null ? UserModel.fromJson(userData) : null,
+    };
+  } catch (e) {
+    debugPrint('❌ Login error: $e');
+    throw Exception('Email ou mot de passe incorrect');
+  }
+}
 
   /// ✅ VÉRIFIER le code OTP
   /// Endpoint: POST /api/auth/verify-otp

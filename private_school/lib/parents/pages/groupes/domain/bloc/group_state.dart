@@ -81,6 +81,7 @@ class GroupCreated extends GroupState {
 
 class MemberInvited extends GroupState {}
 class PlanningCreated extends GroupState {}
+class PlanningConfirmed extends GroupState {}
 class ReplacementRequested extends GroupState {}
 class ReplacementResponseSent extends GroupState {
   final bool accepted;

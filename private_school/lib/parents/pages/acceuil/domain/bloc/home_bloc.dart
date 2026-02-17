@@ -12,6 +12,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadDriversEvent>(_onLoadDrivers);
+    on<ClearHomeCache>(_onClearCache);
   }
 
   /// ✅ MODIFIÉ : Charger TOUS les trajets + Trier (réservés en premier)
@@ -98,4 +99,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   /// ✅ Obtenir les IDs réservés (pour debug)
   Set<String> get reservedTripIds => _reservedTripIds;
+
+  /// Vider le cache
+  void _onClearCache(ClearHomeCache event, Emitter<HomeState> emit) {
+    debugPrint('🧹 [HomeBloc] Clearing home cache');
+    _reservedTripIds = {};
+    emit(HomeInitial());
+  }
 }

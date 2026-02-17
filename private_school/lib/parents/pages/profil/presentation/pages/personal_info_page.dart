@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:private_school/core/utils/google_maps_config.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/profil_bloc.dart';
@@ -353,7 +355,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
                     
-                    _buildField(
+                    _buildAddressField(
                       'Adresse',
                       _addressController,
                       user.address ?? 'Non renseignée',
@@ -407,6 +409,83 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       ),
     );
   }
+
+
+Widget _buildAddressField(
+  String label,
+  TextEditingController controller,
+  String value,
+) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: AppConstants.fontSizeS + 1,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: AppConstants.spacingS),
+      Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppConstants.spacingXL,
+          vertical: _isEditMode ? 0 : 14,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+          border: Border.all(
+            color: _isEditMode ? AppColors.success : AppColors.grey300,
+          ),
+        ),
+        child: _isEditMode
+            ? GooglePlaceAutoCompleteTextField(
+                textEditingController: controller,
+                googleAPIKey: GoogleMapsConfig.apiKey, 
+                inputDecoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  hintText: 'Ex: Sacré Coeur, Dakar',
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.grey400,
+                  ),
+                ),
+                textStyle: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeL - 1,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                debounceTime: 800,
+                countries: const ["sn"],
+                isLatLngRequired: false,
+                getPlaceDetailWithLatLng: (prediction) {
+                  setState(() {
+                    controller.text = prediction.description ?? '';
+                  });
+                },
+                itemClick: (prediction) {
+                  controller.text = prediction.description ?? '';
+                  controller.selection = TextSelection.fromPosition(
+                    TextPosition(offset: controller.text.length),
+                  );
+                },
+              )
+            : Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeL - 1,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+      ),
+    ],
+  );
+}
 
   Widget _buildField(
     String label,

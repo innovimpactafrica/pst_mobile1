@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/core/utils/google_maps_config.dart';
 import 'package:private_school/parents/pages/school/domain/bloc/school_bloc.dart';
 import 'package:private_school/parents/pages/school/domain/bloc/school_event.dart' show FindOrCreateSchoolEvent;
 import 'package:private_school/parents/pages/school/domain/bloc/school_state.dart';
+import 'package:private_school/parents/widgets/address_picker_widget.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../data/models/child_model.dart';
@@ -200,11 +202,14 @@ class _AddChildModalState extends State<AddChildModal> {
                       icon: Icons.person,
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(
+                    AddressPickerWidget(
                       controller: _addressController,
+                      googleApiKey: GoogleMapsConfig.apiKey,
                       label: 'Adresse de l\'enfant',
                       hint: 'Ex: Ouakam cité avions',
-                      icon: Icons.home_outlined,
+                      onLocationSelected: (lat, lng) {
+                        // Coordonnées reçues mais non utilisées pour l'instant
+                      },
                     ),
                     
                     // ✅ AJOUTÉ : Date de naissance
@@ -240,11 +245,14 @@ class _AddChildModalState extends State<AddChildModal> {
                       icon: Icons.school_outlined,
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(
+                    AddressPickerWidget(
                       controller: _schoolAddressController,
+                      googleApiKey: GoogleMapsConfig.apiKey,
                       label: 'Adresse de l\'école',
                       hint: 'Ex: Ouakam, Dakar',
-                      icon: Icons.location_on_outlined,
+                      onLocationSelected: (lat, lng) {
+                        // Coordonnées reçues mais non utilisées pour l'instant
+                      },
                     ),
                     
                     const SizedBox(height: 24),

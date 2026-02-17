@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/parents/pages/enfants/domain/bloc/child_event.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import '../../data/repositories/user_repository.dart';
 import 'profil_event.dart';
 import 'profil_state.dart';
@@ -125,11 +127,27 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
       // 1. Appel au repository pour informer le serveur (et effacer le token localement)
       await repository.logout();
       
-      // 2. Émettre le succès pour déclencher le BlocListener dans ProfilPage
+      // 2. ✅ Vider le cache du BLoC enfants
+      if (event.childBloc != null) {
+        event.childBloc!.add(const ClearChildrenCacheEvent());
+      }
+      
+      // 3. ✅ Vider le cache du BLoC home
+      if (event.homeBloc != null) {
+        event.homeBloc!.add(ClearHomeCache());
+      }
+      
+      // 4. Émettre le succès pour déclencher le BlocListener dans ProfilPage
       emit(LogoutSuccess());
     } catch (e) {
       // ✅ ASTUCE : Même si l'API échoue, on émet LogoutSuccess.
       // On veut que l'utilisateur puisse sortir de l'app quoi qu'il arrive.
+      if (event.childBloc != null) {
+        event.childBloc!.add(const ClearChildrenCacheEvent());
+      }
+      if (event.homeBloc != null) {
+        event.homeBloc!.add(ClearHomeCache());
+      }
       emit(LogoutSuccess());
     }
   }

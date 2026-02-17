@@ -9,12 +9,16 @@ class AddressPickerWidget extends StatelessWidget {
   final TextEditingController controller;
   final Function(double lat, double lng) onLocationSelected;
   final String googleApiKey;
+  final String? label;
+  final String? hint;
 
   const AddressPickerWidget({
     super.key,
     required this.controller,
     required this.onLocationSelected,
     required this.googleApiKey,
+    this.label,
+    this.hint,
   });
 
   @override
@@ -22,9 +26,9 @@ class AddressPickerWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Adresse de domicile',
-          style: TextStyle(
+        Text(
+          label ?? 'Adresse de domicile',
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -35,7 +39,7 @@ class AddressPickerWidget extends StatelessWidget {
           textEditingController: controller,
           googleAPIKey: googleApiKey,
           inputDecoration: InputDecoration(
-            hintText: 'Ex: Sacré Coeur, Dakar',
+            hintText: hint ?? 'Ex: Sacré Coeur, Dakar',
             hintStyle: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary.withValues(alpha: 0.5),

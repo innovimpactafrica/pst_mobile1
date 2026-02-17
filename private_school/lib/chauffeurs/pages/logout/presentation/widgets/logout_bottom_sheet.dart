@@ -36,7 +36,7 @@ class LogoutBottomSheet extends StatelessWidget {
           Navigator.pop(context);
           Navigator.pushNamedAndRemoveUntil(
             context,
-           '/driver/connexion', 
+           '/role-selection', 
             (route) => false, 
           );
         } else if (state is LogoutError) {

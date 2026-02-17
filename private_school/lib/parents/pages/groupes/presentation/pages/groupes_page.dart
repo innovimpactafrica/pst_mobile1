@@ -126,22 +126,29 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
             // ── CONTENU ──
             Expanded(
               child: BlocConsumer<GroupBloc, GroupState>(
-                listener: (context, state) {
-                  if (state is GroupJoined) {
-                    context.read<GroupBloc>().add(LoadAllGroupsEvent());
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Groupe rejoint !', style: GoogleFonts.inter()),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                  }
+               listener: (context, state) {
+  if (state is GroupJoined) {
+    context.read<GroupBloc>().add(LoadAllGroupsEvent());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Vous avez rejoint le groupe ! ', style: GoogleFonts.inter()), 
+        backgroundColor: AppColors.success,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
                   if (state is InvitationResponded) {
                     context.read<GroupBloc>().add(LoadAllGroupsEvent());
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(state.accepted ? 'Invitation acceptée !' : 'Invitation refusée', style: GoogleFonts.inter()),
+                        content: Text(
+                          state.accepted 
+                            ? 'Invitation acceptée ! Le groupe apparaît maintenant dans "Mes groupes"' 
+                            : 'Invitation refusée', 
+                          style: GoogleFonts.inter()
+                        ),
                         backgroundColor: state.accepted ? AppColors.success : Colors.grey,
+                        duration: const Duration(seconds: 3),
                       ),
                     );
                   }
@@ -202,7 +209,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
 
-                          // ── ✅ INVITATIONS EN ATTENTE (depuis l'API) ──
+                          // ──  INVITATIONS EN ATTENTE (depuis l'API) ──
                           if (invitations.isNotEmpty)
                             ...invitations.map((invitation) => _buildInvitationCard(context, invitation)),
 
@@ -683,6 +690,32 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // ✅ INFO : Comportement des invitations
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Les personnes invitées devront accepter avant de rejoindre le groupe',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.blue.shade700,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),

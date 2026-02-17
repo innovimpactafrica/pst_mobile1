@@ -96,6 +96,10 @@ class GroupRepository {
     }
   }
 
+  Future<List<GroupMember>> getGroupMembers(String groupId) async {
+    return await _groupService.fetchGroupMembers(groupId);
+  }
+
   /// ✅ GET /api/parents/carpool/invitations
   Future<List<GroupInvitation>> getInvitations() async {
     try {
@@ -160,6 +164,14 @@ class GroupRepository {
     }
   }
 
+  Future<void> confirmPlanning({required String planningId}) async {
+    try {
+      await _groupService.confirmCalendar(calendarId: planningId);
+    } catch (e) {
+      throw Exception('Impossible de confirmer le planning: $e');
+    }
+  }
+
 // ✅ Remplacez la méthode requestReplacement dans group_repository.dart
 
 Future<void> requestReplacement({
@@ -196,4 +208,8 @@ Future<void> requestReplacement({
       throw Exception('Impossible de répondre: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getReplacementRequests(String groupId) async {
+  return await _groupService.fetchReplacementRequests(groupId);
+}
 }

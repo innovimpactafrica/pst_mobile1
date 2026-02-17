@@ -1,4 +1,4 @@
-// Messaging Service - API Communication Layer - CORRECTED
+// Messaging Service - FINAL CORRECTED VERSION
 // Path: parents/pages/acceuil/data/services/messaging_service.dart
 
 import 'dart:convert';
@@ -39,8 +39,6 @@ class MessagingService {
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
-        // L'API peut retourner soit un objet avec 'data', soit directement un tableau
         final List<dynamic> conversationsJson = data is List ? data : (data['data'] ?? data['conversations'] ?? []);
         
         debugPrint('✅ ${conversationsJson.length} conversations récupérées');
@@ -109,17 +107,14 @@ class MessagingService {
         debugPrint('✅ Conversation créée/récupérée avec succès');
         return ConversationModel.fromJson(conversationJson);
       } else if (response.statusCode == 400) {
-        // Erreur de validation
         final errorData = json.decode(response.body);
         final errorMessage = errorData['message'] ?? 'Requête invalide';
         debugPrint('❌ Erreur de validation: $errorMessage');
         throw Exception('Validation échouée: $errorMessage');
       } else if (response.statusCode == 404) {
-        // Utilisateur non trouvé
         debugPrint('❌ Utilisateur $otherUserId non trouvé');
         throw Exception('Utilisateur introuvable');
       } else if (response.statusCode == 500) {
-        // Erreur serveur
         final errorData = json.decode(response.body);
         final errorMessage = errorData['message'] ?? 'Erreur serveur';
         debugPrint('❌ Erreur serveur: $errorMessage');
@@ -139,10 +134,12 @@ class MessagingService {
   Future<ConversationModel> createGroupConversation({
     required String name,
     required List<int> memberIds,
+    int? tripId,
   }) async {
     debugPrint('🔄 MessagingService.createGroupConversation - START');
     debugPrint('📛 Nom du groupe: $name');
     debugPrint('👥 Membres: $memberIds (${memberIds.length} membres)');
+    debugPrint('🚗 Trip ID: ${tripId ?? "null"}');
     
     try {
       final token = await _storage.getAccessToken();
@@ -154,10 +151,16 @@ class MessagingService {
         throw Exception('Au moins 2 membres sont requis pour créer un groupe');
       }
       
-      final requestBody = {
-        'name': name.trim(),
-        'member_ids': memberIds,
+      // ✅ FIX CRITIQUE : Utiliser "participant_ids" au lieu de "member_ids"
+      final requestBody = <String, dynamic>{
+        'title': name.trim(),  // ✅ FIX : "title" au lieu de "name"
+        'participant_ids': memberIds,  // ✅ FIX : "participant_ids" au lieu de "member_ids"
       };
+      
+      // Ajouter trip_id seulement s'il est fourni
+      if (tripId != null) {
+        requestBody['trip_id'] = tripId;
+      }
       
       debugPrint('📤 Request Body: $requestBody');
       
@@ -181,7 +184,6 @@ class MessagingService {
         debugPrint('✅ Conversation de groupe créée avec succès');
         return ConversationModel.fromJson(conversationJson);
       } else if (response.statusCode == 400) {
-        // Erreur de validation
         final errorData = json.decode(response.body);
         final errorMessage = errorData['message'] ?? 'Requête invalide';
         debugPrint('❌ Erreur de validation: $errorMessage');
@@ -197,7 +199,7 @@ class MessagingService {
     }
   }
 
-  /// PATCH /api/conversations/{id}/archive - Archiver/Désarchiver une conversation
+  /// PATCH /api/conversations/{id}/archive
   Future<void> toggleArchiveConversation(int conversationId, bool archive) async {
     debugPrint('🔄 MessagingService.toggleArchiveConversation - START');
     debugPrint('💬 conversationId: $conversationId, archive: $archive');
@@ -213,9 +215,7 @@ class MessagingService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'archive': archive,
-        }),
+        body: json.encode({'archived': archive}),
       );
       
       debugPrint('📊 Status Code: ${response.statusCode}');
@@ -233,7 +233,7 @@ class MessagingService {
     }
   }
 
-  /// PATCH /api/conversations/{id}/mute - Activer/Désactiver les notifications
+  /// PATCH /api/conversations/{id}/mute
   Future<void> toggleMuteConversation(int conversationId, bool mute) async {
     debugPrint('🔄 MessagingService.toggleMuteConversation - START');
     debugPrint('💬 conversationId: $conversationId, mute: $mute');
@@ -249,9 +249,7 @@ class MessagingService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'mute': mute,
-        }),
+        body: json.encode({'mute': mute}),
       );
       
       debugPrint('📊 Status Code: ${response.statusCode}');
@@ -271,7 +269,7 @@ class MessagingService {
 
   // ==================== MESSAGES ====================
 
-  /// GET /api/conversations/{id}/messages - Récupérer les messages d'une conversation
+  /// GET /api/conversations/{id}/messages
   Future<List<MessageModel>> getMessages(int conversationId) async {
     debugPrint('🔄 MessagingService.getMessages - START');
     debugPrint('💬 conversationId: $conversationId');
@@ -316,7 +314,7 @@ class MessagingService {
     }
   }
 
-  /// POST /api/conversations/{id}/messages - Envoyer un message
+  /// POST /api/conversations/{id}/messages
   Future<MessageModel> sendMessage({
     required int conversationId,
     required String content,
@@ -332,7 +330,7 @@ class MessagingService {
       
       final body = {
         'content': content,
-        if (replyToId != null) 'reply_to_id': replyToId,
+        if (replyToId != null) 'parent_message_id': replyToId,
       };
       
       debugPrint('📤 Request Body: $body');
@@ -367,7 +365,7 @@ class MessagingService {
     }
   }
 
-  /// PATCH /api/conversations/{id}/messages/{messageId} - Modifier un message
+  /// PATCH /api/conversations/{id}/messages/{messageId}
   Future<MessageModel> updateMessage({
     required int conversationId,
     required int messageId,
@@ -387,9 +385,7 @@ class MessagingService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json.encode({
-          'content': content,
-        }),
+        body: json.encode({'content': content}),
       );
       
       debugPrint('📊 Status Code: ${response.statusCode}');
@@ -411,7 +407,7 @@ class MessagingService {
     }
   }
 
-  /// DELETE /api/conversations/{id}/messages/{messageId} - Supprimer un message
+  /// DELETE /api/conversations/{id}/messages/{messageId}
   Future<void> deleteMessage({
     required int conversationId,
     required int messageId,
@@ -442,39 +438,6 @@ class MessagingService {
       }
     } catch (e, stackTrace) {
       debugPrint('❌ Exception dans deleteMessage: $e');
-      debugPrint('📋 StackTrace: $stackTrace');
-      rethrow;
-    }
-  }
-
-  /// DELETE /api/messages/{id} - Supprimer un message EN TEMPS RÉEL (alternative)
-  Future<void> deleteMessageRealTime(int messageId) async {
-    debugPrint('🔄 MessagingService.deleteMessageRealTime - START');
-    debugPrint('💬 messageId: $messageId');
-    
-    try {
-      final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/messages/$messageId');
-      
-      final response = await http.delete(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
-      
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        debugPrint('✅ Message supprimé en temps réel avec succès');
-      } else {
-        debugPrint('❌ Erreur HTTP: ${response.statusCode}');
-        throw Exception('Erreur lors de la suppression temps réel: ${response.statusCode}');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('❌ Exception dans deleteMessageRealTime: $e');
       debugPrint('📋 StackTrace: $stackTrace');
       rethrow;
     }

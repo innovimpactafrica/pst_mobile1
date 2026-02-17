@@ -1,17 +1,16 @@
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/parents/pages/acceuil/data/services/driver_user_id_extractor.dart';
 import '../../domain/bloc/conversation_bloc.dart';
 import '../../domain/bloc/conversation_event.dart';
 import '../../domain/bloc/conversation_state.dart';
 import '../../data/models/conversation_model.dart';
 import '../widgets/conversation_card_widget.dart';
 import 'chat.dart';
-import '../../../trajets/data/services/trip_service.dart';
 
 class DiscussionsPage extends StatefulWidget {
   const DiscussionsPage({super.key});
@@ -512,7 +511,9 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
 }
 
 
-// Widget pour créer une nouvelle conversation
+// Widget pour créer une nouvelle conversation - VERSION FINALE
+// À remplacer dans votre discussions.dart
+
 class _NewConversationContent extends StatefulWidget {
   final ScrollController scrollController;
   final VoidCallback onConversationCreated;
@@ -614,7 +615,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
         // Liste des chauffeurs disponibles
         Expanded(
           child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: _getAvailableDrivers(),
+            future: _getAllDrivers(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -624,9 +625,30 @@ class _NewConversationContentState extends State<_NewConversationContent> {
 
               if (snapshot.hasError) {
                 return Center(
-                  child: Text(
-                    'Erreur: ${snapshot.error}',
-                    style: GoogleFonts.inter(color: AppColors.error),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Erreur lors du chargement',
+                          style: GoogleFonts.inter(
+                            color: AppColors.error,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${snapshot.error}',
+                          style: GoogleFonts.inter(color: AppColors.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
@@ -642,9 +664,33 @@ class _NewConversationContentState extends State<_NewConversationContent> {
 
               if (filteredDrivers.isEmpty) {
                 return Center(
-                  child: Text(
-                    'Aucun chauffeur disponible',
-                    style: GoogleFonts.inter(color: AppColors.textSecondary),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.people_outline, size: 64, color: AppColors.grey400),
+                      const SizedBox(height: 16),
+                      Text(
+                        _searchController.text.isEmpty
+                            ? 'Aucun chauffeur disponible'
+                            : 'Aucun résultat',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (_searchController.text.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Réservez un trajet pour discuter\navec des chauffeurs',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppColors.grey600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
                   ),
                 );
               }
@@ -658,30 +704,99 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                   final isSelected = _selectedMembers.contains(driverId);
 
                   return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.success,
-                      child: Text(
-                        driver['name'].toString()[0].toUpperCase(),
-                        style: GoogleFonts.inter(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
+                    leading: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: AppColors.success.withValues(alpha: 0.2),
+                          backgroundImage: driver['photo'] != null
+                              ? NetworkImage(driver['photo'])
+                              : null,
+                          child: driver['photo'] == null
+                              ? Icon(
+                                  Icons.drive_eta,
+                                  color: AppColors.success,
+                                  size: 24,
+                                )
+                              : null,
                         ),
-                      ),
+                        // Badge chauffeur
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.white, width: 2),
+                            ),
+                            child: Icon(
+                              Icons.drive_eta,
+                              color: AppColors.white,
+                              size: 10,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     title: Text(
                       driver['name'].toString(),
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      'Chauffeur',
                       style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeS,
-                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
                       ),
+                    ),
+                    subtitle: Row(
+                      children: [
+                        Icon(
+                          Icons.local_shipping,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Chauffeur',
+                          style: GoogleFonts.inter(
+                            fontSize: AppConstants.fontSizeS,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        if (driver['phone'] != null) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.phone, size: 12, color: AppColors.grey600),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              driver['phone'],
+                              style: GoogleFonts.inter(
+                                fontSize: AppConstants.fontSizeXS,
+                                color: AppColors.grey600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                        // Rating si disponible
+                        if (driver['rating'] != null && driver['rating'] > 0) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.star, size: 12, color: AppColors.warning),
+                          const SizedBox(width: 2),
+                          Text(
+                            driver['rating'].toStringAsFixed(1),
+                            style: GoogleFonts.inter(
+                              fontSize: AppConstants.fontSizeXS,
+                              color: AppColors.grey600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     trailing: _isGroupMode
                         ? Checkbox(
                             value: isSelected,
+                            activeColor: AppColors.success,
                             onChanged: (value) {
                               setState(() {
                                 if (value == true) {
@@ -692,7 +807,11 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                               });
                             },
                           )
-                        : const Icon(Icons.arrow_forward_ios, size: 16),
+                        : Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.grey600,
+                          ),
                     onTap: () {
                       if (_isGroupMode) {
                         setState(() {
@@ -739,7 +858,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                   ),
                 ),
                 child: Text(
-                  'Créer le groupe (${_selectedMembers.length} membres)',
+                  'Créer le groupe (${_selectedMembers.length} ${_selectedMembers.length > 1 ? "membres" : "membre"})',
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.bold,
@@ -752,90 +871,85 @@ class _NewConversationContentState extends State<_NewConversationContent> {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _getAvailableDrivers() async {
-    try {
-      final tripService = TripService();
-      
-      // Récupérer TOUS les trajets (réservés + disponibles)
-      final reservedTrips = await tripService.getMyReservations();
-      final availableTrips = await tripService.getAllTrips();
-      
-      // Combiner les deux listes
-      final allTrips = [...reservedTrips, ...availableTrips];
-      
-      // Extraire les chauffeurs uniques
-      final driversMap = <int, Map<String, dynamic>>{};
-      
-      for (final trip in allTrips) {
-        if (trip.driver != null) {
-          final driverId = int.tryParse(trip.driver!.id);
-          if (driverId != null && !driversMap.containsKey(driverId)) {
-            driversMap[driverId] = {
-              'id': driverId,
-              'name': trip.driver!.fullName,
-              'phone': trip.driver!.phone,
-              'photo': trip.driver!.photo,
-            };
-          }
-        } else if (trip.driverId != null) {
-          final driverId = int.tryParse(trip.driverId!);
-          if (driverId != null && !driversMap.containsKey(driverId)) {
-            driversMap[driverId] = {
-              'id': driverId,
-              'name': trip.driverName,
-              'phone': trip.driverPhone ?? '',
-              'photo': trip.driverPhoto,
-            };
-          }
-        }
-      }
-      
-      return driversMap.values.toList();
-    } catch (e) {
-      debugPrint('❌ Erreur lors de la récupération des chauffeurs: $e');
-      return [];
-    }
+  /// 🎯 FONCTION PRINCIPALE : Récupère TOUS les chauffeurs depuis les trip cards
+Future<List<Map<String, dynamic>>> _getAllDrivers() async {
+  try {
+    final extractor = DriverUserIdExtractor();
+    return await extractor.getAllDriversWithUserId();
+  } catch (e, stackTrace) {
+    debugPrint('❌ Erreur _getAllDrivers: $e');
+    debugPrint('Stack: $stackTrace');
+    rethrow;
   }
+}
 
   void _createDirectConversation(int driverId) {
+    debugPrint('🎯 Création de conversation directe avec chauffeur ID: $driverId');
+    
     context.read<ConversationBloc>().add(
           CreateDirectConversationEvent(otherUserId: driverId),
         );
     widget.onConversationCreated();
   }
 
- void _createGroupConversation() {
-  final groupName = _groupNameController.text.trim();
-  if (groupName.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veuillez entrer un nom de groupe'),
-        backgroundColor: AppColors.error,
-      ),
-    );
-    return;
-  }
-
-  // ✅ FIX : Vérifier qu'il y a AU MOINS 2 MEMBRES
-  if (_selectedMembers.length < 2) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veuillez sélectionner au moins 2 membres pour créer un groupe'),
-        backgroundColor: AppColors.error,
-        duration: Duration(seconds: 3),
-      ),
-    );
-    return;
-  }
-
-  debugPrint('🎯 Création du groupe avec ${_selectedMembers.length} membres: $_selectedMembers');
-
-  context.read<ConversationBloc>().add(
-        CreateGroupConversationEvent(
-          name: groupName,
-          memberIds: _selectedMembers.toList(),
+  void _createGroupConversation() {
+    final groupName = _groupNameController.text.trim();
+    
+    // ✅ VALIDATION 1 : Nom du groupe
+    if (groupName.isEmpty) {
+      debugPrint('❌ Nom du groupe vide');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez entrer un nom de groupe',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 2),
         ),
       );
-  widget.onConversationCreated();
+      return;
+    }
+
+    // ✅ VALIDATION 2 : Minimum 2 membres
+    if (_selectedMembers.length < 2) {
+      debugPrint('❌ Pas assez de membres: ${_selectedMembers.length}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez sélectionner au moins 2 membres pour créer un groupe',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          ),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: AppColors.white,
+            onPressed: () {},
+          ),
+        ),
+      );
+      return;
+    }
+
+    // ✅ TOUT EST BON : Créer le groupe
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🎯 Création du groupe "$groupName"');
+    debugPrint('👥 Membres sélectionnés: $_selectedMembers');
+    debugPrint('📊 Nombre de membres: ${_selectedMembers.length}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // ✅ DISPATCH L'EVENT
+    context.read<ConversationBloc>().add(
+      CreateGroupConversationEvent(
+        name: groupName,
+        memberIds: _selectedMembers.toList(),
+      ),
+    );
+    
+    // ✅ FERMER LA BOTTOM SHEET
+    debugPrint('✅ Event dispatché, fermeture du bottom sheet');
+    widget.onConversationCreated();
+  }
 }
-}
+

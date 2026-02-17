@@ -163,15 +163,30 @@ class GroupMember {
   });
 
   factory GroupMember.fromJson(Map<String, dynamic> json) {
-    return GroupMember(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? json['full_name'] ?? '',
-      role: json['role'] ?? 'Membre',
-      availability: json['availability'] ?? 'Disponible 0/5',
-      photo: json['photo'],
-      initials: json['initials'],
-    );
+  final name = json['name'] ?? json['full_name'] ?? '';
+  String calculatedInitials = '';
+  if (name.isNotEmpty) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      // Prendre la première lettre du prénom et du nom
+      calculatedInitials = '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+    } else {
+      // Si un seul mot, prendre les 2 premières lettres
+      calculatedInitials = name.length >= 2 
+          ? name.substring(0, 2).toUpperCase() 
+          : name[0].toUpperCase();
+    }
   }
+
+  return GroupMember(
+    id: json['id']?.toString() ?? '',
+    name: name,
+    role: json['role'] ?? 'Membre',
+    availability: json['availability'] ?? 'Disponible 0/5',
+    photo: json['photo'],
+    initials: calculatedInitials, 
+  );
+}
 
   Map<String, dynamic> toJson() => {
     'id': id, 'name': name, 'role': role,
@@ -192,7 +207,7 @@ class GroupMember {
 
 class Planning {
   final String id;
-  final String groupId;  // ✅ AJOUTÉ pour proposeExchange
+  final String groupId;
   final DateTime date;
   final String? driverId;
   final String? driverName;
@@ -207,10 +222,15 @@ class Planning {
   final String? returnTime;
   final int? capacityMax;
   final String? notes;
+  final String? replacementAcceptedBy;
+  final String? replacementAcceptedByName;
+  final String? replacementRequesterName;
+  final String? replacementRequesterId; 
+  final bool needsReplacementFlag;       
 
   Planning({
     required this.id,
-    required this.groupId,  // ✅ AJOUTÉ
+    required this.groupId,
     required this.date,
     this.driverId,
     this.driverName,
@@ -225,12 +245,17 @@ class Planning {
     this.returnTime,
     this.capacityMax,
     this.notes,
+    this.replacementAcceptedBy,
+    this.replacementAcceptedByName,
+    this.replacementRequesterName,
+    this.replacementRequesterId,        
+    this.needsReplacementFlag = false, 
   });
 
   factory Planning.fromJson(Map<String, dynamic> json) {
     return Planning(
       id: json['id']?.toString() ?? '',
-      groupId: json['group_id']?.toString() ?? '',  // ✅ AJOUTÉ
+      groupId: json['group_id']?.toString() ?? '',
       date: json['date'] != null
           ? DateTime.tryParse(json['date']) ?? DateTime.now()
           : DateTime.now(),
@@ -247,12 +272,18 @@ class Planning {
       returnTime: json['return_time'],
       capacityMax: json['capacity_max'],
       notes: json['notes'],
+      replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
+      replacementAcceptedByName: json['replacement_accepted_by_name'],
+      replacementRequesterName: json['replacement_requester_name'],
+      replacementRequesterId: json['replacement_requester_id']?.toString(),  
+      needsReplacementFlag: json['needs_replacement'] == true ||             
+                           json['replacement_status'] == 'pending',  
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'group_id': groupId,  // ✅ AJOUTÉ
+    'group_id': groupId,
     'date': date.toIso8601String(),
     'driver_id': driverId,
     'driver_name': driverName,
@@ -267,11 +298,21 @@ class Planning {
     'return_time': returnTime,
     'capacity_max': capacityMax,
     'notes': notes,
+    'replacement_accepted_by': replacementAcceptedBy,
+    'replacement_accepted_by_name': replacementAcceptedByName,
+    'replacement_requester_name': replacementRequesterName,
+    'replacement_requester_id': replacementRequesterId,  
+    'needs_replacement': needsReplacementFlag,     
   };
 
   bool get isConfirmed => status == 'confirmed';
   bool get isPending => status == 'scheduled' || status == 'pending';
-  bool get needsReplacement => status == 'replacement_requested';
+ bool get needsReplacement => needsReplacementFlag || status == 'replacement_requested';
+  bool get isReplacementAccepted => status == 'replacement_accepted';
+  bool get isToday {
+    final now = DateTime.now();
+    return date.year == now.year && date.month == now.month && date.day == now.day;
+  }
   
   String get assignedTo {
     if (isMyTurn == true) return 'Vous';
@@ -281,7 +322,7 @@ class Planning {
 
   Planning copyWith({
     String? id,
-    String? groupId,  // ✅ AJOUTÉ
+    String? groupId,
     DateTime? date,
     String? driverId,
     String? driverName,
@@ -296,10 +337,15 @@ class Planning {
     String? returnTime,
     int? capacityMax,
     String? notes,
+    String? replacementAcceptedBy,
+    String? replacementAcceptedByName,
+    String? replacementRequesterName,
+     String? replacementRequesterId,    
+    bool? needsReplacement,   
   }) {
     return Planning(
       id: id ?? this.id,
-      groupId: groupId ?? this.groupId,  // ✅ AJOUTÉ
+      groupId: groupId ?? this.groupId,
       date: date ?? this.date,
       driverId: driverId ?? this.driverId,
       driverName: driverName ?? this.driverName,
@@ -314,6 +360,11 @@ class Planning {
       returnTime: returnTime ?? this.returnTime,
       capacityMax: capacityMax ?? this.capacityMax,
       notes: notes ?? this.notes,
+      replacementAcceptedBy: replacementAcceptedBy ?? this.replacementAcceptedBy,
+      replacementAcceptedByName: replacementAcceptedByName ?? this.replacementAcceptedByName,
+      replacementRequesterName: replacementRequesterName ?? this.replacementRequesterName,
+      replacementRequesterId: replacementRequesterId ?? this.replacementRequesterId,          
+      needsReplacementFlag: needsReplacement ?? needsReplacementFlag,  
     );
   }
 }
