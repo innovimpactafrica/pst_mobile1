@@ -52,10 +52,10 @@ class TripBloc extends Bloc<TripEvent, TripState> {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('📍 Start: ${event.startPoint}');
       debugPrint('🎯 End: ${event.endPoint}');
-      debugPrint('🕐 Departure: ${event.departureTime}');
-      debugPrint('🕐 Return: ${event.returnTime}');
+      if (event.departureTime != null) debugPrint('🕐 Departure: ${event.departureTime}');
+      if (event.returnTime != null) debugPrint('🕐 Return: ${event.returnTime}');
       debugPrint('👥 Capacity: ${event.capacityMax}');
-      debugPrint('🏫 School ID: ${event.schoolId}');
+      debugPrint('🏫 School IDs: ${event.schoolIds}');
       debugPrint('🔄 Recurring: ${event.isRecurring}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
@@ -65,7 +65,7 @@ class TripBloc extends Bloc<TripEvent, TripState> {
         departureTime: event.departureTime,
         returnTime: event.returnTime,
         capacityMax: event.capacityMax,
-        schoolId: event.schoolId,
+        schoolIds: event.schoolIds,
         isRecurring: event.isRecurring,
         startLatitude: event.startLatitude,
         startLongitude: event.startLongitude,

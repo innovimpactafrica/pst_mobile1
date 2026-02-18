@@ -402,7 +402,11 @@ class _TripMapWidgetState extends State<TripMapWidget> {
           markers: _markers,
           polylines: _polylines,
           myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
+          zoomControlsEnabled: true,
+          zoomGesturesEnabled: true,
+          scrollGesturesEnabled: true,
+          tiltGesturesEnabled: true,
+          rotateGesturesEnabled: true,
           mapToolbarEnabled: false,
           onMapCreated: (GoogleMapController controller) {
             _controller.complete(controller);

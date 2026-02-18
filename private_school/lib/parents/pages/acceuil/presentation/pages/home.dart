@@ -8,6 +8,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/unread_messages_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
@@ -28,6 +29,7 @@ import 'package:private_school/parents/pages/trajets/presentation/widgets/trip_c
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_detail_page.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tracking_page.dart';
 import 'package:private_school/parents/pages/acceuil/presentation/pages/discussion.dart';
+import 'package:private_school/parents/pages/acceuil/presentation/widgets/trip_filter_modal.dart';
 import 'package:private_school/parents/widgets/main_layout.dart';
 
 class HomePage extends StatefulWidget {
@@ -67,62 +69,58 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
   int _selectedIndex = 0;
   LatLng? _homeLocation;
   final UnifiedNotificationService _notificationService = UnifiedNotificationService();
+  final TextEditingController _searchController = TextEditingController();
+  TripFilters? _currentFilters;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _loadHomeAddress();
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addObserver(this);
+  _loadHomeAddress();
+  
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+    context.read<HomeBloc>().add(LoadDriversEvent());
     
-    // ✅ NOUVEAU : Charger les données utilisateur au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Charger les données utilisateur pour afficher la photo
-      context.read<AuthBloc>().add(const LoadCurrentUserEvent());
-      
-      _notificationService.registerBlocs(
-        messagesBloc: context.read<UnreadMessagesBloc>(),
-        notificationsBloc: context.read<UnreadNotificationsBloc>(),
-      );
-    });
+    _notificationService.registerBlocs(
+      messagesBloc: context.read<UnreadMessagesBloc>(),
+      notificationsBloc: context.read<UnreadNotificationsBloc>(),
+    );
     
-    // Démarrer le service de notification
+    // ✅ Démarrer le polling SEULEMENT pour les messages
     _notificationService.startPolling();
-    debugPrint('🏠 [HomePage] Service de notification unifié démarré');
-  }
+  });
+}
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
     _notificationService.dispose();
     super.dispose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    
-    switch (state) {
-      case AppLifecycleState.resumed:
-        debugPrint('📱 [HomePage] App resumed - redémarrage polling');
-        _notificationService.startPolling();
-        // Vérifier immédiatement les nouveaux messages et notifications
-        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
-        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
-        // Vérifier aussi avec le service
-        _notificationService.checkNow();
-        break;
-      case AppLifecycleState.paused:
-      case AppLifecycleState.inactive:
-        debugPrint('📱 [HomePage] App paused/inactive - arrêt polling');
-        _notificationService.stopPolling();
-        break;
-      case AppLifecycleState.detached:
-        _notificationService.dispose();
-        break;
-      case AppLifecycleState.hidden:
-        break;
-    }
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  super.didChangeAppLifecycleState(state);
+  
+  switch (state) {
+    case AppLifecycleState.resumed:
+      debugPrint('📱 [HomePage] App resumed');
+      // ✅ Refresh uniquement les messages (pas les notifications via Dio)
+      context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+      break;
+    case AppLifecycleState.paused:
+    case AppLifecycleState.inactive:
+      debugPrint('📱 [HomePage] App paused/inactive');
+      break;
+    case AppLifecycleState.detached:
+      _notificationService.dispose();
+      break;
+    case AppLifecycleState.hidden:
+      break;
   }
+}
 
   void _loadHomeAddress() async {
     final authState = context.read<AuthBloc>().state;
@@ -193,38 +191,83 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
                         children: [
                           _buildSearchBar(),
                           const Spacer(),
-                          BlocBuilder<HomeBloc, HomeState>(
-                            builder: (context, state) {
-                              if (state is HomeLoading) {
-                                return const SizedBox(
-                                  height: 280,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.success,
-                                    ),
-                                  ),
-                                );
-                              } else if (state is HomeLoaded) {
-                                return _buildTripCardsSection(
-                                  context,
-                                  state.trips,
-                                );
-                              } else if (state is HomeError) {
-                                return SizedBox(
-                                  height: 280,
-                                  child: Center(
-                                    child: Text(
-                                      state.message,
-                                      style: const TextStyle(
-                                        color: AppColors.error,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const SizedBox(height: 280);
-                            },
-                          ),
+                      BlocBuilder<HomeBloc, HomeState>(
+  builder: (context, state) {
+    debugPrint('🏠 [HomePage] HomeBloc state: ${state.runtimeType}');
+    
+    if (state is HomeLoading) {
+      return const SizedBox(
+        height: 280,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppColors.success,
+          ),
+        ),
+      );
+    } else if (state is HomeLoaded) {
+      if (state.filteredTrips.isEmpty) {
+        return SizedBox(
+          height: 280,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  state.searchQuery.isEmpty 
+                    ? Icons.directions_car_outlined
+                    : Icons.search_off, 
+                  size: 64, 
+                  color: Colors.grey.shade300,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  state.searchQuery.isEmpty
+                    ? 'Aucun trajet disponible'
+                    : 'Aucun résultat pour "${state.searchQuery}"',
+                  style: TextStyle(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return _buildTripCardsSection(context, state.filteredTrips);
+    } else if (state is HomeError) {
+      return SizedBox(
+        height: 280,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(
+                state.message,
+                style: const TextStyle(color: AppColors.error),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<HomeBloc>().add(LoadDriversEvent());
+                },
+                child: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return const SizedBox(
+      height: 280,
+      child: Center(
+        child: CircularProgressIndicator(color: AppColors.success),
+      ),
+    );
+  },
+),
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -274,6 +317,10 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      tiltGesturesEnabled: true,
+      rotateGesturesEnabled: true,
       mapToolbarEnabled: false,
     );
   }
@@ -298,6 +345,10 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
                 ],
               ),
               child: TextField(
+                controller: _searchController,
+                onChanged: (query) {
+                  context.read<HomeBloc>().add(SearchTripsEvent(query));
+                },
                 decoration: InputDecoration(
                   hintText: "search_trip".tr(),
                   hintStyle: GoogleFonts.inter(
@@ -318,21 +369,54 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
             ),
           ),
           const SizedBox(width: AppConstants.spacingL),
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.blackOpacity10,
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          GestureDetector(
+            onTap: () => _showFilterModal(),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _currentFilters?.hasFilters == true
+                    ? AppColors.success.withValues(alpha: 0.1)
+                    : AppColors.white,
+                borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                border: _currentFilters?.hasFilters == true
+                    ? Border.all(color: AppColors.success, width: 2)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.blackOpacity10,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      Icons.tune,
+                      color: _currentFilters?.hasFilters == true
+                          ? AppColors.success
+                          : Colors.grey.shade600,
+                      size: 22,
+                    ),
+                  ),
+                  if (_currentFilters?.hasFilters == true)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-            child: Icon(Icons.tune, color: Colors.grey.shade600, size: 22),
           ),
         ],
       ),
@@ -407,27 +491,33 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
                   },
                 ),
                 const SizedBox(width: AppConstants.spacingL),
-                BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
-                  builder: (context, state) {
-                    final count = state is UnreadNotificationsLoaded ? state.count : 0;
-                    debugPrint('🔔 [HomePage] Compteur notifications: $count');
-                    return _buildNotifIconSvg('assets/icons/Settings.svg', count, () async {
-                      debugPrint('🔄 [HomePage] Ouverture page notifications');
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const NotificationsPage()),
-                      );
-                      // Rafraîchir le compteur au retour
-                      if (mounted) {
-                        debugPrint('🔄 [HomePage] Retour de notifications, refresh compteur');
-                        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
-                        // Vérifier aussi avec le service
-                        _notificationService.checkNow();
-                      }
-                    });
-                  },
-                ),
+               BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
+  builder: (context, state) {
+    final count = state is UnreadNotificationsLoaded ? state.count : 0;
+    debugPrint('🔔 [HomePage] Compteur notifications: $count');
+    return _buildNotifIconSvg('assets/icons/Settings.svg', count, () async {
+      debugPrint('🔄 [HomePage] Ouverture page notifications');
+      
+      // ✅ Récupérer le bloc AVANT la navigation
+      final unreadNotifBloc = context.read<UnreadNotificationsBloc>();
+      
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider.value(
+            value: unreadNotifBloc, // ✅ Passer le bloc récupéré
+            child: const NotificationsPage(),
+          ),
+        ),
+      );
+      
+      // ✅ Refresh au retour
+      if (mounted) {
+        unreadNotifBloc.add(RefreshUnreadNotificationsCountEvent());
+      }
+    });
+  },
+),
               ],
             ),
           ],
@@ -605,62 +695,51 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
   }
 
   Widget _buildBottomNavigationBar() {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        height: 70,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.blackOpacity10,
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-                icon: Icons.home_rounded,
-                label: AppConstants.labelHome,
-                index: 0),
-            _buildNavItem(
-                icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
-            _buildNavItem(
-                icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
-            _buildNavItem(
-                icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
-            _buildNavItem(
-                icon: Icons.person_rounded,
-                label: AppConstants.labelProfile,
-                index: 4),
-          ],
-        ),
+  final bottomPadding = MediaQuery.of(context).padding.bottom;
+  
+  return Positioned(
+    left: 0,
+    right: 0,
+    bottom: 0,
+    child: Container(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      height: 70 + bottomPadding,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.blackOpacity10,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
-    );
-  }
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(icon: Icons.home_rounded, label: AppConstants.labelHome, index: 0),
+          _buildNavItem(icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
+          _buildNavItem(icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
+          _buildNavItem(icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
+          _buildNavItem(icon: Icons.person_rounded, label: AppConstants.labelProfile, index: 4),
+        ],
+      ),
+    ),
+  );
+}
 
   void _onBottomNavTap(int index) {
-    // Si on clique sur l'accueil (index 0), on reste sur la page actuelle
-    if (index == 0) {
-      setState(() {
-        _selectedIndex = 0;
-      });
-      return;
-    }
-    
-    // Pour tous les autres onglets, naviguer vers MainLayout avec l'index approprié
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MainLayout(initialIndex: index),
-      ),
-    );
-  }
+
+  if (index == _selectedIndex) return; // Si déjà sur cette page, ne rien faire
+  
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => MainLayout(initialIndex: index),
+    ),
+    (route) => false,
+  );
+}
 
   Widget _buildNavItem(
       {required IconData icon, required String label, required int index}) {
@@ -693,24 +772,26 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
     );
   }
 
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Positioned(
-      right: AppConstants.spacingXL,
-      bottom: 90,
-      child: FloatingActionButton(
-        onPressed: () => _openReportProblem(context),
-        backgroundColor: AppColors.success,
-        elevation: 4,
-        child: SvgPicture.asset(
-          'assets/icons/13.svg',
-          width: 28,
-          height: 28,
-          colorFilter:
-              const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
-        ),
+ Widget _buildFloatingActionButton(BuildContext context) {
+  final bottomPadding = MediaQuery.of(context).padding.bottom;
+  
+  return Positioned(
+    right: AppConstants.spacingXL,
+    // ✅ 70 (navbar) + padding système + 16 marge
+    bottom: 70 + bottomPadding + 16,
+    child: FloatingActionButton(
+      onPressed: () => _openReportProblem(context),
+      backgroundColor: AppColors.success,
+      elevation: 4,
+      child: SvgPicture.asset(
+        'assets/icons/13.svg',
+        width: 28,
+        height: 28,
+        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _openReportProblem(BuildContext context) {
     showModalBottomSheet(
@@ -718,6 +799,23 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const ReportProblemModal(),
+    );
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TripFilterModal(
+        currentFilters: _currentFilters,
+        onApplyFilters: (filters) {
+          setState(() {
+            _currentFilters = filters;
+          });
+          context.read<HomeBloc>().add(FilterTripsEvent(filters));
+        },
+      ),
     );
   }
 }

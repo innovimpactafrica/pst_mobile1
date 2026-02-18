@@ -32,14 +32,27 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   late TextEditingController _addressController;
 
   @override
-  void initState() {
-    super.initState();
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
-    _phoneController = TextEditingController();
-    _emailController = TextEditingController();
-    _addressController = TextEditingController();
+  @override
+void initState() {
+  super.initState();
+  _firstNameController = TextEditingController();
+  _lastNameController = TextEditingController();
+  _phoneController = TextEditingController();
+  _emailController = TextEditingController();
+  _addressController = TextEditingController();
+
+  // Initialiser immédiatement si le state est déjà chargé
+  final state = context.read<ProfilBloc>().state;
+  if (state is ProfilLoaded) {
+    _firstNameController.text = state.user.firstName;
+    _lastNameController.text = state.user.lastName;
+    _phoneController.text = state.user.phone ?? '';
+    _emailController.text = state.user.email;
+    _addressController.text = state.user.address ?? '';
   }
+}
+
+  
 
   @override
   void dispose() {
@@ -49,14 +62,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     _emailController.dispose();
     _addressController.dispose();
     super.dispose();
-  }
-
-  void _initializeControllers(ProfilLoaded state) {
-    _firstNameController.text = state.user.firstName;
-    _lastNameController.text = state.user.lastName;
-    _phoneController.text = state.user.phone ?? '';
-    _emailController.text = state.user.email;
-    _addressController.text = state.user.address ?? '';
   }
 
   Future<void> _pickImage() async {
@@ -273,14 +278,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             if (state is ProfilLoaded) {
               final user = state.user;
 
-              // Initialiser les controllers avec les données de l'utilisateur
-              if (_firstNameController.text.isEmpty) {
-                _initializeControllers(state);
-              }
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
-                child: Column(
+            return SingleChildScrollView(
+  padding: EdgeInsets.fromLTRB(
+    AppConstants.spacingXL + 4,
+    AppConstants.spacingXL + 4,
+    AppConstants.spacingXL + 4,
+    MediaQuery.of(context).padding.bottom + 80,
+  ),
+  child: Column(
                   children: [
                     // Photo de profil
                     Center(
@@ -428,61 +433,68 @@ Widget _buildAddressField(
         ),
       ),
       const SizedBox(height: AppConstants.spacingS),
-      Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-          horizontal: AppConstants.spacingXL,
-          vertical: _isEditMode ? 0 : 14,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppConstants.radiusL),
-          border: Border.all(
-            color: _isEditMode ? AppColors.success : AppColors.grey300,
+      if (!_isEditMode)
+        // ✅ Mode lecture : simple Text dans un Container
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            border: Border.all(color: AppColors.grey300),
+          ),
+          child: Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeL - 1,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )
+      else
+        // ✅ Mode édition : Google Places dans son propre Container
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            border: Border.all(color: AppColors.success),
+          ),
+          child: GooglePlaceAutoCompleteTextField(
+            textEditingController: controller,
+            googleAPIKey: GoogleMapsConfig.apiKey,
+            inputDecoration: InputDecoration(
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              hintText: 'Ex: Sacré Coeur, Dakar',
+              hintStyle: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeL - 1,
+                color: AppColors.grey400,
+              ),
+            ),
+            textStyle: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeL - 1,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+            debounceTime: 800,
+            countries: const ["sn"],
+            isLatLngRequired: false,
+            getPlaceDetailWithLatLng: (prediction) {
+              setState(() {
+                controller.text = prediction.description ?? '';
+              });
+            },
+            itemClick: (prediction) {
+              controller.text = prediction.description ?? '';
+              controller.selection = TextSelection.fromPosition(
+                TextPosition(offset: controller.text.length),
+              );
+            },
           ),
         ),
-        child: _isEditMode
-            ? GooglePlaceAutoCompleteTextField(
-                textEditingController: controller,
-                googleAPIKey: GoogleMapsConfig.apiKey, 
-                inputDecoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  hintText: 'Ex: Sacré Coeur, Dakar',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: AppConstants.fontSizeL - 1,
-                    color: AppColors.grey400,
-                  ),
-                ),
-                textStyle: GoogleFonts.inter(
-                  fontSize: AppConstants.fontSizeL - 1,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-                debounceTime: 800,
-                countries: const ["sn"],
-                isLatLngRequired: false,
-                getPlaceDetailWithLatLng: (prediction) {
-                  setState(() {
-                    controller.text = prediction.description ?? '';
-                  });
-                },
-                itemClick: (prediction) {
-                  controller.text = prediction.description ?? '';
-                  controller.selection = TextSelection.fromPosition(
-                    TextPosition(offset: controller.text.length),
-                  );
-                },
-              )
-            : Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: AppConstants.fontSizeL - 1,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-      ),
     ],
   );
 }

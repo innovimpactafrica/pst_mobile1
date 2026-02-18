@@ -192,19 +192,16 @@ void initState() {
           ],
         ),
       ),
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton(
-          onPressed: _showAddChildModal,
-          backgroundColor: AppColors.success,
-          elevation: 8,
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-      ),
+      floatingActionButton: Padding(
+  padding: const EdgeInsets.only(bottom: 70), // hauteur de ta navbar
+  child: FloatingActionButton(
+    onPressed: _showAddChildModal,
+    backgroundColor: AppColors.success,
+    elevation: 8,
+    child: const Icon(Icons.add, color: Colors.white, size: 28),
+  ),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

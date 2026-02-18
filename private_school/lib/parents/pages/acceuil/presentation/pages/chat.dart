@@ -35,8 +35,6 @@ class _ChatPageState extends State<ChatPage> {
   int? _currentUserId;
   bool _isLoading = true;
   MessageModel? _editingMessage;
-
-  // ✅ GETTER PROTÉGÉ : Gère int et String
   int get _conversationId {
     final id = widget.conversation.id;
     debugPrint('🔍 [ChatPage] conversation.id = $id (type: ${id.runtimeType})');
@@ -44,31 +42,31 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _loadCurrentUser();
-    
-    // ✅ Utiliser le getter protégé
-    context.read<MessageBloc>().add(
-          LoadMessagesEvent(conversationId: _conversationId),
-        );
-    
-    // ✅ Marquer les messages comme lus
-    _markMessagesAsRead();
-  }
+ @override
+void initState() {
+  super.initState();
+  _loadCurrentUser();
+  
+  context.read<MessageBloc>().add(
+    LoadMessagesEvent(conversationId: _conversationId),
+  );
+  
+  // ✅ Marquer comme lu dès l'ouverture
+  _markMessagesAsRead();
+}
 
   Future<void> _markMessagesAsRead() async {
-    try {
-      debugPrint('📖 [ChatPage] Marquage messages comme lus pour conversation $_conversationId');
-      await _repository.markConversationAsRead(_conversationId);
-      
-      // Notifier le compteur de messages non lus
-      UnreadMessagesBloc.notifyMessageRead(_conversationId);
-      debugPrint('✅ [ChatPage] Messages marqués comme lus et compteur notifié');
-    } catch (e) {
-      debugPrint('⚠️ Erreur marquage messages lus: $e');
-    }
+  try {
+    await _repository.markConversationAsRead(_conversationId);
+    
+    // ✅ Notifier le bloc de DÉCREMENTER immédiatement
+    UnreadMessagesBloc.notifyMessageRead(_conversationId);
+    
+    debugPrint('✅ [ChatPage] Messages marqués comme lus');
+  } catch (e) {
+    debugPrint('⚠️ Erreur marquage messages lus: $e');
   }
+}
 
 Future<void> _loadCurrentUser() async {
   try {
@@ -151,13 +149,13 @@ Future<void> _loadCurrentUser() async {
   }
 
   @override
-  void dispose() {
-    // Marquer les messages comme lus une dernière fois avant de quitter
-    _markMessagesAsRead();
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+void dispose() {
+  // ✅ Marquer comme lu une dernière fois avant de quitter
+  _markMessagesAsRead();
+  _messageController.dispose();
+  _scrollController.dispose();
+  super.dispose();
+}
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {

@@ -6,8 +6,14 @@ abstract class GroupEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// ✅ Charge mes groupes + groupes disponibles + invitations en UN seul event
 class LoadAllGroupsEvent extends GroupEvent {}
+
+class SearchGroupsEvent extends GroupEvent {
+  final String query;
+  SearchGroupsEvent(this.query);
+  @override
+  List<Object?> get props => [query];
+}
 
 class LoadMyGroupsEvent extends GroupEvent {}
 class LoadAvailableGroupsEvent extends GroupEvent {}

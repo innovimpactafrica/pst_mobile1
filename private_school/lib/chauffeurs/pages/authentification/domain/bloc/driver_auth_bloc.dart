@@ -135,7 +135,7 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
     try {
       final isLoggedIn = await repository.isLoggedIn();
       if (isLoggedIn) {
-        emit(DriverAuthInitial());
+        emit(DriverAuthenticatedFromStorage());
       } else {
         emit(DriverUnauthenticated());
       }

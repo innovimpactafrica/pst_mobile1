@@ -114,6 +114,9 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               ),
               child: TextField(
                 controller: _searchController,
+                onChanged: (query) {
+                  context.read<GroupBloc>().add(SearchGroupsEvent(query));
+                },
                 decoration: InputDecoration(
                   hintText: 'search'.tr(),
                   hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
@@ -196,8 +199,8 @@ if (state is GroupJoined) {
                 List<GroupInvitation> invitations = [];
 
                 if (state is GroupsLoaded) {
-                  myGroups = state.myGroups;
-                  availableGroups = state.availableGroups;
+                  myGroups = state.filteredMyGroups;
+                  availableGroups = state.filteredAvailableGroups;
                   invitations = state.invitations;
                 }
 
@@ -235,13 +238,30 @@ if (state is GroupJoined) {
                                 padding: const EdgeInsets.symmetric(vertical: 40),
                                 child: Column(
                                   children: [
-                                    Icon(Icons.group_outlined, size: 64, color: Colors.grey.shade300),
+                                    Icon(
+                                      state is GroupsLoaded && state.searchQuery.isNotEmpty
+                                        ? Icons.search_off
+                                        : Icons.group_outlined,
+                                      size: 64,
+                                      color: Colors.grey.shade300,
+                                    ),
                                     const SizedBox(height: 16),
-                                    Text('no_groups'.tr(),
-                                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
-                                    const SizedBox(height: 8),
-                                    Text('create_your_first_group'.tr(),
-                                        style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                                    Text(
+                                      state is GroupsLoaded && state.searchQuery.isNotEmpty
+                                        ? 'Aucun résultat pour "${state.searchQuery}"'
+                                        : 'no_groups'.tr(),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    if (state is! GroupsLoaded || state.searchQuery.isEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Text('create_your_first_group'.tr(),
+                                          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                                    ],
                                   ],
                                 ),
                               ),
@@ -435,11 +455,29 @@ if (state is GroupJoined) {
   // ─────────────────────────────────────────────
   Widget _buildAvailableGroupsSection(BuildContext context, List<GroupModel> availableGroups) {
     if (availableGroups.isEmpty) {
+      final state = context.read<GroupBloc>().state;
+      final hasSearch = state is GroupsLoaded && state.searchQuery.isNotEmpty;
+      
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          child: Text('no_available_groups'.tr(),
-              style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+          child: Column(
+            children: [
+              Icon(
+                hasSearch ? Icons.search_off : Icons.inbox_outlined,
+                size: 48,
+                color: Colors.grey.shade300,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                hasSearch
+                  ? 'Aucun groupe disponible pour cette recherche'
+                  : 'no_available_groups'.tr(),
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }

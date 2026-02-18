@@ -11,12 +11,18 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final List<TripModel> trips; // CHANGEMENT : trips au lieu de drivers
+  final List<TripModel> trips;
+  final List<TripModel> filteredTrips;
+  final String searchQuery;
 
-  HomeLoaded({required this.trips});
+  HomeLoaded({
+    required this.trips,
+    List<TripModel>? filteredTrips,
+    this.searchQuery = '',
+  }) : filteredTrips = filteredTrips ?? trips;
 
   @override
-  List<Object?> get props => [trips];
+  List<Object?> get props => [trips, filteredTrips, searchQuery];
 }
 
 class HomeError extends HomeState {

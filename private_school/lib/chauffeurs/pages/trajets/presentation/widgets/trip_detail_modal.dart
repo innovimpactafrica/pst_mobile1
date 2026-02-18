@@ -47,7 +47,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('✅ Durée: $duration minutes');
   }
 
-  Widget _buildHandle() {
+  /*Widget _buildHandle() {
     return Container(
       margin: const EdgeInsets.only(top: AppConstants.spacingM),
       width: 40,
@@ -57,27 +57,24 @@ class _TripDetailModalState extends State<TripDetailModal> {
         borderRadius: BorderRadius.circular(2),
       ),
     );
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(AppConstants.radiusXXL),
-            topRight: Radius.circular(AppConstants.radiusXXL),
-          ),
-        ),
+  height: MediaQuery.of(context).size.height,
+  decoration: const BoxDecoration(
+    color: AppColors.white,
+    // Plus de borderRadius ici — le header prend tout
+  ),
         child: Column(
           children: [
-            _buildHandle(),
             _buildHeader(context),
             Expanded(
               child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
                 child: Column(
                   children: [
                     _buildMap(),
@@ -104,12 +101,12 @@ class _TripDetailModalState extends State<TripDetailModal> {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + AppConstants.spacingL,
-        left: AppConstants.spacingL,
-        right: AppConstants.spacingL,
-        bottom: AppConstants.spacingL,
-      ),
+padding: EdgeInsets.only(
+  top: MediaQuery.of(context).padding.top + AppConstants.spacingL,
+  left: AppConstants.spacingL,
+  right: AppConstants.spacingL,
+  bottom: AppConstants.spacingL,
+),
       decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.only(
@@ -142,16 +139,16 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
-  Widget _buildMap() {
-    return Container(
-      margin: const EdgeInsets.all(AppConstants.spacingXL),
-      child: TripMapWidget(
-        startLocation: widget.trip.startLocation ?? 'Dakar',
-        destination: widget.trip.destination,
-        onRouteCalculated: _onRouteCalculated,
-      ),
-    );
-  }
+ Widget _buildMap() {
+  return Container(
+    margin: const EdgeInsets.all(AppConstants.spacingXL),
+    child: TripMapWidget(
+      startLocation: widget.trip.startLocation ?? 'Dakar',
+      destination: widget.trip.destination,
+      onRouteCalculated: _onRouteCalculated,
+    ),
+  );
+}
 
   Widget _buildTripInfoCard() {
     final isAllerCompleted = widget.trip.status == 'completed' || widget.trip.status == 'partially_completed';
@@ -533,7 +530,12 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('🔵 [TripDetailModal] showReturnButton: $showReturnButton, showCompleteReturnButton: $showCompleteReturnButton');
     
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingXL),
+     padding: EdgeInsets.only(
+  left: AppConstants.spacingXL,
+  right: AppConstants.spacingXL,
+  top: AppConstants.spacingXL,
+  bottom: AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
+),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [

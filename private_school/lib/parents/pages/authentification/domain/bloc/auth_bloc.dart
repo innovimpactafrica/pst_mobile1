@@ -19,10 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// ✅ Handler : Inscription - AVEC password et homeAddress
-  Future<void> _onRegister(
-    RegisterEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
     try {
@@ -40,13 +37,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('✅ BLoC: Registration result: $result');
 
       if (result['token'] != null) {
-        emit(RegisterSuccess(
-          message: result['message'] ?? 'Inscription réussie',
-        ));
+        emit(
+          RegisterSuccess(message: result['message'] ?? 'Inscription réussie'),
+        );
       } else {
-        emit(RegisterSuccess(
-          message: result['message'] ?? 'Inscription réussie',
-        ));
+        emit(
+          RegisterSuccess(message: result['message'] ?? 'Inscription réussie'),
+        );
       }
     } catch (e) {
       debugPrint('❌ BLoC: Registration error: $e');
@@ -55,10 +52,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// ✅ Handler : Connexion
-  Future<void> _onLogin(
-    LoginEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
     try {
@@ -72,10 +66,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('✅ BLoC: Login result: $result');
 
       if (result['success'] == true && result['user'] != null) {
-        emit(AuthAuthenticated(
-          user: result['user'],
-          message: 'Connexion réussie',
-        ));
+        emit(
+          AuthAuthenticated(user: result['user'], message: 'Connexion réussie'),
+        );
       } else {
         emit(const AuthError(message: 'Échec de la connexion'));
       }
@@ -102,10 +95,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       debugPrint('✅ BLoC: OTP verified');
 
-      emit(OtpVerified(
-        message: result['message'] ?? 'Code vérifié',
-        token: result['token'],
-      ));
+      emit(
+        OtpVerified(
+          message: result['message'] ?? 'Code vérifié',
+          token: result['token'],
+        ),
+      );
     } catch (e) {
       debugPrint('❌ BLoC: OTP verification error: $e');
       emit(AuthError(message: e.toString()));
@@ -131,10 +126,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Récupérer userId depuis la réponse API
       final userId = result['user']?['id'] ?? result['userId'];
 
-      emit(PasswordResetRequested(
-        event.contact,
-        userId: userId,
-      ));
+      emit(PasswordResetRequested(event.contact, userId: userId));
     } catch (e) {
       debugPrint('❌ BLoC: Forgot password error: $e');
       emit(AuthError(message: e.toString()));
@@ -159,9 +151,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       debugPrint('✅ BLoC: Password reset successful');
 
-      emit(const PasswordResetSuccess(
-        message: 'Mot de passe réinitialisé avec succès',
-      ));
+      emit(
+        const PasswordResetSuccess(
+          message: 'Mot de passe réinitialisé avec succès',
+        ),
+      );
     } catch (e) {
       debugPrint('❌ BLoC: Reset password error: $e');
       emit(AuthError(message: e.toString()));
@@ -169,10 +163,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// ✅ Handler : Déconnexion
-  Future<void> _onLogout(
-    LogoutEvent event,
-    Emitter<AuthState> emit,
-  ) async {
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     try {
       debugPrint('🔄 BLoC: Logging out...');
 

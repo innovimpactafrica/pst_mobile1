@@ -249,16 +249,21 @@ class ProfilPageContent extends StatelessWidget {
 
                             // Logout button
                             MenuItemWidget(
-                              icon: Icons.logout,
-                              title: 'disconnect'.tr(),
-                              iconColor: AppColors.error,
-                              showChevron: false,
-                              onTap: () {
-                                _showLogoutDialog(context);
-                              },
-                            ),
+  icon: Icons.logout,
+  title: 'disconnect'.tr(),
+  iconColor: AppColors.error,
+  showChevron: false,
+  onTap: () {
+    _showLogoutDialog(context);
+  },
+),
 
-                            const SizedBox(height: 40),
+// ✅ Espace pour ne pas être caché par le navbar
+Builder(
+  builder: (context) => SizedBox(
+    height: 80 + MediaQuery.of(context).padding.bottom,
+  ),
+),
                           ],
                         ),
                       ),

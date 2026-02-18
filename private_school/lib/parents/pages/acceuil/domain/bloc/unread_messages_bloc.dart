@@ -105,14 +105,32 @@ class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> 
   }
 
   Future<void> _onMessageRead(
-    MessageReadEvent event,
-    Emitter<UnreadMessagesState> emit,
-  ) async {
-    debugPrint('📖 [UnreadMessagesBloc] Messages lus dans conversation ${event.conversationId}');
-    // Attendre un peu pour que le serveur traite la requête
-    await Future.delayed(const Duration(milliseconds: 500));
-    add(RefreshUnreadCountEvent());
+  MessageReadEvent event,
+  Emitter<UnreadMessagesState> emit,
+) async {
+  debugPrint('📖 [UnreadMessagesBloc] Messages lus dans conversation ${event.conversationId}');
+  
+  // ✅ Décrémenter IMMÉDIATEMENT le compteur local (comme WhatsApp)
+  if (state is UnreadMessagesLoaded) {
+    final currentCount = (state as UnreadMessagesLoaded).count;
+    if (currentCount > 0) {
+      emit(UnreadMessagesLoaded(currentCount > 1 ? currentCount - 1 : 0));
+    }
   }
+
+  // ✅ Puis rafraîchir depuis le serveur après un délai
+  await Future.delayed(const Duration(milliseconds: 800));
+  try {
+    final conversations = await repository.getConversations();
+    final totalUnread = conversations.fold<int>(
+      0,
+      (sum, conv) => sum + conv.unreadCount,
+    );
+    emit(UnreadMessagesLoaded(totalUnread));
+  } catch (e) {
+    debugPrint('❌ Erreur refresh après lecture: $e');
+  }
+}
 
   Future<void> _onNewMessageReceived(
     NewMessageReceivedEvent event,

@@ -10,6 +10,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
 
   GroupBloc({required this.repository}) : super(GroupInitial()) {
     on<LoadAllGroupsEvent>(_onLoadAllGroups);
+    on<SearchGroupsEvent>(_onSearchGroups);
     on<LoadMyGroupsEvent>(_onLoadMyGroups);
     on<LoadAvailableGroupsEvent>(_onLoadAvailableGroups);
     on<LoadInvitationsEvent>(_onLoadInvitations);
@@ -392,5 +393,37 @@ Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupS
       final current = state as GroupDetailsLoaded;
       emit(current.copyWith(selectedTabIndex: event.tabIndex));
     }
+  }
+
+  void _onSearchGroups(SearchGroupsEvent event, Emitter<GroupState> emit) {
+    final currentState = state;
+    if (currentState is! GroupsLoaded) return;
+
+    final query = event.query.toLowerCase().trim();
+
+    if (query.isEmpty) {
+      emit(currentState.copyWith(
+        filteredMyGroups: currentState.myGroups,
+        filteredAvailableGroups: currentState.availableGroups,
+        searchQuery: '',
+      ));
+      return;
+    }
+
+    final filteredMy = currentState.myGroups.where((group) {
+      return group.name.toLowerCase().contains(query) ||
+             group.description?.toLowerCase().contains(query) == true;
+    }).toList();
+
+    final filteredAvailable = currentState.availableGroups.where((group) {
+      return group.name.toLowerCase().contains(query) ||
+             group.description?.toLowerCase().contains(query) == true;
+    }).toList();
+
+    emit(currentState.copyWith(
+      filteredMyGroups: filteredMy,
+      filteredAvailableGroups: filteredAvailable,
+      searchQuery: query,
+    ));
   }
 }

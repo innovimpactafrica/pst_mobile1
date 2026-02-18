@@ -15,6 +15,8 @@ class ReportsPage extends StatefulWidget {
 
 class _ReportsPageState extends State<ReportsPage> {
   int _selectedTab = 0;
+  int _currentPage = 1;
+  final int _itemsPerPage = 5;
 
   // Mock data - should come from BLoC/Repository
   final List<Map<String, dynamic>> _allReports = [
@@ -45,16 +47,40 @@ class _ReportsPageState extends State<ReportsPage> {
   ];
 
   List<Map<String, dynamic>> get _filteredReports {
+    List<Map<String, dynamic>> filtered;
+    
     if (_selectedTab == 0) {
-      return _allReports;
+      filtered = _allReports;
+    } else {
+      const categories = ['Incident', 'Litiges', 'Sécurité'];
+      final selectedCategory = categories[_selectedTab - 1];
+      filtered = _allReports
+          .where((report) => report['category'] == selectedCategory)
+          .toList();
     }
-
-    const categories = ['Incident', 'Litiges', 'Sécurité'];
-    final selectedCategory = categories[_selectedTab - 1];
-
-    return _allReports
-        .where((report) => report['category'] == selectedCategory)
-        .toList();
+    
+    // Pagination
+    final startIndex = (_currentPage - 1) * _itemsPerPage;
+    final endIndex = startIndex + _itemsPerPage;
+    
+    if (startIndex >= filtered.length) {
+      return [];
+    }
+    
+    return filtered.sublist(
+      startIndex,
+      endIndex > filtered.length ? filtered.length : endIndex,
+    );
+  }
+  
+  int get _totalPages {
+    final filtered = _selectedTab == 0
+        ? _allReports
+        : _allReports.where((report) {
+            const categories = ['Incident', 'Litiges', 'Sécurité'];
+            return report['category'] == categories[_selectedTab - 1];
+          }).toList();
+    return (filtered.length / _itemsPerPage).ceil();
   }
 
   @override
@@ -155,6 +181,7 @@ class _ReportsPageState extends State<ReportsPage> {
         onTap: () {
           setState(() {
             _selectedTab = index;
+            _currentPage = 1; // Reset to first page when changing tab
           });
         },
         child: Container(
@@ -183,33 +210,47 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildReportsList() {
+    final totalItems = _selectedTab == 0
+        ? _allReports.length
+        : _allReports.where((report) {
+            const categories = ['Incident', 'Litiges', 'Sécurité'];
+            return report['category'] == categories[_selectedTab - 1];
+          }).length;
+    
     return Expanded(
-      child: _filteredReports.isEmpty
-          ? Center(
-              child: Text(
-                'Aucun signalement',
-                style: GoogleFonts.inter(
-                  fontSize: AppConstants.fontSizeM,
-                  color: AppColors.textGrey,
-                ),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacingXL + 4,
-              ),
-              itemCount: _filteredReports.length,
-              itemBuilder: (context, index) {
-                final report = _filteredReports[index];
-                return _buildReportCard(
-                  title: report['title'],
-                  description: report['description'],
-                  status: report['status'],
-                  statusColor: report['statusColor'],
-                  imageUrl: report['imageUrl'],
-                );
-              },
-            ),
+      child: Column(
+        children: [
+          Expanded(
+            child: _filteredReports.isEmpty
+                ? Center(
+                    child: Text(
+                      'Aucun signalement',
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeM,
+                        color: AppColors.textGrey,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.spacingXL + 4,
+                    ),
+                    itemCount: _filteredReports.length,
+                    itemBuilder: (context, index) {
+                      final report = _filteredReports[index];
+                      return _buildReportCard(
+                        title: report['title'],
+                        description: report['description'],
+                        status: report['status'],
+                        statusColor: report['statusColor'],
+                        imageUrl: report['imageUrl'],
+                      );
+                    },
+                  ),
+          ),
+          if (_totalPages > 1) _buildPagination(totalItems),
+        ],
+      ),
     );
   }
 
@@ -320,6 +361,125 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPagination(int totalItems) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+        vertical: AppConstants.spacingL,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Page $_currentPage sur $_totalPages',
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeS,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Row(
+            children: [
+              _buildPageButton(
+                icon: Icons.chevron_left,
+                onPressed: _currentPage > 1
+                    ? () => setState(() => _currentPage--)
+                    : null,
+              ),
+              const SizedBox(width: AppConstants.spacingS),
+              ..._buildPageNumbers(),
+              const SizedBox(width: AppConstants.spacingS),
+              _buildPageButton(
+                icon: Icons.chevron_right,
+                onPressed: _currentPage < _totalPages
+                    ? () => setState(() => _currentPage++)
+                    : null,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildPageNumbers() {
+    List<Widget> pages = [];
+    
+    for (int i = 1; i <= _totalPages; i++) {
+      if (i == 1 ||
+          i == _totalPages ||
+          (i >= _currentPage - 1 && i <= _currentPage + 1)) {
+        pages.add(
+          GestureDetector(
+            onTap: () => setState(() => _currentPage = i),
+            child: Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                color: _currentPage == i ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _currentPage == i ? AppColors.primary : AppColors.grey300,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '$i',
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeS,
+                    fontWeight: _currentPage == i ? FontWeight.w600 : FontWeight.w400,
+                    color: _currentPage == i ? AppColors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      } else if (i == _currentPage - 2 || i == _currentPage + 2) {
+        pages.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '...',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeS,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    return pages;
+  }
+
+  Widget _buildPageButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: onPressed != null ? AppColors.white : AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: onPressed != null ? AppColors.grey300 : AppColors.grey200,
+        ),
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: 16,
+          color: onPressed != null ? AppColors.textPrimary : AppColors.textSecondary,
+        ),
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
       ),
     );
   }

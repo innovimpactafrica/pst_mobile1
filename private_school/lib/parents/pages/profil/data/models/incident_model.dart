@@ -10,6 +10,7 @@ class IncidentModel {
   final DateTime createdAt;
   final String? imageUrl;
   final String? response;
+  final String? userId;
   
   IncidentModel({
     required this.id,
@@ -20,6 +21,7 @@ class IncidentModel {
     required this.createdAt,
     this.imageUrl,
     this.response,
+    this.userId,
   });
 
   factory IncidentModel.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class IncidentModel {
           : DateTime.now(),
       imageUrl: json['imageUrl'] ?? json['image'],
       response: json['response'] ?? json['reponse'],
+      userId: json['user_id']?.toString() ?? json['userId']?.toString(),
     );
   }
 
@@ -56,6 +59,7 @@ class IncidentModel {
     DateTime? createdAt,
     String? imageUrl,
     String? response,
+    String? userId,
   }) {
     return IncidentModel(
       id: id ?? this.id,
@@ -66,6 +70,7 @@ class IncidentModel {
       createdAt: createdAt ?? this.createdAt,
       imageUrl: imageUrl ?? this.imageUrl,
       response: response ?? this.response,
+      userId: userId ?? this.userId,
     );
   }
 

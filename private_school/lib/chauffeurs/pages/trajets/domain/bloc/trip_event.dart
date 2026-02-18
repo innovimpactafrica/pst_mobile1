@@ -5,10 +5,10 @@ class LoadTripsEvent extends TripEvent {}
 class CreateTripEvent extends TripEvent {
   final String startPoint;
   final String endPoint;
-  final DateTime departureTime;
-  final DateTime returnTime;
+  final DateTime? departureTime;
+  final DateTime? returnTime;
   final int capacityMax;
-  final int schoolId;
+  final List<int> schoolIds;
   final bool isRecurring;
   final double? startLatitude;
   final double? startLongitude;
@@ -18,10 +18,10 @@ class CreateTripEvent extends TripEvent {
   CreateTripEvent({
     required this.startPoint,
     required this.endPoint,
-    required this.departureTime,
-    required this.returnTime,
+    this.departureTime,
+    this.returnTime,
     required this.capacityMax,
-    required this.schoolId,
+    required this.schoolIds,
     this.isRecurring = false,
     this.startLatitude,
     this.startLongitude,

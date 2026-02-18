@@ -1,7 +1,17 @@
+import 'package:private_school/parents/pages/acceuil/presentation/widgets/trip_filter_modal.dart';
+
 abstract class HomeEvent {}
 
-// Event pour charger la liste des chauffeurs
 class LoadDriversEvent extends HomeEvent {}
 
-// Event pour vider le cache
+class SearchTripsEvent extends HomeEvent {
+  final String query;
+  SearchTripsEvent(this.query);
+}
+
+class FilterTripsEvent extends HomeEvent {
+  final TripFilters filters;
+  FilterTripsEvent(this.filters);
+}
+
 class ClearHomeCache extends HomeEvent {}

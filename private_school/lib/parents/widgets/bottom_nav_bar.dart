@@ -14,41 +14,40 @@ required this.onTap,
 });
 
 @override
+@override
 Widget build(BuildContext context) {
-return Positioned(
-left: 0,
-right: 0,
-bottom: 0,
-child: Container(
-color: Colors.white,
-child: SafeArea(
-top: false,
-child: Container(
-height: 70,
-decoration: BoxDecoration(
-color: Colors.white,
-boxShadow: [
-BoxShadow(
-color: Colors.black.withValues(alpha: 0.05),
-blurRadius: 10,
-offset: const Offset(0, -2),
-),
-],
-),
-child: Row(
-mainAxisAlignment: MainAxisAlignment.spaceAround,
-children: [
-_buildNavItem(icon: Icons.home_rounded, label: 'home'.tr(), index: 0),
-_buildNavItem(icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
-_buildNavItem(icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
-_buildNavItem(icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
-_buildNavItem(icon: Icons.person_rounded, label: 'profile'.tr(), index: 4),
-],
-),
-),
-),
-),
-);
+  final bottomPadding = MediaQuery.of(context).padding.bottom;
+  
+  return Positioned(
+    left: 0,
+    right: 0,
+    bottom: 0,
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      // ✅ Hauteur fixe + padding système Android
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      height: 70 + bottomPadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(icon: Icons.home_rounded, label: 'home'.tr(), index: 0),
+          _buildNavItem(icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
+          _buildNavItem(icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
+          _buildNavItem(icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
+          _buildNavItem(icon: Icons.person_rounded, label: 'profile'.tr(), index: 4),
+        ],
+      ),
+    ),
+  );
 }
 
 Widget _buildNavItem({

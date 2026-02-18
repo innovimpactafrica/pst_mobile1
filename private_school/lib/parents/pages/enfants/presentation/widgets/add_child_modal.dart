@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:private_school/core/utils/google_maps_config.dart';
-import 'package:private_school/parents/pages/school/domain/bloc/school_bloc.dart';
-import 'package:private_school/parents/pages/school/domain/bloc/school_event.dart' show FindOrCreateSchoolEvent;
-import 'package:private_school/parents/pages/school/domain/bloc/school_state.dart';
+import 'package:private_school/parents/pages/school/data/models/school_model.dart';
+import 'package:private_school/parents/pages/school/data/services/school_service.dart';
 import 'package:private_school/parents/widgets/address_picker_widget.dart';
+import 'package:private_school/shared/widgets/school_autocomplete_field.dart';
 
 import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/google_maps_config.dart';
 import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
@@ -28,11 +28,31 @@ class _AddChildModalState extends State<AddChildModal> {
   final _addressController = TextEditingController();
   final _schoolNameController = TextEditingController();
   final _schoolAddressController = TextEditingController();
-  final _birthDateController = TextEditingController(); // ✅ AJOUTÉ
-  final _gradeController = TextEditingController(); // ✅ AJOUTÉ
 
+  final SchoolService _schoolService = SchoolService();
+  List<SchoolModel> _schools = [];
+  bool _loadingSchools = true;
+  SchoolModel? _selectedSchool;
   bool _isLoading = false;
-  int? _createdSchoolId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSchools();
+  }
+
+  Future<void> _loadSchools() async {
+    try {
+      final schools = await _schoolService.fetchSchools();
+      setState(() {
+        _schools = schools;
+        _loadingSchools = false;
+      });
+    } catch (e) {
+      debugPrint('❌ Erreur chargement écoles: $e');
+      setState(() => _loadingSchools = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -41,47 +61,23 @@ class _AddChildModalState extends State<AddChildModal> {
     _addressController.dispose();
     _schoolNameController.dispose();
     _schoolAddressController.dispose();
-    _birthDateController.dispose(); // ✅ AJOUTÉ
-    _gradeController.dispose(); // ✅ AJOUTÉ
     super.dispose();
-  }
-
-  // ✅ NOUVELLE MÉTHODE : Sélectionner la date de naissance
-  Future<void> _selectBirthDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(2015, 1, 1),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      locale: const Locale('fr', 'FR'),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: AppColors.success),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        _birthDateController.text =
-            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-      });
-    }
   }
 
   void _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
+      if (_selectedSchool == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veuillez sélectionner une école dans la liste'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       setState(() => _isLoading = true);
-
-      final schoolName = _schoolNameController.text.trim();
-      final schoolAddress = _schoolAddressController.text.trim();
-
-      context.read<SchoolBloc>().add(
-        FindOrCreateSchoolEvent(schoolName, schoolAddress),
-      );
+      _createChildWithSchool(_selectedSchool!.id!);
     }
   }
 
@@ -94,73 +90,40 @@ class _AddChildModalState extends State<AddChildModal> {
       name: fullName,
       address: _addressController.text.trim(),
       schoolId: schoolId,
-      birthDate: _birthDateController.text.trim().isNotEmpty 
-          ? _birthDateController.text.trim() 
-          : null, // ✅ AJOUTÉ
-      grade: _gradeController.text.trim().isNotEmpty 
-          ? _gradeController.text.trim() 
-          : null, // ✅ AJOUTÉ
     );
 
     debugPrint('📤 Création enfant avec école ID: $schoolId');
     debugPrint('   Name: ${child.name}');
     debugPrint('   Address: ${child.address}');
-    debugPrint('   Birth Date: ${child.birthDate}');
-    debugPrint('   Grade: ${child.grade}');
 
     context.read<ChildBloc>().add(AddChildEvent(child));
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<SchoolBloc, SchoolState>(
-          listener: (context, state) {
-            if (state is SchoolCreatedState) {
-              debugPrint('✅ École créée/trouvée: ${state.school.name} (ID: ${state.school.id})');
-              _createdSchoolId = state.school.id;
-              
-              if (_createdSchoolId != null) {
-                _createChildWithSchool(_createdSchoolId!);
-              }
-            } else if (state is SchoolErrorState) {
-              setState(() => _isLoading = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erreur école: ${state.error}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-        ),
-        
-        BlocListener<ChildBloc, ChildState>(
-          listener: (context, state) {
-            if (state is ChildActionSuccessState) {
-              setState(() => _isLoading = false);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            } else if (state is ChildErrorState) {
-              setState(() => _isLoading = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.error),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          },
-        ),
-      ],
+    return BlocListener<ChildBloc, ChildState>(
+      listener: (context, state) {
+        if (state is ChildActionSuccessState) {
+          setState(() => _isLoading = false);
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (state is ChildErrorState) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -212,48 +175,94 @@ class _AddChildModalState extends State<AddChildModal> {
                       },
                     ),
                     
-                    // ✅ AJOUTÉ : Date de naissance
-                    const SizedBox(height: 16),
-                    _buildDateField(
-                      controller: _birthDateController,
-                      label: 'Date de naissance',
-                      hint: 'Ex: 2015-05-15',
-                      icon: Icons.cake_outlined,
-                      onTap: _selectBirthDate,
-                    ),
-                    
-                    // ✅ AJOUTÉ : Classe
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _gradeController,
-                      label: 'Classe',
-                      hint: 'Ex: CE1',
-                      icon: Icons.school,
-                    ),
-                    
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 24),
                     
-                    // ===== INFORMATIONS ÉCOLE =====
-                    _buildSectionTitle('Informations de l\'école'),
+                    _buildSectionTitle('Informations de l\'\u00e9cole'),
                     const SizedBox(height: 12),
-                    _buildTextField(
-                      controller: _schoolNameController,
-                      label: 'Nom de l\'école',
-                      hint: 'Ex: Lycée Jean Mermoz',
-                      icon: Icons.school_outlined,
-                    ),
-                    const SizedBox(height: 16),
-                    AddressPickerWidget(
-                      controller: _schoolAddressController,
-                      googleApiKey: GoogleMapsConfig.apiKey,
-                      label: 'Adresse de l\'école',
-                      hint: 'Ex: Ouakam, Dakar',
-                      onLocationSelected: (lat, lng) {
-                        // Coordonnées reçues mais non utilisées pour l'instant
-                      },
-                    ),
+                    _loadingSchools
+                        ? const Center(child: CircularProgressIndicator())
+                        : _schools.isEmpty
+                            ? Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFF59E0B)),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Aucune école disponible. Veuillez contacter l\'administrateur.',
+                                        style: TextStyle(
+                                          color: Color(0xFFF59E0B),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : SchoolAutocompleteField(
+                                label: 'Nom de l\'école',
+                                hint: 'Ex: Lycée Jean Mermoz',
+                                controller: _schoolNameController,
+                                schools: _schools,
+                                enabled: !_isLoading,
+                                onSchoolSelected: (school, schoolName) {
+                                  setState(() {
+                                    _selectedSchool = school;
+                                    if (school != null && school.address.isNotEmpty) {
+                                      _schoolAddressController.text = school.address;
+                                    }
+                                  });
+                                },
+                              ),
+                    
+                    if (_selectedSchool != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _selectedSchool!.name,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                  if (_selectedSchool!.address.isNotEmpty)
+                                    Text(
+                                      _selectedSchool!.address,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     
                     const SizedBox(height: 24),
                     _buildSubmitButton(),
@@ -380,78 +389,6 @@ class _AddChildModalState extends State<AddChildModal> {
                   return null;
                 }
               : null,
-        ),
-      ],
-    );
-  }
-
-  // ✅ NOUVELLE MÉTHODE : Champ de date avec sélecteur
-  Widget _buildDateField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            Text(
-              ' (optionnel)',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          enabled: !_isLoading,
-          readOnly: true,
-          onTap: onTap,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey.shade400,
-            ),
-            prefixIcon: Icon(icon, color: AppColors.success.withValues(alpha: 0.7)),
-            suffixIcon: Icon(Icons.calendar_today, color: Colors.grey.shade400, size: 18),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.success, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
         ),
       ],
     );

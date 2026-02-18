@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import 'package:private_school/parents/pages/acceuil/data/models/conversation_model.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_event.dart';
@@ -28,7 +29,7 @@ class TripTrackingPage extends StatefulWidget {
 
 class _TripTrackingPageState extends State<TripTrackingPage> {
   int? _durationMinutes;
-   List<EvaluationModel> _evaluations = []; // ← AJOUTÉ
+  List<EvaluationModel> _evaluations = []; // ← AJOUTÉ
   bool _isLoadingEvaluations = false; // ← AJOUTÉ
   final _evaluationRepository = EvaluationRepository(); // ← AJOUTÉ
 
@@ -39,48 +40,59 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     debugPrint('📋 [TripTrackingPage] INFOS DU TRAJET');
     debugPrint('   Trip ID: ${widget.trip.id}');
     debugPrint('   Status: ${widget.trip.status}');
-    debugPrint('   Driver: ${widget.trip.driverName}');
+    debugPrint('   Driver Name: ${widget.trip.driverName}');
     debugPrint('   Driver Photo: ${widget.trip.driver?.photo}');
+    debugPrint('');
+    debugPrint('🔍 DRIVER COMPLET:');
+    debugPrint('   Driver existe? ${widget.trip.driver != null}');
+    debugPrint('   Driver ID: ${widget.trip.driver?.id}');
+    debugPrint(
+      '   Driver User ID: ${widget.trip.driver?.userId}',
+    ); // ← CRUCIAL !
+    debugPrint('   Driver FullName: ${widget.trip.driver?.fullName}');
+    debugPrint('   Driver Phone: ${widget.trip.driver?.phone}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-     _loadEvaluations(); // ← AJOUTÉ
+    _loadEvaluations();
   }
 
   Future<void> _loadEvaluations() async {
-  if (widget.trip.driverId == null) return;
+    if (widget.trip.driverId == null) return;
 
-  setState(() {
-    _isLoadingEvaluations = true;
-  });
+    setState(() {
+      _isLoadingEvaluations = true;
+    });
 
-  try {
-    debugPrint('🔍 [TripTrackingPage] Chargement des évaluations...');
-    
-    final evaluations = await _evaluationRepository.getDriverEvaluations(
-      driverId: int.parse(widget.trip.driverId!),
-      limit: 10,
-    );
+    try {
+      debugPrint('🔍 [TripTrackingPage] Chargement des évaluations...');
 
-    debugPrint('✅ ${evaluations.length} évaluation(s) chargée(s)');
+      final evaluations = await _evaluationRepository.getDriverEvaluations(
+        driverId: int.parse(widget.trip.driverId!),
+        limit: 10,
+      );
 
-    if (mounted) {
-      setState(() {
-        _evaluations = evaluations;
-        _isLoadingEvaluations = false;
-      });
-    }
-  } catch (e) {
-    debugPrint('❌ Erreur chargement évaluations: $e');
-    if (mounted) {
-      setState(() {
-        _isLoadingEvaluations = false;
-      });
+      debugPrint('✅ ${evaluations.length} évaluation(s) chargée(s)');
+
+      if (mounted) {
+        setState(() {
+          _evaluations = evaluations;
+          _isLoadingEvaluations = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Erreur chargement évaluations: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingEvaluations = false;
+        });
+      }
     }
   }
-}
 
   void _onRouteCalculated(double distance, int duration) {
     setState(() => _durationMinutes = duration);
-    debugPrint('✅ [TripTrackingPage] Distance: ${distance.toStringAsFixed(1)} km, Durée: $duration min');
+    debugPrint(
+      '✅ [TripTrackingPage] Distance: ${distance.toStringAsFixed(1)} km, Durée: $duration min',
+    );
   }
 
   String _calculateArrivalTime() {
@@ -113,44 +125,44 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          // ══════════════════════════════════════════
-          // HEADER — étendu jusqu'en haut
-          // ══════════════════════════════════════════
-          Container(
-            color: AppColors.success,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + AppConstants.spacingS,
-              left: AppConstants.spacingM,
-              right: AppConstants.spacingM,
-              bottom: AppConstants.spacingS,
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios,
-                    color: AppColors.white,
-                    size: AppConstants.iconSizeM,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                Expanded(
-                  child: Text(
-                    'Dakar → ${widget.trip.destination}',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: AppConstants.fontSizeM,
-                      fontWeight: FontWeight.w600,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ══════════════════════════════════════════
+            // HEADER — design inchangé
+            // ══════════════════════════════════════════
+            Container(
+              color: AppColors.success,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.spacingM,
+                vertical: AppConstants.spacingS,
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
                       color: AppColors.white,
+                      size: AppConstants.iconSizeM,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Dakar → ${widget.trip.destination}',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeM,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 48),
-              ],
+                  const SizedBox(width: 48),
+                ],
+              ),
             ),
-          ),
+
             // ══════════════════════════════════════════
             // CONTENT
             // ══════════════════════════════════════════
@@ -219,53 +231,55 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
 
       // BOTTOM BUTTON — inchangé
       bottomNavigationBar: Container(
-  padding: const EdgeInsets.all(AppConstants.spacingXL),
-  decoration: BoxDecoration(
-    color: AppColors.white,
-    boxShadow: [
-      BoxShadow(
-        color: AppColors.blackOpacity05,
-        blurRadius: 10,
-        offset: const Offset(0, -2),
-      ),
-    ],
-  ),
-  child: SafeArea(
-    child: ElevatedButton(
-      onPressed: () async {
-        // ✅ Attendre le retour de ReviewPage
-        final result = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ReviewPage(trip: widget.trip),
-          ),
-        );
-
-        // ✅ Si avis envoyé, recharger les évaluations
-        if (result == true) {
-          _loadEvaluations();
-        }
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.radiusL),
-        ),
-        elevation: 0,
-      ),
-      child: Text(
-        'Donner un avis',
-        style: GoogleFonts.inter(
-          fontSize: AppConstants.fontSizeL,
-          fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.all(AppConstants.spacingXL),
+        decoration: BoxDecoration(
           color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.blackOpacity05,
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () async {
+              // ✅ Attendre le retour de ReviewPage
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ReviewPage(trip: widget.trip),
+                ),
+              );
+
+              // ✅ Si avis envoyé, recharger les évaluations
+              if (result == true) {
+                _loadEvaluations();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppConstants.spacingM,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'Donner un avis',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeL,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white,
+              ),
+            ),
+          ),
         ),
       ),
-    ),
-  ),
-),
     );
   }
 
@@ -320,7 +334,11 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                 if (driver?.phone != null)
                   Row(
                     children: [
-                      Icon(Icons.phone, size: 13, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.phone,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         driver?.phone ?? '',
@@ -338,7 +356,11 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                     padding: const EdgeInsets.only(top: 2),
                     child: Row(
                       children: [
-                        Icon(Icons.email, size: 13, color: AppColors.textSecondary),
+                        Icon(
+                          Icons.email,
+                          size: 13,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -360,7 +382,10 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         // ✅ driver.isActive — smart cast, pas de !
                         color: driver.isActive
@@ -390,10 +415,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  /// ✅ Avatar du chauffeur :
-  /// - photo de l'API si disponible (NetworkImage)
-  /// - sinon avatar coloré avec initiales
-  Widget _buildDriverAvatar(driver) {
+  Widget _buildDriverAvatar(DriverModel? driver) {
     final photoUrl = driver?.photo as String?;
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
     final name = widget.trip.driverName ?? '';
@@ -403,8 +425,8 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     final initials = parts.length >= 2
         ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
         : name.isNotEmpty
-            ? name[0].toUpperCase()
-            : '?';
+        ? name[0].toUpperCase()
+        : '?';
 
     return CircleAvatar(
       radius: AppConstants.avatarSizeM,
@@ -439,7 +461,9 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             label: const Text('Appeler'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
-              padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppConstants.spacingM,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppConstants.radiusL),
               ),
@@ -449,12 +473,14 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
         const SizedBox(width: AppConstants.spacingM),
         Expanded(
           child: OutlinedButton.icon(
-  onPressed: _openChatWithDriver,  
-  icon: Icon(Icons.chat, color: AppColors.success),
-  label: Text('Message', style: TextStyle(color: AppColors.success)),
+            onPressed: _openChatWithDriver,
+            icon: Icon(Icons.chat, color: AppColors.success),
+            label: Text('Message', style: TextStyle(color: AppColors.success)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.success),
-              padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM),
+              padding: const EdgeInsets.symmetric(
+                vertical: AppConstants.spacingM,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppConstants.radiusL),
               ),
@@ -498,7 +524,13 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  Widget _tripPoint(String title, String location, String time, Color color, IconData icon) {
+  Widget _tripPoint(
+    String title,
+    String location,
+    String time,
+    Color color,
+    IconData icon,
+  ) {
     return Row(
       children: [
         Icon(icon, color: color, size: AppConstants.iconSizeM),
@@ -516,8 +548,14 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(widget.trip.formattedDate, style: TextStyle(color: AppColors.success)),
-        Text('Estimation ${_formatDuration()}', style: TextStyle(color: AppColors.textSecondary)),
+        Text(
+          widget.trip.formattedDate,
+          style: TextStyle(color: AppColors.success),
+        ),
+        Text(
+          'Estimation ${_formatDuration()}',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
       ],
     );
   }
@@ -526,14 +564,14 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   // TILES — design inchangé
   // ══════════════════════════════════════════
   Widget _passengersTile() => GestureDetector(
-        onTap: _showPassengersList,
-        child: _simpleTile('${widget.trip.passengers.length} passagers'),
-      );
+    onTap: _showPassengersList,
+    child: _simpleTile('${widget.trip.passengers.length} passagers'),
+  );
 
   Widget _schoolsTile() => GestureDetector(
-        onTap: _showSchoolsList,
-        child: _simpleTile('Écoles desservies'),
-      );
+    onTap: _showSchoolsList,
+    child: _simpleTile('Écoles desservies'),
+  );
 
   Widget _simpleTile(String text) {
     return Container(
@@ -552,218 +590,232 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   }
 
   Widget _reviewsSection() {
-  // Calcul de la moyenne
-  final avgRating = _evaluations.isEmpty
-      ? 0.0
-      : _evaluations.map((e) => e.rating).reduce((a, b) => a + b) / _evaluations.length;
+    // Calcul de la moyenne
+    final avgRating = _evaluations.isEmpty
+        ? 0.0
+        : _evaluations.map((e) => e.rating).reduce((a, b) => a + b) /
+              _evaluations.length;
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // HEADER avec moyenne
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Avis',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (_evaluations.isNotEmpty)
-            Row(
-              children: [
-                Text(
-                  avgRating.toStringAsFixed(1),
-                  style: GoogleFonts.inter(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.warning,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.star, color: AppColors.warning, size: 20),
-                const SizedBox(width: 4),
-                Text(
-                  '(${_evaluations.length})',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-
-      const SizedBox(height: 16),
-
-      // GRAPHIQUE DES ÉTOILES
-      if (_evaluations.isNotEmpty) _buildRatingBars(),
-
-      const SizedBox(height: 20),
-
-      // LISTE DES AVIS
-      if (_isLoadingEvaluations)
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: CircularProgressIndicator(color: AppColors.success),
-          ),
-        )
-      else if (_evaluations.isEmpty)
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(
-              'Aucun avis pour le moment',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ),
-        )
-      else
-        Column(
-          children: _evaluations.take(3).map((eval) => _buildEvaluationCard(eval)).toList(),
-        ),
-    ],
-  );
-}
-
-// ✅ Graphique des étoiles (comme sur Figma)
-Widget _buildRatingBars() {
-  final counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
-  for (var eval in _evaluations) {
-    counts[eval.rating] = (counts[eval.rating] ?? 0) + 1;
-  }
-
-  return Column(
-    children: [5, 4, 3, 2, 1].map((star) {
-      final count = counts[star] ?? 0;
-      final percentage = _evaluations.isEmpty ? 0.0 : count / _evaluations.length;
-
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Text('$star', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-            const SizedBox(width: 4),
-            Icon(Icons.star, size: 14, color: AppColors.warning),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: percentage,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation(
-                    star == 5 ? AppColors.success :
-                    star >= 3 ? AppColors.warning : AppColors.error,
-                  ),
-                  minHeight: 6,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 30,
-              child: Text(
-                '$count',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList(),
-  );
-}
-
-// ✅ Carte d'évaluation individuelle
-Widget _buildEvaluationCard(EvaluationModel eval) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade50,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade200),
-    ),
-    child: Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // HEADER avec moyenne
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Avatar
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: AppColors.success.withValues(alpha: 0.1),
-              child: Text(
-                eval.parentName != null && eval.parentName!.isNotEmpty
-                    ? eval.parentName![0].toUpperCase()
-                    : '?',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.success,
-                ),
+            Text(
+              'Avis',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            if (_evaluations.isNotEmpty)
+              Row(
                 children: [
                   Text(
-                    eval.parentName ?? 'Anonyme',
+                    avgRating.toStringAsFixed(1),
                     style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.warning,
                     ),
                   ),
-                  Row(
-                    children: [
-                      ...List.generate(5, (index) {
-                        return Icon(
-                          index < eval.rating ? Icons.star : Icons.star_border,
-                          size: 14,
-                          color: AppColors.warning,
-                        );
-                      }),
-                      const SizedBox(width: 8),
-                      Text(
-                        eval.formattedDate,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 4),
+                  Icon(Icons.star, color: AppColors.warning, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    '(${_evaluations.length})',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ],
               ),
-            ),
           ],
         ),
-        if (eval.comment != null && eval.comment!.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            eval.comment!,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: Colors.grey.shade700,
-              height: 1.4,
+
+        const SizedBox(height: 16),
+
+        // GRAPHIQUE DES ÉTOILES
+        if (_evaluations.isNotEmpty) _buildRatingBars(),
+
+        const SizedBox(height: 20),
+
+        // LISTE DES AVIS
+        if (_isLoadingEvaluations)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: CircularProgressIndicator(color: AppColors.success),
             ),
+          )
+        else if (_evaluations.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                'Aucun avis pour le moment',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ),
+          )
+        else
+          Column(
+            children: _evaluations
+                .take(3)
+                .map((eval) => _buildEvaluationCard(eval))
+                .toList(),
           ),
-        ],
       ],
-    ),
-  );
-}
+    );
+  }
+
+  // ✅ Graphique des étoiles (comme sur Figma)
+  Widget _buildRatingBars() {
+    final counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+    for (var eval in _evaluations) {
+      counts[eval.rating] = (counts[eval.rating] ?? 0) + 1;
+    }
+
+    return Column(
+      children: [5, 4, 3, 2, 1].map((star) {
+        final count = counts[star] ?? 0;
+        final percentage = _evaluations.isEmpty
+            ? 0.0
+            : count / _evaluations.length;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Text(
+                '$star',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.star, size: 14, color: AppColors.warning),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: percentage,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation(
+                      star == 5
+                          ? AppColors.success
+                          : star >= 3
+                          ? AppColors.warning
+                          : AppColors.error,
+                    ),
+                    minHeight: 6,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 30,
+                child: Text(
+                  '$count',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ✅ Carte d'évaluation individuelle
+  Widget _buildEvaluationCard(EvaluationModel eval) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Avatar
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.success.withValues(alpha: 0.1),
+                child: Text(
+                  eval.parentName != null && eval.parentName!.isNotEmpty
+                      ? eval.parentName![0].toUpperCase()
+                      : '?',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.success,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      eval.parentName ?? 'Anonyme',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        ...List.generate(5, (index) {
+                          return Icon(
+                            index < eval.rating
+                                ? Icons.star
+                                : Icons.star_border,
+                            size: 14,
+                            color: AppColors.warning,
+                          );
+                        }),
+                        const SizedBox(width: 8),
+                        Text(
+                          eval.formattedDate,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (eval.comment != null && eval.comment!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              eval.comment!,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   void _showPassengersList() {
     showModalBottomSheet(
@@ -788,13 +840,16 @@ Widget _buildEvaluationCard(EvaluationModel eval) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          content: Text(
+            'Numéro de téléphone non disponible',
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
-    
+
     final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -802,158 +857,184 @@ Widget _buildEvaluationCard(EvaluationModel eval) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          content: Text(
+            'Impossible d\'ouvrir l\'application téléphone',
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: AppColors.error,
         ),
       );
     }
   }
 
-Future<void> _openChatWithDriver() async {
-  // ✅ Extraire user_id du driver
-  final driverUserId = widget.trip.driver?.userId;
-  
-  if (driverUserId == null || driverUserId.isEmpty) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
-        backgroundColor: AppColors.error,
-      ),
-    );
-    return;
-  }
+  Future<void> _openChatWithDriver() async {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🔍 [DEBUG] Vérification chauffeur:');
+    debugPrint('   Driver existe? ${widget.trip.driver != null}');
+    debugPrint('   Driver ID: ${widget.trip.driver?.id}');
+    debugPrint('   Driver User ID: ${widget.trip.driver?.userId}');
+    debugPrint('   Driver Name: ${widget.trip.driver?.fullName}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-  try {
-    final driverUserIdInt = int.parse(driverUserId);
-    
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('💬 [TripTrackingPage] OUVERTURE DU CHAT');
-    debugPrint('   User ID: $driverUserIdInt ← POUR MESSAGERIE');
-    debugPrint('   Driver ID: ${widget.trip.driverId} ← RÉFÉRENCE');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    if (!mounted) return;
-    
-    // Vérifier si la conversation existe déjà
-    final currentState = context.read<ConversationBloc>().state;
-    ConversationModel? existingConversation;
-    
-    if (currentState is ConversationLoaded) {
-      try {
-        existingConversation = currentState.conversations.firstWhere(
-          (conv) => conv.otherUserId == driverUserIdInt,
-        );
-        debugPrint('✅ Conversation existante trouvée: ${existingConversation.id}');
-      } catch (e) {
-        debugPrint('🔍 Aucune conversation existante, création...');
-      }
-    }
-    
-    if (existingConversation != null) {
+    final driverUserId = widget.trip.driver?.userId;
+
+    if (driverUserId == null || driverUserId.isEmpty) {
       if (!mounted) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatPage(conversation: existingConversation!),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
+          backgroundColor: AppColors.error,
         ),
       );
-    } else {
+      return;
+    }
+
+    try {
+      final driverUserIdInt = int.parse(driverUserId);
+
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💬 [TripTrackingPage] OUVERTURE DU CHAT');
+      debugPrint('   User ID: $driverUserIdInt ← POUR MESSAGERIE');
+      debugPrint('   Driver ID: ${widget.trip.driverId} ← RÉFÉRENCE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
       if (!mounted) return;
-      final dialogContext = context;
-      showDialog(
-        context: dialogContext,
-        barrierDismissible: false,
-        builder: (ctx) => Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: AppColors.success),
-                  const SizedBox(height: 16),
-                  Text('Ouverture de la conversation...', style: GoogleFonts.inter()),
-                ],
+
+      final currentState = context.read<ConversationBloc>().state;
+      ConversationModel? existingConversation;
+
+      if (currentState is ConversationLoaded) {
+        try {
+          existingConversation = currentState.conversations.firstWhere(
+            (conv) => conv.otherUserId == driverUserIdInt,
+          );
+          debugPrint(
+            '✅ Conversation existante trouvée: ${existingConversation.id}',
+          );
+        } catch (e) {
+          debugPrint('🔍 Aucune conversation existante, création...');
+        }
+      }
+
+      if (existingConversation != null) {
+        if (!mounted) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatPage(conversation: existingConversation!),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        final dialogContext = context;
+        showDialog(
+          context: dialogContext,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: AppColors.success),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Ouverture de la conversation...',
+                      style: GoogleFonts.inter(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-      
-      if (!mounted) return;
-      context.read<ConversationBloc>().add(
-        CreateDirectConversationEvent(otherUserId: driverUserIdInt),
-      );
-      
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      int attempts = 0;
-      const maxAttempts = 30;
-      
-      while (attempts < maxAttempts) {
+        );
+
+        if (!mounted) return;
+        context.read<ConversationBloc>().add(
+          CreateDirectConversationEvent(otherUserId: driverUserIdInt),
+        );
+
         await Future.delayed(const Duration(milliseconds: 100));
-        
-        if (!mounted) {
-          Navigator.of(dialogContext, rootNavigator: true).pop();
-          return;
-        }
-        
-        final state = context.read<ConversationBloc>().state;
-        
-        if (state is ConversationCreated) {
-          Navigator.of(dialogContext, rootNavigator: true).pop();
-          
-          if (!mounted) return;
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatPage(conversation: state.conversation),
-            ),
-          );
-          return;
-        } else if (state is ConversationLoaded) {
-          try {
-            final conversation = state.conversations.firstWhere(
-              (conv) => conv.otherUserId == driverUserIdInt,
-            );
-            
-            Navigator.of(dialogContext, rootNavigator: true).pop();
-            
+
+        int attempts = 0;
+        const maxAttempts = 30;
+
+        while (attempts < maxAttempts) {
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          if (!mounted) {
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+            }
+            return;
+          }
+
+          final state = context.read<ConversationBloc>().state;
+
+          if (state is ConversationCreated) {
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+            }
+
             if (!mounted) return;
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatPage(conversation: conversation),
+                builder: (context) =>
+                    ChatPage(conversation: state.conversation),
               ),
             );
             return;
-          } catch (e) {
-            // Conversation pas encore dans la liste
+          } else if (state is ConversationLoaded) {
+            try {
+              final conversation = state.conversations.firstWhere(
+                (conv) => conv.otherUserId == driverUserIdInt,
+              );
+
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext, rootNavigator: true).pop();
+              }
+
+              if (!mounted) return;
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatPage(conversation: conversation),
+                ),
+              );
+              return;
+            } catch (e) {
+              // Conversation pas encore dans la liste
+            }
+          } else if (state is ConversationError) {
+            if (dialogContext.mounted) {
+              Navigator.of(dialogContext, rootNavigator: true).pop();
+            }
+            throw Exception(state.message);
           }
-        } else if (state is ConversationError) {
-          Navigator.of(dialogContext, rootNavigator: true).pop();
-          throw Exception(state.message);
+
+          attempts++;
         }
-        
-        attempts++;
-      }
-      
-      if (mounted) {
-        Navigator.of(dialogContext, rootNavigator: true).pop();
+
+        if (dialogContext.mounted) {
+          Navigator.of(dialogContext, rootNavigator: true).pop();
+        }
         throw Exception('Timeout lors de la création de la conversation');
       }
+    } catch (e) {
+      debugPrint('❌ Erreur ouverture chat: $e');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Impossible d\'ouvrir la conversation: $e',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
-  } catch (e) {
-    debugPrint('❌ Erreur ouverture chat: $e');
-    
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Impossible d\'ouvrir la conversation: $e', style: GoogleFonts.inter()),
-        backgroundColor: AppColors.error,
-      ),
-    );
   }
-}
 }

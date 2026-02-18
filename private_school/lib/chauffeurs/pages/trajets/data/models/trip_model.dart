@@ -83,29 +83,41 @@ class TripModel {
       }
     }
 
-    // ✅ NOUVEAU : Créer une école temporaire à partir du school_id
-    List<SchoolModel> parseSchools(Map<String, dynamic> json) {
-      // Si l'API retourne déjà une liste d'écoles complète
-      if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
-        return (json['schools'] as List).map((s) => SchoolModel.fromJson(s)).toList();
-      }
-      
-      // Sinon, créer une école temporaire à partir du school_id
-      final schoolId = json['school_id'];
-      if (schoolId != null) {
-        // Créer une école "placeholder" avec juste l'ID
-        // Le nom sera récupéré via l'API plus tard
-        return [
-          SchoolModel(
-            id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
-            name: json['end_point'] ?? 'École ID: $schoolId',
-            address: '',
-          ),
-        ];
-      }
-      
-      return [];
-    }
+   // ✅ APRÈS — lit les stops qui contiennent les vraies infos d'école
+List<SchoolModel> parseSchools(Map<String, dynamic> json) {
+  // Priorité 1 : liste "stops" (format GET /api/drivers/trips)
+  if (json['stops'] != null && json['stops'] is List && (json['stops'] as List).isNotEmpty) {
+    return (json['stops'] as List).map((stop) {
+      final s = stop as Map<String, dynamic>;
+      return SchoolModel(
+        id: s['school_id'] is int 
+            ? s['school_id'] 
+            : int.tryParse(s['school_id'].toString()),
+        name: (s['school_name'] ?? 'École').toString(),
+        address: (s['school_address'] ?? '').toString(),
+      );
+    }).toList();
+  }
+
+  // Priorité 2 : liste "schools" directe
+  if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
+    return (json['schools'] as List).map((s) => SchoolModel.fromJson(s)).toList();
+  }
+
+  // Priorité 3 : school_id unique (fallback)
+  final schoolId = json['school_id'];
+  if (schoolId != null) {
+    return [
+      SchoolModel(
+        id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
+        name: (json['school_name'] ?? json['end_point'] ?? 'École').toString(),
+        address: (json['school_address'] ?? '').toString(),
+      ),
+    ];
+  }
+
+  return [];
+}
 
     String? extractTime(dynamic departureTime) {
       if (departureTime == null) return null;

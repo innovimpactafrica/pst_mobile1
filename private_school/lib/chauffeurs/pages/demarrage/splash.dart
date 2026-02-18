@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_bloc.dart';
+import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_event.dart';
+//import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_state.dart';
+import 'package:private_school/core/storage/secure_storage.dart';
 import 'bienvenu.dart';
 
 
@@ -14,13 +19,23 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final isLoggedIn = await SecureStorage().isLoggedIn();
+    
+    if (isLoggedIn) {
+      context.read<DriverAuthBloc>().add(CheckDriverAuthStatusEvent());
+    } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const WelcomePage()),
       );
-    });
+    }
   }
 
   @override

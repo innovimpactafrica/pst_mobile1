@@ -25,7 +25,6 @@ class TripDetailPage extends StatefulWidget {
 }
 
 class _TripDetailPageState extends State<TripDetailPage> {
-  bool _isMapExpanded = true;
   int? _durationMinutes;
   List<ChildModel> _selectedChildren = [];
 
@@ -101,36 +100,16 @@ class _TripDetailPageState extends State<TripDetailPage> {
                   child: Column(
                     children: [
                       // CARTE GOOGLE MAPS
-                      GestureDetector(
-                        onTap: () => setState(() => _isMapExpanded = !_isMapExpanded),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          height: _isMapExpanded ? 250 : 120,
-                          width: double.infinity,
-                          margin: const EdgeInsets.all(16),
-                          child: Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: TripMapWidget(
-                                  startLocation: widget.trip.departure,
-                                  destination: widget.trip.arrival,
-                                  onRouteCalculated: _onRouteCalculated,
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 8, left: 0, right: 0,
-                                child: Center(
-                                  child: Container(
-                                    width: 40, height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                      Container(
+                        height: 250,
+                        width: double.infinity,
+                        margin: const EdgeInsets.all(16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: TripMapWidget(
+                            startLocation: widget.trip.departure,
+                            destination: widget.trip.arrival,
+                            onRouteCalculated: _onRouteCalculated,
                           ),
                         ),
                       ),

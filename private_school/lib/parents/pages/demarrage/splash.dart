@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:private_school/core/storage/secure_storage.dart';
 import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
 import 'bienvenu.dart';
 
 
@@ -15,13 +20,20 @@ class _SplashState extends State<Splash> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomePage()),
-      );
-    });
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    final isLoggedIn = await SecureStorage().isLoggedIn();
+    
+    if (isLoggedIn) {
+      context.read<AuthBloc>().add(CheckAuthStatusEvent());
+    } else {
+      Navigator.pushReplacementNamed(context, '/bienvenu');
+    }
   }
 
   @override

@@ -152,35 +152,35 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
           _buildSocialButton(
             label: 'Copier',
             imagePath: 'assets/icons/link.svg',
-            color: AppColors.success,
+            color: const Color(0xFF6366F1),
             isSvg: true,
             onTap: _copyLink,
           ),
           _buildSocialButton(
             label: 'WhatsApp',
             imagePath: 'assets/icons/whatsapp.svg',
-            color: AppColors.whatsapp,
+            color: const Color(0xFF25D366),
             isSvg: true,
             onTap: _shareViaWhatsApp,
           ),
           _buildSocialButton(
             label: 'Instagram',
             imagePath: 'assets/icons/instagram.svg',
-            color: AppColors.instagram,
+            color: const Color(0xFFE4405F),
             isSvg: true,
             onTap: _shareViaInstagram,
           ),
           _buildSocialButton(
             label: 'Messenger',
             imagePath: 'assets/icons/messenger.svg',
-            color: AppColors.messenger,
+            color: const Color(0xFF0084FF),
             isSvg: true,
             onTap: _shareViaMessenger,
           ),
           _buildSocialButton(
             label: 'Twitter',
             imagePath: 'assets/images/twiter.jpeg',
-            color: AppColors.twitter,
+            color: const Color(0xFF1DA1F2),
             isSvg: false,
             onTap: _shareViaTwitter,
           ),
@@ -203,29 +203,33 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+            ),
             child: Center(
               child: isSvg
                   ? SvgPicture.asset(
                       imagePath,
-                      width: 28,
-                      height: 28,
-                      colorFilter: const ColorFilter.mode(
-                        Colors.white,
+                      width: 32,
+                      height: 32,
+                      colorFilter: ColorFilter.mode(
+                        color,
                         BlendMode.srcIn,
                       ),
                     )
                   : ClipOval(
                       child: Image.asset(
                         imagePath,
-                        width: 28,
-                        height: 28,
+                        width: 32,
+                        height: 32,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
+                          return Icon(
                             Icons.image,
-                            color: Colors.white,
-                            size: 28,
+                            color: color,
+                            size: 32,
                           );
                         },
                       ),
@@ -235,7 +239,11 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textPrimary),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

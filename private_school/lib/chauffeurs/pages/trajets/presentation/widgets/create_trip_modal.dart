@@ -22,6 +22,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
   final _formKey = GlobalKey<FormState>();
   final _dateController = TextEditingController();
   final _startPointController = TextEditingController();
+  final _endPointController = TextEditingController();
   final _timeController = TextEditingController();
   final _returnTimeController = TextEditingController();
   final _passengersController = TextEditingController();
@@ -33,16 +34,12 @@ class _CreateTripModalState extends State<CreateTripModal> {
   TimeOfDay? _selectedTime;
   TimeOfDay? _selectedReturnTime;
   
-  // ✅ Une seule école
   List<SchoolModel> _schools = [];
-  SchoolModel? _selectedSchool;
   bool _loadingSchools = true;
   
-  // ✅ Compteur d'enfants
-  int _childrenCount = 0;
-  bool _loadingChildrenCount = false;
-
-  // ✅ Coordonnées GPS pour le mapping et calcul de durée
+  // Liste des arrêts (écoles sélectionnées)
+  List<SchoolStop> _stops = [SchoolStop()];
+  
   double? _startLatitude;
   double? _startLongitude;
   double? _endLatitude;
@@ -86,40 +83,42 @@ class _CreateTripModalState extends State<CreateTripModal> {
     }
   }
 
-  /// ✅ Charger le nombre d'enfants pour l'école sélectionnée
-  Future<void> _updateChildrenCount() async {
-    if (_selectedSchool == null || _selectedSchool!.id == null) {
-      setState(() => _childrenCount = 0);
+  Future<void> _updateChildrenCount(int index) async {
+    final stop = _stops[index];
+    if (stop.selectedSchoolId == null) {
+      setState(() {
+        stop.childrenCount = 0;
+        stop.loadingChildrenCount = false;
+      });
       return;
     }
 
-    setState(() => _loadingChildrenCount = true);
+    setState(() => stop.loadingChildrenCount = true);
 
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('👶 [CreateTripModal] Chargement enfants...');
-      debugPrint('🏫 École: ${_selectedSchool!.name} (ID: ${_selectedSchool!.id})');
-      
-      final children = await _childService.getChildrenBySchool(_selectedSchool!.id!);
-
+      final children = await _childService.getChildrenBySchool(stop.selectedSchoolId!);
       setState(() {
-        _childrenCount = children.length;
-        _loadingChildrenCount = false;
+        stop.childrenCount = children.length;
+        stop.loadingChildrenCount = false;
       });
-
-      debugPrint('✅ ${children.length} enfant(s) trouvé(s)');
-      if (children.isNotEmpty) {
-        for (var child in children) {
-          debugPrint('   👤 ${child.name} (${child.address})');
-        }
-      } else {
-        debugPrint('⚠️ Aucun enfant inscrit dans cette école');
-      }
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint('✅ ${children.length} enfant(s) trouvé(s) pour école ID: ${stop.selectedSchoolId}');
     } catch (e) {
       debugPrint('❌ Erreur chargement enfants: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      setState(() => _loadingChildrenCount = false);
+      setState(() => stop.loadingChildrenCount = false);
+    }
+  }
+
+  void _addStop() {
+    setState(() {
+      _stops.add(SchoolStop());
+    });
+  }
+
+  void _removeStop(int index) {
+    if (_stops.length > 1) {
+      setState(() {
+        _stops.removeAt(index);
+      });
     }
   }
 
@@ -127,6 +126,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
   void dispose() {
     _dateController.dispose();
     _startPointController.dispose();
+    _endPointController.dispose();
     _timeController.dispose();
     _returnTimeController.dispose();
     _passengersController.dispose();
@@ -191,33 +191,51 @@ class _CreateTripModalState extends State<CreateTripModal> {
                             _startLatitude = details.latitude;
                             _startLongitude = details.longitude;
                           });
-                          debugPrint('✅ Point de départ sélectionné:');
-                          debugPrint('   📍 ${details.address}');
-                          debugPrint('   🌍 Lat: ${details.latitude}, Lng: ${details.longitude}');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      PlaceAutocompleteField(
+                        label: 'Point d\'arrivée',
+                        hint: 'Ex: Ouakam, Almadies...',
+                        controller: _endPointController,
+                        onPlaceSelected: (details) {
+                          setState(() {
+                            _endLatitude = details.latitude;
+                            _endLongitude = details.longitude;
+                          });
                         },
                       ),
                       const SizedBox(height: 16),
                       
-                      // ✅ Dropdown pour sélectionner UNE école
-                      _buildSchoolDropdown(),
+                      ..._buildStopsSection(),
                       
                       const SizedBox(height: 16),
-                      _buildCompactField(
+                      _buildTimeField(
                         label: 'departure_time'.tr(),
                         controller: _timeController,
-                        hint: '10 : 20',
-                        readOnly: true,
-                        suffixIcon: Icons.access_time,
+                        hint: '10 : 20 (optionnel)',
                         onTap: _selectTime,
+                        onClear: () {
+                          setState(() {
+                            _selectedTime = null;
+                            _timeController.clear();
+                          });
+                        },
+                        hasValue: _selectedTime != null,
                       ),
                       const SizedBox(height: 16),
-                      _buildCompactField(
+                      _buildTimeField(
                         label: 'return_time'.tr(),
                         controller: _returnTimeController,
-                        hint: '14 : 30',
-                        readOnly: true,
-                        suffixIcon: Icons.access_time,
+                        hint: '14 : 30 (optionnel)',
                         onTap: _selectReturnTime,
+                        onClear: () {
+                          setState(() {
+                            _selectedReturnTime = null;
+                            _returnTimeController.clear();
+                          });
+                        },
+                        hasValue: _selectedReturnTime != null,
                       ),
                       const SizedBox(height: 16),
                       _buildCompactField(
@@ -228,7 +246,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       ),
                       const SizedBox(height: 24),
                       _buildSubmitButton(),
-                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                      SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
                     ],
                   ),
                 ),
@@ -290,18 +308,62 @@ class _CreateTripModalState extends State<CreateTripModal> {
     );
   }
 
-  /// ✅ Dropdown pour sélectionner l'école
-  Widget _buildSchoolDropdown() {
+  List<Widget> _buildStopsSection() {
+    List<Widget> widgets = [];
+    
+    for (int i = 0; i < _stops.length; i++) {
+      widgets.add(_buildStopDropdown(i));
+      if (i < _stops.length - 1) {
+        widgets.add(const SizedBox(height: 16));
+      }
+    }
+    
+    // Bouton pour ajouter un autre arrêt
+    widgets.add(const SizedBox(height: 12));
+    widgets.add(
+      OutlinedButton.icon(
+        onPressed: _addStop,
+        icon: const Icon(Icons.add, size: 18),
+        label: const Text('Ajouter un autre arrêt'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        ),
+      ),
+    );
+    
+    return widgets;
+  }
+
+  Widget _buildStopDropdown(int index) {
+    final stop = _stops[index];
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'École de destination',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
+        Row(
+          children: [
+            Text(
+              'Arrêt ${index + 1}',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            if (_stops.length > 1)
+              IconButton(
+                icon: const Icon(Icons.close, size: 18, color: AppColors.error),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => _removeStop(index),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         
@@ -333,199 +395,150 @@ class _CreateTripModalState extends State<CreateTripModal> {
                   ],
                 ),
               )
-            : _schools.isEmpty
-                ? Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF59E0B)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Aucune école disponible.',
-                            style: TextStyle(
-                              color: Color(0xFFF59E0B),
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DropdownButtonFormField<SchoolModel>(
-                        initialValue: _selectedSchool,
-                        decoration: InputDecoration(
-                          hintText: 'Sélectionnez une école',
-                          hintStyle: TextStyle(
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
-                            fontSize: 14,
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.school_outlined,
-                            color: AppColors.textSecondary,
-                            size: 20,
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFF5F5F5),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1.5,
-                            ),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.error,
-                              width: 1,
-                            ),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.error,
-                              width: 1.5,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                        items: _schools.map((school) {
-                          return DropdownMenuItem<SchoolModel>(
-                            value: school,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  school.name,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                if (school.address.isNotEmpty)
-                                  Text(
-                                    school.address,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary.withValues(alpha: 0.7),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (SchoolModel? school) {
-                          setState(() {
-                            _selectedSchool = school;
-                          });
-                          
-                          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                          debugPrint('✅ École sélectionnée: ${school?.name}');
-                          debugPrint('🆔 ID: ${school?.id}');
-                          debugPrint('📍 Adresse: ${school?.address}');
-                          debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-                          
-                          _updateChildrenCount();
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Veuillez sélectionner une école';
-                          }
-                          return null;
-                        },
-                      ),
-                      
-                      // ✅ Afficher le nombre d'enfants
-                      if (_selectedSchool != null) ...[
-                        const SizedBox(height: 12),
-                        if (_loadingChildrenCount)
-                          const Row(
-                            children: [
-                              SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Calcul du nombre d\'enfants...',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          )
-                        else
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _childrenCount > 0 
-                                  ? AppColors.successBackground 
-                                  : const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: _childrenCount > 0 
-                                    ? AppColors.success 
-                                    : const Color(0xFFF59E0B),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _childrenCount > 0 ? Icons.people : Icons.warning_amber,
-                                  size: 16,
-                                  color: _childrenCount > 0 
-                                      ? AppColors.success 
-                                      : const Color(0xFFF59E0B),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _childrenCount > 0
-                                        ? '$_childrenCount enfant${_childrenCount > 1 ? 's' : ''} inscrit${_childrenCount > 1 ? 's' : ''} dans cette école'
-                                        : 'Aucun enfant inscrit dans cette école',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: _childrenCount > 0 
-                                          ? AppColors.success 
-                                          : const Color(0xFFF59E0B),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ],
+            : DropdownButtonFormField<SchoolModel>(
+                value: stop.selectedSchool,
+                menuMaxHeight: 300,
+                decoration: InputDecoration(
+                  hintText: 'Sélectionnez une école',
+                  hintStyle: TextStyle(
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 14,
                   ),
+                  prefixIcon: const Icon(
+                    Icons.school_outlined,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                items: _schools.reversed.map((school) {
+                  return DropdownMenuItem<SchoolModel>(
+                    value: school,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          school.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (school.address.isNotEmpty)
+                          Text(
+                            school.address,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (SchoolModel? school) {
+                  setState(() {
+                    stop.selectedSchool = school;
+                    stop.selectedSchoolId = school?.id;
+                  });
+                  _updateChildrenCount(index);
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Veuillez sélectionner une école';
+                  }
+                  return null;
+                },
+              ),
+        
+        if (stop.selectedSchoolId != null) ...[
+          const SizedBox(height: 12),
+          if (stop.loadingChildrenCount)
+            const Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Calcul du nombre d\'enfants...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: stop.childrenCount > 0 
+                    ? AppColors.successBackground 
+                    : const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: stop.childrenCount > 0 
+                      ? AppColors.success 
+                      : const Color(0xFFF59E0B),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    stop.childrenCount > 0 ? Icons.people : Icons.warning_amber,
+                    size: 16,
+                    color: stop.childrenCount > 0 
+                        ? AppColors.success 
+                        : const Color(0xFFF59E0B),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      stop.childrenCount > 0
+                          ? '${stop.childrenCount} enfant${stop.childrenCount > 1 ? 's' : ''} inscrit${stop.childrenCount > 1 ? 's' : ''} dans cette école'
+                          : 'Aucun enfant inscrit dans cette école',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: stop.childrenCount > 0 
+                            ? AppColors.success 
+                            : const Color(0xFFF59E0B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -538,17 +551,31 @@ class _CreateTripModalState extends State<CreateTripModal> {
     IconData? suffixIcon,
     VoidCallback? onTap,
     TextInputType? keyboardType,
+    bool isOptional = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (isOptional)
+              Text(
+                ' (optionnel)',
+                style: TextStyle(
+                  color: AppColors.textSecondary.withValues(alpha: 0.7),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -600,12 +627,98 @@ class _CreateTripModalState extends State<CreateTripModal> {
               vertical: 14,
             ),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Ce champ est requis';
-            }
-            return null;
-          },
+          validator: isOptional
+              ? null
+              : (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ce champ est requis';
+                  }
+                  return null;
+                },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required VoidCallback onTap,
+    required VoidCallback onClear,
+    required bool hasValue,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              ' (optionnel)',
+              style: TextStyle(
+                color: AppColors.textSecondary.withValues(alpha: 0.7),
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          readOnly: true,
+          onTap: onTap,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
+            suffixIcon: hasValue
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.clear,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                    onPressed: onClear,
+                  )
+                : const Icon(
+                    Icons.access_time,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+            filled: true,
+            fillColor: const Color(0xFFF5F5F5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
         ),
       ],
     );
@@ -754,80 +867,100 @@ class _CreateTripModalState extends State<CreateTripModal> {
     debugPrint('📤 [CreateTripModal] SUBMIT FORM');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
+    // Validation manuelle des champs PlaceAutocomplete
+    if (_startPointController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner un point de départ'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_endPointController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner un point d\'arrivée'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       debugPrint('✅ Validation du formulaire OK');
-      
-      // ✅ Vérifier que l'école est sélectionnée
-      if (_selectedSchool == null) {
-        debugPrint('❌ Aucune école sélectionnée');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Veuillez sélectionner une école'),
+            content: Text('Veuillez sélectionner une date'),
             backgroundColor: AppColors.error,
           ),
         );
         return;
       }
 
-      if (_selectedSchool!.id == null) {
-        debugPrint('❌ École sélectionnée sans ID');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      if (_selectedTime == null && _selectedReturnTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Erreur: École invalide (pas d\'ID)'),
+            content: Text('Veuillez renseigner au moins une heure (départ ou retour)'),
             backgroundColor: AppColors.error,
           ),
         );
         return;
       }
 
-      if (_selectedDate == null || _selectedTime == null || _selectedReturnTime == null) {
-        debugPrint('❌ Date ou heure manquante');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez sélectionner la date, l\'heure de départ et l\'heure de retour'),
-            backgroundColor: AppColors.error,
-          ),
+      DateTime? departureTime;
+      if (_selectedTime != null) {
+        departureTime = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
         );
-        return;
+
+        if (departureTime.isBefore(DateTime.now())) {
+          debugPrint('❌ Date de départ dans le passé');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('La date et l\'heure de départ doivent être dans le futur'),
+              backgroundColor: AppColors.error,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
       }
 
-      final departureTime = DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedTime!.hour,
-        _selectedTime!.minute,
-      );
-
-      final returnTime = DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedReturnTime!.hour,
-        _selectedReturnTime!.minute,
-      );
-
-      if (departureTime.isBefore(DateTime.now())) {
-        debugPrint('❌ Date dans le passé');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('La date et l\'heure doivent être dans le futur'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 3),
-          ),
+      DateTime? returnTime;
+      if (_selectedReturnTime != null) {
+        returnTime = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedReturnTime!.hour,
+          _selectedReturnTime!.minute,
         );
-        return;
+
+        if (returnTime.isBefore(DateTime.now())) {
+          debugPrint('❌ Date de retour dans le passé');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('La date et l\'heure de retour doivent être dans le futur'),
+              backgroundColor: AppColors.error,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          return;
+        }
       }
 
       final capacity = int.tryParse(_passengersController.text) ?? 0;
 
       if (capacity <= 0) {
         debugPrint('❌ Capacité invalide: $capacity');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Le nombre de passagers doit être supérieur à 0'),
@@ -837,27 +970,42 @@ class _CreateTripModalState extends State<CreateTripModal> {
         return;
       }
 
-      // ✅ Tout est OK, on envoie
+      // Récupérer les IDs des écoles sélectionnées
+      final schoolIds = _stops
+          .where((stop) => stop.selectedSchoolId != null)
+          .map((stop) => stop.selectedSchoolId!)
+          .toList();
+
+      if (schoolIds.isEmpty) {
+        debugPrint('❌ Aucune école sélectionnée');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veuillez sélectionner au moins une école'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
       debugPrint('✅ Toutes les validations passées');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('📤 DONNÉES DU TRAJET:');
-      debugPrint('   📍 Point de départ: ${_startPointController.text.trim()}');
-      debugPrint('   🏫 École: ${_selectedSchool!.name}');
-      debugPrint('   🆔 School ID: ${_selectedSchool!.id}');
-      debugPrint('   🕐 Date/Heure départ: $departureTime');
-      debugPrint('   🕐 Date/Heure retour: $returnTime');
+      debugPrint('   📍 Départ: ${_startPointController.text.trim()}');
+      debugPrint('   🎯 Arrivée: ${_endPointController.text.trim()}');
+      debugPrint('   🏫 Écoles IDs: $schoolIds');
+      debugPrint('   🕐 Date/Heure départ: ${departureTime ?? "Non spécifiée"}');
+      debugPrint('   🕐 Date/Heure retour: ${returnTime ?? "Non spécifiée"}');
       debugPrint('   👥 Capacité: $capacity');
-      debugPrint('   👶 Enfants inscrits: $_childrenCount');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       context.read<TripBloc>().add(
             CreateTripEvent(
               startPoint: _startPointController.text.trim(),
-              endPoint: _selectedSchool!.name,
+              endPoint: _endPointController.text.trim(),
               departureTime: departureTime,
               returnTime: returnTime,
               capacityMax: capacity,
-              schoolId: _selectedSchool!.id!,
+              schoolIds: schoolIds,
               isRecurring: false,
               startLatitude: _startLatitude,
               startLongitude: _startLongitude,
@@ -870,6 +1018,21 @@ class _CreateTripModalState extends State<CreateTripModal> {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     }
   }
+}
+
+// Classe pour gérer chaque arrêt (école)
+class SchoolStop {
+  SchoolModel? selectedSchool;
+  int? selectedSchoolId;
+  int childrenCount = 0;
+  bool loadingChildrenCount = false;
+
+  SchoolStop({
+    this.selectedSchool,
+    this.selectedSchoolId,
+    this.childrenCount = 0,
+    this.loadingChildrenCount = false,
+  });
 }
 
 void showCreateTripModal(BuildContext context) {

@@ -14,6 +14,8 @@ class DriverAuthenticated extends DriverAuthState {
   DriverAuthenticated(this.driver);
 }
 
+class DriverAuthenticatedFromStorage extends DriverAuthState {}
+
 class DriverOTPSent extends DriverAuthState {
   final String phone;
 

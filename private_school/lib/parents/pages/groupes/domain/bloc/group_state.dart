@@ -9,34 +9,54 @@ abstract class GroupState extends Equatable {
 class GroupInitial extends GroupState {}
 class GroupLoading extends GroupState {}
 
-/// ✅ NOUVEAU : état composite qui garde les DEUX listes simultanément
-/// Résout la course condition LoadMyGroups ↔ LoadAvailableGroups
 class GroupsLoaded extends GroupState {
   final List<GroupModel> myGroups;
   final List<GroupModel> availableGroups;
   final List<GroupInvitation> invitations;
-  final bool isLoadingMore; // pour un refresh partiel
+  final List<GroupModel> filteredMyGroups;
+  final List<GroupModel> filteredAvailableGroups;
+  final String searchQuery;
+  final bool isLoadingMore;
 
   GroupsLoaded({
     this.myGroups = const [],
     this.availableGroups = const [],
     this.invitations = const [],
+    List<GroupModel>? filteredMyGroups,
+    List<GroupModel>? filteredAvailableGroups,
+    this.searchQuery = '',
     this.isLoadingMore = false,
-  });
+  })  : filteredMyGroups = filteredMyGroups ?? myGroups,
+        filteredAvailableGroups = filteredAvailableGroups ?? availableGroups;
 
   @override
-  List<Object?> get props => [myGroups, availableGroups, invitations, isLoadingMore];
+  List<Object?> get props => [
+        myGroups,
+        availableGroups,
+        invitations,
+        filteredMyGroups,
+        filteredAvailableGroups,
+        searchQuery,
+        isLoadingMore
+      ];
 
   GroupsLoaded copyWith({
     List<GroupModel>? myGroups,
     List<GroupModel>? availableGroups,
     List<GroupInvitation>? invitations,
+    List<GroupModel>? filteredMyGroups,
+    List<GroupModel>? filteredAvailableGroups,
+    String? searchQuery,
     bool? isLoadingMore,
   }) {
     return GroupsLoaded(
       myGroups: myGroups ?? this.myGroups,
       availableGroups: availableGroups ?? this.availableGroups,
       invitations: invitations ?? this.invitations,
+      filteredMyGroups: filteredMyGroups ?? this.filteredMyGroups,
+      filteredAvailableGroups:
+          filteredAvailableGroups ?? this.filteredAvailableGroups,
+      searchQuery: searchQuery ?? this.searchQuery,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }

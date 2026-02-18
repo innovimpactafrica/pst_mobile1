@@ -33,8 +33,17 @@ class NotificationsPage extends StatelessWidget {
   }
 }
 
-class NotificationsPageContent extends StatelessWidget {
+class NotificationsPageContent extends StatefulWidget {
   const NotificationsPageContent({super.key});
+
+  @override
+  State<NotificationsPageContent> createState() => _NotificationsPageContentState();
+}
+
+class _NotificationsPageContentState extends State<NotificationsPageContent> {
+  // ✅ Pagination
+  int _currentPage = 1;
+  final int _itemsPerPage = 6;
 
   @override
   Widget build(BuildContext context) {
@@ -91,27 +100,126 @@ class NotificationsPageContent extends StatelessWidget {
                 return _buildEmptyState();
               }
 
-              return RefreshIndicator(
-                color: AppColors.success,
-                onRefresh: () async {
-                  context
-                      .read<ParentNotificationBloc>()
-                      .add(const RefreshNotificationsEvent());
-                },
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(AppConstants.spacingXL),
-                  itemCount: state.notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = state.notifications[index];
-                    return _buildNotificationCard(context, notification);
-                  },
-                ),
+              // ✅ Calcul pagination
+              final totalPages = (state.notifications.length / _itemsPerPage).ceil();
+              final startIndex = (_currentPage - 1) * _itemsPerPage;
+              final endIndex = (startIndex + _itemsPerPage).clamp(0, state.notifications.length);
+              final pageNotifications = state.notifications.sublist(startIndex, endIndex);
+
+              return Column(
+                children: [
+                  // ✅ Liste des notifications de la page courante
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppColors.success,
+                      onRefresh: () async {
+                        setState(() => _currentPage = 1);
+                        context.read<ParentNotificationBloc>()
+                            .add(const RefreshNotificationsEvent());
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(AppConstants.spacingXL),
+                        itemCount: pageNotifications.length,
+                        itemBuilder: (context, index) {
+                          return _buildNotificationCard(
+                            context,
+                            pageNotifications[index],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+
+                  // ✅ Barre de pagination
+                  if (totalPages > 1)
+                    _buildPaginationBar(totalPages),
+                ],
               );
             }
 
             return const SizedBox.shrink();
           },
         ),
+      ),
+    );
+  }
+
+  // ✅ Barre de pagination
+  Widget _buildPaginationBar(int totalPages) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Bouton précédent
+          IconButton(
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
+            icon: Icon(
+              Icons.arrow_back_ios,
+              size: 18,
+              color: _currentPage > 1 ? AppColors.success : Colors.grey.shade300,
+            ),
+          ),
+
+          // Numéros de pages
+          Row(
+            children: List.generate(totalPages, (index) {
+              final page = index + 1;
+              final isSelected = page == _currentPage;
+              return GestureDetector(
+                onTap: () => setState(() => _currentPage = page),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.success : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? AppColors.success : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$page',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? AppColors.white : Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+
+          // Bouton suivant
+          IconButton(
+            onPressed: _currentPage < totalPages
+                ? () => setState(() => _currentPage++)
+                : null,
+            icon: Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: _currentPage < totalPages
+                  ? AppColors.success
+                  : Colors.grey.shade300,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -134,19 +242,16 @@ class NotificationsPageContent extends StatelessWidget {
         child: const Icon(Icons.delete, color: AppColors.white),
       ),
       onDismissed: (direction) {
-        context
-            .read<ParentNotificationBloc>()
+        context.read<ParentNotificationBloc>()
             .add(DeleteNotificationEvent(notification.id));
       },
       child: GestureDetector(
         onTap: () {
           if (!notification.isRead) {
-            context
-                .read<ParentNotificationBloc>()
+            // ✅ Marquer comme lue dans les 2 blocs
+            context.read<ParentNotificationBloc>()
                 .add(MarkAsReadEvent(notification.id));
-            // Mettre à jour le compteur aussi
-            context
-                .read<UnreadNotificationsBloc>()
+            context.read<UnreadNotificationsBloc>()
                 .add(MarkNotificationAsReadEvent(notification.id));
           }
         },
@@ -162,7 +267,6 @@ class NotificationsPageContent extends StatelessWidget {
               color: notification.isRead
                   ? AppColors.grey200
                   : AppColors.success.withValues(alpha: 0.2),
-              width: 1,
             ),
             boxShadow: [
               BoxShadow(
@@ -175,7 +279,6 @@ class NotificationsPageContent extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icône
               Container(
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
@@ -189,10 +292,7 @@ class NotificationsPageContent extends StatelessWidget {
                   size: 20,
                 ),
               ),
-
               const SizedBox(width: AppConstants.spacingM),
-
-              // Contenu
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,9 +322,7 @@ class NotificationsPageContent extends StatelessWidget {
                           ),
                       ],
                     ),
-
                     const SizedBox(height: AppConstants.spacingXS),
-
                     Text(
                       notification.message,
                       style: GoogleFonts.inter(
@@ -234,9 +332,7 @@ class NotificationsPageContent extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-
                     const SizedBox(height: AppConstants.spacingXS),
-
                     Text(
                       notification.timeAgo,
                       style: GoogleFonts.inter(
@@ -259,11 +355,7 @@ class NotificationsPageContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.notifications_none,
-            size: 64,
-            color: AppColors.grey400,
-          ),
+          Icon(Icons.notifications_none, size: 64, color: AppColors.grey400),
           const SizedBox(height: AppConstants.spacingL),
           Text(
             'Aucune notification',
@@ -271,14 +363,6 @@ class NotificationsPageContent extends StatelessWidget {
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: AppConstants.spacingS),
-          Text(
-            'Vos notifications apparaîtront ici',
-            style: GoogleFonts.inter(
-              fontSize: AppConstants.fontSizeM,
-              color: AppColors.textGrey,
             ),
           ),
         ],
@@ -291,56 +375,30 @@ class NotificationsPageContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.error,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
           const SizedBox(height: AppConstants.spacingL),
-          Text(
-            'Erreur de chargement',
-            style: GoogleFonts.inter(
-              fontSize: AppConstants.fontSizeL,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          Text('Erreur de chargement',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeL,
+                fontWeight: FontWeight.w600,
+              )),
           const SizedBox(height: AppConstants.spacingS),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXXL),
-            child: Text(
-              message,
+          Text(message,
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 color: AppColors.textSecondary,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ),
+              textAlign: TextAlign.center),
           const SizedBox(height: AppConstants.spacingXL),
           ElevatedButton(
-            onPressed: () {
-              context
-                  .read<ParentNotificationBloc>()
-                  .add(const LoadNotificationsEvent());
-            },
+            onPressed: () => context
+                .read<ParentNotificationBloc>()
+                .add(const LoadNotificationsEvent()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacingXXL,
-                vertical: AppConstants.spacingM,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              ),
             ),
-            child: Text(
-              'Réessayer',
-              style: GoogleFonts.inter(
-                color: AppColors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text('Réessayer',
+                style: GoogleFonts.inter(color: AppColors.white)),
           ),
         ],
       ),

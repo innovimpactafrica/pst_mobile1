@@ -7,6 +7,8 @@ class SchoolModel {
   final String? status;
   final String? logoUrl;
   final String? createdAt;
+  final double? latitude;
+  final double? longitude;
   
   // ✅ CORRECTION: schedule est une liste, pas une string
   final List<Map<String, dynamic>>? schedule;
@@ -20,6 +22,8 @@ class SchoolModel {
     this.status,
     this.logoUrl,
     this.createdAt,
+    this.latitude,
+    this.longitude,
     this.schedule,
   });
 
@@ -41,6 +45,8 @@ class SchoolModel {
       status: json['status'],
       logoUrl: json['logo_url'],
       createdAt: json['created_at'],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
       schedule: parsedSchedule,
     );
   }
@@ -53,6 +59,8 @@ class SchoolModel {
       if (openingTime != null) 'opening_time': openingTime,
       if (closingTime != null) 'closing_time': closingTime,
       if (status != null) 'status': status,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       if (schedule != null) 'schedule': schedule,
     };
   }
@@ -66,6 +74,8 @@ class SchoolModel {
     String? status,
     String? logoUrl,
     String? createdAt,
+    double? latitude,
+    double? longitude,
     List<Map<String, dynamic>>? schedule,
   }) {
     return SchoolModel(
@@ -77,6 +87,8 @@ class SchoolModel {
       status: status ?? this.status,
       logoUrl: logoUrl ?? this.logoUrl,
       createdAt: createdAt ?? this.createdAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       schedule: schedule ?? this.schedule,
     );
   }

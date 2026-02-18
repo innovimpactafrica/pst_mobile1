@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/services/subscription_service.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/repositories/driver_auth_repository.dart';
 import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_bloc.dart';
+import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_state.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/forgot_password_page.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/reset_password_page.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/verify_otp_page.dart';
@@ -25,6 +26,7 @@ import 'package:private_school/pages/role_selection_page.dart';
 
 // Parent imports
 import 'package:private_school/parents/pages/acceuil/presentation/pages/home.dart';
+import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/connexion.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/creer_mdp.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/mdp_oublie.dart';
@@ -60,7 +62,7 @@ import 'package:private_school/parents/pages/acceuil/data/repositories/messaging
 
 // ✅ HOME BLOC - PARENT (AJOUTÉ)
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
-import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
+//import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart' as parent_trip;
 
 void main() async {
@@ -94,12 +96,11 @@ void main() async {
           BlocProvider(create: (_) => parent_reports.ReportBloc()),
           BlocProvider(create: (context) => SchoolBloc()),
           
-          // ✅ HOME BLOC - PARENT (AJOUTÉ)
           BlocProvider<HomeBloc>(
-            create: (context) => HomeBloc(
-              repository: parent_trip.TripRepository(),
-            )..add(LoadDriversEvent()),
-          ),
+  create: (context) => HomeBloc(
+    repository: parent_trip.TripRepository(),
+  ), 
+),
           
           // ✅ MESSAGING BLOCS - PARENT
           BlocProvider<ConversationBloc>(
@@ -152,56 +153,90 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Private School Transport',
-      debugShowCheckedModeBanner: false,
-      
-      // Configuration de la localisation avec EasyLocalization
-      localizationsDelegates: [
-        ...context.localizationDelegates,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthAuthenticated) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/parent/dashboard',
+                (route) => false,
+              );
+            } else if (state is AuthUnauthenticated) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/bienvenu',
+                (route) => false,
+              );
+            }
+          },
+        ),
+        BlocListener<DriverAuthBloc, DriverAuthState>(
+          listener: (context, state) {
+            if (state is DriverAuthenticated || state is DriverAuthenticatedFromStorage) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/driver/dashboard',
+                (route) => false,
+              );
+            } else if (state is DriverUnauthenticated) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                '/bienvenu',
+                (route) => false,
+              );
+            }
+          },
+        ),
       ],
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      
-      initialRoute: '/',
-      routes: {
-        // ==================== STARTUP ROUTES ====================
-        '/': (context) => const Splash(),
-        '/bienvenu': (context) => const WelcomePage(),
-        '/role-selection': (context) => const RoleSelectionPage(),
-
-        // ==================== PARENT ROUTES ====================
-        '/parent/connexion': (context) => const Connexion(),
-        '/parent/inscription': (context) => const ParentInscription(),
-        '/parent/creer-mdp': (context) => const PasswordCreationPage(),
-        '/parent/verification': (context) => const Verification(),
-        '/parent/mdp-oublie': (context) => const MdpOubliePage(),
-        '/parent/dashboard': (context) => const HomePage(),
-
-        // ==================== DRIVER ROUTES ====================
+      child: MaterialApp(
+        title: 'Private School Transport',
+        debugShowCheckedModeBanner: false,
         
-        // Driver Authentication
-        '/driver/connexion': (context) => const driver_auth.Connexion(),
-        '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
-        '/driver/dashboard': (context) => const DashboardPage(),
+        // Configuration de la localisation avec EasyLocalization
+        localizationsDelegates: [
+          ...context.localizationDelegates,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
         
-        // Driver Forgot Password System
-        '/driver/forgot-password': (context) => const ForgotPasswordPage(),
-        '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
-        '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),
+        initialRoute: '/',
+        routes: {
+          // ==================== STARTUP ROUTES ====================
+          '/': (context) => const Splash(),
+          '/bienvenu': (context) => const WelcomePage(),
+          '/role-selection': (context) => const RoleSelectionPage(),
 
-        // ==================== LEGACY ROUTES ====================
-        // Backward compatibility - redirect to parent
-        '/connexion': (context) => const Connexion(),
-        '/inscription': (context) => const ParentInscription(),
-        '/cree': (context) => const PasswordCreationPage(),
-        '/verification': (context) => const Verification(),
-        '/password': (context) => const MdpOubliePage(),
-        '/dashboard': (context) => const HomePage(),
-      },
+          // ==================== PARENT ROUTES ====================
+          '/parent/connexion': (context) => const Connexion(),
+          '/parent/inscription': (context) => const ParentInscription(),
+          '/parent/creer-mdp': (context) => const PasswordCreationPage(),
+          '/parent/verification': (context) => const Verification(),
+          '/parent/mdp-oublie': (context) => const MdpOubliePage(),
+          '/parent/dashboard': (context) => const HomePage(),
+
+          // ==================== DRIVER ROUTES ====================
+          
+          // Driver Authentication
+          '/driver/connexion': (context) => const driver_auth.Connexion(),
+          '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
+          '/driver/dashboard': (context) => const DashboardPage(),
+          
+          // Driver Forgot Password System
+          '/driver/forgot-password': (context) => const ForgotPasswordPage(),
+          '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
+          '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),
+
+          // ==================== LEGACY ROUTES ====================
+          // Backward compatibility - redirect to parent
+          '/connexion': (context) => const Connexion(),
+          '/inscription': (context) => const ParentInscription(),
+          '/cree': (context) => const PasswordCreationPage(),
+          '/verification': (context) => const Verification(),
+          '/password': (context) => const MdpOubliePage(),
+          '/dashboard': (context) => const HomePage(),
+        },
+      ),
     );
   }
 }

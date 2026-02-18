@@ -273,21 +273,19 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   }
 
   void _openChat(ConversationModel conversation) async {
-    debugPrint('🔄 Ouverture du chat: ${conversation.displayName}');
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatPage(conversation: conversation),
-      ),
-    );
-    
-    // Rafraîchir les conversations ET le compteur de messages non lus
-    if (mounted) {
-      context.read<ConversationBloc>().add(const RefreshConversationsEvent());
-      // Notifier le compteur global qu'il faut se rafraîchir
-      UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
-    }
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ChatPage(conversation: conversation),
+    ),
+  );
+  
+  if (mounted) {
+    // ✅ Refresh conversations ET compteur au retour
+    context.read<ConversationBloc>().add(const RefreshConversationsEvent());
+    UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
   }
+}
 
   void _showConversationOptions(ConversationModel conversation) {
     showModalBottomSheet(
