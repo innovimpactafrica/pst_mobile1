@@ -176,4 +176,18 @@ class MessagingRepository {
       rethrow;
     }
   }
+
+  Future<void> markConversationAsRead(int conversationId) async {
+    debugPrint('🔄 MessagingRepository.markConversationAsRead: $conversationId');
+    try {
+      await _service.markConversationAsRead(conversationId);
+      debugPrint('✅ Repository: Messages marqués comme lus');
+      
+      // Attendre un peu pour que le serveur traite la requête
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e) {
+      debugPrint('⚠️ Repository Error (non-bloquant): $e');
+      // Ne pas rethrow car ce n'est pas bloquant
+    }
+  }
 }

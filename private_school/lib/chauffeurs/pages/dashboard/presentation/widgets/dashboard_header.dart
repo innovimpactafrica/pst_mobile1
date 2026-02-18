@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_state.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/unread_messages_bloc.dart';
+import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/unread_notifications_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/core/utils/app_colors.dart';
@@ -65,17 +65,47 @@ class DashboardHeader extends StatelessWidget {
               ],
             ),
           ),
-          _buildIconButton(
-            icon: Icons.chat_bubble_outline,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MessageriePage()),
-              );
-            },
+          Row(
+            children: [
+              BlocBuilder<UnreadMessagesBloc, UnreadMessagesState>(
+                builder: (context, state) {
+                  final count = state is UnreadMessagesLoaded ? state.count : 0;
+                  return _buildIconButtonWithBadge(
+                    icon: Icons.chat_bubble_outline,
+                    count: count,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MessageriePage()),
+                      );
+                      if (context.mounted) {
+                        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+                      }
+                    },
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
+                builder: (context, state) {
+                  final count = state is UnreadNotificationsLoaded ? state.count : 0;
+                  return _buildIconButtonWithBadge(
+                    icon: Icons.notifications_outlined,
+                    count: count,
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                      );
+                      if (context.mounted) {
+                        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+                      }
+                    },
+                  );
+                },
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          _buildNotificationButton(context),
         ],
       ),
     );
@@ -128,96 +158,58 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildIconButton({
+  Widget _buildIconButtonWithBadge({
     required IconData icon,
+    required int count,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Icon(
-            icon,
-            color: AppColors.white,
-            size: 22,
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Notification button with BLoC integration
-  /// Reads notification count from NotificationBloc state
-  Widget _buildNotificationButton(BuildContext context) {
-    return BlocBuilder<NotificationBloc, NotificationState>(
-      builder: (context, state) {
-        int unreadCount = 0;
-        
-        if (state is NotificationLoaded) {
-          unreadCount = state.unreadCount;
-        }
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationsPage(),
-              ),
-            );
-          },
-          child: Container(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
               color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Stack(
-              children: [
-                const Center(
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.white,
-                    size: 22,
-                  ),
-                ),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        unreadCount > 9 ? '9+' : '$unreadCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
+            child: Center(
+              child: Icon(
+                icon,
+                color: AppColors.white,
+                size: 22,
+              ),
             ),
           ),
-        );
-      },
+          if (count > 0)
+            Positioned(
+              top: -2,
+              right: -2,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                child: Text(
+                  count > 99 ? '99+' : count.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

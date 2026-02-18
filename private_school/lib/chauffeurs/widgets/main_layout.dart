@@ -45,28 +45,27 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   @override
- @override
-Widget build(BuildContext context) {
-  return Scaffold( // <--- On retire le MultiBlocProvider d'ici !
-    body: PageView(
-      controller: _pageController,
-      physics: const NeverScrollableScrollPhysics(),
-      onPageChanged: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
-      children: const [
-        DashboardPage(),
-        TripPage(),
-        AbonnementPage(),
-        ProfileMainPage(), // Cette page utilisera maintenant le Bloc global
-      ],
-    ),
-    bottomNavigationBar: BottomNavBar(
-      currentIndex: _currentIndex,
-      onTap: _onNavTap,
-    ),
-  );
-}
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: const [
+          DashboardPage(),
+          TripPage(),
+          AbonnementPage(),
+          ProfileMainPage(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onNavTap,
+      ),
+    );
+  }
 }

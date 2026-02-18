@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +7,7 @@ import 'package:private_school/parents/pages/acceuil/data/services/driver_user_i
 import '../../domain/bloc/conversation_bloc.dart';
 import '../../domain/bloc/conversation_event.dart';
 import '../../domain/bloc/conversation_state.dart';
+import '../../domain/bloc/unread_messages_bloc.dart';
 import '../../data/models/conversation_model.dart';
 import '../widgets/conversation_card_widget.dart';
 import 'chat.dart';
@@ -281,8 +281,11 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
       ),
     );
     
+    // Rafraîchir les conversations ET le compteur de messages non lus
     if (mounted) {
       context.read<ConversationBloc>().add(const RefreshConversationsEvent());
+      // Notifier le compteur global qu'il faut se rafraîchir
+      UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
     }
   }
 
@@ -404,6 +407,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                     this.context.read<ConversationBloc>().add(
                           const RefreshConversationsEvent(),
                         );
+                    // Rafraîchir aussi le compteur
+                    UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
                   },
                 ),
               ),

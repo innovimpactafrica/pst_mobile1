@@ -224,9 +224,12 @@ class Planning {
   final String? notes;
   final String? replacementAcceptedBy;
   final String? replacementAcceptedByName;
-  final String? replacementRequesterName;
-  final String? replacementRequesterId; 
-  final bool needsReplacementFlag;       
+ final String? replacementRequesterName;
+final String? replacementRequesterId;
+final String? replacementRequestId;
+final String? replacementRequestCreatedAt;
+final bool needsReplacementFlag; 
+final String? confirmationStatus;      
 
   Planning({
     required this.id,
@@ -248,38 +251,59 @@ class Planning {
     this.replacementAcceptedBy,
     this.replacementAcceptedByName,
     this.replacementRequesterName,
-    this.replacementRequesterId,        
-    this.needsReplacementFlag = false, 
+    this.replacementRequesterId,
+this.replacementRequestId, 
+this.replacementRequestCreatedAt,
+this.needsReplacementFlag = false, 
+this.confirmationStatus,
+    
   });
 
   factory Planning.fromJson(Map<String, dynamic> json) {
-    return Planning(
-      id: json['id']?.toString() ?? '',
-      groupId: json['group_id']?.toString() ?? '',
-      date: json['date'] != null
-          ? DateTime.tryParse(json['date']) ?? DateTime.now()
-          : DateTime.now(),
-      driverId: json['driver_id']?.toString(),
-      driverName: json['driver_name'],
-      driverPhone: json['driver_phone'],
-      driverEmail: json['driver_email'],
-      isMyTurn: json['is_my_turn'],
-      status: json['status'] ?? 'scheduled',
-      replacementReason: json['replacement_reason'],
-      startPoint: json['start_point'],
-      endPoint: json['end_point'],
-      departureTime: json['departure_time'],
-      returnTime: json['return_time'],
-      capacityMax: json['capacity_max'],
-      notes: json['notes'],
-      replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
-      replacementAcceptedByName: json['replacement_accepted_by_name'],
-      replacementRequesterName: json['replacement_requester_name'],
-      replacementRequesterId: json['replacement_requester_id']?.toString(),  
-      needsReplacementFlag: json['needs_replacement'] == true ||             
-                           json['replacement_status'] == 'pending',  
-    );
-  }
+  final replacementRequest = json['replacement_request'];
+  final bool hasPendingRequest = replacementRequest != null &&
+      replacementRequest['status'] == 'pending';
+
+  return Planning(
+    id: json['id']?.toString() ?? '',
+    groupId: json['group_id']?.toString() ?? '',
+    date: json['date'] != null
+        ? DateTime.tryParse(json['date']) ?? DateTime.now()
+        : DateTime.now(),
+
+    driverId: json['driver_id']?.toString(),
+    driverName: json['assigned_to_name'] ?? json['driver_name'],
+    driverPhone: json['assigned_to_phone'] ?? json['driver_phone'],
+    driverEmail: json['assigned_to_email'] ?? json['driver_email'],
+
+    isMyTurn: json['is_my_turn'] as bool?,
+    status: json['status'] ?? 'scheduled',
+    replacementReason: replacementRequest != null
+        ? replacementRequest['reason']?.toString()
+        : json['replacement_reason'],
+
+    startPoint: json['start_point'],
+    endPoint: json['end_point'],
+    departureTime: json['departure_time'],
+    returnTime: json['return_time'],
+    capacityMax: json['capacity_max'],
+    notes: json['notes'],
+
+    replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
+    replacementAcceptedByName: json['replacement_accepted_by_name'],
+    replacementRequesterName: json['replacement_requester_name'],
+    replacementRequesterId: json['replacement_requester_id']?.toString(),
+
+    replacementRequestId: replacementRequest != null
+        ? replacementRequest['id']?.toString()
+        : json['replacement_request_id']?.toString(),
+    replacementRequestCreatedAt: replacementRequest != null
+    ? replacementRequest['created_at']?.toString()
+    : null,
+    needsReplacementFlag: hasPendingRequest,
+    confirmationStatus: json['confirmation_status']?.toString(),
+  );
+}
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -301,14 +325,17 @@ class Planning {
     'replacement_accepted_by': replacementAcceptedBy,
     'replacement_accepted_by_name': replacementAcceptedByName,
     'replacement_requester_name': replacementRequesterName,
-    'replacement_requester_id': replacementRequesterId,  
-    'needs_replacement': needsReplacementFlag,     
+'replacement_requester_id': replacementRequesterId,
+'replacement_request_id': replacementRequestId, // ✅ NOUVEAU
+'needs_replacement': needsReplacementFlag,     
   };
 
-  bool get isConfirmed => status == 'confirmed';
+  bool get isConfirmed => confirmationStatus == 'confirmed' || status == 'confirmed';
   bool get isPending => status == 'scheduled' || status == 'pending';
  bool get needsReplacement => needsReplacementFlag || status == 'replacement_requested';
-  bool get isReplacementAccepted => status == 'replacement_accepted';
+ bool get isReplacementAccepted => 
+  status == 'replacement_accepted' || 
+  (replacementAcceptedByName != null && replacementAcceptedByName!.isNotEmpty);
   bool get isToday {
     final now = DateTime.now();
     return date.year == now.year && date.month == now.month && date.day == now.day;
@@ -340,8 +367,12 @@ class Planning {
     String? replacementAcceptedBy,
     String? replacementAcceptedByName,
     String? replacementRequesterName,
-     String? replacementRequesterId,    
-    bool? needsReplacement,   
+    String? replacementRequesterId,
+String? replacementRequestId, 
+String? replacementRequestCreatedAt,
+bool? needsReplacement,  
+String? confirmationStatus,
+
   }) {
     return Planning(
       id: id ?? this.id,
@@ -363,8 +394,11 @@ class Planning {
       replacementAcceptedBy: replacementAcceptedBy ?? this.replacementAcceptedBy,
       replacementAcceptedByName: replacementAcceptedByName ?? this.replacementAcceptedByName,
       replacementRequesterName: replacementRequesterName ?? this.replacementRequesterName,
-      replacementRequesterId: replacementRequesterId ?? this.replacementRequesterId,          
-      needsReplacementFlag: needsReplacement ?? needsReplacementFlag,  
+      replacementRequesterId: replacementRequesterId ?? this.replacementRequesterId,
+replacementRequestId: replacementRequestId ?? this.replacementRequestId, 
+replacementRequestCreatedAt: replacementRequestCreatedAt ?? this.replacementRequestCreatedAt,
+needsReplacementFlag: needsReplacement ?? needsReplacementFlag,  
+confirmationStatus: confirmationStatus ?? this.confirmationStatus,
     );
   }
 }

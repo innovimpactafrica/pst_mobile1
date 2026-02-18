@@ -54,6 +54,11 @@ class SecureStorage {
     await _storage.deleteAll();
   }
 
+  /// Get access token (alias for getAccessToken)
+  Future<String?> getToken() async {
+    return await getAccessToken();
+  }
+
   /// Check if user is logged in
   Future<bool> isLoggedIn() async {
     final token = await getAccessToken();

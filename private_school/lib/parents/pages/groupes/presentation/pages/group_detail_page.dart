@@ -77,64 +77,68 @@ class GroupDetailPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // HEADER VERT
-            Container(
-              color: AppColors.success,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      initialGroup.name,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  // ✅ BOUTON INVITER — CORRIGÉ avec BlocProvider.value
-                  BlocBuilder<GroupBloc, GroupState>(
-                    builder: (context, state) {
-                      return IconButton(
-                        icon: const Icon(
-                          Icons.person_add,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        onPressed: () {
-                          final groupId = state is GroupDetailsLoaded
-                              ? state.group.id
-                              : initialGroup.id;
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => BlocProvider.value(
-                              value: context
-                                  .read<GroupBloc>(), // ✅ PARTAGE le BLoC
-                              child: InviteMemberModal(groupId: groupId),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
+      body: Column(
+        children: [
+          // HEADER VERT
+          Container(
+            color: AppColors.success,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: 16,
+              right: 16,
+              bottom: 12,
             ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    initialGroup.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                // ✅ BOUTON INVITER — CORRIGÉ avec BlocProvider.value
+                BlocBuilder<GroupBloc, GroupState>(
+                  builder: (context, state) {
+                    return IconButton(
+                      icon: const Icon(
+                        Icons.person_add,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        final groupId = state is GroupDetailsLoaded
+                            ? state.group.id
+                            : initialGroup.id;
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => BlocProvider.value(
+                            value: context
+                                .read<GroupBloc>(), // ✅ PARTAGE le BLoC
+                            child: InviteMemberModal(groupId: groupId),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
 
             const SizedBox(height: 16),
 
@@ -195,16 +199,20 @@ class GroupDetailPageContent extends StatelessWidget {
                     );
                   }
                   if (state is PlanningConfirmed) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Planning confirmé ✅',
-                          style: GoogleFonts.inter(),
-                        ),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        'Planning confirmé ✅',
+        style: GoogleFonts.inter(),
+      ),
+      backgroundColor: AppColors.success,
+    ),
+  );
+  // ✅ Recharger les détails du groupe pour afficher la card
+  context.read<GroupBloc>().add(
+    LoadGroupDetailsEvent(initialGroup.id),
+  );
+}
                   if (state is MemberInvited) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -216,6 +224,21 @@ class GroupDetailPageContent extends StatelessWidget {
                       ),
                     );
                   }
+                  if (state is ReplacementResponseSent) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        state.accepted ? 'Remplacement accepté ✅' : 'Remplacement refusé',
+        style: GoogleFonts.inter(),
+      ),
+      backgroundColor: state.accepted ? AppColors.success : Colors.orange,
+    ),
+  );
+  // ✅ Recharger pour cacher la card "Répondre" et mettre à jour le planning
+  context.read<GroupBloc>().add(
+    LoadGroupDetailsEvent(initialGroup.id),
+  );
+}
                   if (state is ReplacementRequested) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -259,7 +282,6 @@ class GroupDetailPageContent extends StatelessWidget {
             ),
           ],
         ),
-      ),
       // ✅ FAB CRÉER PLANNING — CORRIGÉ avec BlocProvider.value
       floatingActionButton: BlocBuilder<GroupBloc, GroupState>(
         builder: (context, state) {
@@ -354,24 +376,34 @@ class GroupDetailPageContent extends StatelessWidget {
   } else if (authState is UserLoaded) {
     currentUserId = authState.user.id;
   }
+  // ✅ Tous les plannings avec remplacement demandé (pas seulement aujourd'hui)
+final allPlannings = group.plannings;
 
-  // ✅ Séparer les plannings
-  final pendingReplacements = todayPlannings
-      .where((p) => p.needsReplacement)
-      .toList();
-  
-  // ✅ Plannings qui nécessitent confirmation
-  final needsConfirmation = todayPlannings.where((p) {
+final pendingReplacements = allPlannings
+    .where((p) => p.needsReplacement)
+    .toList();
+final needsConfirmation = todayPlannings.where((p) {
     final isMyTurn = p.isMyTurn == true || 
                     p.driverId == currentUserId ||
                     (p.driverId == null && group.creatorId == currentUserId);
     
+    debugPrint('🔍 [needsConfirmation] planning ${p.id}');
+    debugPrint('   isMyTurn: $isMyTurn');
+    debugPrint('   isConfirmed: ${p.isConfirmed}');
+    debugPrint('   confirmationStatus: ${p.confirmationStatus}');
+    debugPrint('   needsReplacement: ${p.needsReplacement}');
+    
     return isMyTurn && !p.isConfirmed && !p.needsReplacement;
   }).toList();
   
-  final otherPlannings = todayPlannings
-      .where((p) => !pendingReplacements.contains(p) && !needsConfirmation.contains(p))
-      .toList();
+ final otherPlannings = allPlannings
+    .where((p) => !pendingReplacements.contains(p) && !needsConfirmation.contains(p))
+    .toList();
+
+debugPrint('📊 [PlanningTab] todayPlannings: ${todayPlannings.length}');
+debugPrint('   needsConfirmation: ${needsConfirmation.length}');
+debugPrint('   pendingReplacements: ${pendingReplacements.length}');
+debugPrint('   otherPlannings: ${otherPlannings.length}');
 
   return SingleChildScrollView(
     padding: const EdgeInsets.all(20),
@@ -386,14 +418,19 @@ class GroupDetailPageContent extends StatelessWidget {
             ),
           ),
 
-        // Cards de remplacement
-        if (pendingReplacements.isNotEmpty)
-          ...pendingReplacements.map(
-            (planning) => _buildPendingReplacementCard(context, planning, group),
-          ),
+       // Cards de remplacement
+if (pendingReplacements.isNotEmpty)
+  ...pendingReplacements.map(
+    (planning) {
+      final isMyRequest = planning.replacementRequesterId == currentUserId;
+      return _buildPendingReplacementCard(
+        context, planning, group, isMyRequest,
+      );
+    },
+  ),
 
         // Message vide
-        if (todayPlannings.isEmpty)
+       if (allPlannings.isEmpty)
           Center(
             child: Padding(
               padding: const EdgeInsets.all(40),
@@ -410,20 +447,21 @@ class GroupDetailPageContent extends StatelessWidget {
               ),
             ),
           )
-        else
-          ...otherPlannings.map(
-            (planning) => _buildPlanningCard(context, planning, group),
-          ),
+       else
+  ...otherPlannings.map(
+    (planning) => _buildPlanningCard(context, planning, group),
+  ),
       ],
     ),
   );
 }
 
   Widget _buildPendingReplacementCard(
-    BuildContext context,
-    Planning planning,
-    GroupModel group,
-  ) {
+  BuildContext context,
+  Planning planning,
+  GroupModel group,
+  bool isMyRequest,
+) {
     String dateStr;
     try {
       dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
@@ -432,18 +470,6 @@ class GroupDetailPageContent extends StatelessWidget {
       dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
       dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
     }
-
-    String currentUserId = '';
-    final authState = context.read<AuthBloc>().state;
-
-    if (authState is AuthAuthenticated && authState.user != null) {
-      currentUserId = authState.user!.id;
-    } else if (authState is UserLoaded) {
-      currentUserId = authState.user.id;
-    }
-
-    bool isMyRequest =
-        planning.isMyTurn == true || planning.driverId == currentUserId;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -904,22 +930,31 @@ class GroupDetailPageContent extends StatelessWidget {
   }
 
   Widget _buildHistoryTab(BuildContext context, GroupModel group) {
-    final historyItems = [
-      {
-        'date': 'Vendredi 24 janvier',
-        'time': '10:23',
-        'from': 'Moussa Fall',
-        'to': 'Aïssatou Diop',
-        'reason': 'déplacement personnelle',
-      },
-      {
-        'date': 'Lundi 2 janvier',
-        'time': '08:14',
-        'from': 'Aïssatou Diop',
-        'to': 'Moussa Fall',
-        'reason': 'Panne de voiture',
-      },
-    ];
+   // ✅ Historique RÉEL : plannings avec remplacement accepté
+final historyItems = group.plannings.where((p) {
+  return p.replacementAcceptedByName != null || 
+         p.replacementRequesterName != null;
+}).map((p) {
+  String dateStr = '';
+  try {
+    dateStr = DateFormat('EEEE dd MMMM', 'fr_FR').format(p.date);
+    dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+  } catch (e) {
+    dateStr = DateFormat('EEEE dd MMMM').format(p.date);
+  }
+  return {
+    'date': dateStr,
+    'time': p.replacementRequestCreatedAt != null
+    ? DateFormat('HH:mm').format(
+        DateTime.parse(p.replacementRequestCreatedAt!).toLocal()
+      )
+    : DateFormat('HH:mm').format(p.date),
+    'from': p.replacementRequesterName ?? p.driverName ?? 'Inconnu',
+    'to': p.replacementAcceptedByName ?? 'En attente',
+    'reason': p.replacementReason ?? 'Aucun motif',
+    'isPending': p.needsReplacement ? 'true' : 'false',
+  };
+}).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -974,10 +1009,14 @@ class GroupDetailPageContent extends StatelessWidget {
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.sync,
-                                color: Colors.orange.shade600,
-                                size: 20,
-                              ),
+  item['isPending'] == 'true' 
+    ? Icons.sync 
+    : Icons.check_circle,
+  color: item['isPending'] == 'true'
+    ? Colors.orange.shade600
+    : AppColors.success,
+  size: 20,
+),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -995,21 +1034,43 @@ class GroupDetailPageContent extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${item['from']} → ${item['to']}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
+  item['isPending'] == 'true'
+    ? '${item['from']} → En attente'
+    : '${item['from']} → ${item['to']}',
+  style: GoogleFonts.inter(
+    fontSize: 14,
+    color: Colors.grey.shade700,
+  ),
+),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Raison : ${item['reason']}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade600,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
+  'Raison : ${item['reason']}',
+  style: GoogleFonts.inter(
+    fontSize: 13,
+    color: Colors.grey.shade600,
+    fontStyle: FontStyle.italic,
+  ),
+),
+const SizedBox(height: 4),
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+  decoration: BoxDecoration(
+    color: item['isPending'] == 'true'
+      ? Colors.orange.shade50
+      : AppColors.success.withValues(alpha: 0.1),
+    borderRadius: BorderRadius.circular(4),
+  ),
+  child: Text(
+    item['isPending'] == 'true' ? 'En attente' : 'Accepté',
+    style: GoogleFonts.inter(
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      color: item['isPending'] == 'true'
+        ? Colors.orange.shade700
+        : AppColors.success,
+    ),
+  ),
+),
                               ],
                             ),
                           ),

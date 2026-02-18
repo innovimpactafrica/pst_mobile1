@@ -9,6 +9,11 @@ import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_state.dart';
+import 'package:private_school/parents/pages/acceuil/domain/bloc/unread_messages_bloc.dart';
+import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
+import 'package:private_school/parents/pages/profil/domain/bloc/unread_notifications_bloc.dart';
+import 'package:private_school/parents/pages/profil/data/repositories/notifications_repository.dart';
+import 'package:private_school/parents/pages/acceuil/data/services/unified_notification_service.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
@@ -33,13 +38,90 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => UnreadMessagesBloc(repository: MessagingRepository())
+            ..add(LoadUnreadCountEvent()),
+        ),
+        BlocProvider(
+          create: (context) => UnreadNotificationsBloc(repository: NotificationRepository())
+            ..add(LoadUnreadNotificationsCountEvent()),
+        ),
+      ],
+      child: const _HomePageContent(),
+    );
+  }
+}
+
+class _HomePageContent extends StatefulWidget {
+  const _HomePageContent();
+
+  @override
+  State<_HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   LatLng? _homeLocation;
+  final UnifiedNotificationService _notificationService = UnifiedNotificationService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadHomeAddress();
+    
+    // ✅ NOUVEAU : Charger les données utilisateur au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Charger les données utilisateur pour afficher la photo
+      context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+      
+      _notificationService.registerBlocs(
+        messagesBloc: context.read<UnreadMessagesBloc>(),
+        notificationsBloc: context.read<UnreadNotificationsBloc>(),
+      );
+    });
+    
+    // Démarrer le service de notification
+    _notificationService.startPolling();
+    debugPrint('🏠 [HomePage] Service de notification unifié démarré');
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _notificationService.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        debugPrint('📱 [HomePage] App resumed - redémarrage polling');
+        _notificationService.startPolling();
+        // Vérifier immédiatement les nouveaux messages et notifications
+        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+        // Vérifier aussi avec le service
+        _notificationService.checkNow();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        debugPrint('📱 [HomePage] App paused/inactive - arrêt polling');
+        _notificationService.stopPolling();
+        break;
+      case AppLifecycleState.detached:
+        _notificationService.dispose();
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   void _loadHomeAddress() async {
@@ -84,19 +166,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white, // ← FOND BLANC
-    body: SafeArea(
-      child: Stack(
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
         children: [
           Column(
             children: [
-              _buildHeader(context),
+              Container(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                  left: AppConstants.spacingXL,
+                  right: AppConstants.spacingXL,
+                  bottom: AppConstants.spacingXL,
+                ),
+                decoration: const BoxDecoration(color: AppColors.success),
+                child: _buildHeaderContent(context),
+              ),
               Expanded(
                 child: Container(
-                  color: AppColors.white, 
+                  color: AppColors.white,
                   child: Stack(
                     children: [
                       _buildMapBackground(context),
@@ -149,9 +238,8 @@ Widget build(BuildContext context) {
           _buildFloatingActionButton(context),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildMapBackground(BuildContext context) {
     if (_homeLocation == null) {
@@ -251,79 +339,100 @@ Widget build(BuildContext context) {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingXL,
-        vertical: AppConstants.spacingXL,
-      ),
-      decoration: const BoxDecoration(color: AppColors.success),
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          String userName = "user".tr();
-          String? userPhoto;
+  Widget _buildHeaderContent(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        String userName = "user".tr();
+        String? userPhoto;
 
-          if (authState is UserLoaded) {
-            userName = authState.user.fullName;
-            userPhoto = authState.user.photo;
-          } else if (authState is AuthAuthenticated) {
-            userName = authState.user?.fullName ?? "user".tr();
-            userPhoto = authState.user?.photo;
-          }
+        if (authState is UserLoaded) {
+          userName = authState.user.fullName;
+          userPhoto = authState.user.photo;
+        } else if (authState is AuthAuthenticated) {
+          userName = authState.user?.fullName ?? "user".tr();
+          userPhoto = authState.user?.photo;
+        }
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  _buildProfileAvatar(userPhoto),
-                  const SizedBox(width: AppConstants.spacingL),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppConstants.labelGreeting,
-                        style: GoogleFonts.inter(
-                          color: AppColors.white.withValues(alpha: 0.7),
-                          fontSize: AppConstants.fontSizeM,
-                        ),
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                _buildProfileAvatar(userPhoto),
+                const SizedBox(width: AppConstants.spacingL),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppConstants.labelGreeting,
+                      style: GoogleFonts.inter(
+                        color: AppColors.white.withValues(alpha: 0.7),
+                        fontSize: AppConstants.fontSizeM,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        userName,
-                        style: GoogleFonts.inter(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: AppConstants.fontSizeXL,
-                        ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      userName,
+                      style: GoogleFonts.inter(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: AppConstants.fontSizeXL,
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildNotifIconSvg('assets/icons/notif.svg', 1, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const DiscussionsPage()),
-                    );
-                  }),
-                  const SizedBox(width: AppConstants.spacingL),
-                  _buildNotifIconSvg('assets/icons/Settings.svg', 0, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const NotificationsPage()),
-                    );
-                  }),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                BlocBuilder<UnreadMessagesBloc, UnreadMessagesState>(
+                  builder: (context, state) {
+                    final count = state is UnreadMessagesLoaded ? state.count : 0;
+                    debugPrint('💬 [HomePage] Compteur messages: $count');
+                    return _buildNotifIconSvg('assets/icons/notif.svg', count, () async {
+                      debugPrint('🔄 [HomePage] Ouverture page discussions');
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const DiscussionsPage()),
+                      );
+                      // Rafraîchir le compteur au retour
+                      if (mounted) {
+                        debugPrint('🔄 [HomePage] Retour de discussions, refresh compteur');
+                        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+                        // Vérifier aussi avec le service
+                        _notificationService.checkNow();
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(width: AppConstants.spacingL),
+                BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
+                  builder: (context, state) {
+                    final count = state is UnreadNotificationsLoaded ? state.count : 0;
+                    debugPrint('🔔 [HomePage] Compteur notifications: $count');
+                    return _buildNotifIconSvg('assets/icons/Settings.svg', count, () async {
+                      debugPrint('🔄 [HomePage] Ouverture page notifications');
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const NotificationsPage()),
+                      );
+                      // Rafraîchir le compteur au retour
+                      if (mounted) {
+                        debugPrint('🔄 [HomePage] Retour de notifications, refresh compteur');
+                        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+                        // Vérifier aussi avec le service
+                        _notificationService.checkNow();
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -376,6 +485,7 @@ Widget build(BuildContext context) {
 
   Widget _buildNotifIconSvg(
       String svgPath, int notifCount, VoidCallback onTap) {
+    debugPrint('🔔 [HomePage] Badge notification: $notifCount');
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -402,18 +512,23 @@ Widget build(BuildContext context) {
               right: 2,
               top: 2,
               child: Container(
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(
+                  minWidth: 20,
+                  minHeight: 20,
+                ),
                 decoration: const BoxDecoration(
                   color: AppColors.error,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
-                  notifCount.toString(),
+                  notifCount > 99 ? '99+' : notifCount.toString(),
                   style: const TextStyle(
                     fontSize: AppConstants.fontSizeXS,
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -530,16 +645,21 @@ Widget build(BuildContext context) {
   }
 
   void _onBottomNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const MainLayout(initialIndex: 1)),
-      );
+    // Si on clique sur l'accueil (index 0), on reste sur la page actuelle
+    if (index == 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+      return;
     }
+    
+    // Pour tous les autres onglets, naviguer vers MainLayout avec l'index approprié
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MainLayout(initialIndex: index),
+      ),
+    );
   }
 
   Widget _buildNavItem(

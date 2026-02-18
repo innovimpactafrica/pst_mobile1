@@ -15,14 +15,18 @@ class RespondReplacementModal extends StatelessWidget {
   const RespondReplacementModal({super.key, required this.planning});
 
   void _respondToReplacement(BuildContext context, bool accept) {
-    debugPrint('📝 [RespondReplacementModal] RESPOND TO REPLACEMENT');
-    debugPrint('   PlanningId: ${planning.id}');
-    debugPrint('   Accept: $accept');
+  debugPrint('📝 [RespondReplacementModal] RESPOND TO REPLACEMENT');
+  debugPrint('   PlanningId: ${planning.id}');
+  debugPrint('   ReplacementRequestId: ${planning.replacementRequestId}');
+  debugPrint('   Accept: $accept');
 
-    context.read<GroupBloc>().add(
-      RespondToReplacementEvent(planningId: planning.id, accept: accept),
-    );
-  }
+  // ✅ Utiliser l'ID de la demande, pas l'ID du planning
+  final requestId = planning.replacementRequestId ?? planning.id;
+  
+  context.read<GroupBloc>().add(
+    RespondToReplacementEvent(planningId: requestId, accept: accept),
+  );
+}
 
   @override
   Widget build(BuildContext context) {

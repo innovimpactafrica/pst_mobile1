@@ -442,4 +442,34 @@ class MessagingService {
       rethrow;
     }
   }
+
+  /// POST /api/conversations/{id}/mark-read - Marquer les messages comme lus
+  Future<void> markConversationAsRead(int conversationId) async {
+    debugPrint('🔄 MessagingService.markConversationAsRead - START');
+    debugPrint('💬 conversationId: $conversationId');
+    
+    try {
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/mark-read');
+      
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+      
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        debugPrint('✅ Messages marqués comme lus');
+      } else {
+        debugPrint('⚠️ Erreur HTTP: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Exception dans markConversationAsRead: $e');
+    }
+  }
 }

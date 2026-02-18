@@ -67,30 +67,34 @@ class _TripDetailPageState extends State<TripDetailPage> {
       value: context.read<ChildBloc>(),
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // HEADER
-              Container(
-                color: AppColors.success,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '${widget.trip.departure} → ${widget.trip.destination}',
-                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
+        body: Column(
+          children: [
+            // HEADER
+            Container(
+              color: AppColors.success,
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 16,
+                right: 16,
+                bottom: 12,
               ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${widget.trip.departure} → ${widget.trip.destination}',
+                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
 
               Expanded(
                 child: SingleChildScrollView(
@@ -459,7 +463,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
               ),
             ],
           ),
-        ),
+        
         bottomNavigationBar: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -485,7 +489,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
             ),
           ),
         ),
-      ),
+      )
     );
   }
 
@@ -654,9 +658,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     );
   }
 
-  // ✅ MODIFIÉ : Réservation API → puis navigation vers PaymentPage
   Future<void> _processReservation() async {
-    // Afficher un loader
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -666,43 +668,25 @@ class _TripDetailPageState extends State<TripDetailPage> {
     );
 
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟢 [TripDetailPage] TRAITEMENT RÉSERVATION');
-      debugPrint('📤 Trajet ID: ${widget.trip.id}');
-      debugPrint('📤 Nombre d\'enfants: ${_selectedChildren.length}');
-
       final repository = TripRepository();
       final childIds = _selectedChildren.map((child) => child.id.toString()).toList();
-      
-      debugPrint('   Enfants sélectionnés: ${_selectedChildren.map((c) => '${c.name} (ID: ${c.id})').join(', ')}');
       
       await repository.reserveTrip(
         tripId: widget.trip.id,
         childIds: childIds,
       );
 
-      debugPrint('✅ Réservation effectuée avec succès pour tous les enfants');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
       if (!mounted) return;
-
-      // ✅ Fermer le loader
       Navigator.of(context).pop();
-
-      // ✅ Aller vers PaymentPage (TripDetailPage reste dans la stack)
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => PaymentPage(trip: widget.trip),
         ),
       );
     } catch (e) {
-      debugPrint('❌ Erreur réservation: $e');
-
       if (!mounted) return;
-
-      // Fermer le loader
       Navigator.of(context).pop();
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

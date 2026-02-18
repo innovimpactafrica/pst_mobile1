@@ -133,18 +133,19 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
   try {
     debugPrint('🔍 [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
     
-    // ✅ AJOUT : Charger aussi les demandes de remplacement
-    final results = await Future.wait([
-      repository.getGroupById(event.groupId),
-      repository.getGroupCalendar(event.groupId),
-      repository.getGroupMembers(event.groupId),
-      repository.getReplacementRequests(event.groupId), // ✅ NOUVEAU
-    ]);
+final results = await Future.wait([
+  repository.getGroupById(event.groupId),
+  repository.getGroupPlanning(event.groupId),
+  repository.getGroupMembers(event.groupId),
+  repository.getReplacementRequests(event.groupId),    // pending uniquement
+  repository.getAllReplacementRequests(event.groupId), // toutes (historique)
+]);
 
-    final group = results[0] as GroupModel;
-    final plannings = results[1] as List<Planning>;
-    final members = results[2] as List<GroupMember>;
-    final replacementRequests = results[3] as List<Map<String, dynamic>>; // ✅ NOUVEAU
+final group = results[0] as GroupModel;
+final plannings = results[1] as List<Planning>;
+final members = results[2] as List<GroupMember>;
+final replacementRequests = results[3] as List<Map<String, dynamic>>;
+final allReplacementRequests = results[4] as List<Map<String, dynamic>>;
 
     debugPrint('✅ Groupe chargé: ${group.name}');
     debugPrint('✅ ${plannings.length} plannings chargés');
@@ -156,38 +157,62 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('📊 [LoadGroupDetails] Enrichissement des plannings');
     
-    final enrichedPlannings = plannings.map((planning) {
-      // Chercher si ce planning a une demande de remplacement
-      final matchingRequest = replacementRequests.firstWhere(
-        (req) => req['calendar_id']?.toString() == planning.id,
-        orElse: () => {},
-      );
-      
-      if (matchingRequest.isNotEmpty) {
-        debugPrint('   Planning ${planning.id} a une demande:');
-        debugPrint('      Demandeur: ${matchingRequest['requester_name']}');
-        debugPrint('      Motif: ${matchingRequest['reason']}');
-        debugPrint('      Statut: ${matchingRequest['status']}');
-        
-        return planning.copyWith(
-          needsReplacement: matchingRequest['status'] == 'pending',
-          replacementReason: matchingRequest['reason']?.toString(),
-          replacementRequesterId: matchingRequest['requester_id']?.toString(),
-          replacementRequesterName: matchingRequest['requester_name']?.toString(),
-        );
-      }
-      
-      return planning;
-    }).toList();
+   final enrichedPlannings = plannings.map((planning) {
+  
+  final matchingRequest = replacementRequests.firstWhere(
+    (req) => req['calendar_id']?.toString() == planning.id 
+           && req['status'] == 'pending', // ✅ SEULEMENT si pending
+    orElse: () => {},
+  );
+
+  if (matchingRequest.isNotEmpty) {
+    debugPrint('   Planning ${planning.id} a une demande PENDING:');
+    debugPrint('      Demandeur: ${matchingRequest['requested_by_name']}');
+    debugPrint('      Motif: ${matchingRequest['reason']}');
+    debugPrint('      Statut: ${matchingRequest['status']}');
+
+    return planning.copyWith(
+      needsReplacement: true,
+      replacementReason: matchingRequest['reason']?.toString(),
+      replacementRequesterId: matchingRequest['requested_by']?.toString(),
+      replacementRequesterName: matchingRequest['requested_by_name']?.toString(),
+      replacementRequestId: matchingRequest['id']?.toString(),
+      replacementAcceptedByName: matchingRequest['responded_by_name']?.toString(),
+    );
+  }
+
+  // ✅ Si pas de demande pending → ne pas afficher comme remplacement
+  return planning.copyWith(
+    needsReplacement: false,
+  );
+}).toList();
     
     debugPrint('   Plannings avec demande: ${enrichedPlannings.where((p) => p.needsReplacement).length}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    // ✅ Utiliser les plannings enrichis
-    final groupWithData = group.copyWith(
-      plannings: enrichedPlannings, // ✅ CHANGÉ : utiliser enrichedPlannings
-      members: members,
+   // ✅ Enrichir aussi avec les demandes acceptées (pour l'historique)
+final fullyEnrichedPlannings = enrichedPlannings.map((planning) {
+  final acceptedRequest = allReplacementRequests.firstWhere(
+    (req) => req['calendar_id']?.toString() == planning.id 
+           && req['status'] == 'accepted',
+    orElse: () => {},
+  );
+
+  if (acceptedRequest.isNotEmpty) {
+    return planning.copyWith(
+      replacementRequesterName: acceptedRequest['requested_by_name']?.toString(),
+      replacementAcceptedByName: acceptedRequest['responded_by_name']?.toString(),
+      replacementReason: acceptedRequest['reason']?.toString(),
+      replacementRequestCreatedAt: acceptedRequest['created_at']?.toString(),
     );
+  }
+  return planning;
+}).toList();
+
+final groupWithData = group.copyWith(
+  plannings: fullyEnrichedPlannings, // ✅ utiliser fullyEnrichedPlannings
+  members: members,
+);
 
     emit(GroupDetailsLoaded(group: groupWithData));
   } catch (e) {
@@ -288,18 +313,28 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
   }
 
   Future<void> _onConfirmPlanning(ConfirmPlanningEvent event, Emitter<GroupState> emit) async {
+    // Sauvegarder le groupId AVANT tout
+    String? groupId;
+    if (state is GroupDetailsLoaded) {
+      groupId = (state as GroupDetailsLoaded).group.id;
+    }
+
     try {
       debugPrint('[GroupBloc] CONFIRM PLANNING: ${event.planningId}');
       await repository.confirmPlanning(planningId: event.planningId);
+      debugPrint('✅ Planning confirmé');
       emit(PlanningConfirmed());
-      // ✅ Pas besoin de recharger ici, c'est fait dans la page
+      // ✅ Recharger le groupe pour mettre à jour l'UI
+      if (groupId != null) {
+        add(LoadGroupDetailsEvent(groupId));
+      }
     } catch (e) {
       debugPrint('❌ Confirm error: $e');
       emit(GroupError(message: 'Erreur confirmation: $e'));
     }
   }
 
-// ✅ Remplacez la méthode _onRequestReplacement dans group_bloc.dart
+
 
 Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupState> emit) async {
   try {
@@ -323,13 +358,34 @@ Future<void> _onRequestReplacement(RequestReplacementEvent event, Emitter<GroupS
 }
 
   Future<void> _onRespondToReplacement(RespondToReplacementEvent event, Emitter<GroupState> emit) async {
-    try {
-      await repository.respondToReplacement(planningId: event.planningId, accept: event.accept);
-      emit(ReplacementResponseSent(accepted: event.accept));
-    } catch (e) {
-      emit(GroupError(message: 'Erreur réponse: $e'));
-    }
+  // ✅ Sauvegarder le groupId AVANT d'émettre
+  String? groupId;
+  if (state is GroupDetailsLoaded) {
+    groupId = (state as GroupDetailsLoaded).group.id;
   }
+
+  try {
+    debugPrint('[GroupBloc] RESPOND TO REPLACEMENT: ${event.planningId}');
+    debugPrint('   accept: ${event.accept}');
+    
+    await repository.respondToReplacement(
+      planningId: event.planningId,
+      accept: event.accept,
+    );
+    
+    debugPrint('✅ Réponse envoyée');
+    emit(ReplacementResponseSent(accepted: event.accept));
+    
+    // ✅ Recharger le groupe pour mettre à jour l'UI
+    if (groupId != null) {
+      debugPrint('🔄 Rechargement du groupe: $groupId');
+      add(LoadGroupDetailsEvent(groupId));
+    }
+  } catch (e) {
+    debugPrint('❌ Respond error: $e');
+    emit(GroupError(message: 'Erreur réponse: $e'));
+  }
+}
 
   Future<void> _onSelectGroupTab(SelectGroupTabEvent event, Emitter<GroupState> emit) async {
     if (state is GroupDetailsLoaded) {

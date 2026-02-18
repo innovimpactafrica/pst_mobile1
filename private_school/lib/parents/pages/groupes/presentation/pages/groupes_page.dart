@@ -73,205 +73,208 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── HEADER VERT (design conservé) ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      body: Column(
+        children: [
+          // ── HEADER VERT (design conservé) ──
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 20,
+              left: 20,
+              right: 20,
+              bottom: 20,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.success,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('groups'.tr(),
+                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── BARRE DE RECHERCHE (design conservé) ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              height: 48,
               decoration: BoxDecoration(
-                color: AppColors.success,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('groups'.tr(),
-                      style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // ── BARRE DE RECHERCHE (design conservé) ──
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'search'.tr(),
-                    hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'search'.tr(),
+                  hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-            // ── CONTENU ──
-            Expanded(
-              child: BlocConsumer<GroupBloc, GroupState>(
-               listener: (context, state) {
-  if (state is GroupJoined) {
-    context.read<GroupBloc>().add(LoadAllGroupsEvent());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Vous avez rejoint le groupe ! ', style: GoogleFonts.inter()), 
-        backgroundColor: AppColors.success,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-                  if (state is InvitationResponded) {
-                    context.read<GroupBloc>().add(LoadAllGroupsEvent());
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          state.accepted 
-                            ? 'Invitation acceptée ! Le groupe apparaît maintenant dans "Mes groupes"' 
-                            : 'Invitation refusée', 
-                          style: GoogleFonts.inter()
-                        ),
-                        backgroundColor: state.accepted ? AppColors.success : Colors.grey,
-                        duration: const Duration(seconds: 3),
+          // ── CONTENU ──
+          Expanded(
+            child: BlocConsumer<GroupBloc, GroupState>(
+             listener: (context, state) {
+if (state is GroupJoined) {
+  context.read<GroupBloc>().add(LoadAllGroupsEvent());
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Vous avez rejoint le groupe ! ', style: GoogleFonts.inter()), 
+      backgroundColor: AppColors.success,
+      duration: const Duration(seconds: 3),
+    ),
+  );
+}
+                if (state is InvitationResponded) {
+                  context.read<GroupBloc>().add(LoadAllGroupsEvent());
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        state.accepted 
+                          ? 'Invitation acceptée ! Le groupe apparaît maintenant dans "Mes groupes"' 
+                          : 'Invitation refusée', 
+                        style: GoogleFonts.inter()
                       ),
-                    );
-                  }
-                  if (state is GroupError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(state.message, style: GoogleFonts.inter()), backgroundColor: Colors.red),
-                    );
-                  }
-                },
-                builder: (context, state) {
-
-                  // ── CHARGEMENT INITIAL ──
-                  if (state is GroupLoading) {
-                    return Center(child: CircularProgressIndicator(color: AppColors.success));
-                  }
-
-                  // ── ERREUR CRITIQUE ──
-                  if (state is GroupError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
-                          const SizedBox(height: 16),
-                          Text(state.message,
-                              style: GoogleFonts.inter(fontSize: 16, color: Colors.red.shade700), textAlign: TextAlign.center),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => context.read<GroupBloc>().add(LoadAllGroupsEvent()),
-                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                            child: Text('Réessayer', style: GoogleFonts.inter(color: Colors.white)),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  // ── ✅ DONNÉES RÉELLES — état GroupsLoaded ──
-                  List<GroupModel> myGroups = [];
-                  List<GroupModel> availableGroups = [];
-                  List<GroupInvitation> invitations = [];
-
-                  if (state is GroupsLoaded) {
-                    myGroups = state.myGroups;
-                    availableGroups = state.availableGroups;
-                    invitations = state.invitations;
-                  }
-
-                  return RefreshIndicator(
-                    color: AppColors.success,
-                    onRefresh: () async {
-                      context.read<GroupBloc>().add(LoadAllGroupsEvent());
-                      await Future.delayed(const Duration(milliseconds: 500));
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-
-                          // ──  INVITATIONS EN ATTENTE (depuis l'API) ──
-                          if (invitations.isNotEmpty)
-                            ...invitations.map((invitation) => _buildInvitationCard(context, invitation)),
-
-                          const SizedBox(height: 24),
-
-                          // ── MES GROUPES ──
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text('my_groups'.tr(),
-                                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
-                          ),
-                          const SizedBox(height: 16),
-
-                          if (myGroups.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 40),
-                                  child: Column(
-                                    children: [
-                                      Icon(Icons.group_outlined, size: 64, color: Colors.grey.shade300),
-                                      const SizedBox(height: 16),
-                                      Text('no_groups'.tr(),
-                                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
-                                      const SizedBox(height: 8),
-                                      Text('create_your_first_group'.tr(),
-                                          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Column(
-                                children: myGroups.map((group) => _buildVerticalGroupCard(group, context)).toList(),
-                              ),
-                            ),
-
-                          const SizedBox(height: 32),
-
-                          // ── GROUPES DISPONIBLES ──
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text('groups_you_can_join'.tr(),
-                                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildAvailableGroupsSection(context, availableGroups),
-
-                          const SizedBox(height: 100),
-                        ],
-                      ),
+                      backgroundColor: state.accepted ? AppColors.success : Colors.grey,
+                      duration: const Duration(seconds: 3),
                     ),
                   );
-                },
-              ),
+                }
+                if (state is GroupError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.message, style: GoogleFonts.inter()), backgroundColor: Colors.red),
+                  );
+                }
+              },
+              builder: (context, state) {
+
+                // ── CHARGEMENT INITIAL ──
+                if (state is GroupLoading) {
+                  return Center(child: CircularProgressIndicator(color: AppColors.success));
+                }
+
+                // ── ERREUR CRITIQUE ──
+                if (state is GroupError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                        const SizedBox(height: 16),
+                        Text(state.message,
+                            style: GoogleFonts.inter(fontSize: 16, color: Colors.red.shade700), textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => context.read<GroupBloc>().add(LoadAllGroupsEvent()),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                          child: Text('Réessayer', style: GoogleFonts.inter(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // ── ✅ DONNÉES RÉELLES — état GroupsLoaded ──
+                List<GroupModel> myGroups = [];
+                List<GroupModel> availableGroups = [];
+                List<GroupInvitation> invitations = [];
+
+                if (state is GroupsLoaded) {
+                  myGroups = state.myGroups;
+                  availableGroups = state.availableGroups;
+                  invitations = state.invitations;
+                }
+
+                return RefreshIndicator(
+                  color: AppColors.success,
+                  onRefresh: () async {
+                    context.read<GroupBloc>().add(LoadAllGroupsEvent());
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+
+                        // ──  INVITATIONS EN ATTENTE (depuis l'API) ──
+                        if (invitations.isNotEmpty)
+                          ...invitations.map((invitation) => _buildInvitationCard(context, invitation)),
+
+                        const SizedBox(height: 24),
+
+                        // ── MES GROUPES ──
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text('my_groups'.tr(),
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
+                        ),
+                        const SizedBox(height: 16),
+
+                        if (myGroups.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.group_outlined, size: 64, color: Colors.grey.shade300),
+                                    const SizedBox(height: 16),
+                                    Text('no_groups'.tr(),
+                                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+                                    const SizedBox(height: 8),
+                                    Text('create_your_first_group'.tr(),
+                                        style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              children: myGroups.map((group) => _buildVerticalGroupCard(group, context)).toList(),
+                            ),
+                          ),
+
+                        const SizedBox(height: 32),
+
+                        // ── GROUPES DISPONIBLES ──
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text('groups_you_can_join'.tr(),
+                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildAvailableGroupsSection(context, availableGroups),
+
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       // ── BOUTON FLOTTANT (design conservé) ──
       floatingActionButton: Container(

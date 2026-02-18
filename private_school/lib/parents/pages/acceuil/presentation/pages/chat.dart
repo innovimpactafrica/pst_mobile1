@@ -8,8 +8,10 @@ import 'package:private_school/core/storage/secure_storage.dart';
 import '../../domain/bloc/message_bloc.dart';
 import '../../domain/bloc/message_event.dart';
 import '../../domain/bloc/message_state.dart';
+import '../../domain/bloc/unread_messages_bloc.dart';
 import '../../data/models/conversation_model.dart';
 import '../../data/models/message_model.dart';
+import '../../data/repositories/messaging_repository.dart';
 import '../widgets/message_bubble_widget.dart';
 
 class ChatPage extends StatefulWidget {
@@ -28,6 +30,7 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final SecureStorage _storage = SecureStorage();
+  final MessagingRepository _repository = MessagingRepository();
 
   int? _currentUserId;
   bool _isLoading = true;
@@ -49,6 +52,22 @@ class _ChatPageState extends State<ChatPage> {
     context.read<MessageBloc>().add(
           LoadMessagesEvent(conversationId: _conversationId),
         );
+    
+    // ✅ Marquer les messages comme lus
+    _markMessagesAsRead();
+  }
+
+  Future<void> _markMessagesAsRead() async {
+    try {
+      debugPrint('📖 [ChatPage] Marquage messages comme lus pour conversation $_conversationId');
+      await _repository.markConversationAsRead(_conversationId);
+      
+      // Notifier le compteur de messages non lus
+      UnreadMessagesBloc.notifyMessageRead(_conversationId);
+      debugPrint('✅ [ChatPage] Messages marqués comme lus et compteur notifié');
+    } catch (e) {
+      debugPrint('⚠️ Erreur marquage messages lus: $e');
+    }
   }
 
 Future<void> _loadCurrentUser() async {
@@ -133,6 +152,8 @@ Future<void> _loadCurrentUser() async {
 
   @override
   void dispose() {
+    // Marquer les messages comme lus une dernière fois avant de quitter
+    _markMessagesAsRead();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -185,9 +206,13 @@ Future<void> _loadCurrentUser() async {
           }
           if (state is MessageSent || state is MessageLoaded) {
             _scrollToBottom();
+            // Marquer les messages comme lus quand de nouveaux messages arrivent
+            _markMessagesAsRead();
           }
           if (state is MessageSent && _editingMessage != null) {
             setState(() => _editingMessage = null);
+            // Notifier qu'un nouveau message a été envoyé
+            UnreadMessagesBloc.notifyNewMessage(_conversationId);
           }
         },
         builder: (context, state) {
@@ -514,6 +539,7 @@ Future<void> _loadCurrentUser() async {
               replyToId: state.replyToId,
             ),
           );
+      // Pas besoin de notifier ici, c'est fait dans le listener
     }
 
     _messageController.clear();

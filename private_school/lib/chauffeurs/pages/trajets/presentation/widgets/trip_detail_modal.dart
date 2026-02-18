@@ -47,66 +47,68 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('✅ Durée: $duration minutes');
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildHandle() {
     return Container(
-      height: MediaQuery.of(context).size.height,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(AppConstants.radiusXXL),
-          topRight: Radius.circular(AppConstants.radiusXXL),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildHandle(),
-          _buildHeader(context),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildMap(),
-                  _buildTripInfoCard(),
-                  _buildPassengersSection(context),
-                  _buildSchoolsSection(context),
-                  const SizedBox(height: AppConstants.spacingXXXL),
-                ],
-              ),
-            ),
-          ),
-          if (widget.trip.status == AppConstants.statusPending ||
-              widget.trip.status == 'in_progress' ||
-              widget.trip.status == 'started' ||
-              widget.trip.status == 'partially_completed' ||
-              widget.trip.returnStatus == 'in_progress' ||
-              (widget.trip.status == 'completed' && widget.trip.returnStatus == 'pending'))
-            _buildActionButtons(context),
-        ],
+      margin: const EdgeInsets.only(top: AppConstants.spacingM),
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: AppColors.grey300,
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
 
-  Widget _buildHandle() {
-    return Container(
-      margin: const EdgeInsets.only(
-        top: AppConstants.spacingM,
-        bottom: AppConstants.spacingS,
-      ),
-      width: AppConstants.modalHandleWidth,
-      height: AppConstants.modalHandleHeight,
-      decoration: BoxDecoration(
-        color: AppColors.grey300,
-        borderRadius: BorderRadius.circular(AppConstants.radiusS / 4),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(AppConstants.radiusXXL),
+            topRight: Radius.circular(AppConstants.radiusXXL),
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildHandle(),
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildMap(),
+                    _buildTripInfoCard(),
+                    _buildPassengersSection(context),
+                    _buildSchoolsSection(context),
+                    const SizedBox(height: AppConstants.spacingXXXL),
+                  ],
+                ),
+              ),
+            ),
+            if (widget.trip.status == AppConstants.statusPending ||
+                widget.trip.status == 'in_progress' ||
+                widget.trip.status == 'started' ||
+                widget.trip.status == 'partially_completed' ||
+                widget.trip.returnStatus == 'in_progress' ||
+                (widget.trip.status == 'completed' && widget.trip.returnStatus == 'pending'))
+              _buildActionButtons(context),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.spacingL,
-        vertical: AppConstants.spacingL,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + AppConstants.spacingL,
+        left: AppConstants.spacingL,
+        right: AppConstants.spacingL,
+        bottom: AppConstants.spacingL,
       ),
       decoration: const BoxDecoration(
         color: AppColors.primary,

@@ -113,44 +113,44 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ══════════════════════════════════════════
-            // HEADER — design inchangé
-            // ══════════════════════════════════════════
-            Container(
-              color: AppColors.success,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacingM,
-                vertical: AppConstants.spacingS,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: AppColors.white,
-                      size: AppConstants.iconSizeM,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Dakar → ${widget.trip.destination}',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeM,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
+      body: Column(
+        children: [
+          // ══════════════════════════════════════════
+          // HEADER — étendu jusqu'en haut
+          // ══════════════════════════════════════════
+          Container(
+            color: AppColors.success,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + AppConstants.spacingS,
+              left: AppConstants.spacingM,
+              right: AppConstants.spacingM,
+              bottom: AppConstants.spacingS,
             ),
-
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: AppColors.white,
+                    size: AppConstants.iconSizeM,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    'Dakar → ${widget.trip.destination}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeM,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
             // ══════════════════════════════════════════
             // CONTENT
             // ══════════════════════════════════════════

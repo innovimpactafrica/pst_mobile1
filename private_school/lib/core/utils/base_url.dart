@@ -17,4 +17,7 @@ class BaseUrl {
 
   // API version prefix
   static const String apiPrefix = '/api';
+
+  // Base URL getter
+  static String get baseUrl => current;
 }

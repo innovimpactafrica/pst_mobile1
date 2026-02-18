@@ -28,15 +28,19 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
   }
 
   void _requestReplacement(BuildContext context) {
-    if (_reasonController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Veuillez entrer un motif', style: GoogleFonts.inter()),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
+    final reason = _reasonController.text.trim();
+if (reason.isEmpty) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Veuillez entrer un motif', style: GoogleFonts.inter()),
+      backgroundColor: Colors.orange,
+    ),
+  );
+  return;
+}
+
+// ✅ Tronquer à 20 caractères au cas où
+final safeReason = reason.length > 20 ? reason.substring(0, 20) : reason;
 
     debugPrint('🔄 [RequestReplacementModal] REQUEST REPLACEMENT');
     debugPrint('   PlanningId: ${widget.planning.id}');
@@ -46,11 +50,11 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
 
     // ✅ CORRIGÉ : Passer l'objet Planning complet, pas juste l'ID
     context.read<GroupBloc>().add(
-      RequestReplacementEvent(
-        planning: widget.planning,  // ✅ CHANGÉ : planning au lieu de planningId
-        reason: _reasonController.text.trim(),
-      ),
-    );
+  RequestReplacementEvent(
+    planning: widget.planning,
+    reason: safeReason,
+  ),
+);
   }
 
   @override
@@ -144,10 +148,12 @@ class _RequestReplacementModalState extends State<RequestReplacementModal> {
                       style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black87)),
                   const SizedBox(height: 8),
                   TextField(
-                    controller: _reasonController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Description',
+                  
+  controller: _reasonController,
+  maxLines: 4,
+  maxLength: 20,
+  decoration: InputDecoration(
+    hintText: 'Max 20 caractères',
                       hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
                       filled: true,
                       fillColor: Colors.grey.shade50,

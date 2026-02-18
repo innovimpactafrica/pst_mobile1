@@ -10,11 +10,17 @@ import 'package:private_school/core/utils/app_colors.dart';
 import '../../domain/bloc/dashboard_bloc.dart';
 import '../../domain/bloc/dashboard_event.dart';
 import '../../domain/bloc/dashboard_state.dart';
+import '../../domain/bloc/unread_messages_bloc.dart';
+import '../../domain/bloc/unread_notifications_bloc.dart';
+import '../../data/repositories/messaging_repository.dart';
+import '../../data/repositories/notifications_repository.dart';
+import '../../data/repositories/dashboard_repository.dart';
+import '../../data/services/unified_notification_service.dart';
 import '../widgets/dashboard_header.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
 import '../../../trajets/presentation/widgets/trip_detail_modal.dart'; 
 import '../../../trajets/data/models/trip_model.dart';
-import '../../../trajets/presentation/widgets/trip_card_widget.dart'; // ✅ IMPORT
+import '../../../trajets/presentation/widgets/trip_card_widget.dart';
 
 
 class DashboardPage extends StatefulWidget {
@@ -24,14 +30,90 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with WidgetsBindingObserver {
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => UnreadMessagesBloc(repository: MessagingRepository())
+            ..add(LoadUnreadCountEvent()),
+        ),
+        BlocProvider(
+          create: (context) => UnreadNotificationsBloc(repository: NotificationsRepository())
+            ..add(LoadUnreadNotificationsCountEvent()),
+        ),
+        BlocProvider(
+          create: (context) => DashboardBloc(repository: DashboardRepository())
+            ..add(LoadDashboardEvent()),
+        ),
+      ],
+      child: const _DashboardPageContent(),
+    );
+  }
+}
+
+class _DashboardPageContent extends StatefulWidget {
+  const _DashboardPageContent();
+
+  @override
+  State<_DashboardPageContent> createState() => _DashboardPageContentState();
+}
+
+class _DashboardPageContentState extends State<_DashboardPageContent> with WidgetsBindingObserver {
   DriverProfileModel? _profile;
   bool _isLoadingProfile = true;
+  final UnifiedNotificationService _notificationService = UnifiedNotificationService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadData();
+    
+    // Initialiser le service de notification unifié
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationService.registerBlocs(
+        messagesBloc: context.read<UnreadMessagesBloc>(),
+        notificationsBloc: context.read<UnreadNotificationsBloc>(),
+      );
+    });
+    
+    _notificationService.startPolling();
+    debugPrint('🚗 [Dashboard] Service de notification unifié démarré pour chauffeur');
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _notificationService.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        debugPrint('📱 [Dashboard] App resumed - redémarrage polling');
+        _notificationService.startPolling();
+        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+        _notificationService.checkNow();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        debugPrint('📱 [Dashboard] App paused/inactive - arrêt polling');
+        _notificationService.stopPolling();
+        break;
+      case AppLifecycleState.detached:
+        _notificationService.dispose();
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   Future<void> _loadData() async {
@@ -62,18 +144,20 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          onRefresh: _loadData,
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _loadData,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
                 child: DashboardHeader(
                   profile: _profile,
                   isLoading: _isLoadingProfile,
                 ),
               ),
+            ),
               SliverToBoxAdapter(
                 child: _buildSearchBar(),
               ),
@@ -109,7 +193,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         ),
-      ),
       floatingActionButton: _buildFloatingButton(),
     );
   }
@@ -261,7 +344,7 @@ class _DashboardPageState extends State<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Mes trajet à venir',
+                'Mes trajets à venir',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -273,7 +356,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const TripPage(),
+                      builder: (context) => const TripPage(),
                     ),
                   );
                 },
@@ -291,25 +374,15 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         const SizedBox(height: 12),
         if (upcomingTripsList.isEmpty)
-          Padding(
+          Container(
             padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.inbox_outlined,
-                    size: 48,
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Aucun trajet à venir',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary.withValues(alpha: 0.7),
-                    ),
-                  ),
-                ],
+            child: const Center(
+              child: Text(
+                'Aucun trajet à venir',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
           )
@@ -329,61 +402,31 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-/// ✅ CORRECTION COMPLÈTE: Conversion vers TripModel
   Widget _buildTripCard(dynamic tripData) {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🏠 [Dashboard] Création carte trajet');
-      debugPrint('📊 Type de données: ${tripData.runtimeType}');
-      
-      // ✅ Conversion directe depuis Map
       if (tripData is Map<String, dynamic>) {
-        debugPrint('📦 Données brutes du Dashboard:');
-        debugPrint('   ${tripData.keys.toList()}');
-        
-        // ✅ Conversion directe vers TripModel
         final trip = TripModel.fromJson(tripData);
-        
-        debugPrint('✅ TripModel créé:');
-        debugPrint('   ID: ${trip.id}');
-        debugPrint('   Start: ${trip.startLocation}');
-        debugPrint('   End: ${trip.destination}');
-        debugPrint('   Status: ${trip.status}');
-        debugPrint('   Schools: ${trip.schools.length}');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
         return TripCardWidget(
           trip: trip,
           onTap: () => _showTripDetail(trip),
         );
       }
       
-      // ✅ Si déjà un TripModel
       if (tripData is TripModel) {
-        debugPrint('✅ Déjà un TripModel');
-        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        
         return TripCardWidget(
           trip: tripData,
           onTap: () => _showTripDetail(tripData),
         );
       }
 
-      // ❌ Type inconnu
-      debugPrint('❌ Type de données inconnu: ${tripData.runtimeType}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       return const SizedBox.shrink();
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('❌ Erreur création carte: $e');
-      debugPrint('📦 Data: $tripData');
-      debugPrint('Stack: $stackTrace');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       return const SizedBox.shrink();
     }
   }
 
-  /// ✅ Afficher le détail (identique à TripPage)
   void _showTripDetail(TripModel trip) {
     showModalBottomSheet(
       context: context,
@@ -395,8 +438,6 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-
-
 
   Widget _buildNotificationsSection(DashboardLoaded state) {
     final notifications = state.dashboard.notifications;
@@ -418,7 +459,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         const SizedBox(height: 12),
         if (notificationsList.isEmpty)
-          Padding(
+          Container(
             padding: const EdgeInsets.all(32),
             child: Center(
               child: Text(

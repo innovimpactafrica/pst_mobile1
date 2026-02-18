@@ -37,6 +37,16 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _onNavTap(int index) {
+    // Si on clique sur l'accueil (index 0), retourner à la HomePage
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+      return;
+    }
+    
+    // Pour les autres onglets, utiliser la navigation normale
     setState(() {
       _currentIndex = index;
     });
@@ -79,11 +89,11 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildFloatingAddButton() {
     return Positioned(
-      bottom: 90,
+      bottom: 100,
       right: 20,
       child: FloatingActionButton(
         backgroundColor: AppColors.success,
-        elevation: 6,
+        elevation: 8,
         onPressed: () {
           showModalBottomSheet(
             context: context,

@@ -4,13 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../../core/utils/app_colors.dart';
-import '../../../utils/modal_helper.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
 import '../../domain/bloc/child_state.dart';
 import '../../data/models/child_model.dart';
 import '../widgets/child_card_widget.dart';
 import '../widgets/add_child_modal.dart';
+
 
 class EnfantsPage extends StatefulWidget {
   const EnfantsPage({super.key});
@@ -45,9 +45,7 @@ void initState() {
     context.read<ChildBloc>().add(SearchChildrenEvent(query));
   }
 
-  void _showAddChildModal() {
-    ModalHelper.showSlideModal(context: context, child: const AddChildModal());
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -194,11 +192,18 @@ void initState() {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'add_child_fab',
-        onPressed: _showAddChildModal,
-        backgroundColor: AppColors.success,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton(
+          onPressed: _showAddChildModal,
+          backgroundColor: AppColors.success,
+          elevation: 8,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
       ),
     );
   }
@@ -250,7 +255,7 @@ void initState() {
 
   Widget _buildChildrenList(List<ChildModel> children) {
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 80),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 100),
       itemCount: children.length,
       itemBuilder: (context, index) {
         return Padding(
@@ -258,6 +263,18 @@ void initState() {
           child: ChildCardWidget(child: children[index]),
         );
       },
+    );
+  }
+
+  void _showAddChildModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BlocProvider.value(
+        value: context.read<ChildBloc>(),
+        child: const AddChildModal(),
+      ),
     );
   }
 }

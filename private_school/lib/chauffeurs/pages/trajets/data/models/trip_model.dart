@@ -107,7 +107,7 @@ class TripModel {
       return [];
     }
 
-    String? _extractTime(dynamic departureTime) {
+    String? extractTime(dynamic departureTime) {
       if (departureTime == null) return null;
       try {
         final dt = DateTime.parse(departureTime.toString());
@@ -130,8 +130,8 @@ class TripModel {
       
       // Date et heure
       date: parseDate(json['departure_time'] ?? json['date']),
-      time: _extractTime(json['departure_time']) ?? (json['time'] ?? '00:00').toString(),
-      returnTime: _extractTime(json['return_departure_time']),
+      time: extractTime(json['departure_time']) ?? (json['time'] ?? '00:00').toString(),
+      returnTime: extractTime(json['return_departure_time']),
       tripType: (json['trip_type'] ?? 'aller').toString(),
       
       // Nombres

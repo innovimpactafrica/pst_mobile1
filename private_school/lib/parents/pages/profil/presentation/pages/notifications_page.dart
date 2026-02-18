@@ -7,6 +7,7 @@ import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/notification_bloc.dart';
 import '../../domain/bloc/notification_event.dart';
 import '../../domain/bloc/notification_state.dart';
+import '../../domain/bloc/unread_notifications_bloc.dart';
 import '../../data/models/notification_model.dart';
 
 class NotificationsPage extends StatelessWidget {
@@ -14,10 +15,19 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ParentNotificationBloc(
-        repository: NotificationRepository(),
-      )..add(const LoadNotificationsEvent()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ParentNotificationBloc(
+            repository: NotificationRepository(),
+          )..add(const LoadNotificationsEvent()),
+        ),
+        BlocProvider(
+          create: (context) => UnreadNotificationsBloc(
+            repository: NotificationRepository(),
+          ),
+        ),
+      ],
       child: const NotificationsPageContent(),
     );
   }
@@ -134,6 +144,10 @@ class NotificationsPageContent extends StatelessWidget {
             context
                 .read<ParentNotificationBloc>()
                 .add(MarkAsReadEvent(notification.id));
+            // Mettre à jour le compteur aussi
+            context
+                .read<UnreadNotificationsBloc>()
+                .add(MarkNotificationAsReadEvent(notification.id));
           }
         },
         child: Container(

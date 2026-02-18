@@ -55,31 +55,26 @@ class GroupService {
 }
 
   // ─────────────────────────────────────────────
-  // GET /api/parents/carpool/groups?available=true
+  // GET /api/parents/carpool/groups/available
   // ─────────────────────────────────────────────
-  // ─────────────────────────────────────────────
-// ✅ CORRECTION : Groupes disponibles (sans relation avec moi)
-// ─────────────────────────────────────────────
 Future<List<GroupModel>> fetchAvailableGroups() async {
   try {
-    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups');
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups/available');
     
-    // ✅ Appeler le même endpoint que fetchMyGroups (sans paramètre available)
-    final response = await _apiClient.get(ApiConstants.carpoolGroups);
+    final response = await _apiClient.get('${ApiConstants.carpoolGroups}/available');
 
     final List<dynamic> data = _extractList(response.data, ['data', 'groups']);
     
     debugPrint('');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📊 [fetchAvailableGroups] TOUS LES GROUPES REÇUS');
-    debugPrint('   Total brut: ${data.length}');
+    debugPrint('📊 [fetchAvailableGroups] GROUPES DISPONIBLES');
+    debugPrint('   Total: ${data.length}');
     
-    // ✅ Retourner TOUS les groupes (le filtrage sera fait dans le BLoC)
     final groups = data
         .map((json) => GroupModel.fromJson(json as Map<String, dynamic>))
         .toList();
 
-    debugPrint('   Groupes retournés: ${groups.length}');
+    debugPrint('   Groupes disponibles: ${groups.length}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     return groups;
@@ -293,21 +288,43 @@ Future<void> joinGroup({required String groupId}) async {
   // ─────────────────────────────────────────────
   // CALENDRIER
   // ─────────────────────────────────────────────
-  Future<List<Planning>> fetchGroupCalendar(String groupId) async {
-    try {
-      debugPrint('🔍 [GroupService] GET /api/parents/carpool/calendar?group_id=$groupId');
-      final response = await _apiClient.get(
-        ApiConstants.carpoolCalendar,
-        queryParameters: {'group_id': groupId},
-      );
-      final List<dynamic> data = _extractList(response.data, ['data', 'calendar']);
-      debugPrint('✅ [GroupService] ${data.length} plannings chargés');
-      return data.map((json) => Planning.fromJson(json as Map<String, dynamic>)).toList();
-    } catch (e) {
-      debugPrint('❌ [GroupService] fetchGroupCalendar error: $e');
-      throw Exception('Unable to load calendar: $e');
+Future<List<Planning>> fetchGroupCalendar(String groupId) async {
+  try {
+    debugPrint('🔍 [GroupService] GET /api/parents/carpool/groups/$groupId/planning');
+    
+    final response = await _apiClient.get(
+      '${ApiConstants.carpoolGroups}/$groupId/planning',
+    );
+
+    // ✅ CORRECTION : La réponse est dans data.assignments
+    final dynamic responseBody = response.data;
+    List<dynamic> data = [];
+
+    if (responseBody is Map && responseBody['data'] is Map) {
+      // Structure: { "data": { "assignments": [...] } }
+      data = (responseBody['data']['assignments'] as List?) ?? [];
+    } else {
+      // Fallback
+      data = _extractList(responseBody, ['data', 'assignments', 'planning', 'calendar']);
     }
+
+    debugPrint('✅ [GroupService] ${data.length} plannings chargés');
+
+    // Debug : afficher les assignations
+    for (var p in data) {
+      debugPrint('   - ID: ${p['id']}, Date: ${p['date']}');
+      debugPrint('     driver_id: ${p['driver_id']}');
+      debugPrint('     assigned_to_name: ${p['assigned_to_name']}');
+      debugPrint('     is_my_turn: ${p['is_my_turn']}');
+      debugPrint('     confirmation_status: ${p['confirmation_status']}');
+    }
+
+    return data.map((json) => Planning.fromJson(json as Map<String, dynamic>)).toList();
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchGroupCalendar error: $e');
+    throw Exception('Unable to load calendar: $e');
   }
+}
 
   // ─────────────────────────────────────────────
 // GET /api/parents/carpool/groups/{groupId}/members
@@ -437,24 +454,61 @@ Future<List<Map<String, dynamic>>> fetchReplacementRequests(String groupId) asyn
       '${ApiConstants.carpoolGroups}/$groupId/replacement-requests',
     );
     
-    final List<dynamic> data = _extractList(
-      response.data, 
-      ['data', 'replacement_requests', 'requests']
-    );
+    // ✅ Parser correctement la réponse
+    final dynamic responseBody = response.data;
+    List<dynamic> data = [];
     
+    if (responseBody is Map) {
+      // Cas : { "data": [...] }
+      if (responseBody['data'] is List) {
+        data = responseBody['data'] as List;
+      }
+      // Cas : { "data": { "requests": [...] } }
+      else if (responseBody['data'] is Map) {
+        final inner = responseBody['data'] as Map;
+        data = (inner['requests'] ?? inner['replacement_requests'] ?? []) as List;
+      }
+    }
+    // ✅ Filtrer uniquement les demandes PENDING
+data = data.where((req) => req['status'] == 'pending').toList();
     debugPrint('✅ [GroupService] ${data.length} demande(s) de remplacement trouvée(s)');
     
-    // Debug : Afficher les demandes
     for (var request in data) {
       debugPrint('   - Calendar ID: ${request['calendar_id']}');
-      debugPrint('     Demandeur: ${request['requester_name']}');
+      debugPrint('     Requester: ${request['requester_name']}');
       debugPrint('     Motif: ${request['reason']}');
+      debugPrint('     Statut: ${request['status']}');
     }
     
     return data.cast<Map<String, dynamic>>();
   } catch (e) {
     debugPrint('❌ [GroupService] fetchReplacementRequests error: $e');
     return [];
+  }
+}
+
+Future<void> createGroupPlanning({
+  required String groupId,
+  required DateTime startDate,
+  required DateTime endDate,
+}) async {
+  try {
+    debugPrint('📅 [GroupService] POST /api/parents/carpool/groups/$groupId/planning');
+    debugPrint('   start_date: ${startDate.toIso8601String().split('T')[0]}');
+    debugPrint('   end_date: ${endDate.toIso8601String().split('T')[0]}');
+
+    await _apiClient.post(
+      '${ApiConstants.carpoolGroups}/$groupId/planning',
+      data: {
+        'start_date': startDate.toIso8601String().split('T')[0],
+        'end_date': endDate.toIso8601String().split('T')[0],
+      },
+    );
+
+    debugPrint('✅ [GroupService] Planning créé avec assignations automatiques');
+  } catch (e) {
+    debugPrint('❌ [GroupService] createGroupPlanning error: $e');
+    throw Exception('Unable to create planning: $e');
   }
 }
 
@@ -501,21 +555,56 @@ Future<void> proposeExchange({
   }
 
   Future<void> respondToExchange({
-    required String proposalId,
-    required bool accept,
-  }) async {
-    try {
-      await _apiClient.put(
-        ApiConstants.carpoolConduite,
-        data: {
-          'proposal_id': proposalId,
-          'action': accept ? 'accept' : 'decline',
-        },
-      );
-    } catch (e) {
-      throw Exception('Unable to respond to exchange: $e');
-    }
+  required String proposalId,
+  required bool accept,
+}) async {
+  try {
+    debugPrint('📝 [GroupService] PUT /api/parents/carpool/conduite');
+    debugPrint('   exchange_id: $proposalId');
+    debugPrint('   accept: $accept');
+    
+await _apiClient.post(
+  '/api/parents/carpool/replacement-requests/$proposalId',
+  data: {
+    'action': accept ? 'accept' : 'decline',
+  },
+);
+    
+    debugPrint('✅ [GroupService] Réponse envoyée');
+  } catch (e) {
+    debugPrint('❌ [GroupService] respondToExchange error: $e');
+    throw Exception('Unable to respond to exchange: $e');
   }
+}
+
+Future<List<Map<String, dynamic>>> fetchAllReplacementRequests(String groupId) async {
+  try {
+    debugPrint('🔍 [GroupService] GET ALL replacement-requests for group $groupId');
+    
+    final response = await _apiClient.get(
+      '${ApiConstants.carpoolGroups}/$groupId/replacement-requests',
+    );
+    
+    final dynamic responseBody = response.data;
+    List<dynamic> data = [];
+    
+    if (responseBody is Map) {
+      if (responseBody['data'] is List) {
+        data = responseBody['data'] as List;
+      } else if (responseBody['data'] is Map) {
+        final inner = responseBody['data'] as Map;
+        data = (inner['requests'] ?? inner['replacement_requests'] ?? []) as List;
+      }
+    }
+    
+    // ✅ PAS de filtre sur status — on veut tout pour l'historique
+    debugPrint('✅ [GroupService] ${data.length} demande(s) toutes confondues');
+    return data.cast<Map<String, dynamic>>();
+  } catch (e) {
+    debugPrint('❌ [GroupService] fetchAllReplacementRequests error: $e');
+    return [];
+  }
+}
 
 
   // ─────────────────────────────────────────────
