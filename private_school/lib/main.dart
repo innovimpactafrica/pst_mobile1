@@ -16,7 +16,7 @@ import 'package:private_school/chauffeurs/pages/authentification/presentation/pa
 import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:private_school/chauffeurs/widgets/main_layout.dart';
 import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart' as driver_trip;
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
@@ -151,92 +151,84 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<AuthBloc, AuthState>(
-          listener: (context, state) {
-            if (state is AuthAuthenticated) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/parent/dashboard',
-                (route) => false,
-              );
-            } else if (state is AuthUnauthenticated) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/bienvenu',
-                (route) => false,
-              );
-            }
-          },
-        ),
-        BlocListener<DriverAuthBloc, DriverAuthState>(
-          listener: (context, state) {
-            if (state is DriverAuthenticated || state is DriverAuthenticatedFromStorage) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/driver/dashboard',
-                (route) => false,
-              );
-            } else if (state is DriverUnauthenticated) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                '/bienvenu',
-                (route) => false,
-              );
-            }
-          },
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Private School Transport',
-        debugShowCheckedModeBanner: false,
-        
-        // Configuration de la localisation avec EasyLocalization
-        localizationsDelegates: [
-          ...context.localizationDelegates,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
+ @override
+Widget build(BuildContext context) {
+  return MaterialApp(
+    title: 'Private School Transport',
+    debugShowCheckedModeBanner: false,
+    
+    localizationsDelegates: [
+      ...context.localizationDelegates,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: context.supportedLocales,
+    locale: context.locale,
+    
+    initialRoute: '/',
+    routes: {
+      '/': (context) => const Splash(),
+      '/bienvenu': (context) => const WelcomePage(),
+      '/role-selection': (context) => const RoleSelectionPage(),
+      '/parent/connexion': (context) => const Connexion(),
+      '/parent/inscription': (context) => const ParentInscription(),
+      '/parent/creer-mdp': (context) => const PasswordCreationPage(),
+      '/parent/verification': (context) => const Verification(),
+      '/parent/mdp-oublie': (context) => const MdpOubliePage(),
+      '/parent/dashboard': (context) => const HomePage(),
+      '/driver/connexion': (context) => const driver_auth.Connexion(),
+      '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
+      '/driver/dashboard': (context) => const MainLayout(),
+      '/driver/forgot-password': (context) => const ForgotPasswordPage(),
+      '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
+      '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),
+      '/connexion': (context) => const Connexion(),
+      '/inscription': (context) => const ParentInscription(),
+      '/cree': (context) => const PasswordCreationPage(),
+      '/verification': (context) => const Verification(),
+      '/password': (context) => const MdpOubliePage(),
+      '/dashboard': (context) => const HomePage(),
+    },
+    
+    // ✅ Le builder place les listeners APRÈS que le Navigator existe
+    builder: (context, child) {
+      return MultiBlocListener(
+        listeners: [
+          BlocListener<AuthBloc, AuthState>(
+            listener: (context, state) {
+              if (state is AuthAuthenticated) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/parent/dashboard',
+                  (route) => false,
+                );
+              } else if (state is AuthUnauthenticated) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/bienvenu',
+                  (route) => false,
+                );
+              }
+            },
+          ),
+          BlocListener<DriverAuthBloc, DriverAuthState>(
+            listener: (context, state) {
+              if (state is DriverAuthenticated || state is DriverAuthenticatedFromStorage) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/driver/dashboard',
+                  (route) => false,
+                );
+              } else if (state is DriverUnauthenticated) {
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/bienvenu',
+                  (route) => false,
+                );
+              }
+            },
+          ),
         ],
-        supportedLocales: context.supportedLocales,
-        locale: context.locale,
-        
-        initialRoute: '/',
-        routes: {
-          // ==================== STARTUP ROUTES ====================
-          '/': (context) => const Splash(),
-          '/bienvenu': (context) => const WelcomePage(),
-          '/role-selection': (context) => const RoleSelectionPage(),
-
-          // ==================== PARENT ROUTES ====================
-          '/parent/connexion': (context) => const Connexion(),
-          '/parent/inscription': (context) => const ParentInscription(),
-          '/parent/creer-mdp': (context) => const PasswordCreationPage(),
-          '/parent/verification': (context) => const Verification(),
-          '/parent/mdp-oublie': (context) => const MdpOubliePage(),
-          '/parent/dashboard': (context) => const HomePage(),
-
-          // ==================== DRIVER ROUTES ====================
-          
-          // Driver Authentication
-          '/driver/connexion': (context) => const driver_auth.Connexion(),
-          '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
-          '/driver/dashboard': (context) => const DashboardPage(),
-          
-          // Driver Forgot Password System
-          '/driver/forgot-password': (context) => const ForgotPasswordPage(),
-          '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
-          '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),
-
-          // ==================== LEGACY ROUTES ====================
-          // Backward compatibility - redirect to parent
-          '/connexion': (context) => const Connexion(),
-          '/inscription': (context) => const ParentInscription(),
-          '/cree': (context) => const PasswordCreationPage(),
-          '/verification': (context) => const Verification(),
-          '/password': (context) => const MdpOubliePage(),
-          '/dashboard': (context) => const HomePage(),
-        },
-      ),
-    );
-  }
+        child: child!,
+      );
+    },
+  );
+}
 }

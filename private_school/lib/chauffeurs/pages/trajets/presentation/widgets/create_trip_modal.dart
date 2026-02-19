@@ -398,6 +398,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
             : DropdownButtonFormField<SchoolModel>(
                 value: stop.selectedSchool,
                 menuMaxHeight: 300,
+                itemHeight: 56, 
                 decoration: InputDecoration(
                   hintText: 'Sélectionnez une école',
                   hintStyle: TextStyle(
@@ -431,34 +432,41 @@ class _CreateTripModalState extends State<CreateTripModal> {
                     vertical: 14,
                   ),
                 ),
-                items: _schools.reversed.map((school) {
-                  return DropdownMenuItem<SchoolModel>(
-                    value: school,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          school.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        if (school.address.isNotEmpty)
-                          Text(
-                            school.address,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary.withValues(alpha: 0.7),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+              items: _schools.reversed.map((school) {
+  return DropdownMenuItem<SchoolModel>(
+    value: school,
+    child: SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            school.name,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          if (school.address.isNotEmpty)
+            Text(
+              school.address,
+              style: TextStyle(
+                fontSize: 11, // réduit de 12 à 11
+                color: AppColors.textSecondary.withValues(alpha: 0.7),
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+        ],
+      ),
+    ),
+  );
+}).toList(),
                 onChanged: (SchoolModel? school) {
                   setState(() {
                     stop.selectedSchool = school;

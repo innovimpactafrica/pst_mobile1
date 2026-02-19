@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:private_school/parents/pages/school/domain/bloc/school_bloc.dart';
-import 'package:private_school/parents/pages/school/domain/bloc/school_event.dart';
-import 'package:private_school/parents/pages/school/domain/bloc/school_state.dart';
+import 'package:private_school/parents/pages/school/data/models/school_model.dart';
+import 'package:private_school/parents/pages/school/data/services/school_service.dart';
+import 'package:private_school/parents/widgets/address_picker_widget.dart';
+import 'package:private_school/shared/widgets/school_autocomplete_field.dart';
 
 import '../../../../../core/utils/app_colors.dart';
+import '../../../../../core/utils/google_maps_config.dart';
 import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
@@ -26,131 +28,133 @@ class EditChildModal extends StatefulWidget {
 
 class _EditChildModalState extends State<EditChildModal> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
   late final TextEditingController _addressController;
-  late final TextEditingController _schoolNameController; 
-  late final TextEditingController _schoolAddressController; 
-  late final TextEditingController _gradeController;
+  late final TextEditingController _schoolNameController;
+  late final TextEditingController _schoolAddressController;
 
+  final SchoolService _schoolService = SchoolService();
+  List<SchoolModel> _schools = [];
+  bool _loadingSchools = true;
+  SchoolModel? _selectedSchool;
   bool _isLoading = false;
-  int? _newSchoolId; // ✅ Pour stocker le nouvel ID si l'école change
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.child.name);
+    
+    // Séparer le nom complet en prénom et nom
+    final nameParts = widget.child.name.split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    
+    _firstNameController = TextEditingController(text: firstName);
+    _lastNameController = TextEditingController(text: lastName);
     _addressController = TextEditingController(text: widget.child.address);
     _schoolNameController = TextEditingController(
-      text: widget.child.schoolName ?? 'École ID: ${widget.child.schoolId}'
+      text: widget.child.schoolName ?? ''
     );
     _schoolAddressController = TextEditingController(
       text: widget.child.schoolAddress ?? ''
     );
-    _gradeController = TextEditingController(text: widget.child.grade ?? '');
+    
+    _loadSchools();
+  }
+
+  Future<void> _loadSchools() async {
+    try {
+      final schools = await _schoolService.fetchSchools();
+      setState(() {
+        _schools = schools;
+        _loadingSchools = false;
+        
+        // Pré-sélectionner l'école actuelle
+        _selectedSchool = schools.firstWhere(
+          (s) => s.id == widget.child.schoolId,
+          orElse: () => schools.firstWhere(
+            (s) => s.name == widget.child.schoolName,
+            orElse: () => SchoolModel(
+              id: widget.child.schoolId,
+              name: widget.child.schoolName ?? '',
+              address: widget.child.schoolAddress ?? '',
+            ),
+          ),
+        );
+      });
+    } catch (e) {
+      debugPrint('❌ Erreur chargement écoles: $e');
+      setState(() => _loadingSchools = false);
+    }
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _addressController.dispose();
     _schoolNameController.dispose();
     _schoolAddressController.dispose();
-    _gradeController.dispose();
     super.dispose();
   }
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      final schoolName = _schoolNameController.text.trim();
-      final schoolAddress = _schoolAddressController.text.trim();
-
-      // ✅ Vérifier si l'école a changé
-      final hasSchoolChanged = schoolName != widget.child.schoolName ||
-                              schoolAddress != widget.child.schoolAddress;
-
-      if (hasSchoolChanged) {
-        // ✅ Créer ou trouver la nouvelle école
-        debugPrint('🔄 École modifiée, création/recherche...');
-        context.read<SchoolBloc>().add(
-          FindOrCreateSchoolEvent(schoolName, schoolAddress),
+      if (_selectedSchool == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veuillez sélectionner une école dans la liste'),
+            backgroundColor: AppColors.error,
+          ),
         );
-      } else {
-        // ✅ L'école n'a pas changé, mettre à jour directement
-        _updateChild(widget.child.schoolId);
+        return;
       }
+
+      setState(() => _isLoading = true);
+      
+      final firstName = _firstNameController.text.trim();
+      final lastName = _lastNameController.text.trim();
+      final fullName = '$firstName $lastName';
+
+      final updatedChild = widget.child.copyWith(
+        name: fullName,
+        address: _addressController.text.trim(),
+        schoolId: _selectedSchool!.id!,
+      );
+
+      debugPrint('📤 Mise à jour enfant:');
+      debugPrint('   Name: ${updatedChild.name}');
+      debugPrint('   School ID: ${updatedChild.schoolId}');
+
+      context.read<ChildBloc>().add(UpdateChildEvent(updatedChild));
     }
-  }
-
-  void _updateChild(int schoolId) {
-    final updatedChild = widget.child.copyWith(
-      name: _nameController.text.trim(),
-      address: _addressController.text.trim(),
-      schoolId: schoolId,
-      grade: _gradeController.text.trim(),
-    );
-
-    debugPrint('📤 Mise à jour enfant:');
-    debugPrint('   Name: ${updatedChild.name}');
-    debugPrint('   School ID: ${updatedChild.schoolId}');
-
-    context.read<ChildBloc>().add(UpdateChildEvent(updatedChild));
   }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        // ✅ Écouter le SchoolBloc
-        BlocListener<SchoolBloc, SchoolState>(
-          listener: (context, state) {
-            if (state is SchoolCreatedState) {
-              debugPrint('✅ École créée/trouvée: ${state.school.name} (ID: ${state.school.id})');
-              _newSchoolId = state.school.id;
-              
-              // ✅ Mettre à jour l'enfant avec le nouvel ID d'école
-              if (_newSchoolId != null) {
-                _updateChild(_newSchoolId!);
-              }
-            } else if (state is SchoolErrorState) {
-              setState(() => _isLoading = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erreur école: ${state.error}'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-        ),
-        
-        // ✅ Écouter le ChildBloc
-        BlocListener<ChildBloc, ChildState>(
-          listener: (context, state) {
-            if (state is ChildActionSuccessState) {
-              setState(() => _isLoading = false);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            } else if (state is ChildErrorState) {
-              setState(() => _isLoading = false);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.error),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
-          },
-        ),
-      ],
+    return BlocListener<ChildBloc, ChildState>(
+      listener: (context, state) {
+        if (state is ChildActionSuccessState) {
+          setState(() => _isLoading = false);
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (state is ChildErrorState) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -179,49 +183,121 @@ class _EditChildModalState extends State<EditChildModal> {
                     _buildSectionTitle('Informations de l\'enfant'),
                     const SizedBox(height: 12),
                     _buildTextField(
-                      controller: _nameController,
-                      label: 'Nom complet',
-                      hint: 'Ex: Marie Dupont',
+                      controller: _firstNameController,
+                      label: 'Prénom',
+                      hint: 'Ex: Ornella',
+                      icon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _lastNameController,
+                      label: 'Nom',
+                      hint: 'Ex: Diop',
                       icon: Icons.person,
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(
+                    AddressPickerWidget(
                       controller: _addressController,
+                      googleApiKey: GoogleMapsConfig.apiKey,
                       label: 'Adresse de l\'enfant',
                       hint: 'Ex: Ouakam cité avions',
-                      icon: Icons.home_outlined,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _gradeController,
-                      label: 'Classe',
-                      hint: 'Ex: CE1',
-                      icon: Icons.class_outlined,
+                      onLocationSelected: (lat, lng) {
+                        // Coordonnées reçues mais non utilisées pour l'instant
+                      },
                     ),
                     
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 24),
                     
-                    // ===== INFORMATIONS ÉCOLE =====
                     _buildSectionTitle('Informations de l\'école'),
                     const SizedBox(height: 12),
-                    _buildTextField(
-                      controller: _schoolNameController,
-                      label: 'Nom de l\'école',
-                      hint: 'Ex: Lycée Jean Mermoz',
-                      icon: Icons.school_outlined,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      controller: _schoolAddressController,
-                      label: 'Adresse de l\'école',
-                      hint: 'Ex: Ouakam, Dakar',
-                      icon: Icons.location_on_outlined,
-                    ),
+                    _loadingSchools
+                        ? const Center(child: CircularProgressIndicator())
+                        : _schools.isEmpty
+                            ? Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFF59E0B)),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Aucune école disponible. Veuillez contacter l\'administrateur.',
+                                        style: TextStyle(
+                                          color: Color(0xFFF59E0B),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : SchoolAutocompleteField(
+                                label: 'Nom de l\'école',
+                                hint: 'Ex: Lycée Jean Mermoz',
+                                controller: _schoolNameController,
+                                schools: _schools,
+                                enabled: !_isLoading,
+                                onSchoolSelected: (school, schoolName) {
+                                  setState(() {
+                                    _selectedSchool = school;
+                                    if (school != null && school.address.isNotEmpty) {
+                                      _schoolAddressController.text = school.address;
+                                    }
+                                  });
+                                },
+                              ),
                     
-                    const SizedBox(height: 24),
+                    if (_selectedSchool != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _selectedSchool!.name,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.success,
+                                    ),
+                                  ),
+                                  if (_selectedSchool!.address.isNotEmpty)
+                                    Text(
+                                      _selectedSchool!.address,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
+                    const SizedBox(height: 32),
                     _buildSubmitButton(),
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
@@ -240,13 +316,13 @@ class _EditChildModalState extends State<EditChildModal> {
           'Modifier un enfant',
           style: GoogleFonts.inter(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
         IconButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: Colors.black54),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -270,29 +346,46 @@ class _EditChildModalState extends State<EditChildModal> {
     required String label,
     required String hint,
     required IconData icon,
+    bool required = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            if (!required)
+              Text(
+                ' (optionnel)',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           enabled: !_isLoading,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
               color: Colors.grey.shade400,
             ),
-            prefixIcon: Icon(icon, color: AppColors.success.withValues(alpha:0.7)),
+            prefixIcon: Icon(icon, color: AppColors.success.withValues(alpha: 0.7)),
             filled: true,
             fillColor: Colors.grey.shade50,
             border: OutlineInputBorder(
@@ -320,12 +413,14 @@ class _EditChildModalState extends State<EditChildModal> {
               vertical: 14,
             ),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Ce champ est requis';
-            }
-            return null;
-          },
+          validator: required
+              ? (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Ce champ est requis';
+                  }
+                  return null;
+                }
+              : null,
         ),
       ],
     );
@@ -339,9 +434,9 @@ class _EditChildModalState extends State<EditChildModal> {
         onPressed: _isLoading ? null : _handleSubmit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.success,
-          disabledBackgroundColor: AppColors.success.withValues(alpha:.6),
+          disabledBackgroundColor: AppColors.success.withValues(alpha: 0.6),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),

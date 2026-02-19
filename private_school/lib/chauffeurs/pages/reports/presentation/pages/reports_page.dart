@@ -191,7 +191,6 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
 Widget _buildReportsList() {
-  // On utilise BlocConsumer ou BlocListener ici
   return BlocListener<ReportBloc, ReportState>(
     listener: (context, state) {
       if (state is ReportDeleted) {
@@ -229,35 +228,93 @@ Widget _buildReportsList() {
             return _buildEmptyState();
           }
 
-          return RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: () async {
-              context.read<ReportBloc>().add(RefreshReportsEvent());
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppConstants.spacingXL),
-              itemCount: state.filteredReports.length,
-              itemBuilder: (context, index) {
-                return ReportCardWidget(
-                  report: state.filteredReports[index],
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ReportDetailPage(
-                          report: state.filteredReports[index],
-                        ),
-                      ),
-                    );
+          return Column(
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    context.read<ReportBloc>().add(RefreshReportsEvent());
                   },
-                );
-              },
-            ),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppConstants.spacingXL),
+                    itemCount: state.filteredReports.length,
+                    itemBuilder: (context, index) {
+                      return ReportCardWidget(
+                        report: state.filteredReports[index],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReportDetailPage(
+                                report: state.filteredReports[index],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (state.totalPages > 1) _buildPaginationTabs(state),
+            ],
           );
         }
 
         return const SizedBox.shrink();
       },
+    ),
+  );
+}
+
+Widget _buildPaginationTabs(ReportsLoaded state) {
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+    decoration: BoxDecoration(
+      color: AppColors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 8,
+          offset: const Offset(0, -2),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(state.totalPages, (index) {
+        final pageNumber = index + 1;
+        final isCurrentPage = pageNumber == state.currentPage;
+        
+        return GestureDetector(
+          onTap: isCurrentPage || state.isLoadingMore
+              ? null
+              : () {
+                  context.read<ReportBloc>().add(LoadPageEvent(pageNumber));
+                },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isCurrentPage ? AppColors.primary : AppColors.white,
+              border: Border.all(
+                color: isCurrentPage ? AppColors.primary : AppColors.grey400,
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '$pageNumber',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isCurrentPage ? AppColors.white : AppColors.textPrimary,
+              ),
+            ),
+          ),
+        );
+      }),
     ),
   );
 }

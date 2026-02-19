@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+//import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
 import 'package:private_school/core/utils/app_colors.dart';
-import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
-import 'package:private_school/parents/pages/authentification/domain/bloc/auth_event.dart';
-import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
-import 'bienvenu.dart';
+//import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
+//import 'package:priva//te_school/parents/pages/authentification/domain/bloc/auth_event.dart';
+//import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
+//import 'bienvenu.dart';
 
 
 class Splash extends StatefulWidget {
@@ -24,17 +24,31 @@ class _SplashState extends State<Splash> {
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
+  await Future.delayed(const Duration(seconds: 3));
+  if (!mounted) return;
 
-    final isLoggedIn = await SecureStorage().isLoggedIn();
-    
-    if (isLoggedIn) {
-      context.read<AuthBloc>().add(CheckAuthStatusEvent());
-    } else {
-      Navigator.pushReplacementNamed(context, '/bienvenu');
-    }
+  final isLoggedIn = await SecureStorage().isLoggedIn();
+
+  if (!isLoggedIn) {
+    // Pas de token → bienvenu
+    Navigator.pushReplacementNamed(context, '/bienvenu');
+    return;
   }
+
+  // A un token → vérifier le rôle
+  final role = await SecureStorage().getUserRole();
+
+  if (role == 'driver') {
+    // ✅ Chauffeur → dashboard chauffeur directement
+    Navigator.pushReplacementNamed(context, '/driver/dashboard');
+  } else {
+    // ✅ Parent → dashboard parent directement
+    Navigator.pushReplacementNamed(context, '/parent/dashboard');
+  }
+
+  // ✅ Plus besoin du BlocListener pour la navigation au démarrage
+  // Le dashboard lui-même vérifiera si le token est encore valide
+}
 
   @override
   Widget build(BuildContext context) {

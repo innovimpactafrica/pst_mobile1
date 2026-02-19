@@ -10,11 +10,12 @@ import 'package:private_school/parents/pages/acceuil/presentation/pages/chat.dar
 import 'package:private_school/parents/pages/trajets/data/models/evaluation_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/evaluation_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
+import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/review_page.dart';
 import '../widgets/passengers_list_modal.dart';
 import '../widgets/schools_list_modal.dart';
+// import '../widgets/realtime_trip_map.dart'; // TODO: À activer plus tard
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
@@ -42,6 +43,19 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     debugPrint('   Status: ${widget.trip.status}');
     debugPrint('   Driver Name: ${widget.trip.driverName}');
     debugPrint('   Driver Photo: ${widget.trip.driver?.photo}');
+    debugPrint('');
+    debugPrint('🏫 [ÉCOLES] INFOS:');
+    debugPrint('   Nombre d\'écoles: ${widget.trip.schools.length}');
+    debugPrint('   School Count: ${widget.trip.schoolCount}');
+    for (var school in widget.trip.schools) {
+      debugPrint('   - ${school.name} (ID: ${school.id})');
+    }
+    debugPrint('');
+    debugPrint('👥 [PASSAGERS] INFOS:');
+    debugPrint('   Nombre de passagers: ${widget.trip.passengers.length}');
+    for (var passenger in widget.trip.passengers) {
+      debugPrint('   - ${passenger.name} (École: ${passenger.school ?? "non spécifiée"})');
+    }
     debugPrint('');
     debugPrint('🔍 DRIVER COMPLET:');
     debugPrint('   Driver existe? ${widget.trip.driver != null}');
@@ -125,59 +139,62 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ══════════════════════════════════════════
-            // HEADER — design inchangé
-            // ══════════════════════════════════════════
-            Container(
-              color: AppColors.success,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.spacingM,
-                vertical: AppConstants.spacingS,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: AppColors.white,
-                      size: AppConstants.iconSizeM,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      'Dakar → ${widget.trip.destination}',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: AppConstants.fontSizeM,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
+      body: Column(
+        children: [
+          // ══════════════════════════════════════════
+          // HEADER — design inchangé
+          // ══════════════════════════════════════════
+          Container(
+            color: AppColors.success,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top,
+              left: AppConstants.spacingM,
+              right: AppConstants.spacingM,
+              bottom: AppConstants.spacingS,
             ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: AppColors.white,
+                    size: AppConstants.iconSizeM,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    'Dakar → ${widget.trip.destination}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeM,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
 
-            // ══════════════════════════════════════════
-            // CONTENT
-            // ══════════════════════════════════════════
-            Expanded(
+          // ══════════════════════════════════════════
+          // CONTENT
+          // ══════════════════════════════════════════
+          Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // GOOGLE MAPS — inchangé
+                    // GOOGLE MAPS — Carte avec suivi en temps réel
                     SizedBox(
                       height: AppConstants.mapHeight,
                       width: double.infinity,
-                      child: TripMapWidget(
+                      child: RealtimeTripMapWidget(
+                        tripId: widget.trip.id,
                         startLocation: widget.trip.departure,
                         destination: widget.trip.arrival,
-                        onRouteCalculated: _onRouteCalculated,
+                        stops: widget.trip.schools,
+                        enableRealtime: widget.trip.isActive, // Activer le suivi si le trajet est actif
                       ),
                     ),
 
@@ -223,10 +240,9 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                     ),
                   ],
                 ),
-              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
 
       // BOTTOM BUTTON — inchangé
@@ -416,7 +432,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   }
 
   Widget _buildDriverAvatar(DriverModel? driver) {
-    final photoUrl = driver?.photo as String?;
+    final photoUrl = driver?.photo;
     final hasPhoto = photoUrl != null && photoUrl.isNotEmpty;
     final name = widget.trip.driverName ?? '';
 
@@ -565,12 +581,12 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   // ══════════════════════════════════════════
   Widget _passengersTile() => GestureDetector(
     onTap: _showPassengersList,
-    child: _simpleTile('${widget.trip.passengers.length} passagers'),
+    child: _simpleTile('${widget.trip.passengers.length} passager${widget.trip.passengers.length > 1 ? "s" : ""} inscrit${widget.trip.passengers.length > 1 ? "s" : ""}'),
   );
 
   Widget _schoolsTile() => GestureDetector(
     onTap: _showSchoolsList,
-    child: _simpleTile('Écoles desservies'),
+    child: _simpleTile('${widget.trip.schools.length} école${widget.trip.schools.length > 1 ? "s" : ""} desservie${widget.trip.schools.length > 1 ? "s" : ""}'),
   );
 
   Widget _simpleTile(String text) {
@@ -977,14 +993,15 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               Navigator.of(dialogContext, rootNavigator: true).pop();
             }
 
-            if (!mounted) return;
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    ChatPage(conversation: state.conversation),
-              ),
-            );
+            if (mounted) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ChatPage(conversation: state.conversation),
+                ),
+              );
+            }
             return;
           } else if (state is ConversationLoaded) {
             try {

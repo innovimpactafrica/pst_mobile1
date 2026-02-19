@@ -307,7 +307,8 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
   /// ✅ SECTION INFO (écoles + "X enfants inscrits / Y places")
   Widget _buildInfoSection() {
     final registeredCount = trip.passengers.length;
-    final totalPlaces = trip.totalSeats > 0 ? trip.totalSeats : 0;
+    final totalPlaces = trip.totalSeats;
+    final schoolCount = trip.schoolCount ?? 0;
     
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -324,8 +325,8 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  trip.schools.isNotEmpty 
-                      ? '${trip.schools.length} ${trip.schools.length > 1 ? 'écoles desservies' : 'école desservie'}'
+                  schoolCount > 0
+                      ? '$schoolCount ${schoolCount > 1 ? 'écoles desservies' : 'école desservie'}'
                       : 'Aucune école',
                   style: GoogleFonts.inter(
                     color: AppColors.success,

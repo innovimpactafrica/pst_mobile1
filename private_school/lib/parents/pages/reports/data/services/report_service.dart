@@ -8,21 +8,45 @@ import '../models/report_model.dart';
 class ReportService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Fetch all reports/incidents for the current driver
-  Future<List<ReportModel>> fetchReports() async {
+  /// Fetch all reports/incidents with pagination
+  Future<Map<String, dynamic>> fetchReports({
+    int page = 1,
+    int limit = 5,
+    String? type,
+  }) async {
     try {
       debugPrint('═══════════════════════════════════════════════════════');
       debugPrint('📥 [FETCH] Récupération des signalements');
       debugPrint('═══════════════════════════════════════════════════════');
       
-      final response = await _apiClient.get(ApiConstants.incidents);
+      final queryParams = {
+        'page': page.toString(),
+        'limit': limit.toString(),
+        if (type != null && type != 'Tous') 'type': type,
+      };
+      
+      final response = await _apiClient.get(
+        ApiConstants.incidents,
+        queryParameters: queryParams,
+      );
       
       if (response.data != null && response.data['incidents'] != null) {
         final List<dynamic> incidentsList = response.data['incidents'];
+        final reports = incidentsList.map((json) => ReportModel.fromJson(json)).toList();
         
-        debugPrint('✅ [FETCH] ${incidentsList.length} signalements récupérés');
+        final total = response.data['total'] ?? reports.length;
+        final currentPage = response.data['page'] ?? page;
+        final totalPages = response.data['totalPages'] ?? ((total / limit).ceil());
         
-        return incidentsList.map((json) => ReportModel.fromJson(json)).toList();
+        debugPrint('✅ [FETCH] ${reports.length} signalements récupérés (page $currentPage/$totalPages)');
+        
+        return {
+          'incidents': reports,
+          'total': total,
+          'page': currentPage,
+          'totalPages': totalPages,
+          'hasMore': currentPage < totalPages,
+        };
       }
       
       throw Exception('Format de réponse inconnu (clé "incidents" manquante)');

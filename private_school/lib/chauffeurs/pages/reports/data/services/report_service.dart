@@ -8,24 +8,48 @@ import '../models/report_model.dart';
 class ReportService {
   final ApiClient _apiClient = ApiClient();
 
-  /// Fetch all reports/incidents for the current driver
-  Future<List<ReportModel>> fetchReports() async {
+  /// Fetch reports with pagination
+  Future<Map<String, dynamic>> fetchReports({
+    int page = 1,
+    int limit = 10,
+    String? type,
+  }) async {
     try {
       debugPrint('═══════════════════════════════════════════════════════');
       debugPrint('📥 [FETCH] Récupération des signalements');
+      debugPrint('   Page: $page, Limit: $limit, Type: ${type ?? "Tous"}');
       debugPrint('═══════════════════════════════════════════════════════');
       
-      final response = await _apiClient.get(ApiConstants.incidents);
+      final queryParams = {
+        'page': page,
+        'limit': limit,
+        if (type != null && type != 'Tous') 'type': type,
+      };
       
-      if (response.data != null && response.data['incidents'] != null) {
-        final List<dynamic> incidentsList = response.data['incidents'];
+      final response = await _apiClient.get(
+        ApiConstants.incidents,
+        queryParameters: queryParams,
+      );
+      
+      if (response.data != null) {
+        final List<dynamic> incidentsList = response.data['incidents'] ?? [];
+        final int total = response.data['total'] ?? incidentsList.length;
+        final int currentPage = response.data['page'] ?? page;
+        final int totalPages = response.data['totalPages'] ?? 1;
         
         debugPrint('✅ [FETCH] ${incidentsList.length} signalements récupérés');
+        debugPrint('   Total: $total, Page: $currentPage/$totalPages');
         
-        return incidentsList.map((json) => ReportModel.fromJson(json)).toList();
+        return {
+          'incidents': incidentsList.map((json) => ReportModel.fromJson(json)).toList(),
+          'total': total,
+          'page': currentPage,
+          'totalPages': totalPages,
+          'hasMore': currentPage < totalPages,
+        };
       }
       
-      throw Exception('Format de réponse inconnu (clé "incidents" manquante)');
+      throw Exception('Format de réponse inconnu');
     } catch (e) {
       debugPrint('❌ [FETCH] Erreur: $e');
       throw Exception('Erreur lors de la récupération des rapports: $e');

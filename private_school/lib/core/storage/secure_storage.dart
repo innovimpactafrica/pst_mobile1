@@ -64,4 +64,14 @@ class SecureStorage {
     final token = await getAccessToken();
     return token != null && token.isNotEmpty;
   }
+
+  static const String _userRoleKey = 'user_role';
+
+Future<void> saveUserRole(String role) async {
+  await _storage.write(key: _userRoleKey, value: role);
+}
+
+Future<String?> getUserRole() async {
+  return await _storage.read(key: _userRoleKey);
+}
 }

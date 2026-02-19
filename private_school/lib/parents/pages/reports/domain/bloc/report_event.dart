@@ -4,6 +4,14 @@ abstract class ReportEvent {}
 
 class LoadReportsEvent extends ReportEvent {}
 
+class LoadMoreReportsEvent extends ReportEvent {}
+
+class LoadPageEvent extends ReportEvent {
+  final int page;
+  
+  LoadPageEvent(this.page);
+}
+
 class RefreshReportsEvent extends ReportEvent {}
 
 class FilterReportsEvent extends ReportEvent {

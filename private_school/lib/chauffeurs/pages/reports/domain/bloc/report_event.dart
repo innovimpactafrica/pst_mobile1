@@ -4,6 +4,14 @@ abstract class ReportEvent {}
 
 class LoadReportsEvent extends ReportEvent {}
 
+class LoadMoreReportsEvent extends ReportEvent {}
+
+class LoadPageEvent extends ReportEvent {
+  final int page;
+  
+  LoadPageEvent(this.page);
+}
+
 class RefreshReportsEvent extends ReportEvent {}
 
 class FilterReportsEvent extends ReportEvent {
@@ -35,9 +43,9 @@ class CreateReportEvent extends ReportEvent {
 class UpdateReportEvent extends ReportEvent {
   final int id;
   final String type;
-  final String category; // 🆕 Ajout de category pour la modification
+  final String category;
   final String description;
-  final List<File>? files; // 🆕 Support des fichiers en modification (optionnel)
+  final List<File>? files;
   
   UpdateReportEvent({
     required this.id,

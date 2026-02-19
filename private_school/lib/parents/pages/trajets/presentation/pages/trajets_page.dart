@@ -48,9 +48,9 @@ Widget build(BuildContext context) {
               const SizedBox(height: 16),
               
               // Liste des trajets
-              Expanded(
-                child: _buildTripsList(),
-              ),
+             Expanded(
+  child: _buildTripsList(context),  // ← ajoute "context"
+),
             ],
           ),
         ),
@@ -186,8 +186,8 @@ Widget _buildTabsSection() {
   /// ══════════════════════════════════════════
   /// LISTE DES TRAJETS
   /// ══════════════════════════════════════════
-  Widget _buildTripsList() {
-    return BlocBuilder<TripBloc, TripState>(
+Widget _buildTripsList(BuildContext context) {
+  return BlocBuilder<TripBloc, TripState>(
       builder: (context, state) {
         // ─────────────────────────────────────
         // LOADING
@@ -276,7 +276,12 @@ Widget _buildTabsSection() {
               }
             },
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.fromLTRB(
+  20, 
+  0, 
+  20, 
+  MediaQuery.of(context).padding.bottom + 80, // 80 = hauteur navbar
+),
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: state.trips.length,
               itemBuilder: (context, index) {
@@ -374,7 +379,10 @@ Widget _buildTabsSection() {
         MaterialPageRoute(
           builder: (_) => TripTrackingPage(trip: trip),
         ),
-      );
+      ).then((_) {
+        // Recharger les réservations au retour
+        context.read<TripBloc>().add(LoadMyReservationsEvent());
+      });
     } else {
       // ✅ Trajet DISPONIBLE → aller à la sélection d'enfants
       Navigator.push(
@@ -382,7 +390,10 @@ Widget _buildTabsSection() {
         MaterialPageRoute(
           builder: (_) => TripDetailPage(trip: trip),
         ),
-      );
+      ).then((_) {
+        // Recharger les trajets disponibles au retour
+        context.read<TripBloc>().add(LoadAvailableTripsEvent());
+      });
     }
   }
 }

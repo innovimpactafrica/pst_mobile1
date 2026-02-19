@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:intl/intl.dart';
+import '../../../trajets/data/models/trip_model.dart';
 
 class UpcomingTripsSection extends StatelessWidget {
   final List<dynamic> upcomingTrips;
@@ -72,23 +73,15 @@ class UpcomingTripsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTripCard(dynamic trip) {
-    // Extract trip data safely
-    final date = trip is Map && trip['date'] != null 
-        ? DateTime.tryParse(trip['date'].toString()) ?? DateTime.now()
-        : DateTime.now();
-    final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
-    
-    // ✅ FIX: Gérer schools comme liste OU nombre
-    int schools = 0;
-    if (trip is Map && trip['schools'] != null) {
-      if (trip['schools'] is List) {
-        schools = (trip['schools'] as List).length;
-      } else if (trip['schools'] is int) {
-        schools = trip['schools'] as int;
-      } else {
-        schools = int.tryParse(trip['schools'].toString()) ?? 0;
+  Widget _buildTripCard(dynamic tripData) {
+    // ✅ Convertir en TripModel pour utiliser le parsing existant
+    TripModel? trip;
+    try {
+      if (tripData is Map<String, dynamic>) {
+        trip = TripModel.fromJson(tripData);
       }
+    } catch (e) {
+      debugPrint('❌ Erreur parsing TripModel: $e');
     }
     
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');
@@ -133,7 +126,7 @@ class UpcomingTripsSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      dateFormatter.format(date),
+                      trip != null ? dateFormatter.format(trip.date) : '--',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -187,7 +180,7 @@ class UpcomingTripsSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '123 Avenue des Champs-Élysées',
+                      trip?.startLocation ?? 'Point de départ',
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.white.withValues(alpha: 0.9),
@@ -197,7 +190,7 @@ class UpcomingTripsSection extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Ouakam',
+                      trip?.destination ?? 'Destination',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.white.withValues(alpha: 0.7),
@@ -227,7 +220,7 @@ class UpcomingTripsSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '$passengers passagers',
+                  '${trip?.passengers.length ?? 0} passagers',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -236,7 +229,7 @@ class UpcomingTripsSection extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '$schools école${schools > 1 ? 's' : ''} desservie${schools > 1 ? 's' : ''}',
+                  '${trip?.schools.length ?? 0} école${(trip?.schools.length ?? 0) > 1 ? 's' : ''} desservie${(trip?.schools.length ?? 0) > 1 ? 's' : ''}',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.white.withValues(alpha: 0.8),

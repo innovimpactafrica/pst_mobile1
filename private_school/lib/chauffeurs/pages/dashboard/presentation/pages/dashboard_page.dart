@@ -17,6 +17,7 @@ import '../../data/repositories/notifications_repository.dart';
 import '../../data/repositories/dashboard_repository.dart';
 import '../../data/services/unified_notification_service.dart';
 import '../widgets/dashboard_header.dart';
+import '../widgets/trip_filters_modal.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
 import '../../../trajets/presentation/widgets/trip_detail_modal.dart'; 
 import '../../../trajets/data/models/trip_model.dart';
@@ -65,6 +66,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
   DriverProfileModel? _profile;
   bool _isLoadingProfile = true;
   final UnifiedNotificationService _notificationService = UnifiedNotificationService();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Map<String, dynamic> _filters = {};
 
   @override
   void initState() {
@@ -88,6 +92,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _notificationService.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -217,6 +222,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                 ],
               ),
               child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() => _searchQuery = value);
+                },
                 decoration: InputDecoration(
                   hintText: 'Rechercher un trajet',
                   hintStyle: TextStyle(
@@ -228,6 +237,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                     size: 20,
                   ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -253,7 +271,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
               ],
             ),
             child: IconButton(
-              onPressed: () {},
+              onPressed: _showFiltersModal,
               icon: const Icon(
                 Icons.tune,
                 color: AppColors.primary,
@@ -262,6 +280,19 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFiltersModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => TripFiltersModal(
+        onApplyFilters: (filters) {
+          setState(() => _filters = filters);
+        },
       ),
     );
   }
@@ -334,6 +365,86 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
 
   Widget _buildUpcomingTripsSection(DashboardLoaded state) {
     final upcomingTripsList = state.dashboard.upcomingTripsList;
+    
+    // Filtrer les trajets selon la recherche et les filtres
+    final filteredTrips = upcomingTripsList.where((tripData) {
+      try {
+        final trip = tripData is TripModel ? tripData : TripModel.fromJson(tripData);
+        
+        // Recherche par texte
+        if (_searchQuery.isNotEmpty) {
+          final query = _searchQuery.toLowerCase();
+          final matchesDestination = trip.destination.toLowerCase().contains(query);
+          final matchesStart = (trip.startLocation ?? '').toLowerCase().contains(query);
+          final matchesSchool = trip.schools.any((s) => s.name.toLowerCase().contains(query));
+          
+          if (!matchesDestination && !matchesStart && !matchesSchool) {
+            return false;
+          }
+        }
+        
+        // Filtre par date
+        if (_filters['date'] != null) {
+          final filterDate = _filters['date'] as DateTime;
+          if (trip.date.year != filterDate.year ||
+              trip.date.month != filterDate.month ||
+              trip.date.day != filterDate.day) {
+            return false;
+          }
+        }
+        
+        // Filtre par heure
+        if (_filters['time'] != null) {
+          final filterTime = _filters['time'] as TimeOfDay;
+          final tripTime = trip.time.split(':');
+          if (tripTime.length >= 2) {
+            final tripHour = int.tryParse(tripTime[0]) ?? 0;
+            if (tripHour != filterTime.hour) {
+              return false;
+            }
+          }
+        }
+        
+        // Filtre par école
+        if (_filters['school'] != null && (_filters['school'] as String).isNotEmpty) {
+          final schoolQuery = (_filters['school'] as String).toLowerCase();
+          if (!trip.schools.any((s) => s.name.toLowerCase().contains(schoolQuery))) {
+            return false;
+          }
+        }
+        
+        // Filtre par statut
+        if (_filters['status'] != null && _filters['status'] != 'Tous') {
+          final statusFilter = _filters['status'] as String;
+          final statusMap = {
+            'En attente': 'pending',
+            'En cours': 'in_progress',
+            'Terminé': 'completed',
+          };
+          if (trip.status != statusMap[statusFilter]) {
+            return false;
+          }
+        }
+        
+        // ✅ FILTRE IDENTIQUE À LA PAGE TRAJETS - Section "À venir"
+        // Trajet annulé = ne pas afficher
+        if (trip.status == 'canceled') return false;
+        
+        // Trajet ALLER SIMPLE terminé = ne pas afficher
+        if (trip.tripType == 'aller' && trip.status == 'completed') return false;
+        
+        // Trajet RETOUR SIMPLE terminé = ne pas afficher
+        if (trip.tripType == 'retour' && trip.status == 'completed') return false;
+        
+        // Trajet ALLER-RETOUR complètement terminé = ne pas afficher
+        if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return false;
+        
+        // Tous les autres cas = afficher
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,13 +484,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           ),
         ),
         const SizedBox(height: 12),
-        if (upcomingTripsList.isEmpty)
+        if (filteredTrips.isEmpty)
           Container(
             padding: const EdgeInsets.all(32),
-            child: const Center(
+            child: Center(
               child: Text(
-                'Aucun trajet à venir',
-                style: TextStyle(
+                _searchQuery.isNotEmpty || _filters.isNotEmpty
+                    ? 'Aucun trajet ne correspond à votre recherche'
+                    : 'Aucun trajet à venir',
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
@@ -390,7 +503,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
-              children: upcomingTripsList.map((tripData) {
+              children: filteredTrips.map((tripData) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _buildTripCard(tripData),

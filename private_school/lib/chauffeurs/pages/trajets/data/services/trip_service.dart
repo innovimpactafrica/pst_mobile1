@@ -7,7 +7,7 @@ import '../models/trip_model.dart';
 class TripService {
   final ApiClient _apiClient = ApiClient();
 
- Future<List<TripModel>> getDriverTrips() async {
+Future<List<TripModel>> getDriverTrips() async {
   try {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🚗 [TripService] Fetching trips...');
@@ -102,19 +102,28 @@ class TripService {
     debugPrint('🟢 [TripService] CREATE TRIP');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    final requestBody = {
-      'start_point': startPoint,
-      'end_point': endPoint,
-      if (departureTime != null) 'departure_time': departureTime.toIso8601String(),
-      if (returnTime != null) 'return_departure_time': returnTime.toIso8601String(),
-      'capacity_max': capacityMax,
-      'school_ids': schoolIds,
-      'is_recurring': isRecurring,
-      if (startLatitude != null) 'start_latitude': startLatitude,
-      if (startLongitude != null) 'start_longitude': startLongitude,
-      if (endLatitude != null) 'end_latitude': endLatitude,
-      if (endLongitude != null) 'end_longitude': endLongitude,
-    };
+   final requestBody = {
+  'start_point': startPoint,
+  'end_point': endPoint,
+  if (departureTime != null) 'departure_time': departureTime.toIso8601String(),
+  if (returnTime != null) 'return_departure_time': returnTime.toIso8601String(),
+  'capacity_max': capacityMax,
+  'is_recurring': isRecurring,
+  if (startLatitude != null) 'start_latitude': startLatitude,
+  if (startLongitude != null) 'start_longitude': startLongitude,
+  if (endLatitude != null) 'end_latitude': endLatitude,
+  if (endLongitude != null) 'end_longitude': endLongitude,
+  
+  // ✅ Un seul arrêt → school_id
+  // ✅ Plusieurs arrêts → stops (tableau)
+  if (schoolIds.length == 1)
+    'school_id': schoolIds.first
+  else
+    'stops': schoolIds.asMap().entries.map((entry) => {
+      'school_id': entry.value,
+      'stop_order': entry.key + 1,
+    }).toList(),
+};
 
     debugPrint('📤 CE QU ON ENVOIE AU SERVEUR:');
     debugPrint('   start_point: $startPoint');

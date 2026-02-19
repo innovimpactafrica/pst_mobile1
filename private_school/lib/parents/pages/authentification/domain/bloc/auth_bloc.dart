@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/core/storage/secure_storage.dart';
 import 'package:private_school/parents/pages/authentification/%20data/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -66,6 +67,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('✅ BLoC: Login result: $result');
 
       if (result['success'] == true && result['user'] != null) {
+await SecureStorage().saveUserRole('parent');
+emit(AuthAuthenticated(user: result['user'], message: 'Connexion réussie'));
         emit(
           AuthAuthenticated(user: result['user'], message: 'Connexion réussie'),
         );

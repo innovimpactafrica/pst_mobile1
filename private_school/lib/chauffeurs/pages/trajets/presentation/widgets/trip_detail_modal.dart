@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import 'passengers_list_modal.dart';
 import 'schools_list_modal.dart';
-import 'trip_map_widget.dart';
 
 /// Trip detail modal with passenger count validation
 class TripDetailModal extends StatefulWidget {
@@ -142,10 +142,12 @@ padding: EdgeInsets.only(
  Widget _buildMap() {
   return Container(
     margin: const EdgeInsets.all(AppConstants.spacingXL),
-    child: TripMapWidget(
+    child: RealtimeTripMapWidget(
+      tripId: widget.trip.id,
       startLocation: widget.trip.startLocation ?? 'Dakar',
       destination: widget.trip.destination,
-      onRouteCalculated: _onRouteCalculated,
+      stops: widget.trip.schools,
+      enableRealtime: false, // Pas de suivi en temps réel dans les détails
     ),
   );
 }

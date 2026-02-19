@@ -1,6 +1,7 @@
 
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/core/storage/secure_storage.dart';
 import '../../data/repositories/driver_auth_repository.dart';
 import 'driver_auth_event.dart';
 import 'driver_auth_state.dart';
@@ -28,6 +29,9 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
         phone: event.phone,
         password: event.password,
       );
+      // ✅ Sauvegarder le rôle
+await SecureStorage().saveUserRole('driver');
+emit(DriverAuthenticated(driver));
       emit(DriverAuthenticated(driver));
     } catch (e) {
       emit(DriverAuthError(e.toString()));

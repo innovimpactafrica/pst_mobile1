@@ -28,6 +28,11 @@ class TripModel {
   final String? driverPhoto;
   final String? vehiclePlate;
   final String? vehiclePhoto;
+  final int? schoolCount; // ✅ Nombre d'écoles desservies
+  
+  // GPS coordinates
+  final double? currentLatitude;
+  final double? currentLongitude;
 
   TripModel({
     required this.id,
@@ -52,6 +57,9 @@ class TripModel {
     this.driverPhoto,
     this.vehiclePlate,
     this.vehiclePhoto,
+    this.schoolCount,
+    this.currentLatitude,
+    this.currentLongitude,
   });
 
   // ========== GETTERS ==========
@@ -102,6 +110,22 @@ class TripModel {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('🔍 [TripModel] JSON REÇU DE L\'API:');
     debugPrint(json.toString());
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // 🔍 LOGS DÉTAILLÉS DES CHAMPS ÉCOLES
+    debugPrint('🏫 [TripModel] CHAMPS ÉCOLES DANS LE JSON:');
+    debugPrint('   stops: ${json['stops']}');
+    debugPrint('   stops type: ${json['stops'].runtimeType}');
+    if (json['stops'] is List) {
+      debugPrint('   stops length: ${(json['stops'] as List).length}');
+      for (var i = 0; i < (json['stops'] as List).length; i++) {
+        final stop = (json['stops'] as List)[i];
+        debugPrint('   stops[$i]: $stop');
+      }
+    }
+    debugPrint('   schools: ${json['schools']}');
+    debugPrint('   school_id: ${json['school_id']}');
+    debugPrint('   school_name: ${json['school_name']}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     int safeInt(dynamic value) {
@@ -233,19 +257,68 @@ class TripModel {
       );
     }
 
+    // ✅ PARSING DES ÉCOLES (logique identique au côté chauffeur)
     List<SchoolModel> parsedSchools = [];
-    if (json['schools'] != null && json['schools'] is List) {
+    int schoolCountValue = 0;
+    
+    // Priorité 1 : liste "stops" (format avec school_name et school_address)
+    if (json['stops'] != null && json['stops'] is List && (json['stops'] as List).isNotEmpty) {
+      parsedSchools = (json['stops'] as List).map((stop) {
+        final s = stop as Map<String, dynamic>;
+        return SchoolModel(
+          id: s['school_id'] is int 
+              ? s['school_id'] 
+              : int.tryParse(s['school_id'].toString()),
+          name: (s['school_name'] ?? 'École').toString(),
+          address: (s['school_address'] ?? '').toString(),
+        );
+      }).toList();
+      schoolCountValue = parsedSchools.length;
+      debugPrint('✅ ${parsedSchools.length} école(s) parsée(s) depuis stops');
+      for (var school in parsedSchools) {
+        debugPrint('   🏫 ${school.name} (ID: ${school.id})');
+      }
+    }
+    // Priorité 2 : liste "schools" directe
+    else if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
       parsedSchools = (json['schools'] as List)
           .map((s) => SchoolModel.fromJson(s as Map<String, dynamic>))
           .toList();
-    } else if (json['school_name'] != null) {
+      schoolCountValue = parsedSchools.length;
+      debugPrint('✅ ${parsedSchools.length} école(s) parsée(s) depuis schools');
+    }
+    // Priorité 3 : school_id unique (fallback)
+    else if (json['school_id'] != null) {
+      final schoolId = json['school_id'];
       parsedSchools = [
         SchoolModel(
-          id: null,
-          name: json['school_name'].toString(),
-          address: '',
-        )
+          id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
+          name: (json['school_name'] ?? json['end_point'] ?? 'École').toString(),
+          address: (json['school_address'] ?? '').toString(),
+        ),
       ];
+      schoolCountValue = 1;
+      debugPrint('✅ 1 école parsée depuis school_id unique');
+    }
+    // Priorité 4: Extraire les écoles depuis les passagers (dernier recours)
+    else if (parsedPassengers.isNotEmpty) {
+      final schoolIds = <int>{};
+      for (var passenger in parsedPassengers) {
+        if (passenger.schoolId != null) {
+          schoolIds.add(passenger.schoolId!);
+        }
+      }
+      if (schoolIds.isNotEmpty) {
+        schoolCountValue = schoolIds.length;
+        debugPrint('⚠️ ${schoolIds.length} école(s) extraite(s) des passagers (noms non disponibles): $schoolIds');
+        for (var schoolId in schoolIds) {
+          parsedSchools.add(SchoolModel(
+            id: schoolId,
+            name: 'École #$schoolId',
+            address: '',
+          ));
+        }
+      }
     }
 
     debugPrint('');
@@ -254,7 +327,11 @@ class TripModel {
     debugPrint('   Destination: ${json['end_point'] ?? json['destination']}');
     debugPrint('   Total Seats: $capacityMax');
     debugPrint('   Passagers: ${parsedPassengers.length}');
-    debugPrint('   Écoles: ${parsedSchools.length}');
+    debugPrint('   🏫 Écoles parsées: ${parsedSchools.length}');
+    for (var i = 0; i < parsedSchools.length; i++) {
+      debugPrint('      [$i] ${parsedSchools[i].name} (ID: ${parsedSchools[i].id})');
+    }
+    debugPrint('   School Count: $schoolCountValue');
     debugPrint('   Status: ${json['status']}');
     debugPrint('   Photo chauffeur: $mobileDriverPhoto');
     debugPrint('   Photo véhicule: $mobileVehiclePhoto');
@@ -280,9 +357,12 @@ class TripModel {
       driverName: mobileDriverName,
       driverPhone: mobileDriverPhone,
       driverRating: mobileDriverRating,
-      driverPhoto: mobileDriverPhoto, // ✅ URL COMPLÈTE
+      driverPhoto: mobileDriverPhoto,
       vehiclePlate: mobileVehiclePlate,
-      vehiclePhoto: mobileVehiclePhoto, // ✅ URL COMPLÈTE
+      vehiclePhoto: mobileVehiclePhoto,
+      schoolCount: schoolCountValue,
+      currentLatitude: json['current_latitude'] != null ? (json['current_latitude'] as num).toDouble() : null,
+      currentLongitude: json['current_longitude'] != null ? (json['current_longitude'] as num).toDouble() : null,
     );
   }
 

@@ -5,9 +5,17 @@ import '../services/report_service.dart';
 class ReportRepository {
   final ReportService _service = ReportService();
 
-  /// Get all reports
-  Future<List<ReportModel>> getReports() async {
-    return await _service.fetchReports();
+  /// Get all reports with pagination
+  Future<Map<String, dynamic>> getReports({
+    int page = 1,
+    int limit = 5,
+    String? type,
+  }) async {
+    return await _service.fetchReports(
+      page: page,
+      limit: limit,
+      type: type,
+    );
   }
 
   /// Create a new report

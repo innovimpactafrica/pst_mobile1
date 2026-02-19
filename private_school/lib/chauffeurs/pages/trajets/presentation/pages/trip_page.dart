@@ -175,11 +175,16 @@ class _TripPageState extends State<TripPage>
           // Trajet annulé = historique
           if (trip.status == 'canceled') return false;
           
-          // Trajet complètement terminé (aller ET retour) = historique
-          if (trip.status == 'completed' && trip.returnStatus == 'completed') return false;
+          // Trajet ALLER SIMPLE terminé = historique
+          if (trip.tripType == 'aller' && trip.status == 'completed') return false;
+          
+          // Trajet RETOUR SIMPLE terminé = historique
+          if (trip.tripType == 'retour' && trip.status == 'completed') return false;
+          
+          // Trajet ALLER-RETOUR complètement terminé = historique
+          if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return false;
           
           // Tous les autres cas = à venir
-          // (pending, in_progress, completed avec retour pending)
           return true;
         })
         .toList();
@@ -215,8 +220,14 @@ class _TripPageState extends State<TripPage>
           // Trajet annulé = historique
           if (trip.status == 'canceled') return true;
           
-          // Trajet complètement terminé (aller ET retour) = historique
-          if (trip.status == 'completed' && trip.returnStatus == 'completed') return true;
+          // Trajet ALLER SIMPLE terminé = historique
+          if (trip.tripType == 'aller' && trip.status == 'completed') return true;
+          
+          // Trajet RETOUR SIMPLE terminé = historique
+          if (trip.tripType == 'retour' && trip.status == 'completed') return true;
+          
+          // Trajet ALLER-RETOUR complètement terminé = historique
+          if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return true;
           
           // Tous les autres = à venir
           return false;

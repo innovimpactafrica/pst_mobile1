@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/trip_map_widget.dart';
+import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
 import '../../../enfants/data/models/child_model.dart';
 import '../widgets/driver_details_modal.dart';
@@ -99,17 +99,19 @@ class _TripDetailPageState extends State<TripDetailPage> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      // CARTE GOOGLE MAPS
+                      // CARTE GOOGLE MAPS avec stops numérotés
                       Container(
                         height: 250,
                         width: double.infinity,
                         margin: const EdgeInsets.all(16),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: TripMapWidget(
+                          child: RealtimeTripMapWidget(
+                            tripId: widget.trip.id,
                             startLocation: widget.trip.departure,
                             destination: widget.trip.arrival,
-                            onRouteCalculated: _onRouteCalculated,
+                            stops: widget.trip.schools,
+                            enableRealtime: false, // Pas de suivi en temps réel dans les détails
                           ),
                         ),
                       ),
