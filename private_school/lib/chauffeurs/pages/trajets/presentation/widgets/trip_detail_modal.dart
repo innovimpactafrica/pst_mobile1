@@ -34,7 +34,8 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('👥 Passagers inscrits: ${widget.trip.passengers.length}');
     debugPrint('🎯 Capacité totale: ${widget.trip.totalSeats}');
     for (var passenger in widget.trip.passengers) {
-      debugPrint('   👤 ${passenger.name} (${passenger.school ?? "Aucune école"})');
+      debugPrint(
+          '   👤 ${passenger.name} (${passenger.school ?? "Aucune école"})');
     }
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
@@ -47,43 +48,31 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('✅ Durée: $duration minutes');
   }
 
-  /*Widget _buildHandle() {
-    return Container(
-      margin: const EdgeInsets.only(top: AppConstants.spacingM),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: AppColors.grey300,
-        borderRadius: BorderRadius.circular(2),
-      ),
-    );
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-  height: MediaQuery.of(context).size.height,
-  decoration: const BoxDecoration(
-    color: AppColors.white,
-    // Plus de borderRadius ici — le header prend tout
-  ),
+        height: MediaQuery.of(context).size.height,
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+        ),
         child: Column(
           children: [
             _buildHeader(context),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: Column(
-                  children: [
-                    _buildMap(),
-                    _buildTripInfoCard(),
-                    _buildPassengersSection(context),
-                    _buildSchoolsSection(context),
-                    const SizedBox(height: AppConstants.spacingXXXL),
-                  ],
-                ),
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildMap()),
+                  SliverToBoxAdapter(child: _buildTripInfoCard()),
+                  SliverToBoxAdapter(
+                      child: _buildPassengersSection(context)),
+                  SliverToBoxAdapter(child: _buildSchoolsSection(context)),
+                  // Espace en bas pour ne pas être caché par les boutons
+                  const SliverToBoxAdapter(
+                      child: SizedBox(height: AppConstants.spacingXXXL)),
+                ],
               ),
             ),
             if (widget.trip.status == AppConstants.statusPending ||
@@ -91,7 +80,8 @@ class _TripDetailModalState extends State<TripDetailModal> {
                 widget.trip.status == 'started' ||
                 widget.trip.status == 'partially_completed' ||
                 widget.trip.returnStatus == 'in_progress' ||
-                (widget.trip.status == 'completed' && widget.trip.returnStatus == 'pending'))
+                (widget.trip.status == 'completed' &&
+                    widget.trip.returnStatus == 'pending'))
               _buildActionButtons(context),
           ],
         ),
@@ -101,12 +91,12 @@ class _TripDetailModalState extends State<TripDetailModal> {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-padding: EdgeInsets.only(
-  top: MediaQuery.of(context).padding.top + AppConstants.spacingL,
-  left: AppConstants.spacingL,
-  right: AppConstants.spacingL,
-  bottom: AppConstants.spacingL,
-),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + AppConstants.spacingL,
+        left: AppConstants.spacingL,
+        right: AppConstants.spacingL,
+        bottom: AppConstants.spacingL,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.only(
@@ -139,35 +129,48 @@ padding: EdgeInsets.only(
     );
   }
 
- Widget _buildMap() {
-  return Container(
-    margin: const EdgeInsets.all(AppConstants.spacingXL),
-    child: RealtimeTripMapWidget(
-      tripId: widget.trip.id,
-      startLocation: widget.trip.startLocation ?? 'Dakar',
-      destination: widget.trip.destination,
-      stops: widget.trip.schools,
-      enableRealtime: false, // Pas de suivi en temps réel dans les détails
+
+Widget _buildMap() {
+  return SizedBox(
+    height: 300,
+    child: Padding(
+      padding: const EdgeInsets.all(AppConstants.spacingXL),
+      child: GestureDetector(
+        onVerticalDragUpdate: (_) {},
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+          child: RealtimeTripMapWidget(
+            tripId: widget.trip.id,
+            startLocation: widget.trip.startLocation ?? 'Dakar',
+            destination: widget.trip.destination,
+            stops: widget.trip.schools,
+            enableRealtime: false,
+          ),
+        ),
+      ),
     ),
   );
 }
 
   Widget _buildTripInfoCard() {
-    final isAllerCompleted = widget.trip.status == 'completed' || widget.trip.status == 'partially_completed';
+    final isAllerCompleted = widget.trip.status == 'completed' ||
+        widget.trip.status == 'partially_completed';
     final isRetourPending = widget.trip.returnStatus == 'pending';
     final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
-    final showReturnInfo = (isAllerCompleted && isRetourPending) || isRetourInProgress;
-    
-    final startPoint = showReturnInfo 
-        ? widget.trip.destination 
+    final showReturnInfo =
+        (isAllerCompleted && isRetourPending) || isRetourInProgress;
+
+    final startPoint = showReturnInfo
+        ? widget.trip.destination
         : (widget.trip.startLocation ?? 'Non renseigné');
-    final endPoint = showReturnInfo 
-        ? (widget.trip.startLocation ?? 'Non renseigné') 
+    final endPoint = showReturnInfo
+        ? (widget.trip.startLocation ?? 'Non renseigné')
         : widget.trip.destination;
-    final departureTime = showReturnInfo && widget.trip.returnTime != null
-        ? widget.trip.returnTime! 
-        : widget.trip.time;
-    
+    final departureTime =
+        showReturnInfo && widget.trip.returnTime != null
+            ? widget.trip.returnTime!
+            : widget.trip.time;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
       padding: const EdgeInsets.all(AppConstants.spacingXL),
@@ -191,7 +194,8 @@ padding: EdgeInsets.only(
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
                   color: AppColors.successBackground,
-                  borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.radiusS),
                 ),
                 child: const Icon(
                   Icons.calendar_today,
@@ -226,9 +230,7 @@ padding: EdgeInsets.only(
               _buildStatusBadge(),
             ],
           ),
-          
           const SizedBox(height: AppConstants.spacingXL),
-          
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -271,7 +273,6 @@ padding: EdgeInsets.only(
               ),
             ],
           ),
-          
           Container(
             margin: const EdgeInsets.only(
               left: AppConstants.spacingS - 1,
@@ -284,7 +285,6 @@ padding: EdgeInsets.only(
               painter: DottedLinePainter(color: AppColors.grey300),
             ),
           ),
-          
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -334,9 +334,10 @@ padding: EdgeInsets.only(
 
   Widget _buildPassengersSection(BuildContext context) {
     final passengerCount = widget.trip.passengers.length;
-    
+
     return GestureDetector(
-      onTap: passengerCount > 0 ? () => _showPassengersList(context) : null,
+      onTap:
+          passengerCount > 0 ? () => _showPassengersList(context) : null,
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppConstants.spacingXL,
@@ -367,7 +368,8 @@ padding: EdgeInsets.only(
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
                   color: AppColors.backgroundLight,
-                  borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.radiusS),
                 ),
                 child: const Icon(
                   Icons.people_outline,
@@ -382,7 +384,9 @@ padding: EdgeInsets.only(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    passengerCount > 0 ? 'Passagers inscrits' : 'Aucun passager',
+                    passengerCount > 0
+                        ? 'Passagers inscrits'
+                        : 'Aucun passager',
                     style: const TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       fontWeight: FontWeight.w600,
@@ -448,7 +452,7 @@ padding: EdgeInsets.only(
 
   Widget _buildSchoolsSection(BuildContext context) {
     final schoolCount = widget.trip.schools.length;
-    
+
     return GestureDetector(
       onTap: schoolCount > 0 ? () => _showSchoolsList(context) : null,
       child: Container(
@@ -522,22 +526,21 @@ padding: EdgeInsets.only(
 
   Widget _buildActionButtons(BuildContext context) {
     final hasPassengers = widget.trip.passengers.isNotEmpty;
-    final isAllerCompleted = widget.trip.status == 'completed' || widget.trip.status == 'partially_completed';
+    final isAllerCompleted = widget.trip.status == 'completed' ||
+        widget.trip.status == 'partially_completed';
     final isRetourPending = widget.trip.returnStatus == 'pending';
     final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
     final showReturnButton = isAllerCompleted && isRetourPending;
     final showCompleteReturnButton = isRetourInProgress;
-    
-    debugPrint('🔵 [TripDetailModal] Status: ${widget.trip.status}, ReturnStatus: ${widget.trip.returnStatus}');
-    debugPrint('🔵 [TripDetailModal] showReturnButton: $showReturnButton, showCompleteReturnButton: $showCompleteReturnButton');
-    
+
     return Container(
-     padding: EdgeInsets.only(
-  left: AppConstants.spacingXL,
-  right: AppConstants.spacingXL,
-  top: AppConstants.spacingXL,
-  bottom: AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
-),
+      padding: EdgeInsets.only(
+        left: AppConstants.spacingXL,
+        right: AppConstants.spacingXL,
+        top: AppConstants.spacingXL,
+        bottom:
+            AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
@@ -550,30 +553,29 @@ padding: EdgeInsets.only(
       ),
       child: Column(
         children: [
-          // ✅ NOUVEAU : Afficher un avertissement s'il n'y a pas de passagers
-          if (!hasPassengers && widget.trip.status == AppConstants.statusActive) ...[
+          if (!hasPassengers &&
+              widget.trip.status == AppConstants.statusActive) ...[
             Container(
-              margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
+              margin:
+                  const EdgeInsets.only(bottom: AppConstants.spacingM),
               padding: const EdgeInsets.all(AppConstants.spacingM),
               decoration: BoxDecoration(
                 color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(AppConstants.radiusM),
+                borderRadius:
+                    BorderRadius.circular(AppConstants.radiusM),
                 border: Border.all(color: const Color(0xFFF59E0B)),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(
-                    Icons.warning_amber,
-                    color: Color(0xFFF59E0B),
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppConstants.spacingM),
+                  Icon(Icons.warning_amber,
+                      color: Color(0xFFF59E0B), size: 20),
+                  SizedBox(width: AppConstants.spacingM),
                   Expanded(
                     child: Text(
                       'Vous devez avoir au moins 1 passager pour démarrer',
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeS,
-                        color: const Color(0xFFF59E0B),
+                        color: Color(0xFFF59E0B),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -582,7 +584,6 @@ padding: EdgeInsets.only(
               ),
             ),
           ],
-          
           Row(
             children: [
               if (widget.trip.status == AppConstants.statusPending) ...[
@@ -591,11 +592,12 @@ padding: EdgeInsets.only(
                     onPressed: () => _showCancelDialog(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      side: const BorderSide(color: AppColors.error, width: 1.5),
+                          vertical: AppConstants.spacingL + 2),
+                      side: const BorderSide(
+                          color: AppColors.error, width: 1.5),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusL),
                       ),
                     ),
                     child: const Text(
@@ -611,15 +613,17 @@ padding: EdgeInsets.only(
                 const SizedBox(width: AppConstants.spacingM),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: hasPassengers ? () => _acceptTrip(context) : null,
+                    onPressed: hasPassengers
+                        ? () => _acceptTrip(context)
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.grey300,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
+                          vertical: AppConstants.spacingL + 2),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusL),
                       ),
                       elevation: 0,
                     ),
@@ -629,7 +633,9 @@ padding: EdgeInsets.only(
                         Text(
                           'Démarrer le trajet',
                           style: TextStyle(
-                            color: hasPassengers ? AppColors.white : AppColors.grey600,
+                            color: hasPassengers
+                                ? AppColors.white
+                                : AppColors.grey600,
                             fontSize: AppConstants.fontSizeL,
                             fontWeight: FontWeight.w600,
                           ),
@@ -637,24 +643,27 @@ padding: EdgeInsets.only(
                         const SizedBox(width: AppConstants.spacingS),
                         Icon(
                           Icons.arrow_forward,
-                          color: hasPassengers ? AppColors.white : AppColors.grey600,
+                          color: hasPassengers
+                              ? AppColors.white
+                              : AppColors.grey600,
                           size: 20,
                         ),
                       ],
                     ),
                   ),
                 ),
-              ] else if (widget.trip.status == 'in_progress' || widget.trip.status == 'started') ...[
+              ] else if (widget.trip.status == 'in_progress' ||
+                  widget.trip.status == 'started') ...[
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _completeTrip(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
+                          vertical: AppConstants.spacingL + 2),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusL),
                       ),
                       elevation: 0,
                     ),
@@ -670,11 +679,8 @@ padding: EdgeInsets.only(
                           ),
                         ),
                         SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
+                        Icon(Icons.check_circle,
+                            color: AppColors.white, size: 20),
                       ],
                     ),
                   ),
@@ -682,15 +688,17 @@ padding: EdgeInsets.only(
               ] else if (showReturnButton) ...[
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: hasPassengers ? () => _startReturnTrip(context) : null,
+                    onPressed: hasPassengers
+                        ? () => _startReturnTrip(context)
+                        : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.grey300,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
+                          vertical: AppConstants.spacingL + 2),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusL),
                       ),
                       elevation: 0,
                     ),
@@ -700,7 +708,9 @@ padding: EdgeInsets.only(
                         Text(
                           'Démarrer le retour',
                           style: TextStyle(
-                            color: hasPassengers ? AppColors.white : AppColors.grey600,
+                            color: hasPassengers
+                                ? AppColors.white
+                                : AppColors.grey600,
                             fontSize: AppConstants.fontSizeL,
                             fontWeight: FontWeight.w600,
                           ),
@@ -708,7 +718,9 @@ padding: EdgeInsets.only(
                         const SizedBox(width: AppConstants.spacingS),
                         Icon(
                           Icons.arrow_forward,
-                          color: hasPassengers ? AppColors.white : AppColors.grey600,
+                          color: hasPassengers
+                              ? AppColors.white
+                              : AppColors.grey600,
                           size: 20,
                         ),
                       ],
@@ -722,10 +734,10 @@ padding: EdgeInsets.only(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
+                          vertical: AppConstants.spacingL + 2),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius:
+                            BorderRadius.circular(AppConstants.radiusL),
                       ),
                       elevation: 0,
                     ),
@@ -741,11 +753,8 @@ padding: EdgeInsets.only(
                           ),
                         ),
                         SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
+                        Icon(Icons.check_circle,
+                            color: AppColors.white, size: 20),
                       ],
                     ),
                   ),
@@ -796,16 +805,16 @@ padding: EdgeInsets.only(
   }
 
   Map<String, dynamic> _getStatusConfig() {
-    // Si l'aller est terminé et le retour est en attente
-    if ((widget.trip.status == 'completed' || widget.trip.status == 'partially_completed') && widget.trip.returnStatus == 'pending') {
+    if ((widget.trip.status == 'completed' ||
+            widget.trip.status == 'partially_completed') &&
+        widget.trip.returnStatus == 'pending') {
       return {
         'bgColor': const Color(0xFFFEF3C7),
         'textColor': const Color(0xFFF59E0B),
         'label': 'Partiellement terminé',
       };
     }
-    
-    // Si le retour est en cours
+
     if (widget.trip.returnStatus == 'in_progress') {
       return {
         'bgColor': const Color(0xFFDCFCE7),
@@ -813,7 +822,7 @@ padding: EdgeInsets.only(
         'label': 'En cours (retour)',
       };
     }
-    
+
     switch (widget.trip.status) {
       case AppConstants.statusPending:
         return {
@@ -858,26 +867,23 @@ padding: EdgeInsets.only(
     } else if (difference == 1) {
       return 'Demain';
     } else {
-      final formatted = DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+      final formatted =
+          DateFormat('EEEE d MMMM', 'fr_FR').format(date);
       return formatted[0].toUpperCase() + formatted.substring(1);
     }
   }
 
   String _calculateArrivalTime() {
-    if (_durationMinutes == null) {
-      return '--:--';
-    }
+    if (_durationMinutes == null) return '--:--';
 
     try {
       final parts = widget.trip.time.split(':');
       if (parts.length == 2) {
         final hours = int.parse(parts[0]);
         final minutes = int.parse(parts[1]);
-        
         final totalMinutes = hours * 60 + minutes + _durationMinutes!;
         final arrivalHour = (totalMinutes ~/ 60) % 24;
         final arrivalMinute = totalMinutes % 60;
-        
         return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
@@ -891,7 +897,8 @@ padding: EdgeInsets.only(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => PassengersListModal(passengers: widget.trip.passengers),
+      builder: (context) =>
+          PassengersListModal(passengers: widget.trip.passengers),
     );
   }
 
@@ -900,12 +907,12 @@ padding: EdgeInsets.only(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => SchoolsListModal(schools: widget.trip.schools),
+      builder: (context) =>
+          SchoolsListModal(schools: widget.trip.schools),
     );
   }
 
   void _acceptTrip(BuildContext context) {
-    // Vérifier qu'il y a au moins 1 passager
     if (widget.trip.passengers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -916,7 +923,6 @@ padding: EdgeInsets.only(
       return;
     }
 
-    // Accepter = Démarrer le trajet directement
     context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -949,7 +955,9 @@ padding: EdgeInsets.only(
       return;
     }
 
-    context.read<TripBloc>().add(StartTripEvent(widget.trip.id, direction: 'retour'));
+    context
+        .read<TripBloc>()
+        .add(StartTripEvent(widget.trip.id, direction: 'retour'));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -960,7 +968,8 @@ padding: EdgeInsets.only(
   }
 
   void _completeReturnTrip(BuildContext context) {
-    context.read<TripBloc>().add(CompleteTripEvent(widget.trip.id, direction: 'retour'));
+    context.read<TripBloc>().add(
+        CompleteTripEvent(widget.trip.id, direction: 'retour'));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

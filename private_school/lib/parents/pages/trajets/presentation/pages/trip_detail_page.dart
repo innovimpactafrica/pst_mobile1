@@ -104,14 +104,17 @@ class _TripDetailPageState extends State<TripDetailPage> {
                         height: 250,
                         width: double.infinity,
                         margin: const EdgeInsets.all(16),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: RealtimeTripMapWidget(
-                            tripId: widget.trip.id,
-                            startLocation: widget.trip.departure,
-                            destination: widget.trip.arrival,
-                            stops: widget.trip.schools,
-                            enableRealtime: false, // Pas de suivi en temps réel dans les détails
+                        child: GestureDetector(
+                          onVerticalDragUpdate: (_) {},
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: RealtimeTripMapWidget(
+                              tripId: widget.trip.id,
+                              startLocation: widget.trip.departure,
+                              destination: widget.trip.arrival,
+                              stops: widget.trip.schools,
+                              enableRealtime: false,
+                            ),
                           ),
                         ),
                       ),

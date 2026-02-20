@@ -178,7 +178,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             ),
           ),
 
-          // ══════════════════════════════════════════
           // CONTENT
           // ══════════════════════════════════════════
           Expanded(
@@ -189,12 +188,15 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                     SizedBox(
                       height: AppConstants.mapHeight,
                       width: double.infinity,
-                      child: RealtimeTripMapWidget(
-                        tripId: widget.trip.id,
-                        startLocation: widget.trip.departure,
-                        destination: widget.trip.arrival,
-                        stops: widget.trip.schools,
-                        enableRealtime: widget.trip.isActive, // Activer le suivi si le trajet est actif
+                      child: GestureDetector(
+                        onVerticalDragUpdate: (_) {},
+                        child: RealtimeTripMapWidget(
+                          tripId: widget.trip.id,
+                          startLocation: widget.trip.departure,
+                          destination: widget.trip.arrival,
+                          stops: widget.trip.schools,
+                          enableRealtime: widget.trip.isActive,
+                        ),
                       ),
                     ),
 
