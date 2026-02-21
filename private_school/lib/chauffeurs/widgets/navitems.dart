@@ -2,6 +2,7 @@
 // Path: lib/chauffeurs/widgets/main_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/parents/pages/profil/presentation/pages/profil_page.dart';
@@ -103,21 +104,21 @@ class CustomBottomNavigationBar extends StatelessWidget {
               0,
               Icons.dashboard_outlined,
               Icons.dashboard,
-              'Accueil',
+              'home',
             ),
             _buildNavItem(
               1,
               Icons.directions_car_outlined,
               Icons.directions_car,
-              'Trajets',
+              'my_trips',
             ),
             _buildNavItem(
               2,
               Icons.account_balance_wallet_outlined,
               Icons.account_balance_wallet,
-              'Transactions',
+              'payment',
             ),
-            _buildNavItem(3, Icons.person_outline, Icons.person, 'Profil'),
+            _buildNavItem(3, Icons.person_outline, Icons.person, 'profile'),
           ],
         ),
       ),
@@ -128,7 +129,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
     int index,
     IconData icon,
     IconData activeIcon,
-    String label,
+    String labelKey,
   ) {
     final isSelected = selectedIndex == index;
 
@@ -147,7 +148,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              label,
+              labelKey.tr(),
               style: TextStyle(
                 color: isSelected ? AppColors.secondary : AppColors.textGrey,
                 fontSize: 11,

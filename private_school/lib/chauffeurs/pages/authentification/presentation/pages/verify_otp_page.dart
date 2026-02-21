@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/reset_password_page.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/driver_auth_bloc.dart';
@@ -42,8 +43,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
 
     if (otp.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez entrer le code à 4 chiffres'),
+        SnackBar(
+          content: Text('enter_4_digit_code'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -53,8 +54,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
    
     if (widget.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: ID utilisateur manquant'),
+        SnackBar(
+          content: Text('error_missing_user_id'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -101,8 +102,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
               icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Vérification OTP',
+            title: Text(
+              'verification_code'.tr(),
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -123,8 +124,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
                   const SizedBox(height: 30),
 
                   // Title
-                  const Text(
-                    'Entrez le code OTP',
+                  Text(
+                    'enter_verification_code'.tr(),
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -136,7 +137,7 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
 
                   // Subtitle
                   Text(
-                    'Code envoyé à ${widget.contact}',
+                    'enter_4_digit_code_sent'.tr(args: [widget.contact]),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 14,
@@ -204,8 +205,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
                       onPressed: isLoading ? null : _verifyOtp,
                       child: isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Vérifier',
+                          : Text(
+                              'verify'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -222,8 +223,8 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
                     onPressed: () {
                       // TODO: Implémenter renvoyer le code
                     },
-                    child: const Text(
-                      'Renvoyer le code',
+                    child: Text(
+                      'resend_code'.tr(),
                       style: TextStyle(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,

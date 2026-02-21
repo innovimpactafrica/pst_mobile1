@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
@@ -40,7 +41,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
                   ),
                   Text(
-                    'Langue',
+                    'language'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,

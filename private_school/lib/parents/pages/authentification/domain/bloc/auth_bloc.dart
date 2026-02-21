@@ -195,7 +195,7 @@ emit(AuthAuthenticated(user: result['user'], message: 'Connexion réussie'));
 
       debugPrint('✅ BLoC: User loaded: ${user.fullName}');
 
-      emit(UserLoaded(user: user));
+    //  emit(UserLoaded(user: user));
       emit(AuthAuthenticated(user: user));
     } catch (e) {
       debugPrint('❌ BLoC: Load current user error: $e');

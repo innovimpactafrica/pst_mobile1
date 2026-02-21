@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../data/models/message_model.dart';
@@ -124,7 +125,7 @@ class MessageBubbleWidget extends StatelessWidget {
                             if (message.isEdited) ...[
                               const SizedBox(width: 4),
                               Text(
-                                '(modifié)',
+                                '(edited)'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: AppConstants.fontSizeXS,
                                   fontStyle: FontStyle.italic,
@@ -187,7 +188,7 @@ class MessageBubbleWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            message.replyToSenderName ?? 'Utilisateur',
+            message.replyToSenderName ?? 'user'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeS,
               fontWeight: FontWeight.w600,

@@ -78,36 +78,52 @@ class _ConnexionState extends State<Connexion> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ======== Langue ========
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/4.svg',
-                          colorFilter: const ColorFilter.mode(
-                            AppColors.primary,
-                            BlendMode.srcIn,
-                          ),
-                          width: AppConstants.iconSizeM,
+                    child: GestureDetector(
+                      onTap: () {
+                        final currentLocale = context.locale;
+                        if (currentLocale.languageCode == 'fr') {
+                          context.setLocale(const Locale('en'));
+                        } else {
+                          context.setLocale(const Locale('fr'));
+                        }
+                        setState(() {});
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(width: AppConstants.spacingS),
-                        Text(
-                          "french".tr(),
-                          style: const TextStyle(
-                            fontSize: AppConstants.fontSizeM,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/icons/4.svg',
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                              width: 20,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  // ======== Logo ========
                   Image.asset(
                     AppConstants.logoPath,
                     width: 120,
@@ -116,7 +132,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // ======== Titre & Description ========
                   Text(
                     "login".tr(),
                     style: TextStyle(
@@ -126,10 +141,10 @@ class _ConnexionState extends State<Connexion> {
                     ),
                   ),
                   const SizedBox(height: AppConstants.spacingS),
-                  const Text(
-                    "Connectez-vous pour explorer toutes les\nfonctionnalités de l’application.",
+                  Text(
+                    "connection_description".tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeM,
                       color: AppColors.textSecondary,
                     ),
@@ -137,7 +152,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  // ======== Champ Identification (Email) ========
                   _buildInputLabel("identification".tr()),
                   const SizedBox(height: AppConstants.spacingS),
                   TextFormField(
@@ -151,7 +165,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXL),
 
-                  // ======== Champ Mot de passe ========
                   _buildInputLabel("password".tr()),
                   const SizedBox(height: AppConstants.spacingS),
                   TextFormField(
@@ -166,7 +179,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingM),
 
-                  // ======== Mot de passe oublié ========
                   Align(
                     alignment: Alignment.center,
                     child: TextButton(
@@ -186,7 +198,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // ======== Bouton Se connecter ========
                   SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -212,7 +223,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  // ======== Lien Inscription ========
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -225,9 +235,9 @@ class _ConnexionState extends State<Connexion> {
                           context,
                           MaterialPageRoute(builder: (_) => const ParentInscription()),
                         ),
-                        child: const Text(
-                          "S’inscrire",
-                          style: TextStyle(
+                        child: Text(
+                          "sign_up_link".tr(),
+                          style: const TextStyle(
                             color: AppColors.successDark,
                             fontWeight: FontWeight.bold,
                           ),
@@ -243,8 +253,6 @@ class _ConnexionState extends State<Connexion> {
       ),
     );
   }
-
-  // --- Helpers UI ---
 
   Widget _buildInputLabel(String label) {
     return Align(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
@@ -79,7 +80,7 @@ class TripCardWidget extends StatelessWidget {
               const SizedBox(height: 2),
              
               Text(
-                '${trip.totalSeats} place disponible pour ce vehicule ',
+                '${trip.totalSeats} ${'available_seats_vehicle'.tr()} ',
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeS,
                   color: AppColors.textSecondary,
@@ -96,8 +97,8 @@ class TripCardWidget extends StatelessWidget {
 
   Widget _buildRoute() {
     final isReturnTrip = ((trip.status == 'completed' || trip.status == 'partially_completed') && trip.returnStatus == 'pending') || trip.returnStatus == 'in_progress';
-    final start = isReturnTrip ? trip.destination : (trip.startLocation ?? 'Point de départ');
-    final end = isReturnTrip ? (trip.startLocation ?? 'Point de départ') : trip.destination;
+    final start = isReturnTrip ? trip.destination : (trip.startLocation ?? 'departure_point'.tr());
+    final end = isReturnTrip ? (trip.startLocation ?? 'departure_point'.tr()) : trip.destination;
     final displayTime = isReturnTrip && trip.returnTime != null ? trip.returnTime! : trip.time;
     
     return Column(
@@ -173,7 +174,7 @@ class TripCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppConstants.radiusXL),
       ),
       child: Text(
-        '$schoolCount ${schoolCount > 1 ? "écoles desservies" : "école desservie"}',
+        '$schoolCount ${schoolCount > 1 ? 'schools_served'.tr() : 'school_served'.tr()}',
         style: const TextStyle(
           fontSize: AppConstants.fontSizeS,
           color: AppColors.success,
@@ -226,7 +227,7 @@ class TripCardWidget extends StatelessWidget {
       return {
         'bgColor': const Color(0xFFFEF3C7),
         'textColor': const Color(0xFFF59E0B),
-        'label': 'Partiellement terminé',
+        'label': 'partially_completed'.tr(),
       };
     }
     
@@ -235,7 +236,7 @@ class TripCardWidget extends StatelessWidget {
       return {
         'bgColor': const Color(0xFFDCFCE7),
         'textColor': const Color(0xFF16A34A),
-        'label': 'En cours (retour)',
+        'label': 'in_progress_return'.tr(),
       };
     }
     
@@ -244,37 +245,37 @@ class TripCardWidget extends StatelessWidget {
         return {
           'bgColor': AppColors.statusPendingBg,
           'textColor': AppColors.statusPending,
-          'label': 'En attente',
+          'label': 'pending'.tr(),
         };
       case AppConstants.statusActive:
         return {
           'bgColor': AppColors.statusActiveBg,
           'textColor': AppColors.statusActive,
-          'label': 'Accepté',
+          'label': 'accepted'.tr(),
         };
       case AppConstants.statusStarted:
         return {
           'bgColor': AppColors.statusStartedBg,
           'textColor': AppColors.statusStarted,
-          'label': 'Terminé',
+          'label': 'completed'.tr(),
         };
       case AppConstants.statusInProgress: 
         return {
           'bgColor': AppColors.statusInProgressBg,
           'textColor': AppColors.statusInProgress,
-          'label': 'En cours',
+          'label': 'in_progress'.tr(),
         };
       case AppConstants.statusCompleted:
         return {
           'bgColor': AppColors.statusCompletedBg,
           'textColor': AppColors.statusCompleted,
-          'label': 'Terminé',
+          'label': 'completed'.tr(),
         };
       case AppConstants.statusCanceled:
         return {
           'bgColor': AppColors.statusCanceledBg,
           'textColor': AppColors.statusCanceled,
-          'label': 'Annulé',
+          'label': 'cancelled'.tr(),
         };
       default:
         return {

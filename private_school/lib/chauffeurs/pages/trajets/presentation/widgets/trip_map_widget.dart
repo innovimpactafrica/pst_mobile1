@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:http/http.dart' as http;
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
@@ -72,7 +73,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         // Tracer le trajet
         await _drawRoute();
       } else {
-        _errorMessage = 'Impossible de localiser les adresses';
+        _errorMessage = 'unable_locate_addresses'.tr();
         debugPrint('❌ Échec du géocodage');
       }
 
@@ -85,7 +86,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
       debugPrint('❌ [TripMapWidget] Erreur initialisation: $e');
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Erreur lors du chargement de la carte';
+        _errorMessage = 'error_loading_map'.tr();
       });
     }
   }
@@ -237,7 +238,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         position: _startLatLng!,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(
-          title: 'Départ',
+          title: 'departure'.tr(),
           snippet: widget.startLocation,
         ),
       ),
@@ -246,7 +247,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         position: _destinationLatLng!,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
-          title: 'Arrivée',
+          title: 'arrival'.tr(),
           snippet: widget.destination,
         ),
       ),

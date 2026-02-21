@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/core/utils/image_url_helper.dart';
@@ -26,8 +27,8 @@ class ReportDetailPage extends StatelessWidget {
           // Retour à la liste après suppression
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Signalement supprimé avec succès'),
+            SnackBar(
+              content: Text('report_deleted_successfully'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -41,8 +42,8 @@ class ReportDetailPage extends StatelessWidget {
         } else if (state is ReportUpdated) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Signalement modifié avec succès'),
+            SnackBar(
+              content: Text('report_updated_successfully'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -110,7 +111,7 @@ class ReportDetailPage extends StatelessWidget {
           const SizedBox(width: AppConstants.spacingL),
           Expanded(
             child: Text(
-              'Détails du signalement',
+              'report_details'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
@@ -177,26 +178,26 @@ class ReportDetailPage extends StatelessWidget {
         children: [
           _buildInfoRow(
             icon: Icons.category_outlined,
-            label: 'Catégorie',
+            label: 'category'.tr(),
             value: report.category,
           ),
           const Divider(height: AppConstants.spacingL),
           _buildInfoRow(
             icon: Icons.description_outlined,
-            label: 'Description',
+            label: 'description'.tr(),
             value: report.description,
           ),
           const Divider(height: AppConstants.spacingL),
           _buildInfoRow(
             icon: Icons.calendar_today_outlined,
-            label: 'Date de création',
+            label: 'creation_date'.tr(),
             value: _formatDate(report.createdAt),
           ),
           if (report.resolvedAt != null) ...[
             const Divider(height: AppConstants.spacingL),
             _buildInfoRow(
               icon: Icons.check_circle_outline,
-              label: 'Date de résolution',
+              label: 'resolution_date'.tr(),
               value: _formatDate(report.resolvedAt!),
             ),
           ],
@@ -256,7 +257,7 @@ class ReportDetailPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Documents',
+          'documents'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeL,
             fontWeight: FontWeight.w600,
@@ -320,7 +321,7 @@ class ReportDetailPage extends StatelessWidget {
             ),
             icon: const Icon(Icons.edit_outlined, color: AppColors.white),
             label: Text(
-              'Modifier le signalement',
+              'edit_report'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 fontWeight: FontWeight.w600,
@@ -345,7 +346,7 @@ class ReportDetailPage extends StatelessWidget {
             ),
             icon: const Icon(Icons.delete_outline, color: AppColors.error),
             label: Text(
-              'Supprimer le signalement',
+              'delete_report'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 fontWeight: FontWeight.w600,
@@ -366,7 +367,7 @@ class ReportDetailPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppConstants.radiusL),
         ),
         title: Text(
-          'Confirmer la suppression',
+          'confirm_deletion'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeL,
             fontWeight: FontWeight.w600,
@@ -374,7 +375,7 @@ class ReportDetailPage extends StatelessWidget {
           ),
         ),
         content: Text(
-          'Êtes-vous sûr de vouloir supprimer ce signalement ? Cette action est irréversible.',
+          'are_you_sure_delete'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeM,
             color: AppColors.textSecondary,
@@ -384,7 +385,7 @@ class ReportDetailPage extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              'Annuler',
+              'cancel'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 fontWeight: FontWeight.w600,
@@ -410,7 +411,7 @@ class ReportDetailPage extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Supprimer',
+              'delete'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 fontWeight: FontWeight.w600,
@@ -431,14 +432,14 @@ class ReportDetailPage extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'résolu':
       case 'resolved':
-        return 'Résolu';
+        return 'resolved'.tr();
       case 'en cours':
       case 'in_progress':
       case 'pending':
-        return 'En cours';
+        return 'in_progress'.tr();
       case 'rejeté':
       case 'rejected':
-        return 'Rejeté';
+        return 'rejected'.tr();
       default:
         return status;
     }

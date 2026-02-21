@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
@@ -915,8 +916,8 @@ Widget _buildMap() {
   void _acceptTrip(BuildContext context) {
     if (widget.trip.passengers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible de démarrer: aucun passager inscrit'),
+        SnackBar(
+          content: Text('cannot_start_no_passengers'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -926,8 +927,8 @@ Widget _buildMap() {
     context.read<TripBloc>().add(StartTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trajet démarré avec succès'),
+      SnackBar(
+        content: Text('trip_started_successfully'.tr()),
         backgroundColor: AppColors.success,
       ),
     );
@@ -937,8 +938,8 @@ Widget _buildMap() {
     context.read<TripBloc>().add(CompleteTripEvent(widget.trip.id));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trajet terminé avec succès'),
+      SnackBar(
+        content: Text('trip_completed_successfully'.tr()),
         backgroundColor: AppColors.success,
       ),
     );
@@ -947,8 +948,8 @@ Widget _buildMap() {
   void _startReturnTrip(BuildContext context) {
     if (widget.trip.passengers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible de démarrer: aucun passager inscrit'),
+        SnackBar(
+          content: Text('cannot_start_no_passengers'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -960,8 +961,8 @@ Widget _buildMap() {
         .add(StartTripEvent(widget.trip.id, direction: 'retour'));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trajet retour démarré'),
+      SnackBar(
+        content: Text('return_trip_started'.tr()),
         backgroundColor: AppColors.success,
       ),
     );
@@ -972,8 +973,8 @@ Widget _buildMap() {
         CompleteTripEvent(widget.trip.id, direction: 'retour'));
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Trajet retour terminé avec succès'),
+      SnackBar(
+        content: Text('return_trip_completed_successfully'.tr()),
         backgroundColor: AppColors.success,
       ),
     );

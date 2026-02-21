@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../data/models/child_model.dart';
@@ -196,7 +197,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
         children: [
           Expanded(
             child: Text(
-              'Horaires - ${widget.child.fullName}',
+              'schedule_for'.tr(args: [widget.child.fullName]),
               style: GoogleFonts.inter(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
@@ -223,7 +224,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
           SizedBox(
             width: 48,
             child: Text(
-              'Jour',
+              'day'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -236,7 +237,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
             child: Padding(
               padding: const EdgeInsets.only(left: 8),
               child: Text(
-                'Disponibilité',
+                'availability'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -248,7 +249,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
           Expanded(
             flex: 2,
             child: Text(
-              'Départ',
+              'departure'.tr(),
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 12,
@@ -260,7 +261,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
           Expanded(
             flex: 2,
             child: Text(
-              'Retour',
+              'return'.tr(),
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 12,
@@ -322,7 +323,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  schedule.isOpen ? 'Ouvert' : 'Fermé',
+                  schedule.isOpen ? 'open'.tr() : 'closed'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: Colors.grey.shade700,
@@ -411,7 +412,7 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
           elevation: 0,
         ),
         child: Text(
-          'Mettre à jour',
+          'update'.tr(),
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,

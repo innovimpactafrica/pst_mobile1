@@ -148,9 +148,7 @@ class DriverAuthService {
   Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
   final response = await _apiClient.post(
     '/api/auth/forgot-password',
-    data: {
-      'contact': contact, 
-    },
+    data: {'contact': contact},
   );
 
   final responseData = response.data is Map

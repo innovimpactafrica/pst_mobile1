@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
@@ -29,7 +30,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
     if (_controller.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Veuillez remplir ce champ', style: GoogleFonts.inter()),
+          content: Text('fill_field'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.orange,
         ),
       );
@@ -61,7 +62,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Invitation envoyée ✅', style: GoogleFonts.inter()),
+              content: Text('invitation_sent'.tr(), style: GoogleFonts.inter()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -99,7 +100,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Inviter un membre',
+                        'invite_member'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -114,14 +115,14 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      Expanded(child: _buildTabButton('Email', true)),
+                      Expanded(child: _buildTabButton('email'.tr(), true)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildTabButton('Téléphone', false)),
+                      Expanded(child: _buildTabButton('phone'.tr(), false)),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    _isEmail ? 'Adresse email' : 'Numéro de téléphone',
+                    _isEmail ? 'email_address'.tr() : 'phone_number_label'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -135,8 +136,8 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                         : TextInputType.phone,
                     decoration: InputDecoration(
                       hintText: _isEmail
-                          ? 'Ex : votre@email.com'
-                          : 'Ex : +77 123 45 67',
+                          ? 'email_example_invite'.tr()
+                          : 'phone_example_invite'.tr(),
                       prefixIcon: Icon(
                         _isEmail ? Icons.email : Icons.phone,
                         color: AppColors.success,
@@ -180,7 +181,7 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                               ),
                             )
                           : Text(
-                              'Envoyer',
+                              'send'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

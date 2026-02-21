@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../utils/modal_helper.dart';
@@ -44,18 +45,18 @@ class ChildDetailsModal extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          'Supprimer l\'enfant',
+          'delete_child'.tr(),
           style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
         content: Text(
-          'Êtes-vous sûr de vouloir supprimer ${child.fullName} ?',
+          '${'delete_child_confirm'.tr()} ${child.fullName} ?',
           style: GoogleFonts.inter(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              'Annuler',
+              'cancel'.tr(),
               style: GoogleFonts.inter(color: Colors.grey.shade600),
             ),
           ),
@@ -66,7 +67,7 @@ class ChildDetailsModal extends StatelessWidget {
               Navigator.pop(context);
             },
             child: Text(
-              'Supprimer',
+              'delete'.tr(),
               style: GoogleFonts.inter(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,
@@ -101,13 +102,13 @@ class ChildDetailsModal extends StatelessWidget {
                   const SizedBox(height: 8),
                   _buildAvatar(),
                   const SizedBox(height: 32),
-                  _buildInfoRow('Prénom', child.firstName),
+                  _buildInfoRow('first_name'.tr(), child.firstName),
                   const SizedBox(height: 20),
-                  _buildInfoRow('Nom', child.lastName),
+                  _buildInfoRow('last_name'.tr(), child.lastName),
                   const SizedBox(height: 20),
-                  _buildInfoRow('Adresse', child.fullAddress),
+                  _buildInfoRow('address'.tr(), child.fullAddress),
                   const SizedBox(height: 20),
-                  _buildInfoRow('École', child.school),
+                  _buildInfoRow('school'.tr(), child.school),
                   const SizedBox(height: 32),
                   _buildModifyButton(context),
                   const SizedBox(height: 12),
@@ -134,7 +135,7 @@ class ChildDetailsModal extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Détails de l\'enfant',
+            'child_details'.tr(),
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -215,7 +216,7 @@ class ChildDetailsModal extends StatelessWidget {
           ),
         ),
         child: Text(
-          'Modifier',
+          'edit'.tr(),
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -245,7 +246,7 @@ class ChildDetailsModal extends StatelessWidget {
           side: BorderSide.none, // supprime le contour
         ),
         child: Text(
-          'Configurer les horaires',
+          'configure_schedule'.tr(),
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -274,7 +275,7 @@ class ChildDetailsModal extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              'Supprimer',
+              'delete'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

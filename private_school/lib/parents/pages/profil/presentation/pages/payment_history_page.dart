@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 class PaymentHistoryPage extends StatelessWidget {
@@ -17,7 +18,7 @@ class PaymentHistoryPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Historique des paiements',
+          'payment_history'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -41,7 +42,7 @@ class PaymentHistoryPage extends StatelessWidget {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Rechercher',
+                  hintText: 'search'.tr(),
                   hintStyle: GoogleFonts.inter(
                     color: Colors.grey.shade400,
                     fontSize: 14,
@@ -137,7 +138,7 @@ class PaymentHistoryPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Paiement',
+                  'payment'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

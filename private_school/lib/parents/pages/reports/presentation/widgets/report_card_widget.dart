@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../../../../core/utils/image_url_helper.dart';
@@ -169,14 +170,14 @@ class ReportCardWidget extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'résolu':
       case 'resolved':
-        return 'Résolu';
+        return 'resolved'.tr();
       case 'en cours':
       case 'in_progress':
       case 'pending':
-        return 'En cours';
+        return 'in_progress'.tr();
       case 'rejeté':
       case 'rejected':
-        return 'Rejeté';
+        return 'rejected'.tr();
       default:
         return status;
     }

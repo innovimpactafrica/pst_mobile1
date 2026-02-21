@@ -5,11 +5,11 @@ class LoadConversationsEvent extends ConversationEvent {}
 class RefreshConversationsEvent extends ConversationEvent {}
 
 class CreateConversationEvent extends ConversationEvent {
-  final String parentId;
+  final int parentId;
   CreateConversationEvent(this.parentId);
 }
 
 class MarkConversationAsReadEvent extends ConversationEvent {
-  final String conversationId;
+  final int conversationId;
   MarkConversationAsReadEvent(this.conversationId);
 }

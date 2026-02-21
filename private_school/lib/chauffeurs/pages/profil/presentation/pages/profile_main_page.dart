@@ -15,9 +15,7 @@ import 'personal_info_page.dart';
 import 'vehicle_info_page.dart';
 import 'documents_page.dart';
 import 'payment_history_page.dart';
-import '../../../dashboard/domain/bloc/notification_bloc.dart';
-import '../../../dashboard/domain/bloc/notification_state.dart';
-import '../widgets/language_bottom_sheet.dart'; // 🆕 Import du modal de langue
+import '../widgets/language_bottom_sheet.dart'; 
 
 class ProfileMainPage extends StatefulWidget {
   const ProfileMainPage({super.key});
@@ -428,97 +426,16 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
     );
   }
 
-  // Bouton Notifications avec badge
+  // Bouton Notifications sans badge
   Widget _buildNotificationMenuItem() {
-    return BlocBuilder<NotificationBloc, NotificationState>(
-      builder: (context, state) {
-        int unreadCount = 0;
-
-        if (state is NotificationLoaded) {
-          unreadCount = state.unreadCount;
-        }
-
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationsPage(),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(AppConstants.radiusL),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.spacingXL,
-              vertical: AppConstants.spacingL,
-            ),
-            child: Row(
-              children: [
-                // Icon with colored background
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.success,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacingL),
-
-                // Title
-                Expanded(
-                  child: Text(
-                    'notifications'.tr(), // 🆕 Traduction
-                    style: GoogleFonts.inter(
-                      fontSize: AppConstants.fontSizeL,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-
-                // Badge + Chevron
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Badge rouge si notifications non lues
-                    if (unreadCount > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(
-                            AppConstants.radiusL,
-                          ),
-                        ),
-                        child: Text(
-                          unreadCount > 9 ? '9+' : '$unreadCount',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: AppConstants.fontSizeS,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textSecondary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return _buildMenuItem(
+      icon: Icons.notifications_outlined,
+      title: 'notifications'.tr(),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const NotificationsPage(),
           ),
         );
       },

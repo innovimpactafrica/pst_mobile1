@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -161,7 +162,7 @@ class SchoolsListModal extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${schools.indexOf(school) + 1} élèves',
+                  '${schools.indexOf(school) + 1} ${'students'.tr()}',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: AppColors.textSecondary,

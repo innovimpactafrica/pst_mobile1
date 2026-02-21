@@ -8,6 +8,10 @@ class NotificationRepository {
     return await _service.fetchNotifications();
   }
 
+  Future<int> getUnreadCount() async {
+    return await _service.fetchUnreadCount();
+  }
+
   Future<void> markNotificationAsRead(String notificationId) async {
     await _service.markAsRead(notificationId);
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
@@ -62,14 +63,14 @@ class _TripFilterModalState extends State<TripFilterModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTimeFilter(
-                    label: 'Heure de départ',
+                    label: 'departure_time'.tr(),
                     time: _departureTime,
                     onTap: () => _selectTime(true),
                     onClear: () => setState(() => _departureTime = null),
                   ),
                   const SizedBox(height: 16),
                   _buildTimeFilter(
-                    label: 'Heure de retour',
+                    label: 'return_time'.tr(),
                     time: _returnTime,
                     onTap: () => _selectTime(false),
                     onClear: () => setState(() => _returnTime = null),
@@ -90,7 +91,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
                             ),
                           ),
                           child: Text(
-                            'Réinitialiser',
+                            'reset'.tr(),
                             style: GoogleFonts.inter(
                               color: AppColors.error,
                               fontWeight: FontWeight.w600,
@@ -110,7 +111,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
                             ),
                           ),
                           child: Text(
-                            'Appliquer',
+                            'apply'.tr(),
                             style: GoogleFonts.inter(
                               color: AppColors.white,
                               fontWeight: FontWeight.w600,
@@ -152,7 +153,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Filtrer les trajets',
+            'filter_trips'.tr(),
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -206,7 +207,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
                   child: Text(
                     time != null
                         ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
-                        : 'Sélectionner une heure',
+                        : 'select_time'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: time != null
@@ -237,7 +238,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Destination',
+          'destination'.tr(),
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -248,7 +249,7 @@ class _TripFilterModalState extends State<TripFilterModal> {
         TextField(
           controller: _destinationController,
           decoration: InputDecoration(
-            hintText: 'Ex: Ouakam, Almadies...',
+            hintText: 'destination_example'.tr(),
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
               color: AppColors.textSecondary.withValues(alpha: 0.5),

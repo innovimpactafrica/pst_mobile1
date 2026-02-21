@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import '../../../../../core/utils/app_colors.dart';
 
 class TripFiltersModal extends StatefulWidget {
@@ -48,7 +49,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Filtres avancés',
+                  'advanced_filters'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -70,28 +71,28 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Date
-                  _buildSectionTitle('Date du trajet'),
+                  _buildSectionTitle('trip_date'.tr()),
                   const SizedBox(height: 12),
                   _buildDatePicker(),
 
                   const SizedBox(height: 24),
 
                   // Heure
-                  _buildSectionTitle('Heure de départ'),
+                  _buildSectionTitle('departure_time'.tr()),
                   const SizedBox(height: 12),
                   _buildTimePicker(),
 
                   const SizedBox(height: 24),
 
                   // Statut
-                  _buildSectionTitle('Statut'),
+                  _buildSectionTitle('status'.tr()),
                   const SizedBox(height: 12),
                   _buildStatusChips(),
 
                   const SizedBox(height: 24),
 
                   // École
-                  _buildSectionTitle('École'),
+                  _buildSectionTitle('school'.tr()),
                   const SizedBox(height: 12),
                   _buildSchoolField(),
 
@@ -102,8 +103,9 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
           ),
 
           // Buttons
-          Container(
-            padding: const EdgeInsets.all(20),
+          // Buttons
+Container(
+  padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
             decoration: BoxDecoration(
               color: AppColors.white,
               boxShadow: [
@@ -127,7 +129,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
                       ),
                     ),
                     child: Text(
-                      'Réinitialiser',
+                      'reset'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -148,7 +150,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
                       ),
                     ),
                     child: Text(
-                      'Appliquer',
+                      'apply'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -202,7 +204,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
             Text(
               _selectedDate != null
                   ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
-                  : 'Sélectionner une date',
+                  : 'select_date'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: _selectedDate != null
@@ -246,7 +248,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
             Text(
               _selectedTime != null
                   ? _selectedTime!.format(context)
-                  : 'Sélectionner une heure',
+                  : 'select_time'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: _selectedTime != null
@@ -298,7 +300,7 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
     return TextField(
       onChanged: (value) => _selectedSchool = value,
       decoration: InputDecoration(
-        hintText: 'Nom de l\'école',
+        hintText: 'school_name'.tr(),
         prefixIcon: const Icon(Icons.school, size: 20, color: AppColors.primary),
         filled: true,
         fillColor: Colors.grey.shade100,

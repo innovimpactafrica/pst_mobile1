@@ -48,15 +48,11 @@ class UnreadNotificationsBloc extends Bloc<UnreadNotificationsEvent, UnreadNotif
   ) async {
     try {
       debugPrint('🔔 [UnreadNotificationsBloc] Chargement compteur...');
-      final notifications = await repository.getNotifications();
-      final unreadCount = notifications
-          .where((n) => !n.isRead && !_readNotifications.contains(n.id))
-          .length;
-      debugPrint('🔔 Notifications non lues: $unreadCount');
+      final unreadCount = await repository.getUnreadCount();
+      debugPrint('🔔 Notifications non lues (backend): $unreadCount');
       emit(UnreadNotificationsLoaded(unreadCount));
     } catch (e) {
       debugPrint('❌ Erreur: $e');
-      // ✅ En cas d'erreur réseau, garder le compteur actuel
       if (state is UnreadNotificationsLoaded) {
         emit(UnreadNotificationsLoaded((state as UnreadNotificationsLoaded).count));
       } else {
@@ -70,15 +66,11 @@ class UnreadNotificationsBloc extends Bloc<UnreadNotificationsEvent, UnreadNotif
     Emitter<UnreadNotificationsState> emit,
   ) async {
     try {
-      final notifications = await repository.getNotifications();
-      final unreadCount = notifications
-          .where((n) => !n.isRead && !_readNotifications.contains(n.id))
-          .length;
+      final unreadCount = await repository.getUnreadCount();
       debugPrint('🔄 Refresh compteur notifications: $unreadCount');
       emit(UnreadNotificationsLoaded(unreadCount));
     } catch (e) {
       debugPrint('❌ Erreur refresh: $e');
-      // ✅ Garder l'état actuel sans crash
       if (state is UnreadNotificationsLoaded) {
         emit(state as UnreadNotificationsLoaded);
       }

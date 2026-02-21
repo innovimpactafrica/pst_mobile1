@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/driver_profile_model.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/services/driver_profile_service.dart';
 import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
@@ -227,7 +227,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                   setState(() => _searchQuery = value);
                 },
                 decoration: InputDecoration(
-                  hintText: 'Rechercher un trajet',
+                  hintText: 'search_trip'.tr(),
                   hintStyle: TextStyle(
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                     fontSize: 14,
@@ -339,8 +339,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                   vertical: 12,
                 ),
               ),
-              child: const Text(
-                'Réessayer',
+              child: Text(
+                'retry'.tr(),
                 style: TextStyle(color: AppColors.white),
               ),
             ),
@@ -454,9 +454,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Mes trajets à venir',
-                style: TextStyle(
+              Text(
+                'upcoming_trips'.tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -471,8 +471,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                     ),
                   );
                 },
-                child: const Text(
-                  'Voir plus',
+                child: Text(
+                  'view_all'.tr(),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -490,8 +490,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             child: Center(
               child: Text(
                 _searchQuery.isNotEmpty || _filters.isNotEmpty
-                    ? 'Aucun trajet ne correspond à votre recherche'
-                    : 'Aucun trajet à venir',
+                    ? 'no_search_results'.tr()
+                    : 'no_trips_today'.tr(),
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -515,10 +515,18 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     );
   }
 
-  Widget _buildTripCard(dynamic tripData) {
-    try {
-      if (tripData is Map<String, dynamic>) {
-        final trip = TripModel.fromJson(tripData);
+Widget _buildTripCard(dynamic tripData) {
+  try {
+    if (tripData is Map<String, dynamic>) {
+      // ✅ Enrichir le JSON dashboard pour que parseSchools trouve school_id
+      final enriched = Map<String, dynamic>.from(tripData);
+      if ((enriched['school_name'] != null) &&
+          enriched['school_id'] == null &&
+          (enriched['stops'] == null || (enriched['stops'] as List?)?.isEmpty == true)) {
+        // Injecter school_id fictif pour déclencher la Priorité 3 de parseSchools
+        enriched['school_id'] = enriched['school_name']; // non-null suffit
+      }
+      final trip = TripModel.fromJson(enriched);
         return TripCardWidget(
           trip: trip,
           onTap: () => _showTripDetail(trip),
@@ -559,11 +567,11 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'Notifications récentes',
-            style: TextStyle(
+            'recent_notifications'.tr(),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -576,7 +584,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             padding: const EdgeInsets.all(32),
             child: Center(
               child: Text(
-                'Aucune notification',
+                'no_notifications'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary.withValues(alpha: 0.7),
@@ -748,15 +756,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
       final difference = now.difference(date);
 
       if (difference.inMinutes < 1) {
-        return "À l'instant";
+        return 'now'.tr();
       } else if (difference.inMinutes < 60) {
         return 'Il y a ${difference.inMinutes}m';
       } else if (difference.inHours < 24) {
         return 'Il y a ${difference.inHours}h';
       } else if (difference.inDays == 1) {
-        return 'Hier';
+        return 'yesterday'.tr();
       } else if (difference.inDays < 7) {
-        return 'Il y a ${difference.inDays}j';
+        return 'days_ago'.tr().replaceAll('{0}', difference.inDays.toString());
       } else {
         return DateFormat('dd/MM').format(date);
       }

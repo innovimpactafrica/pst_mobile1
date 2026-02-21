@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/parents/pages/profil/data/repositories/notifications_repository.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -37,11 +38,11 @@ class NotificationsPageContent extends StatefulWidget {
   const NotificationsPageContent({super.key});
 
   @override
-  State<NotificationsPageContent> createState() => _NotificationsPageContentState();
+  State<NotificationsPageContent> createState() =>
+      _NotificationsPageContentState();
 }
 
 class _NotificationsPageContentState extends State<NotificationsPageContent> {
-  // ✅ Pagination
   int _currentPage = 1;
   final int _itemsPerPage = 6;
 
@@ -51,7 +52,7 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Notifications',
+          'notifications'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeXL,
             fontWeight: FontWeight.bold,
@@ -69,8 +70,8 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         listener: (context, state) {
           if (state is NotificationDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notification supprimée'),
+              SnackBar(
+                content: Text('notification_deleted'.tr()),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -100,25 +101,36 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
                 return _buildEmptyState();
               }
 
-              // ✅ Calcul pagination
-              final totalPages = (state.notifications.length / _itemsPerPage).ceil();
+              final totalPages =
+                  (state.notifications.length / _itemsPerPage).ceil();
               final startIndex = (_currentPage - 1) * _itemsPerPage;
-              final endIndex = (startIndex + _itemsPerPage).clamp(0, state.notifications.length);
-              final pageNotifications = state.notifications.sublist(startIndex, endIndex);
+              final endIndex =
+                  (startIndex + _itemsPerPage).clamp(0, state.notifications.length);
+              final pageNotifications =
+                  state.notifications.sublist(startIndex, endIndex);
 
               return Column(
                 children: [
-                  // ✅ Liste des notifications de la page courante
+                  // ✅ Pagination EN HAUT (visible, pas cachée par la navbar)
+                  if (totalPages > 1) _buildPaginationBar(totalPages),
+
+                  // ✅ Liste des notifications
                   Expanded(
                     child: RefreshIndicator(
                       color: AppColors.success,
                       onRefresh: () async {
                         setState(() => _currentPage = 1);
-                        context.read<ParentNotificationBloc>()
+                        context
+                            .read<ParentNotificationBloc>()
                             .add(const RefreshNotificationsEvent());
                       },
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(AppConstants.spacingXL),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppConstants.spacingXL,
+                          AppConstants.spacingM,
+                          AppConstants.spacingXL,
+                          AppConstants.spacingXL,
+                        ),
                         itemCount: pageNotifications.length,
                         itemBuilder: (context, index) {
                           return _buildNotificationCard(
@@ -129,10 +141,6 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
                       ),
                     ),
                   ),
-
-                  // ✅ Barre de pagination
-                  if (totalPages > 1)
-                    _buildPaginationBar(totalPages),
                 ],
               );
             }
@@ -144,17 +152,17 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
     );
   }
 
-  // ✅ Barre de pagination
+  // ✅ Pagination EN HAUT avec design propre
   Widget _buildPaginationBar(int totalPages) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
-            offset: const Offset(0, -2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -163,13 +171,13 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         children: [
           // Bouton précédent
           IconButton(
-            onPressed: _currentPage > 1
-                ? () => setState(() => _currentPage--)
-                : null,
+            onPressed:
+                _currentPage > 1 ? () => setState(() => _currentPage--) : null,
             icon: Icon(
               Icons.arrow_back_ios,
               size: 18,
-              color: _currentPage > 1 ? AppColors.success : Colors.grey.shade300,
+              color:
+                  _currentPage > 1 ? AppColors.success : Colors.grey.shade300,
             ),
           ),
 
@@ -188,7 +196,9 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
                     color: isSelected ? AppColors.success : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? AppColors.success : Colors.grey.shade300,
+                      color: isSelected
+                          ? AppColors.success
+                          : Colors.grey.shade300,
                     ),
                   ),
                   child: Center(
@@ -197,7 +207,9 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? AppColors.white : Colors.grey.shade600,
+                        color: isSelected
+                            ? AppColors.white
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ),
@@ -242,17 +254,23 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         child: const Icon(Icons.delete, color: AppColors.white),
       ),
       onDismissed: (direction) {
-        context.read<ParentNotificationBloc>()
+        context
+            .read<ParentNotificationBloc>()
             .add(DeleteNotificationEvent(notification.id));
       },
       child: GestureDetector(
         onTap: () {
           if (!notification.isRead) {
+            debugPrint('👆 [NotificationPage] Tap sur notification ${notification.id} (non lue)');
             // ✅ Marquer comme lue dans les 2 blocs
-            context.read<ParentNotificationBloc>()
+            context
+                .read<ParentNotificationBloc>()
                 .add(MarkAsReadEvent(notification.id));
-            context.read<UnreadNotificationsBloc>()
+            context
+                .read<UnreadNotificationsBloc>()
                 .add(MarkNotificationAsReadEvent(notification.id));
+          } else {
+            debugPrint('ℹ️ [NotificationPage] Tap sur notification ${notification.id} (déjà lue)');
           }
         },
         child: Container(
@@ -358,7 +376,7 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
           Icon(Icons.notifications_none, size: 64, color: AppColors.grey400),
           const SizedBox(height: AppConstants.spacingL),
           Text(
-            'Aucune notification',
+            'no_notifications'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
@@ -377,18 +395,22 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         children: [
           const Icon(Icons.error_outline, size: 64, color: AppColors.error),
           const SizedBox(height: AppConstants.spacingL),
-          Text('Erreur de chargement',
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeL,
-                fontWeight: FontWeight.w600,
-              )),
+          Text(
+            'loading_error'.tr(),
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeL,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: AppConstants.spacingS),
-          Text(message,
-              style: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeM,
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center),
+          Text(
+            message,
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeM,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: AppConstants.spacingXL),
           ElevatedButton(
             onPressed: () => context
@@ -397,8 +419,10 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
             ),
-            child: Text('Réessayer',
-                style: GoogleFonts.inter(color: AppColors.white)),
+            child: Text(
+              'retry'.tr(),
+              style: GoogleFonts.inter(color: AppColors.white),
+            ),
           ),
         ],
       ),

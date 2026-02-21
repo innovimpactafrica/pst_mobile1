@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:io';
 
 import '../../../../../core/utils/app_colors.dart';
@@ -52,7 +53,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         final int sizeKB = (await file.length()) ~/ 1024;
 
         if (sizeKB > AppConstants.maxFileSizeKB) {
-          if (mounted) _showSnackBar(AppConstants.errorFileTooBig, isError: true);
+          if (mounted) _showSnackBar('error_file_too_large'.tr(), isError: true);
           return;
         }
 
@@ -68,17 +69,17 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
         debugPrint('📄 [DocumentsPage] File selected: ${file.path.split('/').last} ($sizeKB Ko)');
 
-        if (mounted) _showSnackBar(AppConstants.successFileSelected, isError: false);
+        if (mounted) _showSnackBar('file_selected_successfully'.tr(), isError: false);
       }
     } catch (e) {
       debugPrint('❌ [DocumentsPage] Error: $e');
-      if (mounted) _showSnackBar('${AppConstants.errorPickFile}: $e', isError: true);
+      if (mounted) _showSnackBar('${'error_pick_file'.tr()}: $e', isError: true);
     }
   }
 
   void _uploadDocuments() {
     if (_licenseFile == null && _idCardFile == null) {
-      _showSnackBar(AppConstants.errorNoFile, isError: true);
+      _showSnackBar('error_no_file'.tr(), isError: true);
       return;
     }
     _performUpload();
@@ -121,7 +122,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
       }
     } catch (e) {
       debugPrint('❌ [DocumentsPage] Upload error: $e');
-      if (mounted) _showSnackBar('${AppConstants.errorUpload}: $e', isError: true);
+      if (mounted) _showSnackBar('${'error_upload'.tr()}: $e', isError: true);
     }
   }
 
@@ -153,7 +154,7 @@ Widget build(BuildContext context) {
     listener: (context, state) {
       if (state is DriverProfileUpdated) {
         debugPrint('✅ [DocumentsPage] Success');
-        _showSnackBar(AppConstants.successUpload, isError: false);
+        _showSnackBar('documents_uploaded_successfully'.tr(), isError: false);
 
         setState(() {
           _licenseFile = null;
@@ -200,7 +201,7 @@ Widget build(BuildContext context) {
                             _buildInfoMessage(),
 
                           _buildDocumentCard(
-                            title: AppConstants.labelLicense,
+                            title: 'drivers_license'.tr(),
                             icon: Icons.card_membership,
                             existingDocumentUrl: driverInfo.licenseDocument,
                             newFile: _licenseFile,
@@ -215,7 +216,7 @@ Widget build(BuildContext context) {
                           const SizedBox(height: AppConstants.spacingXXL),
 
                           _buildDocumentCard(
-                            title: AppConstants.labelIdCard,
+                            title: 'id_card'.tr(),
                             icon: Icons.badge,
                             existingDocumentUrl: driverInfo.idDocument,
                             newFile: _idCardFile,
@@ -230,7 +231,7 @@ Widget build(BuildContext context) {
                           const SizedBox(height: 40),
 
                           PrimaryButton(
-                            text: AppConstants.labelUpdate,
+                            text: 'update'.tr(),
                             isLoading: isUpdating,
                             onPressed: (_licenseFile != null || _idCardFile != null)
                                 ? () => _uploadDocuments()
@@ -259,8 +260,8 @@ Widget build(BuildContext context) {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: AppConstants.iconSizeM),
           ),
-          const Text(
-            AppConstants.labelDocuments,
+          Text(
+            'documents'.tr(),
             style: TextStyle(
               fontSize: AppConstants.fontSizeXL,
               fontWeight: FontWeight.w600,
@@ -287,7 +288,7 @@ Widget build(BuildContext context) {
           const SizedBox(width: AppConstants.spacingL),
           Expanded(
             child: Text(
-              AppConstants.labelInfoMessage,
+              'info_message'.tr(),
               style: TextStyle(fontSize: AppConstants.fontSizeM, color: Colors.blue[900]),
             ),
           ),
@@ -330,7 +331,7 @@ Widget build(BuildContext context) {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: AppConstants.radiusM, vertical: AppConstants.spacingXS),
                   decoration: BoxDecoration(color: AppColors.successLight, borderRadius: BorderRadius.circular(AppConstants.radiusS)),
-                  child: const Text(AppConstants.labelValidated, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.success)),
+                  child: Text('validated'.tr(), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.success)),
                 ),
             ],
           ),
@@ -338,11 +339,11 @@ Widget build(BuildContext context) {
           if (hasNewFile) ...[
             _buildNewFilePreview(newFile, newSizeKB, onRemove),
             const SizedBox(height: AppConstants.spacingL),
-            _buildChangeButton(onTap, AppConstants.labelChangeFile),
+            _buildChangeButton(onTap, 'change_file'.tr()),
           ] else if (hasExistingDoc) ...[
             _buildExistingDocumentPreview(existingDocumentUrl),
             const SizedBox(height: AppConstants.spacingL),
-            _buildChangeButton(onTap, AppConstants.labelReplaceFile),
+            _buildChangeButton(onTap, 'replace_file'.tr()),
           ] else ...[
             _buildEmptyState(onTap),
           ],
@@ -417,8 +418,8 @@ Widget _buildExistingDocumentPreview(dynamic documentUrl) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  AppConstants.labelCurrentDocument, 
+                Text(
+                  'current_document'.tr(), 
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeM, 
                     fontWeight: FontWeight.w600, 
@@ -471,9 +472,9 @@ Widget _buildThumbnail(String url) {
       children: [
         const Icon(Icons.upload_file, size: 48, color: AppColors.borderLight),
         const SizedBox(height: AppConstants.spacingL),
-        const Text(AppConstants.labelChooseFile, style: TextStyle(fontSize: AppConstants.fontSizeM, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+        Text('choose_file'.tr(), style: const TextStyle(fontSize: AppConstants.fontSizeM, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
         const SizedBox(height: AppConstants.spacingXS),
-        const Text(AppConstants.labelFormats, style: TextStyle(fontSize: AppConstants.fontSizeS, color: AppColors.textTertiary), textAlign: TextAlign.center),
+        Text('formats'.tr(), style: const TextStyle(fontSize: AppConstants.fontSizeS, color: AppColors.textTertiary), textAlign: TextAlign.center),
         const SizedBox(height: AppConstants.spacingM),
         TextButton(
           onPressed: onTap,
@@ -482,7 +483,7 @@ Widget _buildThumbnail(String url) {
             backgroundColor: AppColors.backgroundLight,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.radiusM)),
           ),
-          child: const Text(AppConstants.labelBrowse, style: TextStyle(fontSize: AppConstants.fontSizeM, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+          child: Text('browse_file'.tr(), style: const TextStyle(fontSize: AppConstants.fontSizeM, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
         ),
       ],
     );

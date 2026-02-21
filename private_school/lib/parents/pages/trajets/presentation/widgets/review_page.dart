@@ -375,7 +375,7 @@ class _ReviewPageState extends State<ReviewPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Avis envoyé avec succès ! ✅',
+          'review_sent_success'.tr(),
           style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
         backgroundColor: AppColors.success,
@@ -392,8 +392,8 @@ class _ReviewPageState extends State<ReviewPage> {
       SnackBar(
         content: Text(
           e.toString().contains('déjà évalué')
-              ? 'Vous avez déjà évalué ce trajet'
-              : 'Erreur lors de l\'envoi: $e',
+              ? 'already_evaluated_trip'.tr()
+              : '${'error_sending_review'.tr()}: $e',
           style: GoogleFonts.inter(),
         ),
         backgroundColor: Colors.red,

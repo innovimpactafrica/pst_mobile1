@@ -195,8 +195,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       ),
                       const SizedBox(height: 16),
                       PlaceAutocompleteField(
-                        label: 'Point d\'arrivée',
-                        hint: 'Ex: Ouakam, Almadies...',
+                        label: 'arrival_point'.tr(),
+                        hint: 'destination_example'.tr(),
                         controller: _endPointController,
                         onPlaceSelected: (details) {
                           setState(() {
@@ -284,9 +284,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Proposer un trajet',
-            style: TextStyle(
+          Text(
+            'propose_trip'.tr(),
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -324,7 +324,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
       OutlinedButton.icon(
         onPressed: _addStop,
         icon: const Icon(Icons.add, size: 18),
-        label: const Text('Ajouter un autre arrêt'),
+        label: Text('add_another_stop'.tr()),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           side: const BorderSide(color: AppColors.primary),
@@ -348,7 +348,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
         Row(
           children: [
             Text(
-              'Arrêt ${index + 1}',
+              '${'stop'.tr()} ${index + 1}',
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 13,
@@ -374,9 +374,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
                   color: const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
@@ -384,10 +384,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
                         color: AppColors.primary,
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Text(
-                      'Chargement des écoles...',
-                      style: TextStyle(
+                      'loading_schools'.tr(),
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
@@ -400,7 +400,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                 menuMaxHeight: 300,
                 itemHeight: 56, 
                 decoration: InputDecoration(
-                  hintText: 'Sélectionnez une école',
+                  hintText: 'select_school'.tr(),
                   hintStyle: TextStyle(
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                     fontSize: 14,
@@ -476,7 +476,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                 },
                 validator: (value) {
                   if (value == null) {
-                    return 'Veuillez sélectionner une école';
+                    return 'please_select_school'.tr();
                   }
                   return null;
                 },
@@ -485,9 +485,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
         if (stop.selectedSchoolId != null) ...[
           const SizedBox(height: 12),
           if (stop.loadingChildrenCount)
-            const Row(
+            Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
@@ -495,10 +495,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  'Calcul du nombre d\'enfants...',
-                  style: TextStyle(
+                  'calculating_children'.tr(),
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -532,8 +532,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
                   Expanded(
                     child: Text(
                       stop.childrenCount > 0
-                          ? '${stop.childrenCount} enfant${stop.childrenCount > 1 ? 's' : ''} inscrit${stop.childrenCount > 1 ? 's' : ''} dans cette école'
-                          : 'Aucun enfant inscrit dans cette école',
+                          ? '${stop.childrenCount} ${'children_enrolled'.tr()}'
+                          : 'no_children_enrolled'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         color: stop.childrenCount > 0 
@@ -576,7 +576,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
             ),
             if (isOptional)
               Text(
-                ' (optionnel)',
+                ' (${'optional'.tr()})',
                 style: TextStyle(
                   color: AppColors.textSecondary.withValues(alpha: 0.7),
                   fontSize: 12,
@@ -639,7 +639,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
               ? null
               : (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Ce champ est requis';
+                    return 'field_required'.tr();
                   }
                   return null;
                 },
@@ -759,8 +759,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   )
-                : const Text(
-                    'Confirmer',
+                : Text(
+                    'confirm'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -878,8 +878,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
     // Validation manuelle des champs PlaceAutocomplete
     if (_startPointController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez sélectionner un point de départ'),
+        SnackBar(
+          content: Text('please_select_start_point'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -888,8 +888,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
     if (_endPointController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez sélectionner un point d\'arrivée'),
+        SnackBar(
+          content: Text('please_select_arrival_point'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -901,8 +901,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez sélectionner une date'),
+          SnackBar(
+            content: Text('please_select_date'.tr()),
             backgroundColor: AppColors.error,
           ),
         );
@@ -911,8 +911,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
       if (_selectedTime == null && _selectedReturnTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez renseigner au moins une heure (départ ou retour)'),
+          SnackBar(
+            content: Text('please_select_time'.tr()),
             backgroundColor: AppColors.error,
           ),
         );
@@ -932,10 +932,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
         if (departureTime.isBefore(DateTime.now())) {
           debugPrint('❌ Date de départ dans le passé');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('La date et l\'heure de départ doivent être dans le futur'),
+            SnackBar(
+              content: Text('departure_time_must_be_future'.tr()),
               backgroundColor: AppColors.error,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ),
           );
           return;
@@ -955,10 +955,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
         if (returnTime.isBefore(DateTime.now())) {
           debugPrint('❌ Date de retour dans le passé');
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('La date et l\'heure de retour doivent être dans le futur'),
+            SnackBar(
+              content: Text('return_time_must_be_future'.tr()),
               backgroundColor: AppColors.error,
-              duration: Duration(seconds: 3),
+              duration: const Duration(seconds: 3),
             ),
           );
           return;
@@ -970,8 +970,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
       if (capacity <= 0) {
         debugPrint('❌ Capacité invalide: $capacity');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Le nombre de passagers doit être supérieur à 0'),
+          SnackBar(
+            content: Text('passengers_must_be_positive'.tr()),
             backgroundColor: AppColors.error,
           ),
         );
@@ -987,8 +987,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
       if (schoolIds.isEmpty) {
         debugPrint('❌ Aucune école sélectionnée');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez sélectionner au moins une école'),
+          SnackBar(
+            content: Text('please_select_at_least_one_school'.tr()),
             backgroundColor: AppColors.error,
           ),
         );

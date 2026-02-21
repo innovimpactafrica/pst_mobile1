@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
 import '../../data/models/trip_model.dart';
@@ -201,7 +202,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                       child: ElevatedButton.icon(
                                         onPressed: () => _callDriver(context),
                                         icon: const Icon(Icons.phone, size: 18),
-                                        label: Text('Appeler', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                                        label: Text('call'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: AppColors.success,
                                           foregroundColor: Colors.white,
@@ -215,7 +216,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                       child: OutlinedButton.icon(
                                         onPressed: () => _openChatWithDriver(context),
                                         icon: Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.success),
-                                        label: Text('Message', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.success)),
+                                        label: Text('message'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: AppColors.success)),
                                         style: OutlinedButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(vertical: 14),
                                           side: BorderSide(color: AppColors.success),
@@ -244,7 +245,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     _buildTripPoint(
                                       icon: Icons.circle_outlined,
                                       iconColor: AppColors.success,
-                                      title: 'Point de départ',
+                                      title: 'departure_point'.tr(),
                                       location: widget.trip.departure,
                                       time: widget.trip.departureTime,
                                     ),
@@ -258,7 +259,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     _buildTripPoint(
                                       icon: Icons.location_on,
                                       iconColor: Colors.red,
-                                      title: 'Destination',
+                                      title: 'destination'.tr(),
                                       location: widget.trip.arrival,
                                       time: _calculateArrivalTime(),
                                     ),
@@ -303,7 +304,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                         children: [
                                           Icon(Icons.check_circle, color: AppColors.success, size: 20),
                                           const SizedBox(width: 8),
-                                          Text('${_selectedChildren.length} enfant(s) sélectionné(s)',
+                                          Text('${_selectedChildren.length} ${'children_selected'.tr()}',
                                               style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.success)),
                                         ],
                                       ),
@@ -374,7 +375,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
-                                          child: Text('${widget.trip.passengers.length.toString().padLeft(2, '0')} passagers',
+                                          child: Text('${widget.trip.passengers.length.toString().padLeft(2, '0')} ${'passengers'.tr()}',
                                               style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87)),
                                         ),
                                         const Icon(Icons.chevron_right, color: Colors.grey),
@@ -422,10 +423,10 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text('Écoles désservies',
+                                              Text('schools_served'.tr(),
                                                   style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
                                               const SizedBox(height: 2),
-                                              Text('${widget.trip.schools.length} écoles',
+                                              Text('${widget.trip.schools.length} ${'schools_count'.tr()}',
                                                   style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600)),
                                             ],
                                           ),
@@ -466,8 +467,8 @@ class _TripDetailPageState extends State<TripDetailPage> {
               ),
               child: Text(
                 _selectedChildren.isEmpty
-                    ? 'Sélectionner les enfants'
-                    : 'Réserver pour ${_selectedChildren.length} enfant(s)',
+                    ? 'select_children'.tr()
+                    : '${'confirm_reservation'.tr()} ${_selectedChildren.length} ${'children'.tr()}',
                 style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
               ),
             ),
@@ -550,7 +551,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     if (phone == null || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          content: Text('phone_not_available'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -564,7 +565,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          content: Text('cannot_open_phone_app'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -577,7 +578,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
     if (driverId == null || driverId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
+          content: Text('chat_error'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );

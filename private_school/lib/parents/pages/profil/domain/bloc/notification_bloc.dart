@@ -4,7 +4,8 @@ import '../../data/repositories/notifications_repository.dart';
 import 'notification_event.dart';
 import 'notification_state.dart';
 
-class ParentNotificationBloc extends Bloc<NotificationEvent, NotificationState> {
+class ParentNotificationBloc
+    extends Bloc<NotificationEvent, NotificationState> {
   final NotificationRepository repository;
 
   ParentNotificationBloc({required this.repository})
@@ -22,9 +23,12 @@ class ParentNotificationBloc extends Bloc<NotificationEvent, NotificationState> 
     emit(const NotificationLoading());
     try {
       final notifications = await repository.getNotifications();
+      debugPrint('✅ [NotificationBloc] ${notifications.length} notifications chargées');
+      debugPrint('   Non lues: ${notifications.where((n) => !n.isRead).length}');
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      emit(NotificationError('Erreur lors du chargement des notifications'));
+      debugPrint('❌ [NotificationBloc] Erreur chargement: $e');
+      emit(const NotificationError('Erreur lors du chargement des notifications'));
     }
   }
 
@@ -34,39 +38,47 @@ class ParentNotificationBloc extends Bloc<NotificationEvent, NotificationState> 
   ) async {
     try {
       final notifications = await repository.getNotifications();
+      debugPrint('🔄 [NotificationBloc] Refresh: ${notifications.length} notifications');
+      debugPrint('   Non lues: ${notifications.where((n) => !n.isRead).length}');
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      emit(NotificationError('Erreur lors du rafraîchissement'));
+      debugPrint('❌ [NotificationBloc] Erreur refresh: $e');
+      emit(const NotificationError('Erreur lors du rafraîchissement'));
     }
   }
 
- Future<void> _onMarkAsRead(
-  MarkAsReadEvent event,
-  Emitter<NotificationState> emit,
-) async {
-  if (state is NotificationsLoaded) {
-    final currentNotifications = (state as NotificationsLoaded).notifications;
-    
-    // ✅ Mettre à jour IMMÉDIATEMENT localement
-    final updatedNotifications = currentNotifications.map((n) {
-      if (n.id == event.notificationId) {
-        return n.copyWith(isRead: true);
+  Future<void> _onMarkAsRead(
+    MarkAsReadEvent event,
+    Emitter<NotificationState> emit,
+  ) async {
+    if (state is NotificationsLoaded) {
+      final currentNotifications = (state as NotificationsLoaded).notifications;
+
+      // ✅ 1. Mise à jour IMMÉDIATE en local pour l'UI
+      final updatedNotifications = currentNotifications.map((n) {
+        if (n.id == event.notificationId) {
+          return n.copyWith(isRead: true);
+        }
+        return n;
+      }).toList();
+      emit(NotificationsLoaded(updatedNotifications));
+
+      // ✅ 2. Appel API backend
+      try {
+        await repository.markNotificationAsRead(event.notificationId);
+        debugPrint('✅ [NotificationBloc] Notification ${event.notificationId} marquée lue sur le serveur');
+
+        // ✅ 3. Recharger depuis le backend pour avoir l'état réel
+        final freshNotifications = await repository.getNotifications();
+        debugPrint('🔄 [NotificationBloc] Rechargement après markAsRead:');
+        debugPrint('   Non lues: ${freshNotifications.where((n) => !n.isRead).length}');
+        emit(NotificationsLoaded(freshNotifications));
+      } catch (e) {
+        debugPrint('⚠️ [NotificationBloc] Erreur API mark-read (non bloquant): $e');
+        // On garde la mise à jour locale
       }
-      return n;
-    }).toList();
-    
-    emit(NotificationsLoaded(updatedNotifications));
-    
-    // ✅ Appel API en arrière-plan
-    try {
-      await repository.markNotificationAsRead(event.notificationId);
-      debugPrint('✅ Notification ${event.notificationId} marquée comme lue sur le serveur');
-    } catch (e) {
-      debugPrint('⚠️ Erreur API mark-read notification (non bloquant): $e');
-      // On garde quand même la mise à jour locale
     }
   }
-}
 
   Future<void> _onDeleteNotification(
     DeleteNotificationEvent event,
@@ -74,14 +86,14 @@ class ParentNotificationBloc extends Bloc<NotificationEvent, NotificationState> 
   ) async {
     try {
       await repository.deleteNotification(event.notificationId);
-      
       emit(const NotificationDeleted());
-      
-      // Recharger les notifications
+
+      // ✅ Recharger depuis le backend après suppression
       final notifications = await repository.getNotifications();
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      emit(NotificationError('Erreur lors de la suppression'));
+      debugPrint('❌ [NotificationBloc] Erreur suppression: $e');
+      emit(const NotificationError('Erreur lors de la suppression'));
     }
   }
 }

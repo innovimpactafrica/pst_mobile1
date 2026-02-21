@@ -388,7 +388,8 @@ class MessagingService {
         body: json.encode({'content': content}),
       );
       
-      debugPrint('📊 Status Code: ${response.statusCode}');
+    debugPrint('📊 Status Code: ${response.statusCode}');
+debugPrint('📦 Response Body UPDATE: ${response.body}'); // ← Ajouter cette ligne
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -428,7 +429,8 @@ class MessagingService {
         },
       );
       
-      debugPrint('📊 Status Code: ${response.statusCode}');
+   debugPrint('📊 Status Code: ${response.statusCode}');
+debugPrint('📦 Response Body DELETE: ${response.body}'); // ← Ajouter cette ligne
       
       if (response.statusCode == 200 || response.statusCode == 204) {
         debugPrint('✅ Message supprimé avec succès');
@@ -443,16 +445,16 @@ class MessagingService {
     }
   }
 
-  /// POST /api/conversations/{id}/mark-read - Marquer les messages comme lus
-  Future<void> markConversationAsRead(int conversationId) async {
-    debugPrint('🔄 MessagingService.markConversationAsRead - START');
-    debugPrint('💬 conversationId: $conversationId');
+  /// DELETE /api/messages/{id} - Supprimer un message en temps réel
+  Future<void> deleteMessageRealtime(int messageId) async {
+    debugPrint('🔄 MessagingService.deleteMessageRealtime - START');
+    debugPrint('💬 messageId: $messageId');
     
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/mark-read');
+      final url = Uri.parse('${BaseUrl.current}/api/messages/$messageId');
       
-      final response = await http.post(
+      final response = await http.delete(
         url,
         headers: {
           'Authorization': 'Bearer $token',
@@ -460,6 +462,39 @@ class MessagingService {
           'Accept': 'application/json',
         },
       );
+      
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        debugPrint('✅ Message supprimé en temps réel avec succès');
+      } else {
+        debugPrint('❌ Erreur HTTP: ${response.statusCode}');
+        throw Exception('Erreur lors de la suppression: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('❌ Exception dans deleteMessageRealtime: $e');
+      debugPrint('📋 StackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// POST /api/conversations/{id}/read - Marquer les messages comme lus
+  Future<void> markConversationAsRead(int conversationId) async {
+    debugPrint('🔄 MessagingService.markConversationAsRead - START');
+    debugPrint('💬 conversationId: $conversationId');
+    
+    try {
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/read');
+      
+      final response = await http.patch(  // ✅ POST → PATCH
+  url,
+  headers: {
+    'Authorization': 'Bearer $token',
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+);
       
       debugPrint('📊 Status Code: ${response.statusCode}');
       

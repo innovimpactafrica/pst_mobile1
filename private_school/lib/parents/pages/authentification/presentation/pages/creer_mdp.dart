@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/auth_bloc.dart';
@@ -44,8 +45,8 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
     if (password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez remplir tous les champs'),
+        SnackBar(
+          content: Text('please_fill_all_fields'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -54,8 +55,8 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
     if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le mot de passe doit contenir au moins 8 caractères'),
+        SnackBar(
+          content: Text('password_min_8_chars'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -64,8 +65,8 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Les mots de passe ne correspondent pas'),
+        SnackBar(
+          content: Text('passwords_do_not_match'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -74,8 +75,8 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
     if (widget.userId == null || widget.code == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: Données manquantes'),
+        SnackBar(
+          content: Text('error_missing_data'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -110,8 +111,8 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Mot de passe réinitialisé avec succès !'),
+            SnackBar(
+              content: Text('password_reset_success'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -177,7 +178,7 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Français',
+                            'french'.tr(),
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: AppColors.primary,
@@ -202,9 +203,9 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   const SizedBox(height: AppConstants.spacingXXL),
 
                   // 📝 Titre
-                  const Text(
-                    'Créez votre mot de passe',
-                    style: TextStyle(
+                  Text(
+                    'create_password'.tr(),
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeXXL,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary,
@@ -214,10 +215,10 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   const SizedBox(height: AppConstants.spacingL),
 
                   // 📄 Sous-titre
-                  const Text(
-                    'Choisissez un mot de passe sécurisé pour\nprotéger votre compte.',
+                  Text(
+                    'choose_secure_password'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeM,
                       color: AppColors.textSecondary,
                       height: 1.5,
@@ -227,11 +228,11 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   const SizedBox(height: AppConstants.spacingXXXL),
 
                   // 🔐 Nouveau mot de passe
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Nouveau mot de passe',
-                      style: TextStyle(
+                      'new_password'.tr(),
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -297,11 +298,11 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   const SizedBox(height: AppConstants.spacingXL),
 
                   // 🔐 Confirmation mot de passe
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Confirmation de mot de passe',
-                      style: TextStyle(
+                      'confirm_new_password'.tr(),
+                      style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -383,9 +384,9 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                       onPressed: isLoading ? null : _submit,
                       child: isLoading
                           ? const CircularProgressIndicator(color: AppColors.white)
-                          : const Text(
-                              'Confirmer',
-                              style: TextStyle(
+                          : Text(
+                              'confirm'.tr(),
+                              style: const TextStyle(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.white,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'dart:io';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -70,12 +71,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text('Prendre une photo'),
+                title: Text('take_photo'.tr()),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Choisir depuis la galerie'),
+                title: Text('choose_from_gallery'.tr()),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
             ],
@@ -92,8 +93,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Photo sélectionnée. Cliquez sur "Mettre à jour" pour sauvegarder.'),
+            SnackBar(
+              content: Text('photo_selected_click_update'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -160,7 +161,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Informations personnelles',
+          'personal_information'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeXL,
             fontWeight: FontWeight.w600,
@@ -186,8 +187,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           if (state is DriverProfileUpdated) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('✅ Profil mis à jour avec succès'),
+              SnackBar(
+                content: Text('profile_updated_success'.tr()),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -287,28 +288,28 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                   // Fields
                   _buildField(
-                    'Prénom',
+                    'first_name'.tr(),
                     _firstNameController,
                     profile.firstName,
                   ),
                   const SizedBox(height: AppConstants.spacingXL),
                   _buildField(
-                    'Nom',
+                    'last_name'.tr(),
                     _lastNameController,
                     profile.lastName,
                   ),
                   const SizedBox(height: AppConstants.spacingXL),
                   _buildField(
-                    'Téléphone',
+                    'phone'.tr(),
                     _phoneController,
                     profile.phone,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: AppConstants.spacingXL),
                   _buildField(
-                    'Adresse',
+                    'address'.tr(),
                     _addressController,
-                    profile.address ?? 'Non renseignée',
+                    profile.address ?? 'not_provided'.tr(),
                   ),
 
                   const SizedBox(height: AppConstants.spacingXXXL),
@@ -348,7 +349,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               ),
                             )
                           : Text(
-                              _isEditMode ? 'Mettre à jour' : 'Modifier',
+                              _isEditMode ? 'update'.tr() : 'edit'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,

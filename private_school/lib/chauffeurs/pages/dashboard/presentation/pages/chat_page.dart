@@ -6,28 +6,28 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
-import '../../domain/bloc/message_bloc.dart';
-import '../../domain/bloc/message_event.dart';
-import '../../domain/bloc/message_state.dart';
+import '../../../../../parents/pages/acceuil/domain/bloc/message_bloc.dart';
+import '../../../../../parents/pages/acceuil/domain/bloc/message_event.dart';
+import '../../../../../parents/pages/acceuil/domain/bloc/message_state.dart';
 import '../../domain/bloc/unread_messages_bloc.dart';
-import '../../data/models/conversation_model.dart';
-import '../../data/models/message_model.dart';
+import '../../../../../parents/pages/acceuil/data/models/conversation_model.dart';
+import '../../../../../parents/pages/acceuil/data/models/message_model.dart';
 import '../../data/repositories/messaging_repository.dart';
-import '../widgets/message_bubble_widget.dart';
+import '../../../../../parents/pages/acceuil/presentation/widgets/message_bubble_widget.dart';
 
-class ChatPage extends StatefulWidget {
+class DriverChatPage extends StatefulWidget {
   final ConversationModel conversation;
 
-  const ChatPage({
+  const DriverChatPage({
     super.key,
     required this.conversation,
   });
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<DriverChatPage> createState() => _DriverChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _DriverChatPageState extends State<DriverChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final SecureStorage _storage = SecureStorage();
@@ -36,113 +36,80 @@ class _ChatPageState extends State<ChatPage> {
   int? _currentUserId;
   bool _isLoading = true;
   MessageModel? _editingMessage;
-  int get _conversationId {
-    final id = widget.conversation.id;
-    debugPrint('🔍 [ChatPage] conversation.id = $id (type: ${id.runtimeType})');
-    return id; // Déjà un int selon votre modèle
-  }
+  
+  int get _conversationId => widget.conversation.id;
 
   @override
- @override
-void initState() {
-  super.initState();
-  _loadCurrentUser();
-  
-  context.read<MessageBloc>().add(
-    LoadMessagesEvent(conversationId: _conversationId),
-  );
-  
-  // ✅ Marquer comme lu dès l'ouverture
-  _markMessagesAsRead();
-}
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+    
+    context.read<MessageBloc>().add(
+      LoadMessagesEvent(conversationId: _conversationId),
+    );
+    
+    _markMessagesAsRead();
+  }
 
   Future<void> _markMessagesAsRead() async {
-  try {
-    await _repository.markConversationAsRead(_conversationId);
-    
-    // ✅ Notifier le bloc de DÉCREMENTER immédiatement
-    UnreadMessagesBloc.notifyMessageRead(_conversationId);
-    
-    debugPrint('✅ [ChatPage] Messages marqués comme lus');
-  } catch (e) {
-    debugPrint('⚠️ Erreur marquage messages lus: $e');
+    try {
+      await _repository.markConversationAsRead(_conversationId);
+      UnreadMessagesBloc.notifyMessageRead(_conversationId);
+      debugPrint('✅ [DriverChatPage] Messages marqués comme lus');
+    } catch (e) {
+      debugPrint('⚠️ Erreur marquage messages lus: $e');
+    }
   }
-}
 
-Future<void> _loadCurrentUser() async {
-  try {
-    final userDataRaw = await _storage.getUserData();
-    debugPrint('📦 getUserData type: ${userDataRaw?.runtimeType}');
-    debugPrint('📦 getUserData valeur: $userDataRaw');
+  Future<void> _loadCurrentUser() async {
+    try {
+      final userDataRaw = await _storage.getUserData();
+      int? extractedId;
 
-    int? extractedId;
+      if (userDataRaw != null && userDataRaw.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(userDataRaw) as Map<String, dynamic>;
+          final dynamic idValue = decoded['id'];
+          
+          if (idValue is int) {
+            extractedId = idValue;
+          } else if (idValue is String) {
+            extractedId = int.tryParse(idValue);
+          } else if (idValue != null) {
+            extractedId = int.tryParse(idValue.toString());
+          }
+        } catch (e) {
+          final patterns = [
+            RegExp(r'"id"\s*:\s*(\d+)'),
+            RegExp(r'id\s*:\s*(\d+)'),
+          ];
 
-    if (userDataRaw != null && userDataRaw.isNotEmpty) {
-      debugPrint('📝 String à parser: $userDataRaw');
-
-      // ✅ MÉTHODE 1 : Parser JSON
-      try {
-        final decoded = jsonDecode(userDataRaw) as Map<String, dynamic>;
-        final dynamic idValue = decoded['id'];
-        
-        if (idValue is int) {
-          extractedId = idValue;
-          debugPrint('✅ ID extrait (JSON int): $extractedId');
-        } else if (idValue is String) {
-          extractedId = int.tryParse(idValue);
-          debugPrint('✅ ID extrait (JSON string): $extractedId');
-        } else if (idValue != null) {
-          extractedId = int.tryParse(idValue.toString());
-          debugPrint('✅ ID extrait (JSON autre): $extractedId');
-        }
-      } catch (e) {
-        debugPrint('⚠️ Erreur parsing JSON: $e');
-        
-        // ✅ MÉTHODE 2 : Extraction par Regex
-        final patterns = [
-          RegExp(r'"id"\s*:\s*(\d+)'),
-          RegExp(r'id\s*:\s*(\d+)'),
-          RegExp(r"'id'\s*:\s*(\d+)"),
-          RegExp(r'id=(\d+)'),
-        ];
-
-        for (final pattern in patterns) {
-          final match = pattern.firstMatch(userDataRaw);
-          if (match != null && match.group(1) != null) {
-            extractedId = int.tryParse(match.group(1)!);
-            if (extractedId != null) {
-              debugPrint('✅ ID extrait (Regex): $extractedId');
-              break;
+          for (final pattern in patterns) {
+            final match = pattern.firstMatch(userDataRaw);
+            if (match != null && match.group(1) != null) {
+              extractedId = int.tryParse(match.group(1)!);
+              if (extractedId != null) break;
             }
           }
         }
       }
-    }
 
-    if (extractedId == null) {
-      debugPrint('⚠️ Impossible d\'extraire l\'ID utilisateur');
+      setState(() {
+        _currentUserId = extractedId;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _currentUserId = null;
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _currentUserId = extractedId;
-      _isLoading = false;
-    });
-    
-    debugPrint('✅ Current user ID final: $_currentUserId');
-  } catch (e, stackTrace) {
-    debugPrint('❌ Erreur chargement utilisateur: $e');
-    debugPrint('📋 StackTrace: $stackTrace');
-    setState(() {
-      _currentUserId = null;
-      _isLoading = false;
-    });
   }
-}
 
   int? _resolveCurrentUserId(List<MessageModel> messages) {
     if (_currentUserId != null) return _currentUserId;
     for (final msg in messages) {
-      if (msg.senderRole == 'parent') {
+      if (msg.senderRole == 'driver') {
         return int.tryParse(msg.senderId.toString()) ?? 0;
       }
     }
@@ -150,13 +117,12 @@ Future<void> _loadCurrentUser() async {
   }
 
   @override
-void dispose() {
-  // ✅ Marquer comme lu une dernière fois avant de quitter
-  _markMessagesAsRead();
-  _messageController.dispose();
-  _scrollController.dispose();
-  super.dispose();
-}
+  void dispose() {
+    _markMessagesAsRead();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
@@ -178,7 +144,7 @@ void dispose() {
       return Scaffold(
         backgroundColor: Colors.grey.shade100,
         appBar: AppBar(
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.primary,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.white),
             onPressed: () => Navigator.pop(context),
@@ -187,14 +153,14 @@ void dispose() {
               style: GoogleFonts.inter(color: AppColors.white)),
         ),
         body: const Center(
-            child: CircularProgressIndicator(color: AppColors.success)),
+            child: CircularProgressIndicator(color: AppColors.primary)),
       );
     }
 
-   return Scaffold(
-  resizeToAvoidBottomInset: false, // ← Ajouter cette ligne
-  backgroundColor: Colors.grey.shade100,
-  appBar: _buildAppBar(),
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      resizeToAvoidBottomInset: false,
+      appBar: _buildAppBar(),
       body: BlocConsumer<MessageBloc, MessageState>(
         listener: (context, state) {
           if (state is MessageError) {
@@ -206,19 +172,17 @@ void dispose() {
           }
           if (state is MessageSent || state is MessageLoaded) {
             _scrollToBottom();
-            // Marquer les messages comme lus quand de nouveaux messages arrivent
             _markMessagesAsRead();
           }
           if (state is MessageSent && _editingMessage != null) {
             setState(() => _editingMessage = null);
-            // Notifier qu'un nouveau message a été envoyé
             UnreadMessagesBloc.notifyNewMessage(_conversationId);
           }
         },
         builder: (context, state) {
           if (state is MessageLoading) {
             return const Center(
-                child: CircularProgressIndicator(color: AppColors.success));
+                child: CircularProgressIndicator(color: AppColors.primary));
           }
           if (state is MessageLoaded) return _buildChatView(state);
           if (state is MessageEmpty) return _buildEmptyWithInput();
@@ -231,7 +195,7 @@ void dispose() {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.success,
+      backgroundColor: AppColors.primary,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: AppColors.white),
@@ -271,11 +235,11 @@ void dispose() {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  widget.conversation.otherUserRole == 'driver'
-                      ? 'Chauffeur'
+                  widget.conversation.otherUserRole == 'parent'
+                      ? 'Parent'
                       : widget.conversation.type == 'group'
                           ? '${widget.conversation.memberCount ?? ''} membres'
-                          : 'Parent',
+                          : 'Chauffeur',
                   style: GoogleFonts.inter(
                     color: AppColors.white.withValues(alpha: 0.8),
                     fontSize: AppConstants.fontSizeS,
@@ -290,7 +254,6 @@ void dispose() {
         IconButton(
           icon: const Icon(Icons.refresh, color: AppColors.white),
           onPressed: () {
-            // ✅ Utiliser le getter protégé
             context.read<MessageBloc>().add(
                   RefreshMessagesEvent(conversationId: _conversationId),
                 );
@@ -300,9 +263,9 @@ void dispose() {
     );
   }
 
-Widget _buildChatView(MessageLoaded state) {
+ Widget _buildChatView(MessageLoaded state) {
   final effectiveUserId = _resolveCurrentUserId(state.messages);
-  
+
   return SafeArea(
     child: Column(
       children: [
@@ -366,11 +329,11 @@ Widget _buildChatView(MessageLoaded state) {
         vertical: AppConstants.spacingS,
       ),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
-            color: AppColors.success,
+            color: AppColors.primary,
             width: 3,
           ),
         ),
@@ -386,7 +349,7 @@ Widget _buildChatView(MessageLoaded state) {
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeS,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.success,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -457,7 +420,7 @@ Widget _buildChatView(MessageLoaded state) {
         left: AppConstants.spacingM,
         right: AppConstants.spacingM,
         top: AppConstants.spacingS,
-        bottom: MediaQuery.of(context).viewInsets.bottom + AppConstants.spacingS,
+         bottom: AppConstants.spacingS, // ← plus de viewInsets.bottom
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -505,7 +468,7 @@ Widget _buildChatView(MessageLoaded state) {
           ),
           const SizedBox(width: AppConstants.spacingS),
           CircleAvatar(
-            backgroundColor: AppColors.success,
+            backgroundColor: AppColors.primary,
             child: IconButton(
               icon: Icon(
                 _editingMessage != null ? Icons.check : Icons.send,
@@ -541,7 +504,6 @@ Widget _buildChatView(MessageLoaded state) {
               replyToId: state.replyToId,
             ),
           );
-      // Pas besoin de notifier ici, c'est fait dans le listener
     }
 
     _messageController.clear();
@@ -656,7 +618,8 @@ Widget _buildChatView(MessageLoaded state) {
   }
 
   Widget _buildEmptyWithInput() {
-    return Column(
+  return SafeArea(
+    child: Column(
       children: [
         Expanded(
           child: Center(
@@ -694,8 +657,9 @@ Widget _buildChatView(MessageLoaded state) {
           messages: const [],
         )),
       ],
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildErrorState(String message) {
     return Column(
@@ -740,7 +704,7 @@ Widget _buildChatView(MessageLoaded state) {
                     icon: const Icon(Icons.refresh),
                     label: Text('retry'.tr()),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
                     ),
                   ),

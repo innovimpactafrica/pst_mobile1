@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
@@ -21,7 +22,7 @@ class JoinGroupModal extends StatelessWidget {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Vous avez rejoint le groupe ! 🎉', style: GoogleFonts.inter()), // ✅ CHANGÉ
+              content: Text('joined_group_success'.tr(), style: GoogleFonts.inter()), // ✅ CHANGÉ
               backgroundColor: AppColors.success,
             ),
           );
@@ -60,7 +61,7 @@ class JoinGroupModal extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Rejoindre un groupe',
+                          'join_group'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -110,7 +111,7 @@ class JoinGroupModal extends StatelessWidget {
 
                     // CRÉÉ PAR
                     Text(
-                      'Créé par ${group.createdBy}, ${_formatDate(group.createdAt)}',
+                      'created_by_date'.tr(args: [group.createdBy, _formatDate(group.createdAt)]),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: Colors.grey.shade600,
@@ -148,7 +149,7 @@ class JoinGroupModal extends StatelessWidget {
                         Icon(Icons.people, color: AppColors.success, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          '${group.membersCount} ${group.membersCount > 1 ? "membres" : "membre"}',
+                          '${group.membersCount} ${group.membersCount > 1 ? "members".tr() : "member".tr()}',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -212,7 +213,7 @@ class JoinGroupModal extends StatelessWidget {
                                   const Icon(Icons.group_add, size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Rejoindre maintenant', // ✅ CHANGÉ : texte plus clair
+                                    'join_now'.tr(), // ✅ CHANGÉ : texte plus clair
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -235,9 +236,9 @@ class JoinGroupModal extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    if (difference.inDays == 0) return "aujourd'hui";
-    if (difference.inDays < 7) return 'il y a ${difference.inDays}j';
-    if (difference.inDays < 30) return 'il y a ${(difference.inDays / 7).floor()} sem';
+    if (difference.inDays == 0) return 'today'.tr();
+    if (difference.inDays < 7) return 'days_ago'.tr(args: [difference.inDays.toString()]);
+    if (difference.inDays < 30) return 'weeks_ago'.tr(args: [(difference.inDays / 7).floor().toString()]);
     return '${date.day}/${date.month}/${date.year}';
   }
 }

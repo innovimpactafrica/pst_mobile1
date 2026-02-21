@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/pages/role_selection_page.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
@@ -70,18 +71,18 @@ class WelcomePage extends StatelessWidget {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              AppConstants.welcomeTitle1,
-                              style: TextStyle(
+                              'welcome_to_private'.tr(),
+                              style: const TextStyle(
                                 fontSize: AppConstants.fontSizeXXL,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textWhite,
                               ),
                             ),
                             Text(
-                              AppConstants.welcomeTitle2,
-                              style: TextStyle(
+                              'school_transport'.tr(),
+                              style: const TextStyle(
                                 fontSize: AppConstants.fontSizeXXL,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textWhite,
@@ -96,9 +97,9 @@ class WelcomePage extends StatelessWidget {
                   const SizedBox(height: AppConstants.spacingXL),
 
                   // Description text
-                  const Text(
-                    AppConstants.welcomeDescription,
-                    style: TextStyle(
+                  Text(
+                    'welcome_description'.tr(),
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       color: AppColors.textWhite,
                       height: 1.4,
@@ -129,9 +130,9 @@ class WelcomePage extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text(
-                        AppConstants.labelStart,
-                        style: TextStyle(
+                      child: Text(
+                        'get_started'.tr(),
+                        style: const TextStyle(
                           fontSize: AppConstants.fontSizeL,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textWhite,

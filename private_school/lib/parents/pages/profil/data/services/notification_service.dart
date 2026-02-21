@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/storage/secure_storage.dart';
+import '../../../../../core/utils/api_constants.dart';
 import '../models/notification_model.dart';
 
 class NotificationService {
@@ -12,24 +13,21 @@ class NotificationService {
   Future<List<NotificationModel>> fetchNotifications({bool unreadOnly = false}) async {
     try {
       debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('📥 [NotificationService] GET /api/notifications/user');
+      debugPrint('📥 [NotificationService] GET ${ApiConstants.notifications}');
       debugPrint('   unread_only: $unreadOnly');
       debugPrint('═══════════════════════════════════════════════════════');
       
-      // ✅ Récupérer l'ID du parent connecté depuis le token
       final parentId = await _getCurrentParentId();
       debugPrint('👤 Parent connecté: ID $parentId');
       
-      // ✅ Appel API avec le paramètre unread_only si nécessaire
       final response = await _apiClient.get(
-        '/api/notifications/user',
+        ApiConstants.notifications,
         queryParameters: unreadOnly ? {'unread_only': true} : null,
       );
       
       debugPrint('📦 Response status: ${response.statusCode}');
       
       if (response.data != null) {
-        // ✅ Parser la réponse (plusieurs formats possibles)
         final List<dynamic> notificationsList = _extractNotificationsList(response.data);
         
         debugPrint('📊 ${notificationsList.length} notification(s) reçue(s) du backend');
@@ -39,17 +37,11 @@ class NotificationService {
           return [];
         }
         
-        // ✅ Convertir en modèles
         final allNotifications = notificationsList
             .map((json) => NotificationModel.fromJson(json))
             .toList();
         
-        // ✅ FILTRAGE CÔTÉ CLIENT (sécurité supplémentaire)
         final filteredNotifications = allNotifications.where((notif) {
-          // 1. Vérifier que la notification concerne bien ce parent
-          // (normalement déjà filtré par le backend, mais on sécurise)
-          
-          // 2. Exclure les notifications système/admin
           final type = notif.type.toLowerCase();
           if (type.contains('admin') || 
               type.contains('system') || 
@@ -60,7 +52,6 @@ class NotificationService {
             return false;
           }
           
-          // 3. Vérifier le statut
           if (notif.statut.toLowerCase() == 'deleted' || 
               notif.statut.toLowerCase() == 'archived') {
             debugPrint('🚫 Notification filtrée (statut: ${notif.statut}): ${notif.title}');
@@ -70,7 +61,6 @@ class NotificationService {
           return true;
         }).toList();
         
-        // ✅ Trier par date (plus récent en premier)
         filteredNotifications.sort((a, b) => b.dateCreation.compareTo(a.dateCreation));
         
         debugPrint('');
@@ -88,6 +78,32 @@ class NotificationService {
       debugPrint('❌ [NotificationService] Erreur: $e');
       debugPrint('Stack trace: $stackTrace');
       throw Exception('Erreur lors de la récupération des notifications: $e');
+    }
+  }
+
+  /// ✅ Récupérer le compteur de notifications non lues depuis le backend
+  Future<int> fetchUnreadCount() async {
+    try {
+      final response = await _apiClient.get('/api/notifications/user');
+      
+      if (response.data != null && response.data is Map) {
+        // ✅ Compter localement les notifications non lues au lieu d'utiliser unreadCount
+        final List<dynamic> notificationsList = _extractNotificationsList(response.data);
+        int count = 0;
+        for (var notif in notificationsList) {
+          if (notif['lu'] == false) {
+            count++;
+          }
+        }
+        debugPrint('🔔 [NotificationService] Compteur calculé: $count');
+        return count;
+      }
+      
+      return 0;
+    } catch (e) {
+      debugPrint('❌ [NotificationService] Erreur compteur: $e');
+      // ✅ En cas d'erreur, retourner -1 pour signaler au bloc de garder l'ancien compteur
+      rethrow;
     }
   }
 

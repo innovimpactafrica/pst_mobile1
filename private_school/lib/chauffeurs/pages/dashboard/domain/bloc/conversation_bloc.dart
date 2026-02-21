@@ -43,10 +43,11 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     Emitter<ConversationState> emit,
   ) async {
     try {
-      final conversation = await _messagingService.createConversation(event.parentId);
+      final conversation = await _messagingService.createOrGetDirectConversation(
+        otherUserId: event.parentId,
+      );
       if (conversation != null) {
         emit(ConversationCreated(conversation));
-        // Recharger la liste
         add(LoadConversationsEvent());
       } else {
         emit(ConversationError('Impossible de créer la conversation'));

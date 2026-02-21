@@ -394,7 +394,7 @@ class DriverDetailsModal extends StatelessWidget {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de l\'ouverture du chat: $e', style: GoogleFonts.inter()),
+          content: Text('${'chat_error'.tr()}: $e', style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -406,7 +406,7 @@ class DriverDetailsModal extends StatelessWidget {
     if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Numéro de téléphone non disponible', style: GoogleFonts.inter()),
+          content: Text('phone_not_available'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -422,7 +422,7 @@ class DriverDetailsModal extends StatelessWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Impossible d\'ouvrir l\'application téléphone', style: GoogleFonts.inter()),
+          content: Text('cannot_open_phone_app'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );

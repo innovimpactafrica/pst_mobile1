@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/driver_auth_bloc.dart';
 import '../../domain/bloc/driver_auth_event.dart';
@@ -62,10 +63,10 @@ class _ConnexionState extends State<Connexion> {
           
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Connexion réussie !'),
+            SnackBar(
+              content: Text('login_success'.tr()),
               backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             ),
           );
           
@@ -89,7 +90,7 @@ class _ConnexionState extends State<Connexion> {
           String errorMessage = state.message;
           
           if (errorMessage.contains('User not found')) {
-            errorMessage = 'Email ou mot de passe incorrect';
+            errorMessage = 'invalid_email'.tr();
           } else if (errorMessage.contains('Exception:')) {
             errorMessage = errorMessage.replaceAll('Exception:', '').trim();
           } else if (errorMessage.contains('Login failed:')) {
@@ -128,8 +129,8 @@ class _ConnexionState extends State<Connexion> {
           appBar: AppBar(
             backgroundColor: AppColors.textWhite,
             elevation: 0,
-            title: const Text(
-              'Connexion',
+            title: Text(
+              'login'.tr(),
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -140,19 +141,37 @@ class _ConnexionState extends State<Connexion> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.language, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Français',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                child: GestureDetector(
+                  onTap: () {
+                    final currentLocale = context.locale;
+                    if (currentLocale.languageCode == 'fr') {
+                      context.setLocale(const Locale('en'));
+                    } else {
+                      context.setLocale(const Locale('fr'));
+                    }
+                    setState(() {});
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        const Icon(Icons.language, color: AppColors.primary, size: 20),
+                        const SizedBox(width: 6),
+                        Text(
+                          context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -172,7 +191,7 @@ class _ConnexionState extends State<Connexion> {
 
                   // Title
                   Text(
-                    'Connexion',
+                    'login'.tr(),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -184,7 +203,7 @@ class _ConnexionState extends State<Connexion> {
 
                   // Subtitle
                   Text(
-                    'Connectez-vous pour explorer toutes les\nfonctionnalités de l\'application.',
+                    'connection_description'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -199,7 +218,7 @@ class _ConnexionState extends State<Connexion> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Identifiant',
+                      'identification'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -213,7 +232,7 @@ class _ConnexionState extends State<Connexion> {
                     keyboardType: TextInputType.emailAddress,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: 'driver@example.com',
+                      hintText: 'email_example'.tr(),
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -236,7 +255,7 @@ class _ConnexionState extends State<Connexion> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Mot de passe',
+                      'password'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -250,7 +269,7 @@ class _ConnexionState extends State<Connexion> {
                     obscureText: _obscurePassword,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: '**********',
+                      hintText: 'password_placeholder'.tr(),
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -301,8 +320,8 @@ class _ConnexionState extends State<Connexion> {
                         if (_phoneController.text.trim().isEmpty ||
                             _passwordController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Veuillez remplir tous les champs'),
+                            SnackBar(
+                              content: Text('please_fill_all_fields'.tr()),
                               backgroundColor: AppColors.warning,
                               duration: Duration(seconds: 2),
                             ),
@@ -314,8 +333,8 @@ class _ConnexionState extends State<Connexion> {
                         final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                         if (!emailRegex.hasMatch(_phoneController.text.trim())) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Veuillez entrer un email valide'),
+                            SnackBar(
+                              content: Text('invalid_email'.tr()),
                               backgroundColor: AppColors.warning,
                               duration: Duration(seconds: 2),
                             ),
@@ -344,7 +363,7 @@ class _ConnexionState extends State<Connexion> {
                               ),
                             )
                           : Text(
-                              'Se connecter',
+                              'connect'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -365,7 +384,7 @@ class _ConnexionState extends State<Connexion> {
                                );
                                 },
                        child: Text(
-                     'Mot de passe oublié ?',
+                     'forgot_password'.tr(),
                       style: TextStyle(
                         color: isLoading 
                             ? AppColors.primary.withValues(alpha: 0.5)
@@ -383,7 +402,7 @@ class _ConnexionState extends State<Connexion> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Vous n'avez pas de compte ?  ",
+                        'no_account_question'.tr(),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
@@ -399,7 +418,7 @@ class _ConnexionState extends State<Connexion> {
                           );
                         },
                         child: Text(
-                          "S'inscrire",
+                          'sign_up_link'.tr(),
                           style: TextStyle(
                             color: isLoading
                                 ? AppColors.success.withValues(alpha: 0.5)

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:geolocator/geolocator.dart';
@@ -27,7 +28,7 @@ class AddressPickerWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label ?? 'Adresse de domicile',
+          label ?? 'home_address'.tr(),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -39,7 +40,7 @@ class AddressPickerWidget extends StatelessWidget {
           textEditingController: controller,
           googleAPIKey: googleApiKey,
           inputDecoration: InputDecoration(
-            hintText: hint ?? 'Ex: Sacré Coeur, Dakar',
+            hintText: hint ?? 'address_example'.tr(),
             hintStyle: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
@@ -111,7 +112,7 @@ class AddressPickerWidget extends StatelessWidget {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Permission de localisation refusée');
+          throw Exception('location_permission_denied'.tr());
         }
       }
 
@@ -133,7 +134,7 @@ class AddressPickerWidget extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('${'error_label'.tr()}: $e'),
             backgroundColor: AppColors.error,
           ),
         );

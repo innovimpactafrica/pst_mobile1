@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -54,7 +55,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Permission d\'accès aux contacts refusée', style: GoogleFonts.inter()),
+              content: Text('contacts_permission_denied'.tr(), style: GoogleFonts.inter()),
               backgroundColor: Colors.red,
             ),
           );
@@ -105,7 +106,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        'Inviter des amis',
+        'invite_friends'.tr(),
         style: GoogleFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -129,7 +130,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Trouver des amis',
+            hintText: 'find_friends'.tr(),
             hintStyle: GoogleFonts.inter(
               color: AppColors.textGrey,
               fontSize: 14,
@@ -150,7 +151,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildSocialButton(
-            label: 'Copier',
+            label: 'copy'.tr(),
             imagePath: 'assets/icons/link.svg',
             color: const Color(0xFF6366F1),
             isSvg: true,
@@ -256,7 +257,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          'Inviter à rejoindre',
+          'invite_to_join'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -281,8 +282,8 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         child: Center(
           child: Text(
             _contacts.isEmpty 
-                ? 'Aucun contact disponible'
-                : 'Aucun contact trouvé',
+                ? 'no_contacts_available'.tr()
+                : 'no_contacts_found'.tr(),
             style: GoogleFonts.inter(
               fontSize: 14,
               color: AppColors.textGrey,
@@ -391,7 +392,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
           const Icon(Icons.person_add, size: 16),
           const SizedBox(width: 4),
           Text(
-            'Inviter',
+            'invite'.tr(),
             style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ],
@@ -408,7 +409,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Lien copié !', style: GoogleFonts.inter()),
+          content: Text('link_copied'.tr(), style: GoogleFonts.inter()),
           backgroundColor: AppColors.success,
           duration: const Duration(seconds: 2),
         ),
@@ -454,7 +455,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Instagram non disponible', style: GoogleFonts.inter()),
+            content: Text('instagram_unavailable'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -530,7 +531,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     if (contact.phones.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Aucun numéro de téléphone', style: GoogleFonts.inter()),
+          content: Text('no_phone_number'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -565,7 +566,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Inviter ${contact.displayName}',
+              '${'invite'.tr()} ${contact.displayName}',
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -575,7 +576,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
             const SizedBox(height: 20),
             _buildInviteOption(
               icon: Icons.message,
-              label: 'SMS',
+              label: 'sms'.tr(),
               color: AppColors.success,
               onTap: () {
                 Navigator.pop(context);
@@ -595,7 +596,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
             const SizedBox(height: 12),
             _buildInviteOption(
               icon: Icons.share,
-              label: 'Autres options',
+              label: 'other_options'.tr(),
               color: AppColors.textGrey,
               onTap: () {
                 Navigator.pop(context);
@@ -665,7 +666,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Impossible d\'envoyer le SMS', style: GoogleFonts.inter()),
+            content: Text('cannot_send_sms'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -689,7 +690,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('WhatsApp non installé', style: GoogleFonts.inter()),
+            content: Text('whatsapp_not_installed'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 import '../../domain/bloc/group_state.dart';
@@ -66,7 +67,7 @@ Widget build(BuildContext context) {
         context.read<GroupBloc>().add(LoadAllGroupsEvent());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
+            content: Text('group_created_success'.tr(), style: GoogleFonts.inter()),
             backgroundColor: AppColors.success,
           ),
         );
@@ -114,7 +115,7 @@ Widget build(BuildContext context) {
                       children: [
                         Expanded(
                           child: Text(
-                            'Créer un groupe de covoiturage',
+                            'create_carpooling_group'.tr(),
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -132,7 +133,7 @@ Widget build(BuildContext context) {
 
                     // NOM DU GROUPE
                     Text(
-                      'Nom du groupe',
+                      'group_name'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -144,7 +145,7 @@ Widget build(BuildContext context) {
                       controller: _nameController,
                       textInputAction: TextInputAction.next, // ✅ AJOUTÉ
                       decoration: InputDecoration(
-                        hintText: 'Ex : sencov',
+                        hintText: 'group_name_example'.tr(),
                         hintStyle: GoogleFonts.inter(
                           color: Colors.grey.shade400,
                           fontSize: 14,
@@ -166,7 +167,7 @@ Widget build(BuildContext context) {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Veuillez entrer un nom de groupe';
+                          return 'enter_group_name'.tr();
                         }
                         return null;
                       },
@@ -175,7 +176,7 @@ Widget build(BuildContext context) {
 
                     // DESCRIPTION (optionnel)
                     Text(
-                      'Description (optionnel)',
+                      'description_optional'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -188,7 +189,7 @@ Widget build(BuildContext context) {
                       maxLines: 2,
                       textInputAction: TextInputAction.next, // ✅ AJOUTÉ
                       decoration: InputDecoration(
-                        hintText: 'Décrivez le groupe...',
+                        hintText: 'describe_group'.tr(),
                         hintStyle: GoogleFonts.inter(
                           color: Colors.grey.shade400,
                           fontSize: 13,
@@ -213,7 +214,7 @@ Widget build(BuildContext context) {
 
                     // MEMBRES
                     Text(
-                      'Membres (optionnel)',
+                      'members_optional'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -230,7 +231,7 @@ Widget build(BuildContext context) {
                         FocusScope.of(context).unfocus();
                       },
                       decoration: InputDecoration(
-                        hintText: 'email ou numéro de téléphone\nSéparez par des virgules',
+                        hintText: 'email_or_phone_separate'.tr(),
                         hintStyle: GoogleFonts.inter(
                           color: Colors.grey.shade400,
                           fontSize: 13,
@@ -278,7 +279,7 @@ Widget build(BuildContext context) {
                                 ),
                               )
                             : Text(
-                                'Créer le groupe',
+                                'create_group'.tr(),
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

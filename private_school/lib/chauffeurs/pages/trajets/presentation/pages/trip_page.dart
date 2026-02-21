@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/chauffeurs/pages/trajets/presentation/widgets/create_trip_modal.dart';
 
 import 'package:private_school/core/utils/app_colors.dart';
@@ -106,9 +107,9 @@ class _TripPageState extends State<TripPage>
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'À venir'),
-          Tab(text: 'Historique'),
+        tabs: [
+          Tab(text: 'upcoming'.tr()),
+          Tab(text: 'history'.tr()),
         ],
       ),
     );
@@ -193,7 +194,7 @@ class _TripPageState extends State<TripPage>
     debugPrint('📊 [TripPage] Upcoming statuses: ${upcomingTrips.map((t) => '${t.status}/${t.returnStatus}').toList()}');
 
     if (upcomingTrips.isEmpty) {
-      return _buildEmptyState('Aucun trajet à venir');
+      return _buildEmptyState('no_upcoming_trips'.tr());
     }
 
     return RefreshIndicator(
@@ -237,7 +238,7 @@ class _TripPageState extends State<TripPage>
     debugPrint('📊 [TripPage] History trips: ${historyTrips.length}');
 
     if (historyTrips.isEmpty) {
-      return _buildEmptyState('Aucun historique');
+      return _buildEmptyState('no_history'.tr());
     }
 
     return RefreshIndicator(
@@ -295,7 +296,7 @@ class _TripPageState extends State<TripPage>
             ),
             const SizedBox(height: AppConstants.spacingM),
             Text(
-              'Erreur lors du chargement',
+              'error_loading_trips'.tr(),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

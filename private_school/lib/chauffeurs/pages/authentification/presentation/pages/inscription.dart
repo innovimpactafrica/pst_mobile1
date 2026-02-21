@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:io';
 import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/driver_auth_bloc.dart';
@@ -74,7 +75,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
           _emailController.text.isEmpty ||
           _passwordController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Veuillez remplir tous les champs')),
+          SnackBar(content: Text('please_fill_all_fields'.tr())),
         );
         return;
       }
@@ -129,7 +130,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Inscription réussie !'),
+              content: Text('registration_success'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -156,19 +157,37 @@ class _InscriptionPageState extends State<InscriptionPage> {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Row(
-                children: [
-                  Icon(Icons.language, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Français',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+              child: GestureDetector(
+                onTap: () {
+                  final currentLocale = context.locale;
+                  if (currentLocale.languageCode == 'fr') {
+                    context.setLocale(const Locale('en'));
+                  } else {
+                    context.setLocale(const Locale('fr'));
+                  }
+                  setState(() {});
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
+                  child: Row(
+                    children: [
+                      const Icon(Icons.language, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -182,7 +201,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
                   Image.asset('assets/images/2.jpg', height: 60),
                   const SizedBox(height: 16),
                   Text(
-                    'Inscrivez-vous en un clic',
+                    'sign_up_in_one_click'.tr(),
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -191,7 +210,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Créer un compte maintenant et profitez\npleinement de l\'application.',
+                    'create_account_description'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -204,10 +223,10 @@ class _InscriptionPageState extends State<InscriptionPage> {
                     children: [
                       Text(
                         _currentStep == 0
-                            ? 'Informations personnelles'
+                            ? 'personal_information'.tr()
                             : _currentStep == 1
-                            ? 'Informations véhicule'
-                            : 'Pièces jointes',
+                            ? 'vehicle_info'.tr()
+                            : 'documents'.tr(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -254,18 +273,18 @@ class _InscriptionPageState extends State<InscriptionPage> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          _buildTextField('Prénom et nom', 'Ex: Birima Diop', _nameController),
+          _buildTextField('first_last_name'.tr(), 'name_example'.tr(), _nameController),
           const SizedBox(height: 16),
           _buildTextField(
-            'Numéro de téléphone',
-            'Ex: +221771234567',
+            'phone_number'.tr(),
+            'phone_example_full'.tr(),
             _phoneController,
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            'Adresse email',
-            'Ex: bdiop@gmail.com',
+            'email_address'.tr(),
+            'email_example'.tr(),
             _emailController,
             keyboardType: TextInputType.emailAddress,
           ),
@@ -285,13 +304,13 @@ class _InscriptionPageState extends State<InscriptionPage> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          _buildTextField('Marque du véhicule', 'Ex: Ford', _brandController),
+          _buildTextField('brand'.tr(), 'enter_brand'.tr(), _brandController),
           const SizedBox(height: 16),
-          _buildTextField('Couleur du véhicule', 'Ex: Rouge', _colorController),
+          _buildTextField('color'.tr(), 'enter_model'.tr(), _colorController),
           const SizedBox(height: 16),
           _buildTextField(
-            'Immatriculation du véhicule',
-            'Ex: AA-2535-01',
+            'license_plate'.tr(),
+            'enter_plate'.tr(),
             _plateController,
           ),
           const SizedBox(height: 16),
@@ -315,13 +334,13 @@ class _InscriptionPageState extends State<InscriptionPage> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          _buildUploadField('Permis de conduire', 'license', _licenseFile),
+          _buildUploadField('license'.tr(), 'license', _licenseFile),
           const SizedBox(height: 16),
-          _buildUploadField('CNI/Passport', 'idcard', _idCardFile),
+          _buildUploadField('id_card'.tr(), 'idcard', _idCardFile),
           const SizedBox(height: 16),
-          _buildUploadField('Photo du véhicule', 'vehicle', _vehiclePhotoFile),
+          _buildUploadField('vehicle_photo'.tr(), 'vehicle', _vehiclePhotoFile),
           const SizedBox(height: 40),
-          _buildContinueButton(label: 'Soumettre'),
+          _buildContinueButton(label: 'send'.tr()),
           const SizedBox(height: 20),
           _buildLoginLink(),
         ],
@@ -379,7 +398,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Mot de passe',
+              'password'.tr(),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -391,7 +410,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
               controller: _passwordController,
               obscureText: obscure,
               decoration: InputDecoration(
-                hintText: '********',
+                hintText: 'password_placeholder'.tr(),
                 hintStyle: TextStyle(
                   color: AppColors.textSecondary.withValues(alpha: 0.5),
                 ),
@@ -488,8 +507,8 @@ class _InscriptionPageState extends State<InscriptionPage> {
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Choisissez un fichier',
+                      Text(
+                        'choose_file'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -497,7 +516,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Formats: JPEG, PNG, PDF (max 10 Mo)',
+                        'formats'.tr(),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
@@ -512,7 +531,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('Parcourir le fichier'),
+                        child: Text('browse_file'.tr()),
                       ),
                     ],
                   ),
@@ -522,7 +541,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
     );
   }
 
-  Widget _buildContinueButton({String label = 'Continuer'}) {
+  Widget _buildContinueButton({String? label}) {
     return SizedBox(
       width: double.infinity,
       height: 56,
@@ -535,7 +554,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
         ),
         onPressed: _nextStep,
         child: Text(
-          label,
+          label ?? 'continue'.tr(),
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -551,13 +570,13 @@ class _InscriptionPageState extends State<InscriptionPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Vous avez déjà un compte ?  ',
+          'already_have_account'.tr(),
           style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
         ),
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Text(
-            'Se Connecter',
+            'connect'.tr(),
             style: TextStyle(
               color: AppColors.success,
               fontSize: 14,

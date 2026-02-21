@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class PaymentHistoryPage extends StatelessWidget {
   const PaymentHistoryPage({super.key});
@@ -28,9 +29,9 @@ class PaymentHistoryPage extends StatelessWidget {
                       size: 20,
                     ),
                   ),
-                  const Text(
-                    'Historique des paiements',
-                    style: TextStyle(
+                  Text(
+                    'payment_history'.tr(),
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -56,7 +57,7 @@ class PaymentHistoryPage extends StatelessWidget {
                       padding: const EdgeInsets.all(16.0),
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: 'Rechercher',
+                          hintText: 'search'.tr(),
                           hintStyle: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 14,
@@ -134,9 +135,9 @@ class PaymentHistoryPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Paiement',
-                  style: TextStyle(
+                Text(
+                  'payment'.tr(),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1F2937),

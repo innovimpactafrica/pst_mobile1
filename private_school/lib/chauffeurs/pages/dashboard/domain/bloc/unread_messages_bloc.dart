@@ -10,6 +10,8 @@ class UpdateUnreadCountEvent extends UnreadMessagesEvent {
   final int count;
   UpdateUnreadCountEvent(this.count);
 }
+class IncrementUnreadCountEvent extends UnreadMessagesEvent {}
+class DecrementUnreadCountEvent extends UnreadMessagesEvent {}
 
 // States
 abstract class UnreadMessagesState {}
@@ -28,11 +30,15 @@ class UnreadMessagesError extends UnreadMessagesState {
 // Bloc
 class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> {
   final MessagingRepository repository;
+  static UnreadMessagesBloc? instance;
 
   UnreadMessagesBloc({required this.repository}) : super(UnreadMessagesInitial()) {
+    instance = this;
     on<LoadUnreadCountEvent>(_onLoadUnreadCount);
     on<RefreshUnreadCountEvent>(_onRefreshUnreadCount);
     on<UpdateUnreadCountEvent>(_onUpdateUnreadCount);
+    on<IncrementUnreadCountEvent>(_onIncrementUnreadCount);
+    on<DecrementUnreadCountEvent>(_onDecrementUnreadCount);
   }
 
   Future<void> _onLoadUnreadCount(LoadUnreadCountEvent event, Emitter<UnreadMessagesState> emit) async {
@@ -56,5 +62,28 @@ class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> 
 
   void _onUpdateUnreadCount(UpdateUnreadCountEvent event, Emitter<UnreadMessagesState> emit) {
     emit(UnreadMessagesLoaded(count: event.count));
+  }
+
+  void _onIncrementUnreadCount(IncrementUnreadCountEvent event, Emitter<UnreadMessagesState> emit) {
+    final currentState = state;
+    if (currentState is UnreadMessagesLoaded) {
+      emit(UnreadMessagesLoaded(count: currentState.count + 1));
+    }
+  }
+
+  void _onDecrementUnreadCount(DecrementUnreadCountEvent event, Emitter<UnreadMessagesState> emit) {
+    final currentState = state;
+    if (currentState is UnreadMessagesLoaded) {
+      final newCount = currentState.count > 0 ? currentState.count - 1 : 0;
+      emit(UnreadMessagesLoaded(count: newCount));
+    }
+  }
+
+  static void notifyNewMessage(int conversationId) {
+    instance?.add(IncrementUnreadCountEvent());
+  }
+
+  static void notifyMessageRead(int conversationId) {
+    instance?.add(DecrementUnreadCountEvent());
   }
 }

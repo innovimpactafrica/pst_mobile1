@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/profil/data/models/vehicle_model.dart';
 import 'dart:io';
 
@@ -76,12 +77,12 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text(AppConstants.labelTakePhoto),
+              title: Text('take_photo'.tr()),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text(AppConstants.labelGallery),
+              title: Text('choose_from_gallery'.tr()),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
@@ -128,7 +129,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
       final String driverId = widget.profile.driver.id.toString();
 
       if (driverId.isEmpty) {
-        _showSnackBar(AppConstants.errorNoDriverId, isError: true);
+        _showSnackBar('error_no_driver_id'.tr(), isError: true);
         return;
       }
 
@@ -138,7 +139,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
         UpdateDriverByIdEvent(driverId: driverId, formData: formData),
       );
     } catch (e) {
-      _showSnackBar('${AppConstants.errorUpdate} : $e', isError: true);
+      _showSnackBar('${'error_update'.tr()} : $e', isError: true);
     }
   }
 
@@ -182,7 +183,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                 _selectedVehicleImage = null;
                 _initializeControllers();
               });
-              _showSnackBar(AppConstants.successVehicleUpdate, isError: false);
+              _showSnackBar('vehicle_updated_successfully'.tr(), isError: false);
             } else if (state is DriverProfileError) {
               _showSnackBar(state.message);
             }
@@ -191,9 +192,9 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
             backgroundColor: AppColors.background,
             appBar: AppBar(
               backgroundColor: AppColors.primary,
-              title: const Text(
-                AppConstants.labelVehicle,
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                'vehicle_info'.tr(),
+                style: const TextStyle(color: Colors.white),
               ),
               centerTitle: true,
               leading: IconButton(
@@ -208,40 +209,40 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   _buildVehiclePhoto(vehicle),
                   const SizedBox(height: AppConstants.spacingXXXL),
                   CustomTextField(
-                    label: AppConstants.labelBrand,
+                    label: 'brand'.tr(),
                     controller: _brandController,
                     readOnly: !_isEditMode,
-                    hintText: AppConstants.hintBrand,
+                    hintText: 'enter_brand'.tr(),
                   ),
                   const SizedBox(height: AppConstants.spacingM),
                   CustomTextField(
-                    label: AppConstants.labelColor,
+                    label: 'color'.tr(),
                     controller: _colorController,
                     readOnly: !_isEditMode,
-                    hintText: AppConstants.hintColor,
+                    hintText: 'enter_color'.tr(),
                   ),
                   const SizedBox(height: AppConstants.spacingM),
                   CustomTextField(
-                    label: AppConstants.labelPlate,
+                    label: 'license_plate'.tr(),
                     controller: _plateController,
                     readOnly: !_isEditMode,
-                    hintText: AppConstants.hintPlate,
+                    hintText: 'enter_plate'.tr(),
                   ),
                   const SizedBox(height: AppConstants.spacingM),
                   CustomTextField(
-                    label: AppConstants.labelCapacity,
+                    label: 'capacity'.tr(),
                     controller: _capacityController,
                     readOnly: !_isEditMode,
                     keyboardType: TextInputType.number,
-                    hintText: AppConstants.hintCapacity,
+                    hintText: 'enter_capacity'.tr(),
                   ),
                   const SizedBox(height: 40),
                   BlocBuilder<DriverProfileBloc, DriverProfileState>(
                     builder: (context, state) {
                       return PrimaryButton(
                         text: _isEditMode
-                            ? AppConstants.labelSave
-                            : AppConstants.labelEdit,
+                            ? 'save'.tr()
+                            : 'edit'.tr(),
                         isLoading: state is DriverProfileUpdating,
                         onPressed: () {
                           if (_isEditMode) {
@@ -262,9 +263,9 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                           _selectedVehicleImage = null;
                         });
                       },
-                      child: const Text(
-                        AppConstants.labelCancel,
-                        style: TextStyle(color: Colors.red),
+                      child: Text(
+                        'cancel'.tr(),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
                 ],

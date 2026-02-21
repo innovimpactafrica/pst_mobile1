@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/auth_bloc.dart';
@@ -43,8 +44,8 @@ class _VerificationState extends State<Verification> {
 
     if (otp.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez entrer le code à 4 chiffres'),
+        SnackBar(
+          content: Text('enter_4_digit_code'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -53,8 +54,8 @@ class _VerificationState extends State<Verification> {
 
     if (widget.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur: ID utilisateur manquant'),
+        SnackBar(
+          content: Text('error_missing_user_id'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -116,7 +117,7 @@ class _VerificationState extends State<Verification> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Français',
+                        'french'.tr(),
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
@@ -141,9 +142,9 @@ class _VerificationState extends State<Verification> {
               const SizedBox(height: AppConstants.spacingXXL),
 
               // 📝 Titre
-              const Text(
-                'Code de vérification',
-                style: TextStyle(
+              Text(
+                'verification_code'.tr(),
+                style: const TextStyle(
                   fontSize: AppConstants.fontSizeXXL,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary,
@@ -154,7 +155,7 @@ class _VerificationState extends State<Verification> {
 
               // 📄 Sous-titre
               Text(
-                'Saisissez le code à 4 chiffres envoyé par\nEmail au ${widget.contact ?? "votre@email.com"}',
+                'enter_4_digit_code_sent'.tr(namedArgs: {'contact': widget.contact ?? 'your_email'.tr()}),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeM,
@@ -225,9 +226,9 @@ class _VerificationState extends State<Verification> {
               const SizedBox(height: AppConstants.spacingXXL),
 
               // ❓ Texte "Vous n'avez pas reçu de code ?"
-              const Text(
-                'Vous n\'avez pas reçu de code ?',
-                style: TextStyle(
+              Text(
+                'did_not_receive_code'.tr(),
+                style: const TextStyle(
                   fontSize: AppConstants.fontSizeM,
                   color: AppColors.textSecondary,
                 ),
@@ -241,7 +242,7 @@ class _VerificationState extends State<Verification> {
                   // TODO: Implémenter renvoyer le code
                 },
                 child: Text(
-                  'Renvoyer le code dans 23',
+                  'resend_code_in'.tr(namedArgs: {'seconds': '23'}),
                   style: TextStyle(
                     fontSize: AppConstants.fontSizeM,
                     color: AppColors.success,
@@ -265,9 +266,9 @@ class _VerificationState extends State<Verification> {
                     elevation: 0,
                   ),
                   onPressed: _verifyOtp,
-                  child: const Text(
-                    'Vérifier',
-                    style: TextStyle(
+                  child: Text(
+                    'verify'.tr(),
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeL,
                       fontWeight: FontWeight.w600,
                       color: AppColors.white,

@@ -72,22 +72,21 @@ class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingO
   final TextEditingController _searchController = TextEditingController();
   TripFilters? _currentFilters;
 
-  @override
+@override
 void initState() {
   super.initState();
   WidgetsBinding.instance.addObserver(this);
   _loadHomeAddress();
   
+  // ✅ Charger immédiatement sans attendre
   WidgetsBinding.instance.addPostFrameCallback((_) {
     context.read<AuthBloc>().add(const LoadCurrentUserEvent());
-    context.read<HomeBloc>().add(LoadDriversEvent());
+    context.read<HomeBloc>().add(LoadDriversEvent()); // ← garde ici, c'est correct
     
     _notificationService.registerBlocs(
       messagesBloc: context.read<UnreadMessagesBloc>(),
       notificationsBloc: context.read<UnreadNotificationsBloc>(),
     );
-    
-    // ✅ Démarrer le polling SEULEMENT pour les messages
     _notificationService.startPolling();
   });
 }
@@ -123,33 +122,34 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 }
 
   void _loadHomeAddress() async {
+  // ✅ Dakar par défaut IMMÉDIATEMENT
+  setState(() {
+    _homeLocation = const LatLng(14.6937, -17.4441);
+  });
+
+  try {
     final authState = context.read<AuthBloc>().state;
     String? address;
-    
+
     if (authState is AuthAuthenticated && authState.user != null) {
       address = authState.user!.address;
-    } else if (authState is UserLoaded) {
-      address = authState.user.address;
     }
-    
+
+    debugPrint('📍 Adresse utilisateur: $address');
+
     if (address != null && address.isNotEmpty) {
-      // Géocoder l'adresse pour obtenir les coordonnées
       final coords = await _geocodeAddress(address);
-      if (coords != null) {
+      if (coords != null && mounted) {
         setState(() {
           _homeLocation = coords;
         });
-      } else {
-        setState(() {
-          _homeLocation = const LatLng(14.6937, -17.4441); // Dakar par défaut
-        });
+        debugPrint('✅ Carte mise à jour: $coords');
       }
-    } else {
-      setState(() {
-        _homeLocation = const LatLng(14.6937, -17.4441);
-      });
     }
+  } catch (e) {
+    debugPrint('⚠️ Erreur _loadHomeAddress: $e');
   }
+}
   
   Future<LatLng?> _geocodeAddress(String address) async {
     try {
@@ -196,14 +196,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
     debugPrint('🏠 [HomePage] HomeBloc state: ${state.runtimeType}');
     
     if (state is HomeLoading) {
-      return const SizedBox(
-        height: 280,
-        child: Center(
-          child: CircularProgressIndicator(
-            color: AppColors.success,
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     } else if (state is HomeLoaded) {
       if (state.filteredTrips.isEmpty) {
         return SizedBox(
@@ -222,9 +215,9 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
                 const SizedBox(height: 16),
                 Text(
                   state.searchQuery.isEmpty
-                    ? 'Aucun trajet disponible'
-                    : 'Aucun résultat pour "${state.searchQuery}"',
-                  style: TextStyle(color: AppColors.textSecondary),
+                    ? 'no_available_trips_home'.tr()
+                    : '${'no_search_results'.tr()} "${state.searchQuery}"',
+                  style: const TextStyle(color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -252,7 +245,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
                 onPressed: () {
                   context.read<HomeBloc>().add(LoadDriversEvent());
                 },
-                child: const Text('Réessayer'),
+                child: Text('retry_button'.tr()),
               ),
             ],
           ),
@@ -285,45 +278,34 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
   }
 
   Widget _buildMapBackground(BuildContext context) {
-    if (_homeLocation == null) {
-      return Container(
-        decoration: BoxDecoration(color: Colors.grey.shade200),
-        child: const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-    }
+  final location = _homeLocation ?? const LatLng(14.6937, -17.4441);
 
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: _homeLocation!,
-        zoom: 14,
-      ),
-      onMapCreated: (controller) {
-        // Controller stocké mais non utilisé pour l'instant
-      },
-      markers: {
-        Marker(
-          markerId: const MarkerId('home'),
-          position: _homeLocation!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
-          ),
-          infoWindow: const InfoWindow(
-            title: 'Mon domicile',
-          ),
+  return GoogleMap(
+    initialCameraPosition: CameraPosition(
+      target: location,
+      zoom: 14,
+    ),
+    onMapCreated: (controller) {},
+    markers: {
+      Marker(
+        markerId: const MarkerId('home'),
+        position: location,
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueViolet,
         ),
-      },
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      zoomGesturesEnabled: true,
-      scrollGesturesEnabled: true,
-      tiltGesturesEnabled: true,
-      rotateGesturesEnabled: true,
-      mapToolbarEnabled: false,
-    );
-  }
+        infoWindow: InfoWindow(title: 'my_home'.tr()),
+      ),
+    },
+    myLocationEnabled: true,
+    myLocationButtonEnabled: false,
+    zoomControlsEnabled: false,
+    zoomGesturesEnabled: true,
+    scrollGesturesEnabled: true,
+    tiltGesturesEnabled: true,
+    rotateGesturesEnabled: true,
+    mapToolbarEnabled: false,
+  );
+}
 
   Widget _buildSearchBar() {
     return Padding(
@@ -448,7 +430,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppConstants.labelGreeting,
+                      'hello'.tr(),
                       style: GoogleFonts.inter(
                         color: AppColors.white.withValues(alpha: 0.7),
                         fontSize: AppConstants.fontSizeM,
@@ -629,12 +611,12 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 
   Widget _buildTripCardsSection(BuildContext context, List<TripModel> trips) {
     if (trips.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 280,
         child: Center(
           child: Text(
-            'Aucun trajet disponible',
-            style: TextStyle(color: AppColors.textSecondary),
+            'no_available_trips_home'.tr(),
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
         ),
       );

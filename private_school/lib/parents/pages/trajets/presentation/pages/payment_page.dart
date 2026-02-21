@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/trip_model.dart';
 import '../widgets/payment_success_dialog.dart';
 import '../../../../../core/utils/app_colors.dart';
@@ -45,7 +46,7 @@ class _PaymentPageState extends State<PaymentPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Paiement de la réservation',
+          'payment'.tr(),
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -62,7 +63,7 @@ class _PaymentPageState extends State<PaymentPage> {
             children: [
               // RÉCAPITULATIF
               Text(
-                'Récapitulatif de la réservation',
+                'confirm_reservation'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -71,19 +72,19 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
               const SizedBox(height: 16),
 
-              _buildSummaryRow('Trajet scolaire', 'Ouakam → École Primaire'),
+              _buildSummaryRow('trip_details'.tr(), 'Ouakam → École Primaire'),
               const SizedBox(height: 8),
-              _buildSummaryRow('Distance', '3.5 km'),
+              _buildSummaryRow('distance'.tr(), '3.5 km'),
               const SizedBox(height: 8),
-              _buildSummaryRow('Durée', '12 min'),
+              _buildSummaryRow('duration'.tr(), '12 min'),
               const SizedBox(height: 8),
-              _buildSummaryRow('Total', '1000 F CFA', isBold: true),
+              _buildSummaryRow('amount'.tr(), '1000 F CFA', isBold: true),
 
               const SizedBox(height: 32),
 
               // INFORMATIONS DE PAIEMENT
               Text(
-                'Informations de paiement',
+                'payment_info'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -98,7 +99,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   Expanded(
                     child: _buildPaymentTab(
                       icon: Icons.credit_card,
-                      label: 'Carte bancaire',
+                      label: 'bank_card'.tr(),
                       isSelected: _isCardPayment,
                       onTap: () {
                         setState(() {
@@ -111,7 +112,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   Expanded(
                     child: _buildPaymentTab(
                       icon: Icons.phone_android,
-                      label: 'Mobile money',
+                      label: 'mobile_money'.tr(),
                       isSelected: !_isCardPayment,
                       onTap: () {
                         setState(() {
@@ -148,7 +149,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     elevation: 0,
                   ),
                   child: Text(
-                    'Payer',
+                    'pay'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -161,7 +162,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
               // DISCLAIMER
               Text(
-                'En effectuant ce paiement, vous acceptez nos conditions générales d\'utilisation et notre politique de confidentialité.',
+                'payment_terms'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   color: Colors.grey.shade600,
@@ -248,7 +249,7 @@ class _PaymentPageState extends State<PaymentPage> {
       children: [
         // NOM SUR LA CARTE
         Text(
-          'Nom sur la carte',
+          'cardholder_name'.tr(),
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -259,7 +260,7 @@ class _PaymentPageState extends State<PaymentPage> {
         TextField(
           controller: _cardNameController,
           decoration: InputDecoration(
-            hintText: 'Lamine wade',
+            hintText: 'cardholder_name_example'.tr(),
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
             filled: true,
             fillColor: Colors.grey.shade50,
@@ -287,7 +288,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
         // NUMÉRO DE CARTE
         Text(
-          'Numéro de carte',
+          'card_number'.tr(),
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -304,7 +305,7 @@ class _PaymentPageState extends State<PaymentPage> {
             _CardNumberFormatter(),
           ],
           decoration: InputDecoration(
-            hintText: '1234 5678 9012 3456',
+            hintText: 'card_number_example'.tr(),
             hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
             prefixIcon: const Icon(Icons.credit_card, size: 20),
             filled: true,
@@ -339,7 +340,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Date d\'expiration',
+                    'expiry_date'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -356,7 +357,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       _ExpiryDateFormatter(),
                     ],
                     decoration: InputDecoration(
-                      hintText: 'MM/AA',
+                      hintText: 'expiry_date_format'.tr(),
                       hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
                       filled: true,
                       fillColor: Colors.grey.shade50,
@@ -388,7 +389,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'CVV',
+                    'cvv'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -405,7 +406,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       LengthLimitingTextInputFormatter(3),
                     ],
                     decoration: InputDecoration(
-                      hintText: '123',
+                      hintText: 'cvv_example'.tr(),
                       hintStyle: GoogleFonts.inter(color: Colors.grey.shade400),
                       filled: true,
                       fillColor: Colors.grey.shade50,
@@ -442,7 +443,7 @@ class _PaymentPageState extends State<PaymentPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Moyen de paiements',
+          'payment_method'.tr(),
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -550,7 +551,7 @@ class _PaymentPageState extends State<PaymentPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Veuillez remplir tous les champs',
+              'please_fill_all_fields'.tr(),
               style: GoogleFonts.inter(),
             ),
             backgroundColor: Colors.red,
@@ -563,7 +564,7 @@ class _PaymentPageState extends State<PaymentPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Veuillez sélectionner un moyen de paiement',
+              'payment_method'.tr(),
               style: GoogleFonts.inter(),
             ),
             backgroundColor: Colors.red,

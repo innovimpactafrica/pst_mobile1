@@ -1,107 +1,112 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/services/api_service.dart';
+import '../models/conversation_model.dart';
+import '../models/message_model.dart';
+import '../services/messaging_service.dart';
 
 class MessagingRepository {
-  final ApiService _apiService = ApiService();
+  final MessagingService _service = MessagingService();
 
-  /// Récupérer le nombre de messages non lus pour le chauffeur
+  Future<List<ConversationModel>> getConversations() async {
+    try {
+      return await _service.getConversations();
+    } catch (e) {
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
+    }
+  }
+
   Future<int> getUnreadCount() async {
     try {
-      debugPrint('📡 [MessagingRepository] Récupération messages non lus chauffeur...');
-      
-      final response = await _apiService.get('/driver/messages/unread-count');
-      
-      if (response['success'] == true) {
-        final count = response['data']['unread_count'] ?? 0;
-        debugPrint('✅ [MessagingRepository] Messages non lus: $count');
-        return count is int ? count : int.tryParse(count.toString()) ?? 0;
-      }
-      
-      debugPrint('⚠️ [MessagingRepository] Réponse API invalide');
-      return 0;
+      final conversations = await _service.getConversations();
+      return conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
     } catch (e) {
-      debugPrint('❌ [MessagingRepository] Erreur: $e');
+      debugPrint('❌ Repository Error: $e');
       return 0;
     }
   }
 
-  /// Récupérer la liste des conversations du chauffeur
-  Future<List<Map<String, dynamic>>> getConversations() async {
+  Future<List<MessageModel>> getMessages(int conversationId) async {
     try {
-      debugPrint('📡 [MessagingRepository] Récupération conversations chauffeur...');
-      
-      final response = await _apiService.get('/driver/conversations');
-      
-      if (response['success'] == true && response['data'] != null) {
-        final conversations = List<Map<String, dynamic>>.from(response['data']);
-        debugPrint('✅ [MessagingRepository] ${conversations.length} conversations récupérées');
-        return conversations;
-      }
-      
-      return [];
+      return await _service.getMessages(conversationId);
     } catch (e) {
-      debugPrint('❌ [MessagingRepository] Erreur conversations: $e');
-      return [];
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
     }
   }
 
-  /// Récupérer les messages d'une conversation
-  Future<List<Map<String, dynamic>>> getMessages(String conversationId) async {
+  Future<MessageModel?> sendMessage({
+    required int conversationId,
+    required String content,
+    int? replyToId,
+  }) async {
     try {
-      debugPrint('📡 [MessagingRepository] Récupération messages conversation $conversationId...');
-      
-      final response = await _apiService.get('/driver/conversations/$conversationId/messages');
-      
-      if (response['success'] == true && response['data'] != null) {
-        final messages = List<Map<String, dynamic>>.from(response['data']);
-        debugPrint('✅ [MessagingRepository] ${messages.length} messages récupérés');
-        return messages;
-      }
-      
-      return [];
+      return await _service.sendMessage(
+        conversationId: conversationId,
+        content: content,
+        replyToId: replyToId,
+      );
     } catch (e) {
-      debugPrint('❌ [MessagingRepository] Erreur messages: $e');
-      return [];
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
     }
   }
 
-  /// Envoyer un message
-  Future<bool> sendMessage(String conversationId, String content) async {
+  Future<MessageModel?> updateMessage({
+    required int conversationId,
+    required int messageId,
+    required String content,
+  }) async {
     try {
-      debugPrint('📡 [MessagingRepository] Envoi message...');
-      
-      final response = await _apiService.post('/driver/conversations/$conversationId/messages', {
-        'content': content,
-      });
-      
-      if (response['success'] == true) {
-        debugPrint('✅ [MessagingRepository] Message envoyé');
-        return true;
-      }
-      
-      return false;
+      return await _service.updateMessage(
+        conversationId: conversationId,
+        messageId: messageId,
+        content: content,
+      );
     } catch (e) {
-      debugPrint('❌ [MessagingRepository] Erreur envoi: $e');
-      return false;
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
     }
   }
 
-  /// Marquer les messages comme lus
-  Future<bool> markAsRead(String conversationId) async {
+  Future<void> deleteMessage({
+    required int conversationId,
+    required int messageId,
+  }) async {
     try {
-      debugPrint('📡 [MessagingRepository] Marquage comme lu...');
-      
-      final response = await _apiService.post('/driver/conversations/$conversationId/mark-read', {});
-      
-      if (response['success'] == true) {
-        debugPrint('✅ [MessagingRepository] Messages marqués comme lus');
-        return true;
-      }
-      
-      return false;
+      await _service.deleteMessage(
+        conversationId: conversationId,
+        messageId: messageId,
+      );
     } catch (e) {
-      debugPrint('❌ [MessagingRepository] Erreur marquage: $e');
-      return false;
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> markConversationAsRead(int conversationId) async {
+    try {
+      await _service.markConversationAsRead(conversationId);
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e) {
+      debugPrint('⚠️ Repository Error (non-bloquant): $e');
+    }
+  }
+
+  Future<void> archiveConversation(int conversationId) async {
+    try {
+      await _service.toggleArchiveConversation(conversationId, true);
+    } catch (e) {
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> unarchiveConversation(int conversationId) async {
+    try {
+      await _service.toggleArchiveConversation(conversationId, false);
+    } catch (e) {
+      debugPrint('❌ Repository Error: $e');
+      rethrow;
     }
   }
 }

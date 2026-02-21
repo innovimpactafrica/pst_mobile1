@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/services/location_service.dart';
 import '../../../../../core/utils/app_colors.dart';
 
@@ -42,8 +43,8 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Suivi GPS arrêté'),
+            SnackBar(
+              content: Text('gps_tracking_stopped'.tr()),
               backgroundColor: AppColors.error,
             ),
           );
@@ -58,8 +59,8 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Suivi GPS démarré'),
+            SnackBar(
+              content: Text('gps_tracking_started'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -97,7 +98,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
               color: Colors.white,
             ),
       label: Text(
-        _isTracking ? 'Arrêter le suivi GPS' : 'Démarrer le suivi GPS',
+        _isTracking ? 'stop_gps_tracking'.tr() : 'start_gps_tracking'.tr(),
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,

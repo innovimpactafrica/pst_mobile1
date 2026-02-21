@@ -326,8 +326,8 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
               Flexible(
                 child: Text(
                   schoolCount > 0
-                      ? '$schoolCount ${schoolCount > 1 ? 'écoles desservies' : 'école desservie'}'
-                      : 'Aucune école',
+                      ? '$schoolCount ${schoolCount > 1 ? 'schools_served'.tr() : 'school_served'.tr()}'
+                      : 'no_school'.tr(),
                   style: GoogleFonts.inter(
                     color: AppColors.success,
                     fontSize: AppConstants.fontSizeS,
@@ -375,20 +375,20 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
       case 'started':
       case 'in_progress':
         badgeColor = AppColors.success;
-        badgeText = 'En cours';
+        badgeText = 'in_progress'.tr();
         break;
       case 'completed':
         badgeColor = AppColors.primary;
-        badgeText = 'Terminé';
+        badgeText = 'completed'.tr();
         break;
       case 'canceled':
         badgeColor = AppColors.error;
-        badgeText = 'Annulé';
+        badgeText = 'cancelled'.tr();
         break;
       case 'pending':
       default:
         badgeColor = AppColors.warning;
-        badgeText = 'En attente';
+        badgeText = 'pending'.tr();
     }
 
     return Container(

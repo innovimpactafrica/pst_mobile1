@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../domain/bloc/report_bloc.dart';
@@ -23,10 +24,10 @@ class _ReportsPageState extends State<ReportsPage> {
   String _selectedFilter = 'Tous';
 
   final List<String> _filters = [
-    'Tous',
-    'Incident',
-    'Litiges',
-    'Sécurité',
+    'all',
+    'incident',
+    'disputes',
+    'security',
   ];
 
   @override
@@ -95,10 +96,10 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
           const SizedBox(width: AppConstants.spacingL),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Signalements',
-              style: TextStyle(
+              'reports'.tr(),
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
                 color: AppColors.white,
@@ -119,7 +120,7 @@ class _ReportsPageState extends State<ReportsPage> {
           context.read<ReportBloc>().add(SearchReportsEvent(value));
         },
         decoration: InputDecoration(
-          hintText: 'Rechercher',
+          hintText: 'search'.tr(),
           hintStyle: GoogleFonts.inter(
             color: AppColors.textSecondary.withValues(alpha: 0.5),
             fontSize: AppConstants.fontSizeM,
@@ -147,7 +148,8 @@ class _ReportsPageState extends State<ReportsPage> {
     return SizedBox(
       height: 50,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
         scrollDirection: Axis.horizontal,
         itemCount: _filters.length,
         itemBuilder: (context, index) {
@@ -159,11 +161,12 @@ class _ReportsPageState extends State<ReportsPage> {
             child: FilterChip(
               showCheckmark: false,
               label: Text(
-                filter,
+                filter.tr(),
                 style: GoogleFonts.inter(
                   fontSize: AppConstants.fontSizeM,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? AppColors.white : AppColors.textPrimary,
+                  color:
+                      isSelected ? AppColors.white : AppColors.textPrimary,
                 ),
               ),
               selected: isSelected,
@@ -190,134 +193,194 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-Widget _buildReportsList() {
-  return BlocListener<ReportBloc, ReportState>(
-    listener: (context, state) {
-      if (state is ReportDeleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signalement supprimé avec succès'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else if (state is ReportError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    },
-    child: BlocBuilder<ReportBloc, ReportState>(
-      builder: (context, state) {
-        if (state is ReportLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+  Widget _buildReportsList() {
+    return BlocListener<ReportBloc, ReportState>(
+      listener: (context, state) {
+        if (state is ReportDeleted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('report_deleted_successfully'.tr()),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (state is ReportError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
-
-        if (state is ReportError) {
-          return _buildErrorState(state.message);
-        }
-
-        if (state is ReportsLoaded) {
-          if (state.filteredReports.isEmpty) {
-            return _buildEmptyState();
+      },
+      child: BlocBuilder<ReportBloc, ReportState>(
+        builder: (context, state) {
+          if (state is ReportLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: () async {
-                    context.read<ReportBloc>().add(RefreshReportsEvent());
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppConstants.spacingXL),
-                    itemCount: state.filteredReports.length,
-                    itemBuilder: (context, index) {
-                      return ReportCardWidget(
-                        report: state.filteredReports[index],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportDetailPage(
-                                report: state.filteredReports[index],
-                              ),
-                            ),
-                          );
-                        },
-                      );
+          if (state is ReportError) {
+            return _buildErrorState(state.message);
+          }
+
+          if (state is ReportsLoaded) {
+            if (state.filteredReports.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return Column(
+              children: [
+                // ✅ Pagination EN HAUT - toujours visible, jamais cachée par la navbar
+                if (state.totalPages > 1) _buildPaginationBar(state),
+
+                // ✅ Liste des signalements
+                Expanded(
+                  child: RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: () async {
+                      context.read<ReportBloc>().add(RefreshReportsEvent());
                     },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppConstants.spacingXL,
+                        AppConstants.spacingM,
+                        AppConstants.spacingXL,
+                        AppConstants.spacingXL,
+                      ),
+                      itemCount: state.filteredReports.length,
+                      itemBuilder: (context, index) {
+                        return ReportCardWidget(
+                          report: state.filteredReports[index],
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReportDetailPage(
+                                  report: state.filteredReports[index],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              if (state.totalPages > 1) _buildPaginationTabs(state),
-            ],
-          );
-        }
+              ],
+            );
+          }
 
-        return const SizedBox.shrink();
-      },
-    ),
-  );
-}
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
 
-Widget _buildPaginationTabs(ReportsLoaded state) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-    decoration: BoxDecoration(
-      color: AppColors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          blurRadius: 8,
-          offset: const Offset(0, -2),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(state.totalPages, (index) {
-        final pageNumber = index + 1;
-        final isCurrentPage = pageNumber == state.currentPage;
-        
-        return GestureDetector(
-          onTap: isCurrentPage || state.isLoadingMore
-              ? null
-              : () {
-                  context.read<ReportBloc>().add(LoadPageEvent(pageNumber));
-                },
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isCurrentPage ? AppColors.primary : AppColors.white,
-              border: Border.all(
-                color: isCurrentPage ? AppColors.primary : AppColors.grey400,
-                width: 1.5,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '$pageNumber',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isCurrentPage ? AppColors.white : AppColors.textPrimary,
-              ),
+  // ✅ Pagination avec flèches + boutons numérotés - même style que notifications_page
+  Widget _buildPaginationBar(ReportsLoaded state) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // ✅ Flèche gauche
+          IconButton(
+            onPressed: state.currentPage > 1 && !state.isLoadingMore
+                ? () => context
+                    .read<ReportBloc>()
+                    .add(LoadPageEvent(state.currentPage - 1))
+                : null,
+            icon: Icon(
+              Icons.arrow_back_ios,
+              size: 18,
+              color: state.currentPage > 1
+                  ? AppColors.primary
+                  : Colors.grey.shade300,
             ),
           ),
-        );
-      }),
-    ),
-  );
-}
+
+          // ✅ Boutons numérotés
+          Row(
+            children: List.generate(state.totalPages, (index) {
+              final page = index + 1;
+              final isSelected = page == state.currentPage;
+              return GestureDetector(
+                onTap: isSelected || state.isLoadingMore
+                    ? null
+                    : () => context
+                        .read<ReportBloc>()
+                        .add(LoadPageEvent(page)),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Center(
+                    child: state.isLoadingMore && isSelected
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : Text(
+                            '$page',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? AppColors.white
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                  ),
+                ),
+              );
+            }),
+          ),
+
+          // ✅ Flèche droite
+          IconButton(
+            onPressed: state.currentPage < state.totalPages && !state.isLoadingMore
+                ? () => context
+                    .read<ReportBloc>()
+                    .add(LoadPageEvent(state.currentPage + 1))
+                : null,
+            icon: Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: state.currentPage < state.totalPages
+                  ? AppColors.primary
+                  : Colors.grey.shade300,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildEmptyState() {
     return Center(
@@ -331,7 +394,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingL),
           Text(
-            'Aucun signalement',
+            'no_reports'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
@@ -340,7 +403,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingS),
           Text(
-            'Vos signalements apparaîtront ici',
+            'your_reports_will_appear_here'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeM,
               color: AppColors.textSecondary.withValues(alpha: 0.7),
@@ -363,7 +426,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingL),
           Text(
-            'Erreur de chargement',
+            'loading_error'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
@@ -420,7 +483,8 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
       backgroundColor: AppColors.primary,
       child: SvgPicture.asset(
         'assets/icons/13.svg',
-        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+        colorFilter:
+            const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
         width: 28,
         height: 28,
       ),

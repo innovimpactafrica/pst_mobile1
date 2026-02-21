@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../domain/bloc/report_bloc.dart';
@@ -20,13 +21,13 @@ class ReportsPage extends StatefulWidget {
 
 class _ReportsPageState extends State<ReportsPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedFilter = 'Tous';
+  String _selectedFilter = 'all';
 
   final List<String> _filters = [
-    'Tous',
-    'Incident',
-    'Litiges',
-    'Sécurité',
+    'all',
+    'incident',
+    'disputes',
+    'security',
   ];
 
   @override
@@ -95,15 +96,15 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
           const SizedBox(width: AppConstants.spacingL),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Signalements',
-              style: TextStyle(
+              'reports',
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
                 color: AppColors.white,
               ),
-            ),
+            ).tr(),
           ),
         ],
       ),
@@ -119,7 +120,7 @@ class _ReportsPageState extends State<ReportsPage> {
           context.read<ReportBloc>().add(SearchReportsEvent(value));
         },
         decoration: InputDecoration(
-          hintText: 'Rechercher',
+          hintText: 'search'.tr(),
           hintStyle: GoogleFonts.inter(
             color: AppColors.textSecondary.withValues(alpha: 0.5),
             fontSize: AppConstants.fontSizeM,
@@ -159,7 +160,7 @@ class _ReportsPageState extends State<ReportsPage> {
             child: FilterChip(
               showCheckmark: false,
               label: Text(
-                filter,
+                filter.tr(),
                 style: GoogleFonts.inter(
                   fontSize: AppConstants.fontSizeM,
                   fontWeight: FontWeight.w600,
@@ -195,8 +196,8 @@ Widget _buildReportsList() {
     listener: (context, state) {
       if (state is ReportDeleted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signalement supprimé avec succès'),
+          SnackBar(
+            content: Text('report_deleted_successfully'.tr()),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -331,7 +332,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingL),
           Text(
-            'Aucun signalement',
+            'no_reports'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
@@ -340,7 +341,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingS),
           Text(
-            'Vos signalements apparaîtront ici',
+            'your_reports_will_appear_here'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeM,
               color: AppColors.textSecondary.withValues(alpha: 0.7),
@@ -363,7 +364,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
           ),
           const SizedBox(height: AppConstants.spacingL),
           Text(
-            'Erreur de chargement',
+            'loading_error'.tr(),
             style: GoogleFonts.inter(
               fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
@@ -395,7 +396,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
               ),
             ),
             child: Text(
-              AppConstants.labelRetry,
+              'retry'.tr(),
               style: GoogleFonts.inter(
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,

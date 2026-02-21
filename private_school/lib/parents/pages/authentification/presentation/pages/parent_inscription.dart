@@ -220,22 +220,45 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
-        Row(
-          children: [
-            SvgPicture.asset(
-              'assets/icons/4.svg',
-              width: 20,
-              height: 20,
+        GestureDetector(
+          onTap: () {
+            final currentLocale = context.locale;
+            if (currentLocale.languageCode == 'fr') {
+              context.setLocale(const Locale('en'));
+            } else {
+              context.setLocale(const Locale('fr'));
+            }
+            setState(() {});
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 6),
-            Text(
-              'french'.tr(),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/icons/4.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );

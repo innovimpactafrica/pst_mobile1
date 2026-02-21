@@ -8,8 +8,14 @@ import 'package:private_school/parents/pages/authentification/presentation/pages
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/connexion.dart'
     as driver_auth;
 
-class RoleSelectionPage extends StatelessWidget {
+class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
+
+  @override
+  State<RoleSelectionPage> createState() => _RoleSelectionPageState();
+}
+
+class _RoleSelectionPageState extends State<RoleSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +31,14 @@ class RoleSelectionPage extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      // Changer la langue
+                      // Switch entre français et anglais
                       final currentLocale = context.locale;
                       if (currentLocale.languageCode == 'fr') {
-                        context.setLocale(const Locale('en', 'US'));
+                        context.setLocale(const Locale('en'));
                       } else {
-                        context.setLocale(const Locale('fr', 'FR'));
+                        context.setLocale(const Locale('fr'));
                       }
+                      setState(() {}); // Rafraîchir l'interface
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

@@ -1,8 +1,6 @@
-// Parent Forgot Password Page - Exact Figma Design
-// Path: lib/parents/pages/authentification/presentation/pages/mdp_oublie.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/auth_bloc.dart';
@@ -18,7 +16,7 @@ class MdpOubliePage extends StatefulWidget {
 }
 
 class _MdpOubliePageState extends State<MdpOubliePage> {
-  bool _isPhoneMode = true; // true = Téléphone, false = Email
+  bool _isPhoneMode = true;
   final TextEditingController _contactController = TextEditingController();
 
   @override
@@ -34,21 +32,20 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isPhoneMode
-              ? 'Veuillez entrer votre numéro de téléphone'
-              : 'Veuillez entrer votre email'),
+              ? 'enter_phone_number'.tr()
+              : 'enter_email_address'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
       return;
     }
 
-    // Validation
     if (_isPhoneMode) {
       final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
       if (!phoneRegex.hasMatch(contact)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Format de téléphone invalide'),
+          SnackBar(
+            content: Text('invalid_phone_format'.tr()),
             backgroundColor: AppColors.warning,
           ),
         );
@@ -58,8 +55,8 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
       final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
       if (!emailRegex.hasMatch(contact)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Format d\'email invalide'),
+          SnackBar(
+            content: Text('invalid_email_format'.tr()),
             backgroundColor: AppColors.warning,
           ),
         );
@@ -68,11 +65,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
     }
 
     FocusScope.of(context).unfocus();
-
-    // 🔥 Appel API
-    context.read<AuthBloc>().add(
-          ForgotPasswordEvent(contact: contact),
-        );
+    context.read<AuthBloc>().add(ForgotPasswordEvent(contact: contact));
   }
 
   @override
@@ -88,18 +81,15 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
             ),
           );
         } else if (state is PasswordResetRequested) {
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop(); // Fermer loading
-          }
+          if (Navigator.canPop(context)) Navigator.of(context).pop();
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Code envoyé avec succès !'),
+            SnackBar(
+              content: Text('code_sent_successfully'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
 
-          // 🔥 Navigation vers verification
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -110,9 +100,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
             ),
           );
         } else if (state is AuthError) {
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop();
-          }
+          if (Navigator.canPop(context)) Navigator.of(context).pop();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -135,10 +123,8 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
               ),
               child: Column(
                 children: [
-                  // 🔝 Header
                   Row(
                     children: [
-                      // Bouton retour
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Container(
@@ -155,31 +141,47 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                         ),
                       ),
                       const Spacer(),
-                      // Langue
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.language,
-                            color: AppColors.primary,
-                            size: AppConstants.iconSizeM,
+                      GestureDetector(
+                        onTap: () {
+                          final currentLocale = context.locale;
+                          if (currentLocale.languageCode == 'fr') {
+                            context.setLocale(const Locale('en'));
+                          } else {
+                            context.setLocale(const Locale('fr'));
+                          }
+                          setState(() {});
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Français',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                              fontSize: AppConstants.fontSizeM,
-                            ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.language,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // 🏢 Logo
                   Image.asset(
                     AppConstants.logoPath,
                     width: 100,
@@ -189,10 +191,9 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // 📝 Titre
-                  const Text(
-                    'Mot de passe oublié',
-                    style: TextStyle(
+                  Text(
+                    'forgot_password_title'.tr(),
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeXXL,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary,
@@ -201,11 +202,10 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingL),
 
-                  // 📄 Sous-titre
-                  const Text(
-                    'Entrer votre numéro de téléphone ou votre\nadresse email pour recevoir un OTP',
+                  Text(
+                    'enter_phone_or_email'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: AppConstants.fontSizeM,
                       color: AppColors.textSecondary,
                       height: 1.5,
@@ -214,16 +214,14 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  // 🔀 Toggle Téléphone / Email
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2F8), // Fond toggle exact Figma
+                      color: const Color(0xFFEEF2F8),
                       borderRadius: BorderRadius.circular(40),
                     ),
                     child: Row(
                       children: [
-                        // Téléphone
                         Expanded(
                           child: GestureDetector(
                             onTap: isLoading
@@ -264,7 +262,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Téléphone',
+                                    'phone_mode'.tr(),
                                     style: TextStyle(
                                       fontSize: AppConstants.fontSizeM,
                                       fontWeight: _isPhoneMode
@@ -281,7 +279,6 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                           ),
                         ),
 
-                        // Email
                         Expanded(
                           child: GestureDetector(
                             onTap: isLoading
@@ -322,7 +319,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Email',
+                                    'email_mode'.tr(),
                                     style: TextStyle(
                                       fontSize: AppConstants.fontSizeM,
                                       fontWeight: !_isPhoneMode
@@ -344,13 +341,12 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // 📱 Label
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       _isPhoneMode
-                          ? 'Numéro de téléphone'
-                          : 'Adresse email',
+                          ? 'phone_number_label'.tr()
+                          : 'email_address'.tr(),
                       style: const TextStyle(
                         fontSize: AppConstants.fontSizeM,
                         fontWeight: FontWeight.w600,
@@ -361,7 +357,6 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingS),
 
-                  // 📝 Input
                   TextField(
                     controller: _contactController,
                     keyboardType: _isPhoneMode
@@ -370,8 +365,8 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                     enabled: !isLoading,
                     decoration: InputDecoration(
                       hintText: _isPhoneMode
-                          ? 'Ex: 77 123 45 67'
-                          : 'exemple@email.com',
+                          ? 'phone_example'.tr()
+                          : 'email_example_full'.tr(),
                       hintStyle: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: AppConstants.fontSizeM,
@@ -409,7 +404,6 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  // 🟢 Bouton "Envoyer le code" (VERT comme Figma)
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -417,7 +411,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isLoading
                             ? AppColors.success.withValues(alpha:0.6)
-                            : AppColors.success, // 🔥 VERT
+                            : AppColors.success,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),
@@ -433,9 +427,9 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                                 strokeWidth: 2.5,
                               ),
                             )
-                          : const Text(
-                              'Envoyer le code',
-                              style: TextStyle(
+                          : Text(
+                              'send_code'.tr(),
+                              style: const TextStyle(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.white,

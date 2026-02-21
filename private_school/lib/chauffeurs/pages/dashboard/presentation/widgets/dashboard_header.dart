@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/unread_messages_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/unread_notifications_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
@@ -38,7 +39,7 @@ class DashboardHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bonjour,',
+                  'hello'.tr(),
                   style: TextStyle(
                     color: AppColors.white.withValues(alpha: 0.8),
                     fontSize: 14,
@@ -55,7 +56,7 @@ class DashboardHeader extends StatelessWidget {
                         ),
                       )
                     : Text(
-                        profile?.fullName ?? 'Chauffeur',
+                        profile?.fullName ?? 'driver'.tr(),
                         style: const TextStyle(
                           color: AppColors.white,
                           fontSize: 18,

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/google_maps_config.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -82,12 +83,12 @@ void initState() {
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_camera, color: AppColors.success),
-                  title: const Text('Prendre une photo'),
+                  title: Text('take_photo'.tr()),
                   onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_library, color: AppColors.success),
-                  title: const Text('Choisir depuis la galerie'),
+                  title: Text('choose_from_gallery'.tr()),
                   onTap: () => Navigator.pop(context, ImageSource.gallery),
                 ),
               ],
@@ -119,7 +120,7 @@ void initState() {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la sélection de l\'image: $e'),
+            content: Text('${'error_selecting_image'.tr()}: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -131,8 +132,8 @@ void initState() {
     // Validation basique
     if (_firstNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le prénom est obligatoire'),
+        SnackBar(
+          content: Text('first_name_required'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -141,8 +142,8 @@ void initState() {
 
     if (_lastNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le nom est obligatoire'),
+        SnackBar(
+          content: Text('last_name_required'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -151,8 +152,8 @@ void initState() {
 
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('L\'email est obligatoire'),
+        SnackBar(
+          content: Text('email_required'.tr()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -191,7 +192,7 @@ void initState() {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Informations personnelles',
+          'personal_information'.tr(),
           style: GoogleFonts.inter(
             fontSize: AppConstants.fontSizeXL,
             fontWeight: FontWeight.w600,
@@ -216,10 +217,10 @@ void initState() {
         listener: (context, state) {
           if (state is ProfilUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Profil mis à jour avec succès'),
+              SnackBar(
+                content: Text('profile_updated_success'.tr()),
                 backgroundColor: AppColors.success,
-                duration: Duration(seconds: 2),
+                duration: const Duration(seconds: 2),
               ),
             );
             setState(() {
@@ -230,10 +231,10 @@ void initState() {
 
           if (state is PhotoUploaded) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Photo mise à jour avec succès'),
+              SnackBar(
+                content: Text('photo_updated_success'.tr()),
                 backgroundColor: AppColors.success,
-                duration: Duration(seconds: 2),
+                duration: const Duration(seconds: 2),
               ),
             );
           }
@@ -257,15 +258,15 @@ void initState() {
             }
 
             if (state is PhotoUploading) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppColors.success),
-                    SizedBox(height: AppConstants.spacingXL),
+                    const CircularProgressIndicator(color: AppColors.success),
+                    const SizedBox(height: AppConstants.spacingXL),
                     Text(
-                      'Téléchargement de la photo...',
-                      style: TextStyle(
+                      'uploading_photo'.tr(),
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: AppConstants.fontSizeM,
                       ),
@@ -331,29 +332,29 @@ void initState() {
 
                     // Champs
                     _buildField(
-                      'Prénom',
+                      'first_name'.tr(),
                       _firstNameController,
                       user.firstName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
                     
                     _buildField(
-                      'Nom',
+                      'last_name'.tr(),
                       _lastNameController,
                       user.lastName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
                     
                     _buildField(
-                      'Téléphone',
+                      'phone'.tr(),
                       _phoneController,
-                      user.phone ?? 'Non renseigné',
+                      user.phone ?? 'not_specified'.tr(),
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
                     
                     _buildField(
-                      'Email',
+                      'email'.tr(),
                       _emailController,
                       user.email,
                       keyboardType: TextInputType.emailAddress,
@@ -361,9 +362,9 @@ void initState() {
                     const SizedBox(height: AppConstants.spacingXL),
                     
                     _buildAddressField(
-                      'Adresse',
+                      'address'.tr(),
                       _addressController,
-                      user.address ?? 'Non renseignée',
+                      user.address ?? 'not_provided'.tr(),
                     ),
 
                     const SizedBox(height: AppConstants.spacingXXXL),
@@ -392,7 +393,7 @@ void initState() {
                           elevation: 0,
                         ),
                         child: Text(
-                          _isEditMode ? 'Enregistrer' : 'Mettre à jour',
+                          _isEditMode ? 'save'.tr() : 'update'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: AppConstants.fontSizeL,
                             fontWeight: FontWeight.w600,
@@ -468,7 +469,7 @@ Widget _buildAddressField(
             inputDecoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 14),
-              hintText: 'Ex: Sacré Coeur, Dakar',
+              hintText: 'address_example'.tr(),
               hintStyle: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeL - 1,
                 color: AppColors.grey400,

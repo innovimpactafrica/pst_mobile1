@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/parents/pages/acceuil/data/services/driver_user_id_extractor.dart';
@@ -59,16 +60,16 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             String message = '';
             switch (state.action) {
               case 'archived':
-                message = 'Conversation archivée';
+                message = 'conversation_archived'.tr();
                 break;
               case 'unarchived':
-                message = 'Conversation désarchivée';
+                message = 'conversation_unarchived'.tr();
                 break;
               case 'muted':
-                message = 'Notifications désactivées';
+                message = 'notifications_disabled'.tr();
                 break;
               case 'unmuted':
-                message = 'Notifications activées';
+                message = 'notifications_enabled'.tr();
                 break;
             }
             
@@ -128,7 +129,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        _showArchived ? 'Conversations archivées' : 'Discussions',
+        _showArchived ? 'archived_conversations'.tr() : 'discussions'.tr(),
         style: GoogleFonts.inter(
           color: AppColors.white,
           fontSize: AppConstants.fontSizeXL,
@@ -161,23 +162,23 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'refresh',
               child: Row(
                 children: [
-                  Icon(Icons.refresh, size: 20),
-                  SizedBox(width: 12),
-                  Text('Actualiser'),
+                  const Icon(Icons.refresh, size: 20),
+                  const SizedBox(width: 12),
+                  Text('refresh'.tr()),
                 ],
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'settings',
               child: Row(
                 children: [
-                  Icon(Icons.settings, size: 20),
-                  SizedBox(width: 12),
-                  Text('Paramètres'),
+                  const Icon(Icons.settings, size: 20),
+                  const SizedBox(width: 12),
+                  Text('settings'.tr()),
                 ],
               ),
             ),
@@ -209,7 +210,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         },
         style: GoogleFonts.inter(color: AppColors.white),
         decoration: InputDecoration(
-          hintText: 'Rechercher une conversation...',
+          hintText: 'search_conversation'.tr(),
           hintStyle: GoogleFonts.inter(
             color: AppColors.white.withValues(alpha: 0.7),
           ),
@@ -298,7 +299,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
               leading: Icon(
                 conversation.isMuted ? Icons.volume_up : Icons.volume_off,
               ),
-              title: Text(conversation.isMuted ? 'Réactiver' : 'Mettre en sourdine'),
+              title: Text(conversation.isMuted ? 'unmute'.tr() : 'mute'.tr()),
               onTap: () {
                 Navigator.pop(context);
                 if (conversation.isMuted) {
@@ -316,7 +317,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
               leading: Icon(
                 conversation.isArchived ? Icons.unarchive : Icons.archive,
               ),
-              title: Text(conversation.isArchived ? 'Désarchiver' : 'Archiver'),
+              title: Text(conversation.isArchived ? 'unarchive'.tr() : 'archive'.tr()),
               onTap: () {
                 Navigator.pop(context);
                 if (conversation.isArchived) {
@@ -333,7 +334,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.cancel, color: AppColors.textSecondary),
-              title: const Text('Annuler'),
+              title: Text('cancel'.tr()),
               onTap: () => Navigator.pop(context),
             ),
           ],
@@ -385,7 +386,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                     ),
                     Expanded(
                       child: Text(
-                        'Nouvelle conversation',
+                        'new_conversation'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: AppConstants.fontSizeL,
                           fontWeight: FontWeight.bold,
@@ -432,8 +433,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             const SizedBox(height: AppConstants.spacingL),
             Text(
               _showArchived
-                  ? 'Aucune conversation archivée'
-                  : 'Aucune conversation',
+                  ? 'no_archived_conversations'.tr()
+                  : 'no_conversations'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeXL,
                 fontWeight: FontWeight.w600,
@@ -444,8 +445,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             const SizedBox(height: AppConstants.spacingS),
             Text(
               _showArchived
-                  ? 'Les conversations archivées apparaîtront ici'
-                  : 'Commencez une nouvelle conversation\nen appuyant sur le bouton +',
+                  ? 'archived_conversations_will_appear'.tr()
+                  : 'start_new_conversation'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeM,
                 color: AppColors.grey600,
@@ -472,7 +473,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             ),
             const SizedBox(height: AppConstants.spacingL),
             Text(
-              'Erreur',
+              'error'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeXL,
                 fontWeight: FontWeight.w600,
@@ -496,7 +497,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                     );
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text('retry'.tr()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
@@ -554,7 +555,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
             children: [
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('Conversation directe'),
+                  label: Text('direct_conversation'.tr()),
                   selected: !_isGroupMode,
                   onSelected: (selected) {
                     if (selected) {
@@ -569,7 +570,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
               const SizedBox(width: AppConstants.spacingS),
               Expanded(
                 child: ChoiceChip(
-                  label: const Text('Groupe'),
+                  label: Text('group'.tr()),
                   selected: _isGroupMode,
                   onSelected: (selected) {
                     if (selected) {
@@ -589,8 +590,8 @@ class _NewConversationContentState extends State<_NewConversationContent> {
             child: TextField(
               controller: _groupNameController,
               decoration: InputDecoration(
-                labelText: 'Nom du groupe',
-                hintText: 'Entrez le nom du groupe',
+                labelText: 'group_name'.tr(),
+                hintText: 'enter_group_name'.tr(),
                 prefixIcon: const Icon(Icons.group),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -605,7 +606,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Rechercher un chauffeur...',
+              hintText: 'search_driver'.tr(),
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -636,7 +637,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                         Icon(Icons.error_outline, size: 48, color: AppColors.error),
                         const SizedBox(height: 16),
                         Text(
-                          'Erreur lors du chargement',
+                          'loading_error'.tr(),
                           style: GoogleFonts.inter(
                             color: AppColors.error,
                             fontSize: 18,
@@ -674,8 +675,8 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                       const SizedBox(height: 16),
                       Text(
                         _searchController.text.isEmpty
-                            ? 'Aucun chauffeur disponible'
-                            : 'Aucun résultat',
+                            ? 'no_drivers_available'.tr()
+                            : 'no_results'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           color: AppColors.textSecondary,
@@ -685,7 +686,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                       if (_searchController.text.isEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
-                          'Réservez un trajet pour discuter\navec des chauffeurs',
+                          'book_trip_to_chat'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: AppColors.grey600,
@@ -759,7 +760,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Chauffeur',
+                          'role_driver'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: AppConstants.fontSizeS,
                             color: AppColors.textSecondary,
@@ -861,7 +862,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                   ),
                 ),
                 child: Text(
-                  'Créer le groupe (${_selectedMembers.length} ${_selectedMembers.length > 1 ? "membres" : "membre"})',
+                  'create_group_with_members'.tr(namedArgs: {'count': _selectedMembers.length.toString(), 'label': _selectedMembers.length > 1 ? 'members'.tr() : 'member'.tr()}),
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.bold,
@@ -904,7 +905,7 @@ Future<List<Map<String, dynamic>>> _getAllDrivers() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Veuillez entrer un nom de groupe',
+            'enter_group_name'.tr(),
             style: GoogleFonts.inter(fontWeight: FontWeight.w500),
           ),
           backgroundColor: AppColors.error,
@@ -920,7 +921,7 @@ Future<List<Map<String, dynamic>>> _getAllDrivers() async {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Veuillez sélectionner au moins 2 membres pour créer un groupe',
+            'select_at_least_2_members'.tr(),
             style: GoogleFonts.inter(fontWeight: FontWeight.w500),
           ),
           backgroundColor: AppColors.error,

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_state.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/notifications_page.dart';
@@ -50,9 +51,9 @@ class NotificationListTile extends StatelessWidget {
                 size: AppConstants.iconSizeM,
               ),
             ),
-            title: const Text(
-              AppConstants.labelNotifications,
-              style: TextStyle(
+            title: Text(
+              'notifications'.tr(),
+              style: const TextStyle(
                 fontSize: AppConstants.fontSizeL,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,

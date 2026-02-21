@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import 'package:private_school/parents/pages/acceuil/data/models/conversation_model.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
@@ -15,6 +16,7 @@ import '../../data/models/trip_model.dart';
 import '../widgets/review_page.dart';
 import '../widgets/passengers_list_modal.dart';
 import '../widgets/schools_list_modal.dart';
+import '../widgets/driver_details_modal.dart';
 // import '../widgets/realtime_trip_map.dart'; // TODO: À activer plus tard
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -164,7 +166,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                 ),
                 Expanded(
                   child: Text(
-                    'Dakar → ${widget.trip.destination}',
+                    '${widget.trip.departure} → ${widget.trip.destination}',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeM,
@@ -288,7 +290,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               elevation: 0,
             ),
             child: Text(
-              'Donner un avis',
+              'rate_your_experience'.tr(),
               style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeL,
                 fontWeight: FontWeight.w600,
@@ -308,10 +310,20 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   //    Toutes les erreurs null-safety corrigées
   // ══════════════════════════════════════════
   Widget _driverCard() {
-    // driver est DriverModel? — on accède toujours via ?.
     final driver = widget.trip.driver;
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        if (driver != null) {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (context) => DriverDetailsModal(driver: driver),
+          );
+        }
+      },
+      child: Container(
       padding: const EdgeInsets.all(AppConstants.spacingM),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -412,7 +424,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        driver.isActive ? 'Actif' : 'Inactif',
+                        driver.isActive ? 'active'.tr() : 'inactive'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -429,6 +441,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
 
           const Icon(Icons.chevron_right, color: AppColors.textGrey),
         ],
+      ),
       ),
     );
   }
@@ -476,7 +489,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           child: ElevatedButton.icon(
             onPressed: () => _callDriver(context),
             icon: const Icon(Icons.phone),
-            label: const Text('Appeler'),
+            label: Text('call'.tr()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,
               padding: const EdgeInsets.symmetric(
@@ -493,7 +506,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           child: OutlinedButton.icon(
             onPressed: _openChatWithDriver,
             icon: Icon(Icons.chat, color: AppColors.success),
-            label: Text('Message', style: TextStyle(color: AppColors.success)),
+            label: Text('message'.tr(), style: TextStyle(color: AppColors.success)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.success),
               padding: const EdgeInsets.symmetric(
@@ -523,7 +536,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       child: Column(
         children: [
           _tripPoint(
-            'Point de départ',
+            'departure_point'.tr(),
             widget.trip.departure,
             widget.trip.departureTime,
             AppColors.success,
@@ -531,7 +544,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           ),
           const SizedBox(height: AppConstants.spacingS),
           _tripPoint(
-            'Destination',
+            'arrival'.tr(),
             widget.trip.arrival,
             _calculateArrivalTime(),
             AppColors.error,
@@ -571,7 +584,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           style: TextStyle(color: AppColors.success),
         ),
         Text(
-          'Estimation ${_formatDuration()}',
+          '${'estimated_time'.tr()} ${_formatDuration()}',
           style: TextStyle(color: AppColors.textSecondary),
         ),
       ],
@@ -583,12 +596,12 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
   // ══════════════════════════════════════════
   Widget _passengersTile() => GestureDetector(
     onTap: _showPassengersList,
-    child: _simpleTile('${widget.trip.passengers.length} passager${widget.trip.passengers.length > 1 ? "s" : ""} inscrit${widget.trip.passengers.length > 1 ? "s" : ""}'),
+    child: _simpleTile('${widget.trip.passengers.length} ${'passengers'.tr()}'),
   );
 
   Widget _schoolsTile() => GestureDetector(
     onTap: _showSchoolsList,
-    child: _simpleTile('${widget.trip.schools.length} école${widget.trip.schools.length > 1 ? "s" : ""} desservie${widget.trip.schools.length > 1 ? "s" : ""}'),
+    child: _simpleTile('${widget.trip.schools.length} ${widget.trip.schools.length > 1 ? 'schools_served'.tr() : 'school_served'.tr()}'),
   );
 
   Widget _simpleTile(String text) {
@@ -622,7 +635,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Avis',
+              'reviews'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -674,7 +687,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Text(
-                'Aucun avis pour le moment',
+                'no_reviews'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.grey.shade500,
@@ -787,7 +800,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      eval.parentName ?? 'Anonyme',
+                      eval.parentName ?? 'unknown'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -859,7 +872,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Numéro de téléphone non disponible',
+            'phone_not_available'.tr(),
             style: GoogleFonts.inter(),
           ),
           backgroundColor: Colors.red,
@@ -876,7 +889,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Impossible d\'ouvrir l\'application téléphone',
+            'cannot_open_phone_app'.tr(),
             style: GoogleFonts.inter(),
           ),
           backgroundColor: AppColors.error,
@@ -900,7 +913,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Chauffeur non disponible', style: GoogleFonts.inter()),
+          content: Text('driver_not_available'.tr(), style: GoogleFonts.inter()),
           backgroundColor: AppColors.error,
         ),
       );
@@ -958,7 +971,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                     CircularProgressIndicator(color: AppColors.success),
                     const SizedBox(height: 16),
                     Text(
-                      'Ouverture de la conversation...',
+                      'loading'.tr(),
                       style: GoogleFonts.inter(),
                     ),
                   ],
@@ -1048,7 +1061,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Impossible d\'ouvrir la conversation: $e',
+            'chat_error'.tr(),
             style: GoogleFonts.inter(),
           ),
           backgroundColor: AppColors.error,

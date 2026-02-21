@@ -1,5 +1,4 @@
-
-
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/notification_repository.dart';
 import 'notification_event.dart';
@@ -23,12 +22,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     try {
       final notifications = await repository.getNotifications();
       final unreadCount = notifications.where((n) => !n.isRead).length;
-
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
+      debugPrint('✅ [NotificationBloc] ${notifications.length} notifs, $unreadCount non lues');
+      emit(NotificationLoaded(notifications: notifications, unreadCount: unreadCount));
     } catch (e) {
+      debugPrint('❌ [NotificationBloc] Erreur: $e');
       emit(NotificationError(e.toString()));
     }
   }
@@ -37,19 +34,29 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     MarkNotificationAsReadEvent event,
     Emitter<NotificationState> emit,
   ) async {
+    // ✅ 1. Mise à jour immédiate en local
+    if (state is NotificationLoaded) {
+      final current = state as NotificationLoaded;
+      final updated = current.notifications.map((n) {
+        if (n.id == event.notificationId) return n.copyWith(isRead: true);
+        return n;
+      }).toList();
+      emit(NotificationLoaded(
+        notifications: updated,
+        unreadCount: updated.where((n) => !n.isRead).length,
+      ));
+    }
+
+    // ✅ 2. Appel API + rechargement backend
     try {
       await repository.markAsRead(event.notificationId);
-
-      // Reload notifications after marking as read
-      final notifications = await repository.getNotifications();
-      final unreadCount = notifications.where((n) => !n.isRead).length;
-
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
+      debugPrint('✅ [NotificationBloc] Notification ${event.notificationId} lue sur serveur');
+      final fresh = await repository.getNotifications();
+      final unreadCount = fresh.where((n) => !n.isRead).length;
+      debugPrint('🔄 [NotificationBloc] Après markAsRead: $unreadCount non lues');
+      emit(NotificationLoaded(notifications: fresh, unreadCount: unreadCount));
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      debugPrint('⚠️ [NotificationBloc] Erreur mark-read (non bloquant): $e');
     }
   }
 
@@ -59,18 +66,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     try {
       await repository.deleteNotification(event.notificationId);
-
-      // Reload notifications after deletion
+      emit(const NotificationActionSuccess('Notification supprimée'));
       final notifications = await repository.getNotifications();
       final unreadCount = notifications.where((n) => !n.isRead).length;
-
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
-
-      emit(const NotificationActionSuccess('Notification supprimée'));
+      emit(NotificationLoaded(notifications: notifications, unreadCount: unreadCount));
     } catch (e) {
+      debugPrint('❌ [NotificationBloc] Erreur suppression: $e');
       emit(NotificationError(e.toString()));
     }
   }
@@ -82,12 +83,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     try {
       final notifications = await repository.getNotifications();
       final unreadCount = notifications.where((n) => !n.isRead).length;
-
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
+      debugPrint('🔄 [NotificationBloc] Refresh: $unreadCount non lues');
+      emit(NotificationLoaded(notifications: notifications, unreadCount: unreadCount));
     } catch (e) {
+      debugPrint('❌ [NotificationBloc] Erreur refresh: $e');
       emit(NotificationError(e.toString()));
     }
   }

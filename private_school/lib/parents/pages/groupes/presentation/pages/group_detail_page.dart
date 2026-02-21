@@ -456,101 +456,169 @@ if (pendingReplacements.isNotEmpty)
   );
 }
 
-  Widget _buildPendingReplacementCard(
+Widget _buildPendingReplacementCard(
   BuildContext context,
   Planning planning,
   GroupModel group,
   bool isMyRequest,
 ) {
-    String dateStr;
-    try {
-      dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
-      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
-    } catch (e) {
-      dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
-      dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
-    }
+  String dateStr;
+  try {
+    dateStr = DateFormat('EEE. dd MMMM', 'fr_FR').format(planning.date);
+    dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+  } catch (e) {
+    dateStr = DateFormat('EEE. dd MMMM').format(planning.date);
+    dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+  }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  final requesterName = planning.replacementRequesterName ?? planning.driverName ?? 'Quelqu\'un';
+
+  return Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ✅ Ligne : icône ⚠️ + date + check vert (si c'est ma demande)
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange.shade600,
+                  size: 22,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dateStr,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    requesterName,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // ✅ Check vert si c'est ma propre demande (déjà envoyée)
+            if (isMyRequest)
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: AppColors.success,
+                  size: 18,
+                ),
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // ✅ Badge "Remplacement demandé"
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange.shade100),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.warning_amber, color: Colors.orange.shade700),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isMyRequest
-                          ? 'Demande de remplacement en attente'
-                          : 'Remplacement demandé',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.orange.shade900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      dateStr,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.orange.shade800,
-                      ),
-                    ),
-                  ],
+              Icon(Icons.sync, color: Colors.orange.shade600, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'Remplacement demandé',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange.shade700,
                 ),
               ),
             ],
           ),
-          if (!isMyRequest) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<GroupBloc>(),
-                      child: RespondReplacementModal(planning: planning),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+        ),
+
+        // ✅ Bouton "Remplacer ma journée" seulement si c'est PAS ma demande
+        if (!isMyRequest) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<GroupBloc>(),
+                    child: RespondReplacementModal(planning: planning),
                   ),
-                ),
-                child: Text(
-                  'Répondre',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+                );
+              },
+              icon: const Icon(Icons.check_circle_outline, size: 18),
+              label: Text(
+                'Remplacer ma journée',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
             ),
-          ],
+          ),
         ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
   Widget _buildPlanningCard(
     BuildContext context,

@@ -105,8 +105,7 @@ class SubscriptionCard extends StatelessWidget {
                     ),
                     onPressed: onSelect,
                     child: Text(
-                    'subscription.select'.tr(),
-
+                    'select'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -132,8 +131,7 @@ class SubscriptionCard extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
       ),
      child: Text(
-  'subscription.recommended'.tr(),
-
+  'recommended'.tr(),
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 12,

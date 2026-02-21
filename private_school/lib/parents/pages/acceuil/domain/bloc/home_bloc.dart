@@ -10,7 +10,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   // ✅ Cache des IDs des trajets réservés
   Set<String> _reservedTripIds = {};
 
-  HomeBloc({required this.repository}) : super(HomeInitial()) {
+HomeBloc({required this.repository}) : super(HomeLoading()) {
     on<LoadDriversEvent>(_onLoadDrivers);
     on<SearchTripsEvent>(_onSearchTrips);
     on<FilterTripsEvent>(_onFilterTrips);

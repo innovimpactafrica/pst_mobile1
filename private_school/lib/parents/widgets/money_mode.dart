@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 
 class PaymentModal extends StatefulWidget {
-  final VoidCallback? onClose; // ✅ callback vers MdpOubliePage
+  final VoidCallback? onClose;
 
   const PaymentModal({super.key, this.onClose});
 
@@ -45,13 +46,12 @@ class _PaymentModalState extends State<PaymentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === HEADER ===
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Flexible(
                         child: Text(
-                          "Paiement de l'abonnement",
+                          'subscription_payment'.tr(),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -64,9 +64,8 @@ class _PaymentModalState extends State<PaymentModal> {
                         onPressed: () {
                           Navigator.pop(context);
                           if (widget.onClose != null){
-                                 widget.onClose!(); // ✅ notifier MdpOubliePage
+                                 widget.onClose!();
                           }
-                           
                         },
                       ),
                     ],
@@ -74,7 +73,6 @@ class _PaymentModalState extends State<PaymentModal> {
 
                   const SizedBox(height: 20),
 
-                  // === DÉTAILS ABONNEMENT ===
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -88,15 +86,15 @@ class _PaymentModalState extends State<PaymentModal> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Abonnement Annuelle",
-                              style: TextStyle(
+                            Text(
+                              'annual_subscription'.tr(),
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             Text(
-                              "Facturation annuelle",
+                              'annual_billing'.tr(),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
@@ -117,7 +115,6 @@ class _PaymentModalState extends State<PaymentModal> {
 
                   const SizedBox(height: 25),
 
-                  // === Onglets Carte / Mobile Money ===
                   Row(
                     children: [
                       Expanded(
@@ -127,7 +124,7 @@ class _PaymentModalState extends State<PaymentModal> {
                             'assets/icons/7.svg',
                             width: 18,
                           ),
-                          label: const Text("Carte bancaire"),
+                          label: Text('bank_card'.tr()),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: isCard
                                 ? AppColors.primary.withValues(alpha: 0.1)
@@ -148,7 +145,7 @@ class _PaymentModalState extends State<PaymentModal> {
                         child: OutlinedButton.icon(
                           onPressed: () => setState(() => isCard = false),
                           icon: const Icon(Icons.phone_android_outlined),
-                          label: const Text("Mobile money"),
+                          label: Text('mobile_money'.tr()),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: !isCard
                                 ? AppColors.primary.withValues(alpha: 0.1)
@@ -169,13 +166,12 @@ class _PaymentModalState extends State<PaymentModal> {
 
                   const SizedBox(height: 25),
 
-                  // === Contenu dynamique ===
                   if (isCard) _buildCardForm() else _buildMobileMoney(),
 
                   const SizedBox(height: 25),
 
                   Text(
-                    "En effectuant ce paiement, vous acceptez nos conditions générales d’utilisation et notre politique de confidentialité.",
+                    'payment_terms'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
@@ -188,33 +184,32 @@ class _PaymentModalState extends State<PaymentModal> {
     );
   }
 
-  // === Formulaire Carte bancaire (labels au-dessus) ===
   Widget _buildCardForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Nom sur la carte",
-          style: TextStyle(fontWeight: FontWeight.w600),
+        Text(
+          'cardholder_name'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
         TextField(
           decoration: InputDecoration(
-            hintText: "Lamine wade",
+            hintText: 'cardholder_name_example'.tr(),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
 
         const SizedBox(height: 16),
 
-        const Text(
-          "Numéro de carte",
-          style: TextStyle(fontWeight: FontWeight.w600),
+        Text(
+          'card_number'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 6),
         TextField(
           decoration: InputDecoration(
-            hintText: "1234 5678 9012 3456",
+            hintText: 'card_number_example'.tr(),
             prefixIcon: const Icon(Icons.credit_card),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
@@ -228,14 +223,14 @@ class _PaymentModalState extends State<PaymentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Date d’expiration",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  Text(
+                    'expiry_date'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
                   TextField(
                     decoration: InputDecoration(
-                      hintText: "MM/AA",
+                      hintText: 'expiry_date_format'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -249,14 +244,14 @@ class _PaymentModalState extends State<PaymentModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "CVV",
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  Text(
+                    'cvv'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
                   TextField(
                     decoration: InputDecoration(
-                      hintText: "123",
+                      hintText: 'cvv_example'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -281,9 +276,9 @@ class _PaymentModalState extends State<PaymentModal> {
               ),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "Payer",
-              style: TextStyle(color: AppColors.white, fontSize: 16),
+            child: Text(
+              'pay'.tr(),
+              style: const TextStyle(color: AppColors.white, fontSize: 16),
             ),
           ),
         ),
@@ -291,7 +286,6 @@ class _PaymentModalState extends State<PaymentModal> {
     );
   }
 
-  // === Mobile Money ===
   Widget _buildMobileMoney() {
     return GridView.count(
       shrinkWrap: true,

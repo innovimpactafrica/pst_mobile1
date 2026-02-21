@@ -123,6 +123,12 @@ class ApiConstants {
   // Incidents
   static const String incidents = '/api/incidents';
 
+  // ==================== NOTIFICATIONS ENDPOINTS ====================
+  
+  static const String notifications = '/api/notifications/user';
+  static String notificationMarkAsRead(int id) => '/api/notifications/$id/read';
+  static String notificationDelete(int id) => '/api/notifications/$id';
+
   // ==================== HEADERS ====================
   
   static const String contentType = 'application/json';

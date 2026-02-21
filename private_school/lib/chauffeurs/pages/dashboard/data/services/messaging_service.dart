@@ -1,29 +1,33 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../../../../core/services/api_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:private_school/core/storage/secure_storage.dart';
+import 'package:private_school/core/utils/base_url.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 
 class MessagingService {
-  final ApiService _apiService = ApiService();
+  final SecureStorage _storage = SecureStorage();
 
-  /// Récupérer toutes les conversations du chauffeur
   Future<List<ConversationModel>> getConversations() async {
     try {
-      debugPrint('📡 [MessagingService] Récupération conversations chauffeur...');
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations');
       
-      final response = await _apiService.get('/driver/conversations');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
       
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> conversationsData = response['data'];
-        final conversations = conversationsData
-            .map((data) => ConversationModel.fromJson(data))
-            .toList();
-        
-        debugPrint('✅ [MessagingService] ${conversations.length} conversations récupérées');
-        return conversations;
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> conversationsJson = data is List ? data : (data['data'] ?? data['conversations'] ?? []);
+        return conversationsJson.map((json) => ConversationModel.fromJson(json as Map<String, dynamic>)).toList();
       }
-      
-      debugPrint('⚠️ [MessagingService] Aucune conversation trouvée');
       return [];
     } catch (e) {
       debugPrint('❌ [MessagingService] Erreur conversations: $e');
@@ -31,26 +35,63 @@ class MessagingService {
     }
   }
 
-  /// Récupérer les messages d'une conversation
-  Future<List<MessageModel>> getMessages(String conversationId) async {
+  Future<ConversationModel?> createOrGetDirectConversation({
+    required int otherUserId,
+    String? initialMessage,
+  }) async {
     try {
-      debugPrint('📡 [MessagingService] Récupération messages conversation $conversationId...');
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations');
       
-      final response = await _apiService.get('/driver/conversations/$conversationId/messages');
+      final requestBody = <String, dynamic>{
+        'other_user_id': otherUserId,
+      };
       
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> messagesData = response['data'];
-        final messages = messagesData
-            .map((data) => MessageModel.fromJson(data))
-            .toList();
-        
-        // Trier par date (plus récent en bas)
-        messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        
-        debugPrint('✅ [MessagingService] ${messages.length} messages récupérés');
-        return messages;
+      if (initialMessage != null && initialMessage.trim().isNotEmpty) {
+        requestBody['initial_message'] = initialMessage.trim();
       }
       
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(requestBody),
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final conversationJson = data['data'] ?? data['conversation'] ?? data;
+        return ConversationModel.fromJson(conversationJson);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('❌ [MessagingService] Erreur création: $e');
+      return null;
+    }
+  }
+
+  Future<List<MessageModel>> getMessages(int conversationId) async {
+    try {
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages');
+      
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> messagesJson = data is List ? data : (data['data'] ?? data['messages'] ?? []);
+        return messagesJson.map((json) => MessageModel.fromJson(json as Map<String, dynamic>)).toList();
+      }
       return [];
     } catch (e) {
       debugPrint('❌ [MessagingService] Erreur messages: $e');
@@ -58,67 +99,129 @@ class MessagingService {
     }
   }
 
-  /// Envoyer un message
-  Future<bool> sendMessage(String conversationId, String content) async {
+  Future<MessageModel?> sendMessage({
+    required int conversationId,
+    required String content,
+    int? replyToId,
+  }) async {
     try {
-      debugPrint('📡 [MessagingService] Envoi message...');
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages');
       
-      final response = await _apiService.post('/driver/conversations/$conversationId/messages', {
+      final body = {
         'content': content,
-      });
+        if (replyToId != null) 'parent_message_id': replyToId,
+      };
       
-      if (response['success'] == true) {
-        debugPrint('✅ [MessagingService] Message envoyé avec succès');
-        return true;
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(body),
+      );
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final messageJson = data['data'] ?? data['message'] ?? data;
+        return MessageModel.fromJson(messageJson);
       }
-      
-      debugPrint('❌ [MessagingService] Échec envoi message');
-      return false;
+      return null;
     } catch (e) {
       debugPrint('❌ [MessagingService] Erreur envoi: $e');
-      return false;
+      return null;
     }
   }
 
-  /// Marquer une conversation comme lue
-  Future<bool> markConversationAsRead(String conversationId) async {
+  Future<MessageModel?> updateMessage({
+    required int conversationId,
+    required int messageId,
+    required String content,
+  }) async {
     try {
-      debugPrint('📡 [MessagingService] Marquage conversation $conversationId comme lue...');
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId');
       
-      final response = await _apiService.post('/driver/conversations/$conversationId/mark-read', {});
+      final response = await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'content': content}),
+      );
       
-      if (response['success'] == true) {
-        debugPrint('✅ [MessagingService] Conversation marquée comme lue');
-        return true;
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final messageJson = data['data'] ?? data['message'] ?? data;
+        return MessageModel.fromJson(messageJson);
       }
-      
-      return false;
+      return null;
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur marquage: $e');
-      return false;
+      debugPrint('❌ [MessagingService] Erreur modification: $e');
+      return null;
     }
   }
 
-  /// Créer une nouvelle conversation avec un parent
-  Future<ConversationModel?> createConversation(String parentId) async {
+  Future<void> deleteMessage({
+    required int conversationId,
+    required int messageId,
+  }) async {
     try {
-      debugPrint('📡 [MessagingService] Création conversation avec parent $parentId...');
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId');
       
-      final response = await _apiService.post('/driver/conversations', {
-        'participant_id': parentId,
-        'participant_type': 'parent',
-      });
-      
-      if (response['success'] == true && response['data'] != null) {
-        final conversation = ConversationModel.fromJson(response['data']);
-        debugPrint('✅ [MessagingService] Conversation créée: ${conversation.id}');
-        return conversation;
-      }
-      
-      return null;
+      await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur création conversation: $e');
-      return null;
+      debugPrint('❌ [MessagingService] Erreur suppression: $e');
+    }
+  }
+
+ Future<void> markConversationAsRead(int conversationId) async {
+  try {
+    final token = await _storage.getAccessToken();
+    final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/read');
+    
+    await http.patch( // ← était POST, maintenant PATCH
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+    debugPrint('✅ [MessagingService Chauffeur] Messages marqués comme lus');
+  } catch (e) {
+    debugPrint('⚠️ [MessagingService Chauffeur] Erreur marquage: $e');
+  }
+}
+
+  Future<void> toggleArchiveConversation(int conversationId, bool archive) async {
+    try {
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/archive');
+      
+      await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode({'archived': archive}),
+      );
+    } catch (e) {
+      debugPrint('❌ [MessagingService] Erreur archivage: $e');
     }
   }
 }

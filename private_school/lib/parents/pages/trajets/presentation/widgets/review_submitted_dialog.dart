@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ReviewSubmittedDialog extends StatefulWidget {
   const ReviewSubmittedDialog({super.key});
@@ -46,7 +47,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
 
                 // TITRE
                 Text(
-                  'Merci pour votre feedback !',
+                  'thank_you_feedback'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -65,7 +66,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Votre avis est précieux pour nous aider à améliorer notre service.',
+                    'feedback_message'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -79,7 +80,7 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
 
                 // Message de fermeture automatique
                 Text(
-                  'Fermeture automatique dans 3 secondes...',
+                  'auto_close_message'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: Colors.grey.shade500,

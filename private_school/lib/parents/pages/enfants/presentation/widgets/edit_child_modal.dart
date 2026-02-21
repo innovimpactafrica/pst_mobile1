@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 import 'package:private_school/parents/pages/school/data/services/school_service.dart';
 import 'package:private_school/parents/widgets/address_picker_widget.dart';
@@ -102,8 +103,8 @@ class _EditChildModalState extends State<EditChildModal> {
     if (_formKey.currentState!.validate()) {
       if (_selectedSchool == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez sélectionner une école dans la liste'),
+          SnackBar(
+            content: Text('select_school_from_list'.tr()),
             backgroundColor: AppColors.error,
           ),
         );
@@ -180,27 +181,27 @@ class _EditChildModalState extends State<EditChildModal> {
                     const SizedBox(height: 24),
                     
                     // ===== INFORMATIONS ENFANT =====
-                    _buildSectionTitle('Informations de l\'enfant'),
+                    _buildSectionTitle('child_information'.tr()),
                     const SizedBox(height: 12),
                     _buildTextField(
                       controller: _firstNameController,
-                      label: 'Prénom',
-                      hint: 'Ex: Ornella',
+                      label: 'first_name'.tr(),
+                      hint: 'first_name_example'.tr(),
                       icon: Icons.person_outline,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: _lastNameController,
-                      label: 'Nom',
-                      hint: 'Ex: Diop',
+                      label: 'last_name'.tr(),
+                      hint: 'last_name_example'.tr(),
                       icon: Icons.person,
                     ),
                     const SizedBox(height: 16),
                     AddressPickerWidget(
                       controller: _addressController,
                       googleApiKey: GoogleMapsConfig.apiKey,
-                      label: 'Adresse de l\'enfant',
-                      hint: 'Ex: Ouakam cité avions',
+                      label: 'child_address'.tr(),
+                      hint: 'child_address_example'.tr(),
                       onLocationSelected: (lat, lng) {
                         // Coordonnées reçues mais non utilisées pour l'instant
                       },
@@ -210,7 +211,7 @@ class _EditChildModalState extends State<EditChildModal> {
                     const Divider(),
                     const SizedBox(height: 24),
                     
-                    _buildSectionTitle('Informations de l\'école'),
+                    _buildSectionTitle('school_information'.tr()),
                     const SizedBox(height: 12),
                     _loadingSchools
                         ? const Center(child: CircularProgressIndicator())
@@ -222,14 +223,14 @@ class _EditChildModalState extends State<EditChildModal> {
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: const Color(0xFFF59E0B)),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
-                                    Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
-                                    SizedBox(width: 12),
+                                    const Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        'Aucune école disponible. Veuillez contacter l\'administrateur.',
-                                        style: TextStyle(
+                                        'no_schools_available_message'.tr(),
+                                        style: const TextStyle(
                                           color: Color(0xFFF59E0B),
                                           fontSize: 13,
                                         ),
@@ -239,8 +240,8 @@ class _EditChildModalState extends State<EditChildModal> {
                                 ),
                               )
                             : SchoolAutocompleteField(
-                                label: 'Nom de l\'école',
-                                hint: 'Ex: Lycée Jean Mermoz',
+                                label: 'school_name'.tr(),
+                                hint: 'school_name_example'.tr(),
                                 controller: _schoolNameController,
                                 schools: _schools,
                                 enabled: !_isLoading,
@@ -313,7 +314,7 @@ class _EditChildModalState extends State<EditChildModal> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Modifier un enfant',
+          'edit_child'.tr(),
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -363,7 +364,7 @@ class _EditChildModalState extends State<EditChildModal> {
             ),
             if (!required)
               Text(
-                ' (optionnel)',
+                ' (${'optional'.tr()})',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   color: Colors.grey.shade500,
@@ -416,7 +417,7 @@ class _EditChildModalState extends State<EditChildModal> {
           validator: required
               ? (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ce champ est requis';
+                    return 'field_required'.tr();
                   }
                   return null;
                 }
@@ -450,7 +451,7 @@ class _EditChildModalState extends State<EditChildModal> {
                 ),
               )
             : Text(
-                'Mettre à jour',
+                'update'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

@@ -51,6 +51,22 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> put(String endpoint, {Map<String, dynamic>? data}) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('${BaseUrl.baseUrl}$endpoint'),
+        headers: headers,
+        body: data != null ? json.encode(data) : null,
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('❌ [ApiService] PUT Error: $e');
+      return {'success': false, 'message': 'Erreur de connexion'};
+    }
+  }
+
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
       final headers = await _getHeaders();

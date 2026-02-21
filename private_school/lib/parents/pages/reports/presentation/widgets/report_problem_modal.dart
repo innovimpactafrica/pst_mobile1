@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/reports/data/models/report_model.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
@@ -50,12 +51,12 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
   }
 
   final List<Map<String, String>> _problemTypes = [
-    {'value': 'Problème technique', 'api': 'incident'},
-    {'value': 'Problème de trajet', 'api': 'incident'},
-    {'value': 'Problème de paiement', 'api': 'litige'},
-    {'value': 'Problème de passager', 'api': 'litige'},
-    {'value': 'Problème de sécurité', 'api': 'securite'},
-    {'value': 'Autre', 'api': 'incident'},
+    {'value': 'technical_problem'.tr(), 'api': 'incident'},
+    {'value': 'trip_problem'.tr(), 'api': 'incident'},
+    {'value': 'payment_problem'.tr(), 'api': 'litige'},
+    {'value': 'passenger_problem'.tr(), 'api': 'litige'},
+    {'value': 'security_problem'.tr(), 'api': 'securite'},
+    {'value': 'other'.tr(), 'api': 'incident'},
   ];
 
   @override
@@ -84,7 +85,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                     color: AppColors.primary,
                   ),
                   title: Text(
-                    'Prendre une photo',
+                    'take_photo'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeM,
                       fontWeight: FontWeight.w500,
@@ -101,7 +102,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                     color: AppColors.primary,
                   ),
                   title: Text(
-                    'Choisir depuis la galerie',
+                    'choose_from_gallery'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeM,
                       fontWeight: FontWeight.w500,
@@ -118,7 +119,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                     color: AppColors.primary,
                   ),
                   title: Text(
-                    'Choisir un fichier',
+                    'choose_file_label'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeM,
                       fontWeight: FontWeight.w500,
@@ -135,7 +136,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         ),
       );
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la sélection du fichier');
+      _showErrorSnackBar('file_selection_error'.tr());
     }
   }
 
@@ -154,7 +155,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la prise de photo');
+      _showErrorSnackBar('camera_error'.tr());
     }
   }
 
@@ -173,7 +174,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la sélection de l\'image');
+      _showErrorSnackBar('image_selection_error'.tr());
     }
   }
 
@@ -190,7 +191,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         final fileSize = await file.length();
 
         if (fileSize > 10 * 1024 * 1024) {
-          _showErrorSnackBar('Le fichier est trop volumineux (max 10 MB)');
+          _showErrorSnackBar('file_too_large'.tr());
           return;
         }
 
@@ -199,7 +200,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la sélection du document');
+      _showErrorSnackBar('document_selection_error'.tr());
     }
   }
 
@@ -232,17 +233,17 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
   Future<void> _submitReport() async {
     // Validation
     if (_selectedProblemType == null) {
-      _showErrorSnackBar('Veuillez sélectionner un type de problème');
+      _showErrorSnackBar('please_select_problem_type'.tr());
       return;
     }
     if (_descriptionController.text.trim().isEmpty) {
-      _showErrorSnackBar('Veuillez décrire le problème');
+      _showErrorSnackBar('please_describe_problem'.tr());
       return;
     }
 
     // Les fichiers sont obligatoires UNIQUEMENT en mode création
     if (!isEditMode && _selectedFiles.isEmpty) {
-      _showErrorSnackBar('Veuillez ajouter au moins un document');
+      _showErrorSnackBar('please_add_document'.tr());
       return;
     }
 
@@ -279,7 +280,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             );
       }
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la préparation du signalement');
+      _showErrorSnackBar('report_preparation_error'.tr());
       setState(() {
         _isUploading = false;
       });
@@ -297,8 +298,8 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
           Navigator.pop(context);
           _showSuccessSnackBar(
             isEditMode
-                ? 'Signalement modifié avec succès'
-                : 'Signalement créé avec succès',
+                ? 'report_updated_successfully'.tr()
+                : 'report_created_successfully'.tr(),
           );
         } else if (state is ReportError) {
           setState(() {
@@ -350,7 +351,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          isEditMode ? 'Modifier le signalement' : 'Signaler un problème',
+          isEditMode ? 'edit_report'.tr() : 'report_problem'.tr(),
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -372,7 +373,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Type de problème',
+          'problem_type'.tr(),
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -395,7 +396,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             child: DropdownButton<String>(
               value: _selectedProblemType,
               hint: Text(
-                'Sélectionner',
+                'select'.tr(),
                 style: GoogleFonts.inter(
                   color: AppColors.textSecondary,
                   fontSize: AppConstants.fontSizeM,
@@ -435,7 +436,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Description',
+          'description'.tr(),
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -451,7 +452,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
-            hintText: 'Ex. lorem ipsum',
+            hintText: 'description_example'.tr(),
             hintStyle: GoogleFonts.inter(
               color: AppColors.textSecondary.withValues(alpha: 0.5),
               fontSize: AppConstants.fontSizeM,
@@ -492,7 +493,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
         Row(
           children: [
             Text(
-              'Documents',
+              'documents'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -503,7 +504,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             if (isEditMode) ...[
               const SizedBox(width: 8),
               Text(
-                '(optionnel - pour remplacer)',
+                '(optional_replace)'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   color: AppColors.textSecondary,
@@ -528,6 +529,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
           onTap: _isUploading ? null : _pickFile,
           borderRadius: BorderRadius.circular(12),
           child: Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppColors.white,
@@ -546,7 +548,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Choisissez un fichier',
+                  'choose_file'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -555,7 +557,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Formats : .PNG, .JPEG, .PDF. Taille : 10 MB',
+                  'formats'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: AppColors.textSecondary.withValues(alpha: 0.6),
@@ -575,7 +577,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                     ),
                   ),
                   child: Text(
-                    'Parcourir le fichier',
+                    'browse_file'.tr(),
                     style: GoogleFonts.inter(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -700,7 +702,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 ),
               )
             : Text(
-                isEditMode ? 'Modifier' : 'Envoyer',
+                isEditMode ? 'edit'.tr() : 'send'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

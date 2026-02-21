@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/trip_model.dart';
 import '../pages/trip_tracking_page.dart';
 
@@ -30,7 +31,7 @@ class PaymentSuccessDialog extends StatelessWidget {
             const SizedBox(height: 24),
             // TITRE
             Text(
-              'Paiement effectué avec succès',
+              'payment_successful'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -41,7 +42,7 @@ class PaymentSuccessDialog extends StatelessWidget {
             const SizedBox(height: 12),
             // MESSAGE
             Text(
-              'Votre réservation a été confirmée. Vous pouvez maintenant suivre le trajet en temps réel.',
+              'reservation_confirmed_message'.tr(),
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: Colors.grey.shade600,
@@ -75,7 +76,7 @@ class PaymentSuccessDialog extends StatelessWidget {
                   elevation: 0,
                 ),
                 child: Text(
-                  'Suivre le trajet',
+                  'track_trip'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

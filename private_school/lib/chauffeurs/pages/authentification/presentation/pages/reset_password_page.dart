@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../domain/bloc/driver_auth_bloc.dart';
 import '../../domain/bloc/driver_auth_event.dart';
@@ -41,8 +42,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     if (password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez remplir tous les champs'),
+        SnackBar(
+          content: Text('please_fill_all_fields'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -51,8 +52,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     if (password.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le mot de passe doit contenir au moins 8 caractères'),
+        SnackBar(
+          content: Text('password_min_8_chars'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -61,8 +62,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Les mots de passe ne correspondent pas'),
+        SnackBar(
+          content: Text('passwords_do_not_match'.tr()),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -100,8 +101,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Mot de passe réinitialisé avec succès !'),
+            SnackBar(
+              content: Text('password_reset_success'.tr()),
               backgroundColor: AppColors.success,
             ),
           );
@@ -133,8 +134,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
               onPressed: isLoading ? null : () => Navigator.pop(context),
             ),
-            title: const Text(
-              'Nouveau mot de passe',
+            title: Text(
+              'new_password'.tr(),
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -155,8 +156,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   const SizedBox(height: 30),
 
                   // Title
-                  const Text(
-                    'Créer un nouveau mot de passe',
+                  Text(
+                    'create_password'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
@@ -168,8 +169,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   const SizedBox(height: 12),
 
                   // Subtitle
-                  const Text(
-                    'Votre nouveau mot de passe doit être\ndifférent de l\'ancien',
+                  Text(
+                    'choose_secure_password'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -183,8 +184,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   // Password Field
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Nouveau mot de passe',
+                    child: Text(
+                      'new_password'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -198,7 +199,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                     obscureText: _obscurePassword,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: 'Minimum 8 caractères',
+                      hintText: 'password_min_8_chars'.tr(),
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -233,8 +234,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   // Confirm Password Field
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Confirmer le mot de passe',
+                    child: Text(
+                      'confirm_new_password'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -248,7 +249,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                     obscureText: _obscureConfirmPassword,
                     enabled: !isLoading,
                     decoration: InputDecoration(
-                      hintText: 'Ressaisissez le mot de passe',
+                      hintText: 'password_placeholder'.tr(),
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary.withValues(alpha: 0.5),
                       ),
@@ -297,8 +298,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       onPressed: isLoading ? null : _submit,
                       child: isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Réinitialiser le mot de passe',
+                          : Text(
+                              'reset_password'.tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
