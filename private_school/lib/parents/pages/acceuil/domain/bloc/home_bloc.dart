@@ -6,11 +6,9 @@ import 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository repository;
-  
-  // ✅ Cache des IDs des trajets réservés
   Set<String> _reservedTripIds = {};
 
-HomeBloc({required this.repository}) : super(HomeLoading()) {
+HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadDriversEvent>(_onLoadDrivers);
     on<SearchTripsEvent>(_onSearchTrips);
     on<FilterTripsEvent>(_onFilterTrips);

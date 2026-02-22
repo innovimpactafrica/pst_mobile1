@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
-import 'package:private_school/core/utils/app_constants.dart';
 
 class TripFilterModal extends StatefulWidget {
   final Function(TripFilters) onApplyFilters;

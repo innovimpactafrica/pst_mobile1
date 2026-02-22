@@ -253,12 +253,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
       );
     }
     
-    return const SizedBox(
-      height: 280,
-      child: Center(
-        child: CircularProgressIndicator(color: AppColors.success),
-      ),
-    );
+    return const SizedBox.shrink();
   },
 ),
                          SizedBox(height: MediaQuery.of(context).padding.bottom + 90),

@@ -67,8 +67,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('✅ BLoC: Login result: $result');
 
       if (result['success'] == true && result['user'] != null) {
-await SecureStorage().saveUserRole('parent');
-emit(AuthAuthenticated(user: result['user'], message: 'Connexion réussie'));
+        await SecureStorage().saveUserRole('parent');
         emit(
           AuthAuthenticated(user: result['user'], message: 'Connexion réussie'),
         );
@@ -181,27 +180,23 @@ emit(AuthAuthenticated(user: result['user'], message: 'Connexion réussie'));
     }
   }
 
-  /// ✅ Handler : Charger l'utilisateur actuel - CORRIGÉ
-  Future<void> _onLoadCurrentUser(
-    LoadCurrentUserEvent event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(const AuthLoading());
+Future<void> _onLoadCurrentUser(
+  LoadCurrentUserEvent event,
+  Emitter<AuthState> emit,
+) async {
+  // ✅ PAS de AuthLoading ici pour ne pas rouvrir le dialog de connexion
 
-    try {
-      debugPrint('🔄 BLoC: Loading current user...');
-
-      final user = await _authRepository.getCurrentUser();
-
-      debugPrint('✅ BLoC: User loaded: ${user.fullName}');
-
-    //  emit(UserLoaded(user: user));
-      emit(AuthAuthenticated(user: user));
-    } catch (e) {
-      debugPrint('❌ BLoC: Load current user error: $e');
-      emit(AuthError(message: e.toString()));
-    }
+  try {
+    debugPrint('🔄 BLoC: Loading current user...');
+    final user = await _authRepository.getCurrentUser();
+    debugPrint('✅ BLoC: User loaded: ${user.fullName}');
+    emit(AuthAuthenticated(user: user));
+  } catch (e) {
+    debugPrint('❌ BLoC: Load current user error: $e');
+    // ✅ En cas d'erreur, on garde l'état actuel sans crasher
+    debugPrint('⚠️ Impossible de recharger le profil, état conservé');
   }
+}
 
   /// ✅ Handler : Vérifier le statut d'authentification
   Future<void> _onCheckAuthStatus(

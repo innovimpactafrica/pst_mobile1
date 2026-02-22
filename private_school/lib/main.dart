@@ -70,10 +70,10 @@ void main() async {
 
   // Initialize French locale for date formatting
   await initializeDateFormatting('fr_FR', null);
-  
+
   // Initialize EasyLocalization
   await EasyLocalization.ensureInitialized();
-  
+
   // Initialize API Client
   await ApiClient().init();
   debugPrint('API Client initialized');
@@ -95,13 +95,13 @@ void main() async {
           ),
           BlocProvider(create: (_) => parent_reports.ReportBloc()),
           BlocProvider(create: (context) => SchoolBloc()),
-          
+
           BlocProvider<HomeBloc>(
-  create: (context) => HomeBloc(
-    repository: parent_trip.TripRepository(),
-  ), 
-),
-          
+            create: (context) => HomeBloc(
+              repository: parent_trip.TripRepository(),
+            ),
+          ),
+
           // ✅ MESSAGING BLOCS - PARENT
           BlocProvider<ConversationBloc>(
             create: (context) => ConversationBloc(
@@ -120,7 +120,8 @@ void main() async {
                 DriverAuthBloc(repository: DriverAuthRepository()),
           ),
           BlocProvider(
-            create: (context) => DashboardBloc(repository: DashboardRepository()),
+            create: (context) =>
+                DashboardBloc(repository: DashboardRepository()),
           ),
           BlocProvider<SubscriptionBloc>(
             create: (context) => SubscriptionBloc(
@@ -128,7 +129,8 @@ void main() async {
             ),
           ),
           BlocProvider(
-            create: (context) => TripBloc(repository: driver_trip.TripRepository()),
+            create: (context) =>
+                TripBloc(repository: driver_trip.TripRepository()),
           ),
           BlocProvider<DriverProfileBloc>(
             create: (context) => DriverProfileBloc(
@@ -151,84 +153,50 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
- @override
-Widget build(BuildContext context) {
-  return MaterialApp(
-    title: 'Private School Transport',
-    debugShowCheckedModeBanner: false,
-    
-    localizationsDelegates: [
-      ...context.localizationDelegates,
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: context.supportedLocales,
-    locale: context.locale,
-    
-    initialRoute: '/',
-    routes: {
-      '/': (context) => const Splash(),
-      '/bienvenu': (context) => const WelcomePage(),
-      '/role-selection': (context) => const RoleSelectionPage(),
-      '/parent/connexion': (context) => const Connexion(),
-      '/parent/inscription': (context) => const ParentInscription(),
-      '/parent/creer-mdp': (context) => const PasswordCreationPage(),
-      '/parent/verification': (context) => const Verification(),
-      '/parent/mdp-oublie': (context) => const MdpOubliePage(),
-      '/parent/dashboard': (context) => const HomePage(),
-      '/driver/connexion': (context) => const driver_auth.Connexion(),
-      '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
-      '/driver/dashboard': (context) => const MainLayout(),
-      '/driver/forgot-password': (context) => const ForgotPasswordPage(),
-      '/driver/verify-otp': (context) => const VerifyOtpForgotPage(contact: ''),
-      '/driver/reset-password': (context) => const ResetPasswordPage(userId: 0, code: ''),
-      '/connexion': (context) => const Connexion(),
-      '/inscription': (context) => const ParentInscription(),
-      '/cree': (context) => const PasswordCreationPage(),
-      '/verification': (context) => const Verification(),
-      '/password': (context) => const MdpOubliePage(),
-      '/dashboard': (context) => const HomePage(),
-    },
-    
-    // ✅ Le builder place les listeners APRÈS que le Navigator existe
-    builder: (context, child) {
-      return MultiBlocListener(
-        listeners: [
-          BlocListener<AuthBloc, AuthState>(
-            listener: (context, state) {
-              if (state is AuthAuthenticated) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/parent/dashboard',
-                  (route) => false,
-                );
-              } else if (state is AuthUnauthenticated) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/bienvenu',
-                  (route) => false,
-                );
-              }
-            },
-          ),
-          BlocListener<DriverAuthBloc, DriverAuthState>(
-            listener: (context, state) {
-              if (state is DriverAuthenticated || state is DriverAuthenticatedFromStorage) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/driver/dashboard',
-                  (route) => false,
-                );
-              } else if (state is DriverUnauthenticated) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/bienvenu',
-                  (route) => false,
-                );
-              }
-            },
-          ),
-        ],
-        child: child!,
-      );
-    },
-  );
-}
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Private School Transport',
+      debugShowCheckedModeBanner: false,
+
+      localizationsDelegates: [
+        ...context.localizationDelegates,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
+
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const Splash(),
+        '/bienvenu': (context) => const WelcomePage(),
+        '/role-selection': (context) => const RoleSelectionPage(),
+        '/parent/connexion': (context) => const Connexion(),
+        '/parent/inscription': (context) => const ParentInscription(),
+        '/parent/creer-mdp': (context) => const PasswordCreationPage(),
+        '/parent/verification': (context) => const Verification(),
+        '/parent/mdp-oublie': (context) => const MdpOubliePage(),
+        '/parent/dashboard': (context) => const HomePage(),
+        '/driver/connexion': (context) => const driver_auth.Connexion(),
+        '/driver/inscription': (context) => const driver_auth.InscriptionPage(),
+        '/driver/dashboard': (context) => const MainLayout(),
+        '/driver/forgot-password': (context) => const ForgotPasswordPage(),
+        '/driver/verify-otp': (context) =>
+            const VerifyOtpForgotPage(contact: ''),
+        '/driver/reset-password': (context) =>
+            const ResetPasswordPage(userId: 0, code: ''),
+        '/connexion': (context) => const Connexion(),
+        '/inscription': (context) => const ParentInscription(),
+        '/cree': (context) => const PasswordCreationPage(),
+        '/verification': (context) => const Verification(),
+        '/password': (context) => const MdpOubliePage(),
+        '/dashboard': (context) => const HomePage(),
+      },
+
+   
+      builder: (context, child) => child!,
+    );
+  }
 }
