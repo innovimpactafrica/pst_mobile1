@@ -1,6 +1,3 @@
-// Parent Reset Password Page - Exact Figma Design
-// Path: lib/parents/pages/authentification/presentation/pages/creer_mdp.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -15,11 +12,7 @@ class PasswordCreationPage extends StatefulWidget {
   final int? userId;
   final String? code;
 
-  const PasswordCreationPage({
-    super.key,
-    this.userId,
-    this.code,
-  });
+  const PasswordCreationPage({super.key, this.userId, this.code});
 
   @override
   State<PasswordCreationPage> createState() => _PasswordCreationPageState();
@@ -83,14 +76,13 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
       return;
     }
 
-    // 🔥 Appel API reset password
     context.read<AuthBloc>().add(
-          ResetPasswordEvent(
-            userId: widget.userId!,
-            code: widget.code!,
-            newPassword: password,
-          ),
-        );
+      ResetPasswordEvent(
+        userId: widget.userId!,
+        code: widget.code!,
+        newPassword: password,
+      ),
+    );
   }
 
   @override
@@ -107,7 +99,7 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
           );
         } else if (state is PasswordResetSuccess) {
           if (Navigator.canPop(context)) {
-            Navigator.of(context).pop(); // Fermer loading
+            Navigator.of(context).pop();
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -117,12 +109,9 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
             ),
           );
 
-          // 🔥 REDIRECTION vers page de connexion parent
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => const Connexion(),
-            ),
-            (route) => false, // Supprimer toutes les pages précédentes
+            MaterialPageRoute(builder: (_) => const Connexion()),
+            (route) => false,
           );
         } else if (state is AuthError) {
           if (Navigator.canPop(context)) {
@@ -192,7 +181,6 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // 🏢 Logo
                   Image.asset(
                     AppConstants.logoPath,
                     width: 100,
@@ -202,7 +190,6 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
-                  // 📝 Titre
                   Text(
                     'create_password'.tr(),
                     style: const TextStyle(
@@ -213,8 +200,6 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   ),
 
                   const SizedBox(height: AppConstants.spacingL),
-
-                  // 📄 Sous-titre
                   Text(
                     'choose_secure_password'.tr(),
                     textAlign: TextAlign.center,
@@ -226,8 +211,6 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                   ),
 
                   const SizedBox(height: AppConstants.spacingXXXL),
-
-                  // 🔐 Nouveau mot de passe
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -248,28 +231,29 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                     enabled: !isLoading,
                     decoration: InputDecoration(
                       hintText: '••••••••••',
-                      hintStyle: const TextStyle(
-                        color: AppColors.textTertiary,
-                      ),
+                      hintStyle: const TextStyle(color: AppColors.textTertiary),
                       filled: true,
                       fillColor: AppColors.backgroundLight,
                       border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.primary,
                           width: 2,
@@ -297,7 +281,6 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
                   const SizedBox(height: AppConstants.spacingXL),
 
-                  // 🔐 Confirmation mot de passe
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -318,28 +301,29 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                     enabled: !isLoading,
                     decoration: InputDecoration(
                       hintText: '••••••••••',
-                      hintStyle: const TextStyle(
-                        color: AppColors.textTertiary,
-                      ),
+                      hintStyle: const TextStyle(color: AppColors.textTertiary),
                       filled: true,
                       fillColor: AppColors.backgroundLight,
                       border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.primary,
                           width: 2,
@@ -367,14 +351,13 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
 
                   const SizedBox(height: 40),
 
-                  // 🟢 Bouton "Confirmer" (VERT)
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isLoading
-                            ? AppColors.success.withValues(alpha:0.6)
+                            ? AppColors.success.withValues(alpha: 0.6)
                             : AppColors.success,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
@@ -383,7 +366,9 @@ class _PasswordCreationPageState extends State<PasswordCreationPage> {
                       ),
                       onPressed: isLoading ? null : _submit,
                       child: isLoading
-                          ? const CircularProgressIndicator(color: AppColors.white)
+                          ? const CircularProgressIndicator(
+                              color: AppColors.white,
+                            )
                           : Text(
                               'confirm'.tr(),
                               style: const TextStyle(

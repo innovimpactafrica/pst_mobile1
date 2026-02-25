@@ -38,12 +38,13 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
     }
 
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📨 [InviteMemberModal] SEND INVITE');
+    debugPrint(' [InviteMemberModal] SEND INVITE');
     debugPrint('   GroupId: ${widget.groupId}');
-    debugPrint('   ${_isEmail ? "Email" : "Phone"}: ${_controller.text.trim()}');
+    debugPrint(
+      '   ${_isEmail ? "Email" : "Phone"}: ${_controller.text.trim()}',
+    );
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // ✅ Utilise le BLoC parent (fourni par GroupDetailPage)
     context.read<GroupBloc>().add(
       InviteMemberEvent(
         groupId: widget.groupId,
@@ -55,7 +56,6 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is MemberInvited) {
@@ -174,7 +174,8 @@ class _InviteMemberModalState extends State<InviteMemberModal> {
                       ),
                       child: isLoading
                           ? const SizedBox(
-                              height: 20, width: 20,
+                              height: 20,
+                              width: 20,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
                                 strokeWidth: 2,

@@ -1,6 +1,3 @@
-// Parent Verify OTP Page - Exact Figma Design
-// Path: lib/parents/pages/authentification/presentation/pages/verification.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -13,19 +10,17 @@ class Verification extends StatefulWidget {
   final String? contact;
   final int? userId;
 
-  const Verification({
-    super.key,
-    this.contact,
-    this.userId,
-  });
+  const Verification({super.key, this.contact, this.userId});
 
   @override
   State<Verification> createState() => _VerificationState();
 }
 
 class _VerificationState extends State<Verification> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _otpControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _otpFocusNodes = List.generate(4, (_) => FocusNode());
 
   @override
@@ -62,16 +57,12 @@ class _VerificationState extends State<Verification> {
       return;
     }
 
-    // 🔥 Navigation vers reset password
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<AuthBloc>(),
-          child: PasswordCreationPage(
-            userId: widget.userId!,
-            code: otp,
-          ),
+          child: PasswordCreationPage(userId: widget.userId!, code: otp),
         ),
       ),
     );
@@ -89,7 +80,7 @@ class _VerificationState extends State<Verification> {
           ),
           child: Column(
             children: [
-              // 🔝 Header
+              //  Header
               Row(
                 children: [
                   GestureDetector(
@@ -131,7 +122,6 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: AppConstants.spacingXXL),
 
-              // 🏢 Logo
               Image.asset(
                 AppConstants.logoPath,
                 width: 100,
@@ -141,7 +131,6 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: AppConstants.spacingXXL),
 
-              // 📝 Titre
               Text(
                 'verification_code'.tr(),
                 style: const TextStyle(
@@ -153,9 +142,10 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: AppConstants.spacingL),
 
-              // 📄 Sous-titre
               Text(
-                'enter_4_digit_code_sent'.tr(namedArgs: {'contact': widget.contact ?? 'your_email'.tr()}),
+                'enter_4_digit_code_sent'.tr(
+                  namedArgs: {'contact': widget.contact ?? 'your_email'.tr()},
+                ),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: AppConstants.fontSizeM,
@@ -166,7 +156,6 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: 40),
 
-              // 🔢 OTP Inputs
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(4, (index) {
@@ -189,24 +178,27 @@ class _VerificationState extends State<Verification> {
                         filled: true,
                         fillColor: AppColors.backgroundLight,
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                           borderSide: const BorderSide(
                             color: AppColors.borderLight,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                           borderSide: const BorderSide(
                             color: AppColors.borderLight,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                           borderSide: const BorderSide(
-                            color: AppColors.success, // 🔥 VERT au focus
+                            color: AppColors.success,
                             width: 2,
                           ),
                         ),
@@ -225,7 +217,6 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: AppConstants.spacingXXL),
 
-              // ❓ Texte "Vous n'avez pas reçu de code ?"
               Text(
                 'did_not_receive_code'.tr(),
                 style: const TextStyle(
@@ -236,11 +227,8 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: AppConstants.spacingS),
 
-              // 🔄 Renvoyer le code
               TextButton(
-                onPressed: () {
-                  // TODO: Implémenter renvoyer le code
-                },
+                onPressed: () {},
                 child: Text(
                   'resend_code_in'.tr(namedArgs: {'seconds': '23'}),
                   style: TextStyle(
@@ -253,7 +241,6 @@ class _VerificationState extends State<Verification> {
 
               const SizedBox(height: 40),
 
-              // 🟢 Bouton "Vérifier" (VERT)
               SizedBox(
                 width: double.infinity,
                 height: 56,

@@ -1,4 +1,3 @@
-
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import '../services/messaging_service.dart';
@@ -10,7 +9,6 @@ class MessagingRepository {
     try {
       return await _service.getConversations();
     } catch (e) {
-      
       rethrow;
     }
   }
@@ -20,7 +18,6 @@ class MessagingRepository {
       final conversations = await _service.getConversations();
       return conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
     } catch (e) {
-      
       return 0;
     }
   }
@@ -29,7 +26,6 @@ class MessagingRepository {
     try {
       return await _service.getMessages(conversationId);
     } catch (e) {
-     
       rethrow;
     }
   }
@@ -93,7 +89,6 @@ class MessagingRepository {
     try {
       await _service.toggleArchiveConversation(conversationId, true);
     } catch (e) {
-      
       rethrow;
     }
   }
@@ -102,7 +97,6 @@ class MessagingRepository {
     try {
       await _service.toggleArchiveConversation(conversationId, false);
     } catch (e) {
-      
       rethrow;
     }
   }

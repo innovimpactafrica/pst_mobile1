@@ -11,10 +11,7 @@ import '../../../enfants/domain/bloc/child_state.dart';
 class SelectChildrenModal extends StatefulWidget {
   final Function(List<ChildModel>) onChildrenSelected;
 
-  const SelectChildrenModal({
-    super.key,
-    required this.onChildrenSelected,
-  });
+  const SelectChildrenModal({super.key, required this.onChildrenSelected});
 
   @override
   State<SelectChildrenModal> createState() => _SelectChildrenModalState();
@@ -47,9 +44,7 @@ class _SelectChildrenModalState extends State<SelectChildrenModal> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade200),
-              ),
+              border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
             ),
             child: Row(
               children: [
@@ -79,9 +74,7 @@ class _SelectChildrenModalState extends State<SelectChildrenModal> {
               builder: (context, state) {
                 if (state is ChildLoadingState) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.success,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.success),
                   );
                 }
 
@@ -329,11 +322,7 @@ class _SelectChildrenModalState extends State<SelectChildrenModal> {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: Colors.white,
-                    )
+                  ? const Icon(Icons.check, size: 16, color: Colors.white)
                   : null,
             ),
           ],
@@ -350,7 +339,7 @@ class _SelectChildrenModalState extends State<SelectChildrenModal> {
           .toList();
 
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('✅ [SelectChildrenModal] Enfants sélectionnés:');
+      debugPrint(' [SelectChildrenModal] Enfants sélectionnés:');
       for (var child in selectedChildren) {
         debugPrint('   - ${child.name} (ID: ${child.id})');
       }

@@ -18,8 +18,6 @@ import 'notifications_page.dart';
 import 'payment_history_page.dart';
 import 'invite_friends_page.dart';
 
-/// Profile page for parent users
-/// ✅ Design exact Figma: Carte profil AU-DESSUS du header vert
 class ProfilPage extends StatelessWidget {
   const ProfilPage({super.key});
 
@@ -43,10 +41,9 @@ class ProfilPageContent extends StatelessWidget {
       body: BlocListener<ProfilBloc, ProfilState>(
         listener: (context, state) {
           if (state is LogoutSuccess) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/role-selection',
-              (route) => false,
-            );
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/role-selection', (route) => false);
           } else if (state is ProfilError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -58,7 +55,6 @@ class ProfilPageContent extends StatelessWidget {
         },
         child: Stack(
           children: [
-            // ✅ BACKGROUND VERT (sous la carte)
             Container(
               width: double.infinity,
               height: 180, // Hauteur du header vert
@@ -71,11 +67,9 @@ class ProfilPageContent extends StatelessWidget {
               ),
             ),
 
-            // ✅ CONTENU SCROLLABLE
             SafeArea(
               child: Column(
                 children: [
-                  // Titre "Mon compte" dans le header vert
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: AppConstants.spacingXL + 4,
@@ -92,7 +86,6 @@ class ProfilPageContent extends StatelessWidget {
 
                   const SizedBox(height: AppConstants.spacingM),
 
-                  // ✅ CARTE PROFIL (posée AU-DESSUS du header vert)
                   BlocBuilder<ProfilBloc, ProfilState>(
                     builder: (context, state) {
                       if (state is ProfilLoading) {
@@ -103,14 +96,12 @@ class ProfilPageContent extends StatelessWidget {
                         return _buildProfileCard(context, state.user);
                       }
 
-                      // État d'erreur ou initial
                       return _buildPlaceholderCard(context);
                     },
                   ),
 
                   const SizedBox(height: AppConstants.spacingXL),
 
-                  // ✅ MENU SECTION (fond blanc)
                   Expanded(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -230,9 +221,7 @@ class ProfilPageContent extends StatelessWidget {
                                       color: AppColors.textGrey,
                                     ),
                                   ),
-                                  const SizedBox(
-                                    width: AppConstants.spacingXS,
-                                  ),
+                                  const SizedBox(width: AppConstants.spacingXS),
                                   const Icon(
                                     Icons.chevron_right,
                                     color: AppColors.textSecondary,
@@ -249,21 +238,21 @@ class ProfilPageContent extends StatelessWidget {
 
                             // Logout button
                             MenuItemWidget(
-  icon: Icons.logout,
-  title: 'disconnect'.tr(),
-  iconColor: AppColors.error,
-  showChevron: false,
-  onTap: () {
-    _showLogoutDialog(context);
-  },
-),
+                              icon: Icons.logout,
+                              title: 'disconnect'.tr(),
+                              iconColor: AppColors.error,
+                              showChevron: false,
+                              onTap: () {
+                                _showLogoutDialog(context);
+                              },
+                            ),
 
-// ✅ Espace pour ne pas être caché par le navbar
-Builder(
-  builder: (context) => SizedBox(
-    height: 80 + MediaQuery.of(context).padding.bottom,
-  ),
-),
+                            Builder(
+                              builder: (context) => SizedBox(
+                                height:
+                                    80 + MediaQuery.of(context).padding.bottom,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -278,10 +267,11 @@ Builder(
     );
   }
 
-  /// ✅ Carte de profil avec photo, nom et bouton edit
   Widget _buildProfileCard(BuildContext context, dynamic user) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Container(
         padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
         decoration: BoxDecoration(
@@ -289,7 +279,7 @@ Builder(
           borderRadius: BorderRadius.circular(AppConstants.radiusXL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -300,7 +290,7 @@ Builder(
             // Photo de profil
             _buildProfileAvatar(user.photo),
             const SizedBox(width: AppConstants.spacingXL),
-            
+
             // Nom et rôle
             Expanded(
               child: Column(
@@ -325,7 +315,7 @@ Builder(
                 ],
               ),
             ),
-            
+
             // Bouton Edit
             GestureDetector(
               onTap: () {
@@ -344,10 +334,7 @@ Builder(
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.success,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: AppColors.success, width: 1.5),
                 ),
                 child: const Icon(
                   Icons.edit_outlined,
@@ -365,7 +352,9 @@ Builder(
   /// Carte de chargement
   Widget _buildLoadingCard() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Container(
         padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
         decoration: BoxDecoration(
@@ -373,7 +362,7 @@ Builder(
           borderRadius: BorderRadius.circular(AppConstants.radiusXL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -389,7 +378,9 @@ Builder(
   /// Carte placeholder
   Widget _buildPlaceholderCard(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Container(
         padding: const EdgeInsets.all(AppConstants.spacingXL + 4),
         decoration: BoxDecoration(
@@ -397,7 +388,7 @@ Builder(
           borderRadius: BorderRadius.circular(AppConstants.radiusXL),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -408,11 +399,7 @@ Builder(
             CircleAvatar(
               radius: 40,
               backgroundColor: AppColors.grey200,
-              child: Icon(
-                Icons.person,
-                size: 40,
-                color: AppColors.grey600,
-              ),
+              child: Icon(Icons.person, size: 40, color: AppColors.grey600),
             ),
             const SizedBox(width: AppConstants.spacingXL),
             Expanded(
@@ -444,22 +431,18 @@ Builder(
     );
   }
 
-  /// ✅ Avatar de profil depuis l'URL de l'API
+  ///  Avatar de profil depuis l'URL de l'API
   Widget _buildProfileAvatar(String? photoUrl) {
     // Cas 1 : Pas de photo
     if (photoUrl == null || photoUrl.isEmpty) {
       return CircleAvatar(
         radius: 40,
         backgroundColor: AppColors.grey200,
-        child: Icon(
-          Icons.person,
-          size: 45,
-          color: AppColors.grey600,
-        ),
+        child: Icon(Icons.person, size: 45, color: AppColors.grey600),
       );
     }
 
-    // Cas 2 : URL complète (http:// ou https://)
+    // Cas 2 : URL complète
     if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
       return CircleAvatar(
         radius: 40,
@@ -478,44 +461,50 @@ Builder(
       backgroundColor: AppColors.grey200,
       backgroundImage: NetworkImage(fullUrl),
       onBackgroundImageError: (exception, stackTrace) {
-        debugPrint('⚠️ [ProfilPage] Erreur chargement photo: $exception');
+        debugPrint(' [ProfilPage] Erreur chargement photo: $exception');
       },
     );
   }
 
   void _showLogoutDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text('logout_title'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-      content: Text('logout_confirm'.tr()),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext), // Ferme juste le dialogue
-          child: Text('cancel'.tr(), style: GoogleFonts.inter(color: AppColors.textSecondary)),
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'logout_title'.tr(),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
-        TextButton(
-          onPressed: () {
-            // 1. On ferme le dialogue
-            Navigator.pop(dialogContext);
-            
-            // 2. ✅ Récupérer les BLoCs si disponibles
-            final childBloc = context.read<ChildBloc?>();
-            final homeBloc = context.read<HomeBloc?>();
-            
-            // 3. On déclenche l'événement de déconnexion dans le BLoC
-            context.read<ProfilBloc>().add(LogoutEvent(
-              childBloc: childBloc,
-              homeBloc: homeBloc,
-            ));
-          },
-          child: Text(
-            'disconnect'.tr(),
-            style: GoogleFonts.inter(color: AppColors.error, fontWeight: FontWeight.w600),
+        content: Text('logout_confirm'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'cancel'.tr(),
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+
+              final childBloc = context.read<ChildBloc?>();
+              final homeBloc = context.read<HomeBloc?>();
+
+              //  On déclenche l'événement de déconnexion dans le BLoC
+              context.read<ProfilBloc>().add(
+                LogoutEvent(childBloc: childBloc, homeBloc: homeBloc),
+              );
+            },
+            child: Text(
+              'disconnect'.tr(),
+              style: GoogleFonts.inter(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

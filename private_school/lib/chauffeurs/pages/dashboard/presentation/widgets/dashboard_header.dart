@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -15,11 +13,7 @@ class DashboardHeader extends StatelessWidget {
   final DriverProfileModel? profile;
   final bool isLoading;
 
-  const DashboardHeader({
-    super.key,
-    this.profile,
-    this.isLoading = false,
-  });
+  const DashboardHeader({super.key, this.profile, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -72,10 +66,14 @@ class DashboardHeader extends StatelessWidget {
                     onTap: () async {
                       await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const MessageriePage()),
+                        MaterialPageRoute(
+                          builder: (_) => const MessageriePage(),
+                        ),
                       );
                       if (context.mounted) {
-                        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+                        context.read<UnreadMessagesBloc>().add(
+                          RefreshUnreadCountEvent(),
+                        );
                       }
                     },
                   );
@@ -84,17 +82,23 @@ class DashboardHeader extends StatelessWidget {
               const SizedBox(width: 8),
               BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
                 builder: (context, state) {
-                  final count = state is UnreadNotificationsLoaded ? state.count : 0;
+                  final count = state is UnreadNotificationsLoaded
+                      ? state.count
+                      : 0;
                   return _buildIconButtonWithBadge(
                     icon: Icons.notifications_outlined,
                     count: count,
                     onTap: () async {
                       await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsPage(),
+                        ),
                       );
                       if (context.mounted) {
-                        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+                        context.read<UnreadNotificationsBloc>().add(
+                          RefreshUnreadNotificationsCountEvent(),
+                        );
                       }
                     },
                   );
@@ -133,9 +137,7 @@ class DashboardHeader extends StatelessWidget {
             ? DecorationImage(
                 image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
-                onError: (exception, stackTrace) {
-                  
-                },
+                onError: (exception, stackTrace) {},
               )
             : null,
       ),
@@ -171,13 +173,7 @@ class DashboardHeader extends StatelessWidget {
               color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Center(
-              child: Icon(
-                icon,
-                color: AppColors.white,
-                size: 22,
-              ),
-            ),
+            child: Center(child: Icon(icon, color: AppColors.white, size: 22)),
           ),
           if (count > 0)
             Positioned(
@@ -189,10 +185,7 @@ class DashboardHeader extends StatelessWidget {
                   color: AppColors.error,
                   shape: BoxShape.circle,
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
-                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 child: Text(
                   count > 99 ? '99+' : count.toString(),
                   style: const TextStyle(

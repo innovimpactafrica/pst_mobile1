@@ -32,7 +32,6 @@ class _ReviewSubmittedDialogState extends State<ReviewSubmittedDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ICÔNE SUCCESS
                 Container(
                   width: 100,
                   height: 100,

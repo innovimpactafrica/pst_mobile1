@@ -32,12 +32,10 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
   @override
   void initState() {
     super.initState();
-    
-    // 🔥 CORRECTION : Convertir tous les jours en format abrégé UNIQUEMENT
+
     final Map<String, DaySchedule> childSchedule = widget.child.schedule ?? {};
     _schedule = {};
-    
-    // Mapping pour normaliser tous les jours vers le format abrégé
+
     final Map<String, String> dayMapping = {
       'Lundi': 'Lun.',
       'Mardi': 'Mar',
@@ -47,26 +45,23 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
       'Samedi': 'Sam.',
       'Dimanche': 'Dim.',
     };
-    
-    // ✅ Convertir tous les jours en format abrégé (garde seulement le dernier)
+
     childSchedule.forEach((day, schedule) {
       final normalizedDay = dayMapping[day] ?? day;
-      _schedule[normalizedDay] = schedule; // ✅ Écrase les doublons
+      _schedule[normalizedDay] = schedule;
     });
-    
-    // Si aucun horaire, utiliser les valeurs par défaut
+
     if (_schedule.isEmpty) {
       _schedule = _getDefaultSchedule();
     } else {
-      // Compléter avec les jours manquants
       _getDefaultSchedule().forEach((day, defaultSchedule) {
         if (!_schedule.containsKey(day)) {
           _schedule[day] = defaultSchedule;
         }
       });
     }
-    
-    debugPrint('🔧 [ScheduleModal] Initialized schedule: $_schedule');
+
+    debugPrint(' [ScheduleModal] Initialized schedule: $_schedule');
   }
 
   Map<String, DaySchedule> _getDefaultSchedule() {
@@ -114,9 +109,9 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
       setState(() {
         final timeString =
             '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        
+
         final current = _schedule[day];
-        
+
         if (current == null) {
           _schedule[day] = DaySchedule(
             isOpen: true,
@@ -134,16 +129,15 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
   }
 
   void _handleSave() {
-    debugPrint('💾 [ScheduleModal] Saving schedule for child: ${widget.child.id}');
-    debugPrint('📦 [ScheduleModal] Schedule (ONLY abbreviated days): $_schedule');
-    
-    context.read<ChildBloc>().add(
-      UpdateChildScheduleEvent(
-        childId: widget.child.id,
-        schedule: _schedule, // ✅ Contient UNIQUEMENT Lun., Mar, Mer., etc.
-      ),
+    debugPrint(
+      ' [ScheduleModal] Saving schedule for child: ${widget.child.id}',
     );
-    
+    debugPrint(' [ScheduleModal] Schedule (ONLY abbreviated days): $_schedule');
+
+    context.read<ChildBloc>().add(
+      UpdateChildScheduleEvent(childId: widget.child.id, schedule: _schedule),
+    );
+
     if (mounted) {
       Navigator.pop(context);
     }
@@ -343,7 +337,6 @@ class _ChildScheduleModalState extends State<ChildScheduleModal> {
             ),
           ),
 
-          // COLONNE RETOUR
           Expanded(
             flex: 2,
             child: _buildTimeDisplay(

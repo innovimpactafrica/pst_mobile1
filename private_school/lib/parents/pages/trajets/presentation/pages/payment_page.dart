@@ -563,10 +563,7 @@ class _PaymentPageState extends State<PaymentPage> {
       if (_selectedMobileProvider == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'payment_method'.tr(),
-              style: GoogleFonts.inter(),
-            ),
+            content: Text('payment_method'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );

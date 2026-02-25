@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -16,7 +15,6 @@ class RoleSelectionPage extends StatefulWidget {
 }
 
 class _RoleSelectionPageState extends State<RoleSelectionPage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +39,10 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                       setState(() {}); // Rafraîchir l'interface
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -59,7 +60,9 @@ class _RoleSelectionPageState extends State<RoleSelectionPage> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                            context.locale.languageCode == 'fr'
+                                ? 'Français'
+                                : 'English',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

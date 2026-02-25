@@ -7,7 +7,7 @@ import 'package:easy_localization/easy_localization.dart' as easy;
 import 'dart:io';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
-import '../../../../../core/utils/image_url_helper.dart'; 
+import '../../../../../core/utils/image_url_helper.dart';
 import '../../data/models/driver_profile_model.dart';
 import '../../domain/bloc/driver_profile_bloc.dart';
 import '../../domain/bloc/driver_profile_event.dart';
@@ -115,7 +115,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   void _saveChanges() async {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Envoi des données...'), duration: Duration(seconds: 1)),
+      const SnackBar(
+        content: Text('Envoi des données...'),
+        duration: Duration(seconds: 1),
+      ),
     );
 
     final formDataMap = {
@@ -236,17 +239,24 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           // 🔧 CORRECTION: Utiliser le helper pour les URLs
                           backgroundImage: _selectedImage != null
                               ? FileImage(_selectedImage!)
-                              : (profile.photo != null && profile.photo!.isNotEmpty
-                                  ? NetworkImage(
-                                      ImageUrlHelper.getFullImageUrl(profile.photo!),
-                                    )
-                                  : null),
-                          child: _selectedImage == null &&
-                                  (profile.photo == null || profile.photo!.isEmpty)
+                              : (profile.photo != null &&
+                                        profile.photo!.isNotEmpty
+                                    ? NetworkImage(
+                                        ImageUrlHelper.getFullImageUrl(
+                                          profile.photo!,
+                                        ),
+                                      )
+                                    : null),
+                          child:
+                              _selectedImage == null &&
+                                  (profile.photo == null ||
+                                      profile.photo!.isEmpty)
                               ? Text(
                                   profile.initials,
                                   style: GoogleFonts.inter(
@@ -333,9 +343,13 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+                        disabledBackgroundColor: AppColors.primary.withValues(
+                          alpha: 0.6,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                         ),
                         elevation: 0,
                       ),

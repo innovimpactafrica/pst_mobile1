@@ -5,8 +5,6 @@ import '../../data/repositories/user_repository.dart';
 import 'profil_event.dart';
 import 'profil_state.dart';
 
-/// BLoC for managing user profile
-/// Handles all profile-related events and state management
 class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   final UserRepository repository;
 
@@ -94,7 +92,9 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   ) async {
     emit(PhotoUploading());
     try {
-      final photoUrl = await repository.updateProfilePhotoFromPath(event.photoPath);
+      final photoUrl = await repository.updateProfilePhotoFromPath(
+        event.photoPath,
+      );
       emit(PhotoUploaded(photoUrl));
       // Reload profile to get new photo
       add(LoadUserProfileEvent());
@@ -119,29 +119,20 @@ class ProfilBloc extends Bloc<ProfilEvent, ProfilState> {
   }
 
   /// Logout
-  Future<void> _onLogout(
-    LogoutEvent event,
-    Emitter<ProfilState> emit,
-  ) async {
+  Future<void> _onLogout(LogoutEvent event, Emitter<ProfilState> emit) async {
     try {
-      // 1. Appel au repository pour informer le serveur (et effacer le token localement)
       await repository.logout();
-      
-      // 2. ✅ Vider le cache du BLoC enfants
+
       if (event.childBloc != null) {
         event.childBloc!.add(const ClearChildrenCacheEvent());
       }
-      
-      // 3. ✅ Vider le cache du BLoC home
+
       if (event.homeBloc != null) {
         event.homeBloc!.add(ClearHomeCache());
       }
-      
-      // 4. Émettre le succès pour déclencher le BlocListener dans ProfilPage
+
       emit(LogoutSuccess());
     } catch (e) {
-      // ✅ ASTUCE : Même si l'API échoue, on émet LogoutSuccess.
-      // On veut que l'utilisateur puisse sortir de l'app quoi qu'il arrive.
       if (event.childBloc != null) {
         event.childBloc!.add(const ClearChildrenCacheEvent());
       }

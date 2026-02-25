@@ -1,5 +1,3 @@
-// ✅ AJOUTEZ ce champ dans votre modèle Planning (group_model.dart)
-
 class Planning {
   final String id;
   final String groupId;
@@ -93,9 +91,11 @@ class Planning {
   bool get isReplacementAccepted => status == 'replacement_accepted';
   bool get isToday {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
-  
+
   String get assignedTo {
     if (isMyTurn == true) return 'Vous';
     if (driverName != null && driverName!.isNotEmpty) return driverName!;
@@ -139,8 +139,10 @@ class Planning {
       returnTime: returnTime ?? this.returnTime,
       capacityMax: capacityMax ?? this.capacityMax,
       notes: notes ?? this.notes,
-      replacementAcceptedBy: replacementAcceptedBy ?? this.replacementAcceptedBy,
-      replacementAcceptedByName: replacementAcceptedByName ?? this.replacementAcceptedByName,
+      replacementAcceptedBy:
+          replacementAcceptedBy ?? this.replacementAcceptedBy,
+      replacementAcceptedByName:
+          replacementAcceptedByName ?? this.replacementAcceptedByName,
     );
   }
 }

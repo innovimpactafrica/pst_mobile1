@@ -1,6 +1,3 @@
-// Conversation Events
-// Path: parents/pages/acceuil/domain/bloc/conversation_event.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class ConversationEvent extends Equatable {
@@ -26,12 +23,17 @@ class RefreshConversationsEvent extends ConversationEvent {
   String toString() => 'RefreshConversationsEvent';
 }
 
+class EnrichConversationsWithAvatarsEvent extends ConversationEvent {
+  final List<Map<String, dynamic>> drivers;
+  const EnrichConversationsWithAvatarsEvent({required this.drivers});
+}
+
 // ==================== CREATE CONVERSATION ====================
 
 class CreateDirectConversationEvent extends ConversationEvent {
   final int otherUserId;
   final String? initialMessage;
-  final String? otherUserAvatar;  
+  final String? otherUserAvatar;
   const CreateDirectConversationEvent({
     required this.otherUserId,
     this.initialMessage,
@@ -41,6 +43,7 @@ class CreateDirectConversationEvent extends ConversationEvent {
   @override
   List<Object?> get props => [otherUserId, initialMessage];
 }
+
 class CreateGroupConversationEvent extends ConversationEvent {
   final String name;
   final List<int> memberIds;
@@ -54,7 +57,8 @@ class CreateGroupConversationEvent extends ConversationEvent {
   List<Object?> get props => [name, memberIds];
 
   @override
-  String toString() => 'CreateGroupConversationEvent(name: $name, members: ${memberIds.length})';
+  String toString() =>
+      'CreateGroupConversationEvent(name: $name, members: ${memberIds.length})';
 }
 
 // ==================== ARCHIVE/MUTE CONVERSATION ====================
@@ -68,7 +72,8 @@ class ArchiveConversationEvent extends ConversationEvent {
   List<Object?> get props => [conversationId];
 
   @override
-  String toString() => 'ArchiveConversationEvent(conversationId: $conversationId)';
+  String toString() =>
+      'ArchiveConversationEvent(conversationId: $conversationId)';
 }
 
 class UnarchiveConversationEvent extends ConversationEvent {
@@ -80,7 +85,8 @@ class UnarchiveConversationEvent extends ConversationEvent {
   List<Object?> get props => [conversationId];
 
   @override
-  String toString() => 'UnarchiveConversationEvent(conversationId: $conversationId)';
+  String toString() =>
+      'UnarchiveConversationEvent(conversationId: $conversationId)';
 }
 
 class MuteConversationEvent extends ConversationEvent {
@@ -104,7 +110,8 @@ class UnmuteConversationEvent extends ConversationEvent {
   List<Object?> get props => [conversationId];
 
   @override
-  String toString() => 'UnmuteConversationEvent(conversationId: $conversationId)';
+  String toString() =>
+      'UnmuteConversationEvent(conversationId: $conversationId)';
 }
 
 // ==================== FILTER/SEARCH CONVERSATIONS ====================

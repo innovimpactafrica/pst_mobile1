@@ -17,7 +17,7 @@ class ChildDetailsModal extends StatelessWidget {
   const ChildDetailsModal({super.key, required this.child});
 
   void _showEditModal(BuildContext context) {
-    Navigator.pop(context); // Fermer le modal actuel
+    Navigator.pop(context);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (context.mounted) {
         ModalHelper.showSlideModal(
@@ -29,7 +29,7 @@ class ChildDetailsModal extends StatelessWidget {
   }
 
   void _showScheduleModal(BuildContext context) {
-    Navigator.pop(context); // Fermer le modal actuel
+    Navigator.pop(context);
     Future.delayed(const Duration(milliseconds: 300), () {
       if (context.mounted) {
         ModalHelper.showSlideModal(
@@ -234,24 +234,19 @@ class ChildDetailsModal extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () => _showScheduleModal(context),
         style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.primary
-.withValues(
-            alpha: 0.15,
-          ), // bleu clair
-          foregroundColor: AppColors.primary
-,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+          foregroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          side: BorderSide.none, // supprime le contour
+          side: BorderSide.none,
         ),
         child: Text(
           'configure_schedule'.tr(),
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.primary
-,
+            color: AppColors.primary,
           ),
         ),
       ),
@@ -266,12 +261,9 @@ class ChildDetailsModal extends StatelessWidget {
         onTap: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white, // background blanc
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.grey.shade400, // contour gris
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.grey.shade400, width: 1.5),
           ),
           child: Center(
             child: Text(
@@ -279,7 +271,7 @@ class ChildDetailsModal extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: Colors.red, // texte rouge
+                color: Colors.red,
               ),
             ),
           ),

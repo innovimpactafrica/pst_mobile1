@@ -75,13 +75,12 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
     }
 
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📅 [CreatePlanningModal] CREATE PLANNING');
+    debugPrint(' [CreatePlanningModal] CREATE PLANNING');
     debugPrint('   GroupId: ${widget.groupId}');
     debugPrint('   Start: ${DateFormat('dd/MM/yyyy').format(_startDate!)}');
     debugPrint('   End: ${DateFormat('dd/MM/yyyy').format(_endDate!)}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // ✅ Utilise le BLoC parent
     context.read<GroupBloc>().add(
       CreatePlanningEvent(
         groupId: widget.groupId,
@@ -93,7 +92,6 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is PlanningCreated) {
@@ -169,7 +167,9 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : () => _createPlanning(context),
+                      onPressed: isLoading
+                          ? null
+                          : () => _createPlanning(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,
@@ -181,7 +181,8 @@ class _CreatePlanningModalState extends State<CreatePlanningModal> {
                       ),
                       child: isLoading
                           ? const SizedBox(
-                              height: 20, width: 20,
+                              height: 20,
+                              width: 20,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
                                 strokeWidth: 2,

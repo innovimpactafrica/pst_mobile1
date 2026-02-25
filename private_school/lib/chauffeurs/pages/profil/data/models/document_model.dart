@@ -1,11 +1,10 @@
-
 class DriverInfo {
   final int id;
   final String status;
   final String? photoProfile;
-  final String? licenseDocument;  
-  final String? idDocument;       
-  final String? vehiclePhoto;     
+  final String? licenseDocument;
+  final String? idDocument;
+  final String? vehiclePhoto;
 
   DriverInfo({
     required this.id,

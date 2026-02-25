@@ -1,6 +1,3 @@
-// Conversation Card Widget
-// Path: parents/pages/acceuil/presentation/widgets/conversation_card_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:private_school/core/utils/app_colors.dart';
@@ -34,10 +31,7 @@ class ConversationCardWidget extends StatelessWidget {
               ? AppColors.primary.withValues(alpha: 0.05)
               : AppColors.white,
           border: Border(
-            bottom: BorderSide(
-              color: AppColors.grey200,
-              width: 1,
-            ),
+            bottom: BorderSide(color: AppColors.grey200, width: 1),
           ),
         ),
         child: Row(
@@ -168,16 +162,13 @@ class ConversationCardWidget extends StatelessWidget {
               : null,
           child: conversation.displayAvatar == null
               ? Icon(
-                  conversation.type == 'group'
-                      ? Icons.group
-                      : Icons.person,
+                  conversation.type == 'group' ? Icons.group : Icons.person,
                   color: AppColors.primary,
                   size: 28,
                 )
               : null,
         ),
 
-        // Online indicator (pour les conversations directes)
         if (conversation.type == 'direct')
           Positioned(
             right: 2,
@@ -188,10 +179,7 @@ class ConversationCardWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.success,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.white,
-                  width: 2,
-                ),
+                border: Border.all(color: AppColors.white, width: 2),
               ),
             ),
           ),

@@ -21,12 +21,12 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
-  // Lien d'invitation (remplacez par votre vrai lien)
+  // Lien d'invitation
   final String _inviteLink = 'https://privateschool.app/invite?ref=USER123';
   final String _inviteMessage =
-      '🚌 Rejoignez-moi sur Private School Transport ! Une app sécurisée pour le transport scolaire. Téléchargez maintenant : ';
+      ' Rejoignez-moi sur Private School Transport ! Une app sécurisée pour le transport scolaire. Téléchargez maintenant : ';
 
-  // ─── SVG inline : plus besoin des fichiers assets pour ces icônes ─────────
+  // ─── SVG inline
 
   static const String _whatsappSvg = '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -93,15 +93,17 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('contacts_permission_denied'.tr(),
-                  style: GoogleFonts.inter()),
+              content: Text(
+                'contacts_permission_denied'.tr(),
+                style: GoogleFonts.inter(),
+              ),
               backgroundColor: Colors.red,
             ),
           );
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur chargement contacts: $e');
+      debugPrint(' Erreur chargement contacts: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -229,7 +231,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     );
   }
 
-  // ── Widget bouton social (même structure qu'avant, simplifié) ──────────────
+  // ── Widget bouton social
   Widget _buildSocialButton({
     required String label,
     required Color color,
@@ -244,7 +246,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: color,               // fond opaque = icône toujours visible
+              color: color,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -303,10 +305,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
             _contacts.isEmpty
                 ? 'no_contacts_available'.tr()
                 : 'no_contacts_found'.tr(),
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textGrey,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: AppColors.textGrey),
           ),
         ),
       );
@@ -318,8 +317,9 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
         itemCount: _filteredContacts.length,
         itemBuilder: (context, index) {
           final contact = _filteredContacts[index];
-          final phone =
-              contact.phones.isNotEmpty ? contact.phones.first.number : '';
+          final phone = contact.phones.isNotEmpty
+              ? contact.phones.first.number
+              : '';
           return _buildFriendCard(
             name: contact.displayName,
             phone: phone,
@@ -413,17 +413,12 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
           const SizedBox(width: 4),
           Text(
             'invite'.tr(),
-            style:
-                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ],
       ),
     );
   }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // MÉTHODES DE PARTAGE
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   void _copyLink() async {
     await Clipboard.setData(ClipboardData(text: _inviteLink));
@@ -440,22 +435,24 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
 
   void _shareViaWhatsApp() async {
     final message = '$_inviteMessage$_inviteLink';
-    final url =
-        Uri.parse('whatsapp://send?text=${Uri.encodeComponent(message)}');
+    final url = Uri.parse(
+      'whatsapp://send?text=${Uri.encodeComponent(message)}',
+    );
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        await Share.share(message,
-            subject: 'Invitation Private School Transport');
+        await Share.share(
+          message,
+          subject: 'Invitation Private School Transport',
+        );
       }
     } catch (e) {
-      debugPrint('❌ Erreur WhatsApp: $e');
+      debugPrint(' Erreur WhatsApp: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -466,15 +463,19 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
   void _shareViaInstagram() async {
     final message = '$_inviteMessage$_inviteLink';
     try {
-      await Share.share(message,
-          subject: 'Invitation Private School Transport');
+      await Share.share(
+        message,
+        subject: 'Invitation Private School Transport',
+      );
     } catch (e) {
-      debugPrint('❌ Erreur Instagram: $e');
+      debugPrint(' Erreur Instagram: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('instagram_unavailable'.tr(),
-                style: GoogleFonts.inter()),
+            content: Text(
+              'instagram_unavailable'.tr(),
+              style: GoogleFonts.inter(),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -486,20 +487,22 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     final message = '$_inviteMessage$_inviteLink';
     try {
       final url = Uri.parse(
-          'fb-messenger://share?link=${Uri.encodeComponent(_inviteLink)}&app_id=YOUR_APP_ID');
+        'fb-messenger://share?link=${Uri.encodeComponent(_inviteLink)}&app_id=YOUR_APP_ID',
+      );
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        await Share.share(message,
-            subject: 'Invitation Private School Transport');
+        await Share.share(
+          message,
+          subject: 'Invitation Private School Transport',
+        );
       }
     } catch (e) {
-      debugPrint('❌ Erreur Messenger: $e');
+      debugPrint(' Erreur Messenger: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -524,17 +527,15 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
       }
 
       if (!launched) {
-        final webUrl =
-            Uri.parse('https://twitter.com/intent/tweet?text=$text');
+        final webUrl = Uri.parse('https://twitter.com/intent/tweet?text=$text');
         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('❌ Erreur Twitter: $e');
+      debugPrint(' Erreur Twitter: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Erreur lors du partage', style: GoogleFonts.inter()),
+            content: Text('Erreur lors du partage', style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -546,16 +547,17 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     if (contact.phones.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('no_phone_number'.tr(), style: GoogleFonts.inter()),
+          content: Text('no_phone_number'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    final phone =
-        contact.phones.first.number.replaceAll(RegExp(r'[^0-9+]'), '');
+    final phone = contact.phones.first.number.replaceAll(
+      RegExp(r'[^0-9+]'),
+      '',
+    );
     final message = '$_inviteMessage$_inviteLink';
 
     if (!mounted) return;
@@ -616,8 +618,10 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
               color: AppColors.textGrey,
               onTap: () {
                 Navigator.pop(context);
-                Share.share(message,
-                    subject: 'Invitation Private School Transport');
+                Share.share(
+                  message,
+                  subject: 'Invitation Private School Transport',
+                );
               },
             ),
             const SizedBox(height: 20),
@@ -663,8 +667,7 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
               ),
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios,
-                size: 16, color: AppColors.textGrey),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textGrey),
           ],
         ),
       ),
@@ -673,20 +676,20 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
 
   Future<void> _sendViaSMS(String phone, String message) async {
     try {
-      final smsUrl =
-          Uri.parse('sms:$phone?body=${Uri.encodeComponent(message)}');
+      final smsUrl = Uri.parse(
+        'sms:$phone?body=${Uri.encodeComponent(message)}',
+      );
       if (await canLaunchUrl(smsUrl)) {
         await launchUrl(smsUrl);
       } else {
         throw Exception('SMS non disponible');
       }
     } catch (e) {
-      debugPrint('❌ Erreur SMS: $e');
+      debugPrint(' Erreur SMS: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('cannot_send_sms'.tr(), style: GoogleFonts.inter()),
+            content: Text('cannot_send_sms'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red,
           ),
         );
@@ -694,24 +697,26 @@ class _InviteFriendsPageState extends State<InviteFriendsPage> {
     }
   }
 
-  Future<void> _sendViaWhatsAppToContact(
-      String phone, String message) async {
+  Future<void> _sendViaWhatsAppToContact(String phone, String message) async {
     try {
       final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
       final url = Uri.parse(
-          'whatsapp://send?phone=$cleanPhone&text=${Uri.encodeComponent(message)}');
+        'whatsapp://send?phone=$cleanPhone&text=${Uri.encodeComponent(message)}',
+      );
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
         throw Exception('WhatsApp non disponible');
       }
     } catch (e) {
-      debugPrint('❌ Erreur WhatsApp: $e');
+      debugPrint('Erreur WhatsApp: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('whatsapp_not_installed'.tr(),
-                style: GoogleFonts.inter()),
+            content: Text(
+              'whatsapp_not_installed'.tr(),
+              style: GoogleFonts.inter(),
+            ),
             backgroundColor: Colors.red,
           ),
         );

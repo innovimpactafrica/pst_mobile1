@@ -9,7 +9,7 @@ class ParentNotificationBloc
   final NotificationRepository repository;
 
   ParentNotificationBloc({required this.repository})
-      : super(const NotificationInitial()) {
+    : super(const NotificationInitial()) {
     on<LoadNotificationsEvent>(_onLoadNotifications);
     on<RefreshNotificationsEvent>(_onRefreshNotifications);
     on<MarkAsReadEvent>(_onMarkAsRead);
@@ -23,12 +23,18 @@ class ParentNotificationBloc
     emit(const NotificationLoading());
     try {
       final notifications = await repository.getNotifications();
-      debugPrint('✅ [NotificationBloc] ${notifications.length} notifications chargées');
-      debugPrint('   Non lues: ${notifications.where((n) => !n.isRead).length}');
+      debugPrint(
+        ' [NotificationBloc] ${notifications.length} notifications chargées',
+      );
+      debugPrint(
+        '   Non lues: ${notifications.where((n) => !n.isRead).length}',
+      );
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      debugPrint('❌ [NotificationBloc] Erreur chargement: $e');
-      emit(const NotificationError('Erreur lors du chargement des notifications'));
+      debugPrint(' [NotificationBloc] Erreur chargement: $e');
+      emit(
+        const NotificationError('Erreur lors du chargement des notifications'),
+      );
     }
   }
 
@@ -38,11 +44,15 @@ class ParentNotificationBloc
   ) async {
     try {
       final notifications = await repository.getNotifications();
-      debugPrint('🔄 [NotificationBloc] Refresh: ${notifications.length} notifications');
-      debugPrint('   Non lues: ${notifications.where((n) => !n.isRead).length}');
+      debugPrint(
+        ' [NotificationBloc] Refresh: ${notifications.length} notifications',
+      );
+      debugPrint(
+        '   Non lues: ${notifications.where((n) => !n.isRead).length}',
+      );
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      debugPrint('❌ [NotificationBloc] Erreur refresh: $e');
+      debugPrint(' [NotificationBloc] Erreur refresh: $e');
       emit(const NotificationError('Erreur lors du rafraîchissement'));
     }
   }
@@ -54,7 +64,6 @@ class ParentNotificationBloc
     if (state is NotificationsLoaded) {
       final currentNotifications = (state as NotificationsLoaded).notifications;
 
-      // ✅ 1. Mise à jour IMMÉDIATE en local pour l'UI
       final updatedNotifications = currentNotifications.map((n) {
         if (n.id == event.notificationId) {
           return n.copyWith(isRead: true);
@@ -63,19 +72,22 @@ class ParentNotificationBloc
       }).toList();
       emit(NotificationsLoaded(updatedNotifications));
 
-      // ✅ 2. Appel API backend
       try {
         await repository.markNotificationAsRead(event.notificationId);
-        debugPrint('✅ [NotificationBloc] Notification ${event.notificationId} marquée lue sur le serveur');
+        debugPrint(
+          ' [NotificationBloc] Notification ${event.notificationId} marquée lue sur le serveur',
+        );
 
-        // ✅ 3. Recharger depuis le backend pour avoir l'état réel
         final freshNotifications = await repository.getNotifications();
-        debugPrint('🔄 [NotificationBloc] Rechargement après markAsRead:');
-        debugPrint('   Non lues: ${freshNotifications.where((n) => !n.isRead).length}');
+        debugPrint(' [NotificationBloc] Rechargement après markAsRead:');
+        debugPrint(
+          '   Non lues: ${freshNotifications.where((n) => !n.isRead).length}',
+        );
         emit(NotificationsLoaded(freshNotifications));
       } catch (e) {
-        debugPrint('⚠️ [NotificationBloc] Erreur API mark-read (non bloquant): $e');
-        // On garde la mise à jour locale
+        debugPrint(
+          ' [NotificationBloc] Erreur API mark-read (non bloquant): $e',
+        );
       }
     }
   }
@@ -88,11 +100,10 @@ class ParentNotificationBloc
       await repository.deleteNotification(event.notificationId);
       emit(const NotificationDeleted());
 
-      // ✅ Recharger depuis le backend après suppression
       final notifications = await repository.getNotifications();
       emit(NotificationsLoaded(notifications));
     } catch (e) {
-      debugPrint('❌ [NotificationBloc] Erreur suppression: $e');
+      debugPrint(' [NotificationBloc] Erreur suppression: $e');
       emit(const NotificationError('Erreur lors de la suppression'));
     }
   }

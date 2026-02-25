@@ -5,16 +5,11 @@ import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
 
-
 class TripCardWidget extends StatelessWidget {
   final TripModel trip;
   final VoidCallback onTap;
 
-  const TripCardWidget({
-    super.key,
-    required this.trip,
-    required this.onTap,
-  });
+  const TripCardWidget({super.key, required this.trip, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +59,7 @@ class TripCardWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppConstants.spacingM),
-        
+
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +73,7 @@ class TripCardWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-             
+
               Text(
                 '${trip.totalSeats} ${'available_seats_vehicle'.tr()} ',
                 style: const TextStyle(
@@ -89,23 +84,36 @@ class TripCardWidget extends StatelessWidget {
             ],
           ),
         ),
-        
+
         _buildStatusBadge(),
       ],
     );
   }
 
   Widget _buildRoute() {
-    final isReturnTrip = ((trip.status == 'completed' || trip.status == 'partially_completed') && trip.returnStatus == 'pending') || trip.returnStatus == 'in_progress';
-    final start = isReturnTrip ? trip.destination : (trip.startLocation ?? 'departure_point'.tr());
-    final end = isReturnTrip ? (trip.startLocation ?? 'departure_point'.tr()) : trip.destination;
-    final displayTime = isReturnTrip && trip.returnTime != null ? trip.returnTime! : trip.time;
-    
+    final isReturnTrip =
+        ((trip.status == 'completed' || trip.status == 'partially_completed') &&
+            trip.returnStatus == 'pending') ||
+        trip.returnStatus == 'in_progress';
+    final start = isReturnTrip
+        ? trip.destination
+        : (trip.startLocation ?? 'departure_point'.tr());
+    final end = isReturnTrip
+        ? (trip.startLocation ?? 'departure_point'.tr())
+        : trip.destination;
+    final displayTime = isReturnTrip && trip.returnTime != null
+        ? trip.returnTime!
+        : trip.time;
+
     return Column(
       children: [
         Row(
           children: [
-            const Icon(Icons.radio_button_checked, color: AppColors.primary, size: AppConstants.iconSizeM),
+            const Icon(
+              Icons.radio_button_checked,
+              color: AppColors.primary,
+              size: AppConstants.iconSizeM,
+            ),
             const SizedBox(width: AppConstants.spacingM),
             Expanded(
               child: Text(
@@ -129,7 +137,7 @@ class TripCardWidget extends StatelessWidget {
             ),
           ],
         ),
-        
+
         Container(
           margin: const EdgeInsets.only(left: AppConstants.spacingS + 2),
           height: AppConstants.spacingXXL,
@@ -137,10 +145,14 @@ class TripCardWidget extends StatelessWidget {
             painter: DottedLinePainter(color: AppColors.grey300),
           ),
         ),
-        
+
         Row(
           children: [
-            const Icon(Icons.location_on, color: AppColors.error, size: AppConstants.iconSizeM),
+            const Icon(
+              Icons.location_on,
+              color: AppColors.error,
+              size: AppConstants.iconSizeM,
+            ),
             const SizedBox(width: AppConstants.spacingM),
             Expanded(
               child: Text(
@@ -160,10 +172,9 @@ class TripCardWidget extends StatelessWidget {
     );
   }
 
-
   Widget _buildFooter() {
     final schoolCount = trip.schools.length;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppConstants.spacingL,
@@ -223,14 +234,15 @@ class TripCardWidget extends StatelessWidget {
 
   Map<String, dynamic> _getStatusConfig() {
     // Si l'aller est terminé et le retour est en attente
-    if ((trip.status == 'completed' || trip.status == 'partially_completed') && trip.returnStatus == 'pending') {
+    if ((trip.status == 'completed' || trip.status == 'partially_completed') &&
+        trip.returnStatus == 'pending') {
       return {
         'bgColor': const Color(0xFFFEF3C7),
         'textColor': const Color(0xFFF59E0B),
         'label': 'partially_completed'.tr(),
       };
     }
-    
+
     // Si le retour est en cours
     if (trip.returnStatus == 'in_progress') {
       return {
@@ -239,7 +251,7 @@ class TripCardWidget extends StatelessWidget {
         'label': 'in_progress_return'.tr(),
       };
     }
-    
+
     switch (trip.status) {
       case AppConstants.statusPending:
         return {
@@ -259,7 +271,7 @@ class TripCardWidget extends StatelessWidget {
           'textColor': AppColors.statusStarted,
           'label': 'completed'.tr(),
         };
-      case AppConstants.statusInProgress: 
+      case AppConstants.statusInProgress:
         return {
           'bgColor': AppColors.statusInProgressBg,
           'textColor': AppColors.statusInProgress,
@@ -309,11 +321,7 @@ class DottedLinePainter extends CustomPainter {
     double startY = 0;
 
     while (startY < size.height) {
-      canvas.drawLine(
-        Offset(0, startY),
-        Offset(0, startY + dashHeight),
-        paint,
-      );
+      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);
       startY += dashHeight + dashSpace;
     }
   }

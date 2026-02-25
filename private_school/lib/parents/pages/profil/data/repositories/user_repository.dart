@@ -4,23 +4,19 @@ import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/models/user_model.dart';
 import '../services/user_service.dart';
 
-/// Repository for managing user profile business logic
-/// Handles data operations between service and BLoC layers
 class UserRepository {
   final UserService _userService = UserService();
   final SecureStorage _storage = SecureStorage();
 
-  /// Fetch current logged-in user information
   Future<UserModel> getCurrentUser() async {
     try {
       return await _userService.fetchCurrentUser();
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to load user - $e');
+      debugPrint(' [UserRepository] Failed to load user - $e');
       throw Exception('Unable to load profile: $e');
     }
   }
 
-  /// Update user information
   Future<UserModel> updateUser(UserModel user) async {
     try {
       return await _userService.updateUserProfile(
@@ -31,12 +27,11 @@ class UserRepository {
         address: user.address,
       );
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to update user - $e');
+      debugPrint(' [UserRepository] Failed to update user - $e');
       throw Exception('Unable to update profile: $e');
     }
   }
 
-  /// Update specific user fields only
   Future<UserModel> updateUserFields({
     String? firstName,
     String? lastName,
@@ -53,7 +48,7 @@ class UserRepository {
         address: address,
       );
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to update user fields - $e');
+      debugPrint(' [UserRepository] Failed to update user fields - $e');
       throw Exception('Unable to update profile: $e');
     }
   }
@@ -63,7 +58,7 @@ class UserRepository {
     try {
       return await _userService.updateProfilePhoto(photoFile);
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to update photo - $e');
+      debugPrint(' [UserRepository] Failed to update photo - $e');
       throw Exception('Unable to update photo: $e');
     }
   }
@@ -73,7 +68,7 @@ class UserRepository {
     try {
       return await _userService.updateProfilePhotoFromPath(photoPath);
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to update photo from path - $e');
+      debugPrint(' [UserRepository] Failed to update photo from path - $e');
       throw Exception('Unable to update photo: $e');
     }
   }
@@ -83,7 +78,7 @@ class UserRepository {
     try {
       await _userService.deleteProfilePhoto();
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to delete photo - $e');
+      debugPrint(' [UserRepository] Failed to delete photo - $e');
       throw Exception('Unable to delete photo: $e');
     }
   }
@@ -91,17 +86,14 @@ class UserRepository {
   /// Logout user
   Future<void> logout() async {
     try {
-      // Call API to logout on server side
       await _userService.logout();
     } catch (e) {
       debugPrint(
-        '⚠️ [UserRepository] API logout failed, continuing with local logout - $e',
+        ' [UserRepository] API logout failed, continuing with local logout - $e',
       );
-      // Continue with local logout anyway
     } finally {
-      // Clear all tokens locally (ALWAYS executed)
       await _storage.clearAll();
-      debugPrint('✅ [UserRepository] Local data cleared');
+      debugPrint(' [UserRepository] Local data cleared');
     }
   }
 
@@ -110,7 +102,7 @@ class UserRepository {
     try {
       return await _storage.isLoggedIn();
     } catch (e) {
-      debugPrint('❌ [UserRepository] Failed to check login status - $e');
+      debugPrint(' [UserRepository] Failed to check login status - $e');
       return false;
     }
   }

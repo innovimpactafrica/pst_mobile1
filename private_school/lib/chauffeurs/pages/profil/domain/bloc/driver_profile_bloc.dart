@@ -3,15 +3,15 @@ import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_
 import 'driver_profile_event.dart';
 import 'driver_profile_state.dart';
 
-
 class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
   final DriverProfileRepository repository;
 
-  DriverProfileBloc({required this.repository}) : super(DriverProfileInitial()) {
+  DriverProfileBloc({required this.repository})
+    : super(DriverProfileInitial()) {
     on<LoadDriverProfileEvent>(_onLoadProfile);
     on<UpdateDriverProfileEvent>(_onUpdateProfile);
     on<UpdateDriverProfileWithPhotoEvent>(_onUpdateProfileWithPhoto);
-    on<UpdateDriverByIdEvent>(_onUpdateDriverById); 
+    on<UpdateDriverByIdEvent>(_onUpdateDriverById);
   }
 
   Future<void> _onLoadProfile(
@@ -64,24 +64,21 @@ class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
     }
   }
 
-  
- Future<void> _onUpdateDriverById(
-  UpdateDriverByIdEvent event,
-  Emitter<DriverProfileState> emit,
-) async {
-  try {
-    emit(DriverProfileUpdating());
+  Future<void> _onUpdateDriverById(
+    UpdateDriverByIdEvent event,
+    Emitter<DriverProfileState> emit,
+  ) async {
+    try {
+      emit(DriverProfileUpdating());
 
-    final profile = await repository.updateDriverById(
-      driverId: event.driverId,
-      formData: event.formData,
-    );
+      final profile = await repository.updateDriverById(
+        driverId: event.driverId,
+        formData: event.formData,
+      );
 
-
-    emit(DriverProfileUpdated(profile));
-  } catch (e) {
-    emit(DriverProfileError(e.toString()));
+      emit(DriverProfileUpdated(profile));
+    } catch (e) {
+      emit(DriverProfileError(e.toString()));
+    }
   }
-}
-
 }

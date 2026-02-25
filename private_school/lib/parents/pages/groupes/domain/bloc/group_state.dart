@@ -7,6 +7,7 @@ abstract class GroupState extends Equatable {
 }
 
 class GroupInitial extends GroupState {}
+
 class GroupLoading extends GroupState {}
 
 class GroupsLoaded extends GroupState {
@@ -26,19 +27,19 @@ class GroupsLoaded extends GroupState {
     List<GroupModel>? filteredAvailableGroups,
     this.searchQuery = '',
     this.isLoadingMore = false,
-  })  : filteredMyGroups = filteredMyGroups ?? myGroups,
-        filteredAvailableGroups = filteredAvailableGroups ?? availableGroups;
+  }) : filteredMyGroups = filteredMyGroups ?? myGroups,
+       filteredAvailableGroups = filteredAvailableGroups ?? availableGroups;
 
   @override
   List<Object?> get props => [
-        myGroups,
-        availableGroups,
-        invitations,
-        filteredMyGroups,
-        filteredAvailableGroups,
-        searchQuery,
-        isLoadingMore
-      ];
+    myGroups,
+    availableGroups,
+    invitations,
+    filteredMyGroups,
+    filteredAvailableGroups,
+    searchQuery,
+    isLoadingMore,
+  ];
 
   GroupsLoaded copyWith({
     List<GroupModel>? myGroups,
@@ -62,7 +63,6 @@ class GroupsLoaded extends GroupState {
   }
 }
 
-// ─── Gardés pour compatibilité avec groupes_page.dart existant ───
 class MyGroupsLoaded extends GroupState {
   final List<GroupModel> groups;
   MyGroupsLoaded({required this.groups});
@@ -77,7 +77,6 @@ class AvailableGroupsLoaded extends GroupState {
   List<Object?> get props => [groups];
 }
 
-// Détails d'un groupe
 class GroupDetailsLoaded extends GroupState {
   final GroupModel group;
   final int selectedTabIndex;
@@ -100,9 +99,13 @@ class GroupCreated extends GroupState {
 }
 
 class MemberInvited extends GroupState {}
+
 class PlanningCreated extends GroupState {}
+
 class PlanningConfirmed extends GroupState {}
+
 class ReplacementRequested extends GroupState {}
+
 class ReplacementResponseSent extends GroupState {
   final bool accepted;
   ReplacementResponseSent({required this.accepted});

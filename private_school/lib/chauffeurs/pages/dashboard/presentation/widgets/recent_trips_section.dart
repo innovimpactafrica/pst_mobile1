@@ -5,10 +5,7 @@ import 'package:private_school/core/utils/app_constants.dart';
 class RecentTripsSection extends StatelessWidget {
   final List<dynamic> trips;
 
-  const RecentTripsSection({
-    super.key,
-    required this.trips,
-  });
+  const RecentTripsSection({super.key, required this.trips});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +17,9 @@ class RecentTripsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.spacingXL,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -33,9 +32,7 @@ class RecentTripsSection extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {
-    
-                },
+                onPressed: () {},
                 child: const Text(
                   AppConstants.labelViewAll,
                   style: TextStyle(
@@ -52,7 +49,9 @@ class RecentTripsSection extends StatelessWidget {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.spacingXL,
+          ),
           itemCount: trips.length > 3 ? 3 : trips.length,
           itemBuilder: (context, index) {
             return _buildTripCard(trips[index]);
@@ -64,10 +63,12 @@ class RecentTripsSection extends StatelessWidget {
 
   Widget _buildTripCard(dynamic trip) {
     // Extract trip data safely
-    final destination = trip is Map ? (trip['destination'] ?? 'Destination inconnue') : 'Destination inconnue';
+    final destination = trip is Map
+        ? (trip['destination'] ?? 'Destination inconnue')
+        : 'Destination inconnue';
     final passengers = trip is Map ? (trip['passengers'] ?? 0) : 0;
     final status = trip is Map ? (trip['status'] ?? 'pending') : 'pending';
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
       padding: const EdgeInsets.all(AppConstants.spacingM),
@@ -123,7 +124,7 @@ class RecentTripsSection extends StatelessWidget {
 
   Widget _buildStatusBadge(String status) {
     final config = _getStatusConfig(status);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppConstants.spacingS,

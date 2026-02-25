@@ -43,7 +43,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   ) async {
     try {
       final transactions = await repository.getTransactions();
-      
+
       if (event.type == null || event.type!.isEmpty) {
         emit(TransactionsLoaded(transactions));
       } else {

@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/subscription_model.dart';
 
@@ -9,9 +8,9 @@ abstract class SubscriptionState extends Equatable {
 
 class CurrentSubscriptionLoaded extends SubscriptionState {
   final SubscriptionModel? subscription;
-  
+
   CurrentSubscriptionLoaded(this.subscription);
-  
+
   @override
   List<Object?> get props => [subscription];
 }

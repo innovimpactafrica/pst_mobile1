@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +19,7 @@ class AbonnementPage extends StatefulWidget {
 class _AbonnementPageState extends State<AbonnementPage> {
   SubscriptionModel? _currentSubscription;
   List<SubscriptionPlan> _plans = [];
-  bool _isAnnual = false; 
+  bool _isAnnual = false;
 
   @override
   void initState() {
@@ -128,7 +126,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
               const SizedBox(height: 24),
               _buildChooseYourPlanSection(),
               const SizedBox(height: 16),
-              _buildToggle(), 
+              _buildToggle(),
               const SizedBox(height: 20),
               _buildAvailablePlansSection(),
             ],
@@ -177,7 +175,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 Row(
                   children: [
                     Text(
-                      'my_subscription'.tr(), 
+                      'my_subscription'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -196,7 +194,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '● ${'active'.tr()}', 
+                          '● ${'active'.tr()}',
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -208,9 +206,9 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                 hasSubscription
-    ? '${'expires_on'.tr()}: ${DateFormat.yMd(context.locale.toString()).format(_currentSubscription!.expiryDate)}'
-    : 'no_active_subscription'.tr(),
+                  hasSubscription
+                      ? '${'expires_on'.tr()}: ${DateFormat.yMd(context.locale.toString()).format(_currentSubscription!.expiryDate)}'
+                      : 'no_active_subscription'.tr(),
 
                   style: GoogleFonts.inter(
                     fontSize: 13,
@@ -227,7 +225,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
 
   Widget _buildChooseYourPlanSection() {
     return Text(
-      'choose_your_plan'.tr(), 
+      'choose_your_plan'.tr(),
       style: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -241,7 +239,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
       children: [
         Expanded(
           child: _buildToggleButton(
-            label: 'monthly'.tr(), 
+            label: 'monthly'.tr(),
             isSelected: !_isAnnual,
             onTap: () => setState(() => _isAnnual = false),
           ),
@@ -270,8 +268,8 @@ class _AbonnementPageState extends State<AbonnementPage> {
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1) 
-              : AppColors.white, 
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -280,9 +278,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: isSelected
-                  ? AppColors.primary 
-                  : AppColors.textPrimary, 
+              color: isSelected ? AppColors.primary : AppColors.textPrimary,
             ),
           ),
         ),
@@ -335,9 +331,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isAnnual
-              ? AppColors.primary
-              : AppColors.border,
+          color: isAnnual ? AppColors.primary : AppColors.border,
           width: isAnnual ? 2 : 1,
         ),
         boxShadow: [
@@ -351,7 +345,6 @@ class _AbonnementPageState extends State<AbonnementPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-         
           if (isAnnual)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -360,7 +353,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'recommended'.tr(), 
+                'recommended'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -391,8 +384,8 @@ class _AbonnementPageState extends State<AbonnementPage> {
                   color: AppColors.textPrimary,
                 ),
               ),
-             Text(
-         isAnnual ? 'per_year'.tr() : 'per_month_short'.tr(),
+              Text(
+                isAnnual ? 'per_year'.tr() : 'per_month_short'.tr(),
 
                 style: GoogleFonts.inter(
                   fontSize: 14,
@@ -412,10 +405,11 @@ class _AbonnementPageState extends State<AbonnementPage> {
             ),
           ),
 
-         
           if (plan.features.isNotEmpty) ...[
             const SizedBox(height: 16),
-            ...plan.features.take(3).map(
+            ...plan.features
+                .take(3)
+                .map(
                   (feature) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
@@ -423,7 +417,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                         const Icon(
                           Icons.check,
                           size: 20,
-                          color: AppColors.primary, 
+                          color: AppColors.primary,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -442,7 +436,6 @@ class _AbonnementPageState extends State<AbonnementPage> {
           ],
           const SizedBox(height: 16),
 
-         
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -456,7 +449,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 elevation: 0,
               ),
               child: Text(
-                'select'.tr(), 
+                'select'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -487,14 +480,10 @@ class _AbonnementPageState extends State<AbonnementPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppColors.error,
-            ),
+            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-             'error'.tr(),
+              'error'.tr(),
 
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(color: AppColors.error),

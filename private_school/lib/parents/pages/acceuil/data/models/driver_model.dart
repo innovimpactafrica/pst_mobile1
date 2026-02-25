@@ -27,7 +27,6 @@ class DriverModel {
     required this.total,
   });
 
-  // Pour convertir depuis JSON (utile pour l'API plus tard)
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
       name: json['name'] ?? '',

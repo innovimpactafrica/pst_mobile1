@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/incident_model.dart';
-//import '../../data/services/incident_service.dart';
 import '../../domain/bloc/incident_bloc.dart';
 import '../../domain/bloc/incident_event.dart';
 import '../../domain/bloc/incident_state.dart';
@@ -31,33 +30,41 @@ class _ReportsPageState extends State<ReportsPage> {
     context.read<IncidentBloc>().add(LoadIncidentsEvent());
   }
 
-  List<IncidentModel> _getFilteredIncidents(List<IncidentModel> allIncidents, String? currentUserId) {
+  List<IncidentModel> _getFilteredIncidents(
+    List<IncidentModel> allIncidents,
+    String? currentUserId,
+  ) {
     var filtered = currentUserId != null
         ? allIncidents.where((i) => i.userId == currentUserId).toList()
         : allIncidents;
-    
+
     if (_searchQuery.isNotEmpty) {
-      filtered = filtered.where((i) =>
-        i.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        i.description.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
+      filtered = filtered
+          .where(
+            (i) =>
+                i.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                i.description.toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ),
+          )
+          .toList();
     }
-    
+
     if (_selectedTab != 0) {
       const categories = ['Incident', 'Litiges', 'Sécurité'];
       final selectedCategory = categories[_selectedTab - 1];
       filtered = filtered.where((i) => i.category == selectedCategory).toList();
     }
-    
+
     return filtered;
   }
 
   List<IncidentModel> _getPaginatedIncidents(List<IncidentModel> filtered) {
     final startIndex = (_currentPage - 1) * _itemsPerPage;
     final endIndex = startIndex + _itemsPerPage;
-    
+
     if (startIndex >= filtered.length) return [];
-    
+
     return filtered.sublist(
       startIndex,
       endIndex > filtered.length ? filtered.length : endIndex,
@@ -72,7 +79,11 @@ class _ReportsPageState extends State<ReportsPage> {
         backgroundColor: AppColors.success,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textWhite, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.textWhite,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -87,23 +98,31 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, authState) {
-          final currentUserId = authState is AuthAuthenticated ? authState.user?.id : null;
-          
+          final currentUserId = authState is AuthAuthenticated
+              ? authState.user?.id
+              : null;
+
           return BlocBuilder<IncidentBloc, IncidentState>(
             builder: (context, incidentState) {
               if (incidentState is IncidentLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (incidentState is IncidentError) {
                 return Center(child: Text('Erreur: ${incidentState.message}'));
               }
-              
+
               if (incidentState is IncidentsLoaded) {
-                final filteredIncidents = _getFilteredIncidents(incidentState.incidents, currentUserId);
-                final paginatedIncidents = _getPaginatedIncidents(filteredIncidents);
-                final totalPages = (filteredIncidents.length / _itemsPerPage).ceil();
-                
+                final filteredIncidents = _getFilteredIncidents(
+                  incidentState.incidents,
+                  currentUserId,
+                );
+                final paginatedIncidents = _getPaginatedIncidents(
+                  filteredIncidents,
+                );
+                final totalPages = (filteredIncidents.length / _itemsPerPage)
+                    .ceil();
+
                 return Column(
                   children: [
                     const SizedBox(height: AppConstants.spacingXL),
@@ -115,7 +134,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   ],
                 );
               }
-              
+
               return const Center(child: Text('Aucun incident'));
             },
           );
@@ -127,7 +146,9 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppConstants.spacingXL,
@@ -147,10 +168,15 @@ class _ReportsPageState extends State<ReportsPage> {
           },
           decoration: InputDecoration(
             hintText: 'Rechercher',
-            hintStyle: GoogleFonts.inter(color: AppColors.textGrey, fontSize: AppConstants.fontSizeM),
+            hintStyle: GoogleFonts.inter(
+              color: AppColors.textGrey,
+              fontSize: AppConstants.fontSizeM,
+            ),
             border: InputBorder.none,
             icon: const Icon(Icons.search, color: AppColors.textGrey, size: 20),
-            contentPadding: const EdgeInsets.symmetric(vertical: AppConstants.spacingL),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: AppConstants.spacingL,
+            ),
           ),
         ),
       ),
@@ -159,7 +185,9 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildTabs() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+      ),
       child: Row(
         children: [
           _buildTab('Tous', 0),
@@ -185,11 +213,15 @@ class _ReportsPageState extends State<ReportsPage> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: AppConstants.spacingM + 2),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppConstants.spacingM + 2,
+          ),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : AppColors.white,
             borderRadius: BorderRadius.circular(AppConstants.radiusXL + 4),
-            border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.border,
+            ),
           ),
           child: Text(
             label,
@@ -214,11 +246,16 @@ class _ReportsPageState extends State<ReportsPage> {
                 ? Center(
                     child: Text(
                       'Aucun signalement',
-                      style: GoogleFonts.inter(fontSize: AppConstants.fontSizeM, color: AppColors.textGrey),
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeM,
+                        color: AppColors.textGrey,
+                      ),
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.spacingXL + 4,
+                    ),
                     itemCount: incidents.length,
                     itemBuilder: (context, index) {
                       final incident = incidents[index];
@@ -227,7 +264,9 @@ class _ReportsPageState extends State<ReportsPage> {
                         description: incident.description,
                         status: incident.status,
                         statusColor: Color(incident.statusColorValue),
-                        imageUrl: incident.imageUrl ?? 'assets/images/signalementA.png',
+                        imageUrl:
+                            incident.imageUrl ??
+                            'assets/images/signalementA.png',
                       );
                     },
                   ),
@@ -252,7 +291,11 @@ class _ReportsPageState extends State<ReportsPage> {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppConstants.spacingL),
         boxShadow: [
-          BoxShadow(color: AppColors.blackOpacity05, blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: AppColors.blackOpacity05,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -266,7 +309,11 @@ class _ReportsPageState extends State<ReportsPage> {
               child: Image.asset(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppColors.textGrey, size: 24),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.image,
+                  color: AppColors.textGrey,
+                  size: 24,
+                ),
               ),
             ),
           ),
@@ -286,7 +333,10 @@ class _ReportsPageState extends State<ReportsPage> {
                 const SizedBox(height: AppConstants.spacingXS),
                 Text(
                   description,
-                  style: GoogleFonts.inter(fontSize: AppConstants.fontSizeS, color: AppColors.textGrey),
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeS,
+                    color: AppColors.textGrey,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -295,7 +345,10 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           const SizedBox(width: AppConstants.spacingS),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM + 2, vertical: 5),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingM + 2,
+              vertical: 5,
+            ),
             decoration: BoxDecoration(
               color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
@@ -306,7 +359,10 @@ class _ReportsPageState extends State<ReportsPage> {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -327,26 +383,36 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget _buildPagination(int totalPages) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL + 4, vertical: AppConstants.spacingL),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.spacingXL + 4,
+        vertical: AppConstants.spacingL,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Page $_currentPage sur $totalPages',
-            style: GoogleFonts.inter(fontSize: AppConstants.fontSizeS, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeS,
+              color: AppColors.textSecondary,
+            ),
           ),
           Row(
             children: [
               _buildPageButton(
                 icon: Icons.chevron_left,
-                onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                onPressed: _currentPage > 1
+                    ? () => setState(() => _currentPage--)
+                    : null,
               ),
               const SizedBox(width: AppConstants.spacingS),
               ..._buildPageNumbers(totalPages),
               const SizedBox(width: AppConstants.spacingS),
               _buildPageButton(
                 icon: Icons.chevron_right,
-                onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+                onPressed: _currentPage < totalPages
+                    ? () => setState(() => _currentPage++)
+                    : null,
               ),
             ],
           ),
@@ -358,7 +424,9 @@ class _ReportsPageState extends State<ReportsPage> {
   List<Widget> _buildPageNumbers(int totalPages) {
     List<Widget> pages = [];
     for (int i = 1; i <= totalPages; i++) {
-      if (i == 1 || i == totalPages || (i >= _currentPage - 1 && i <= _currentPage + 1)) {
+      if (i == 1 ||
+          i == totalPages ||
+          (i >= _currentPage - 1 && i <= _currentPage + 1)) {
         pages.add(
           GestureDetector(
             onTap: () => setState(() => _currentPage = i),
@@ -367,17 +435,27 @@ class _ReportsPageState extends State<ReportsPage> {
               height: 32,
               margin: const EdgeInsets.symmetric(horizontal: 2),
               decoration: BoxDecoration(
-                color: _currentPage == i ? AppColors.primary : Colors.transparent,
+                color: _currentPage == i
+                    ? AppColors.primary
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _currentPage == i ? AppColors.primary : AppColors.grey300),
+                border: Border.all(
+                  color: _currentPage == i
+                      ? AppColors.primary
+                      : AppColors.grey300,
+                ),
               ),
               child: Center(
                 child: Text(
                   '$i',
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeS,
-                    fontWeight: _currentPage == i ? FontWeight.w600 : FontWeight.w400,
-                    color: _currentPage == i ? AppColors.white : AppColors.textSecondary,
+                    fontWeight: _currentPage == i
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                    color: _currentPage == i
+                        ? AppColors.white
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -388,7 +466,13 @@ class _ReportsPageState extends State<ReportsPage> {
         pages.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text('...', style: GoogleFonts.inter(fontSize: AppConstants.fontSizeS, color: AppColors.textSecondary)),
+            child: Text(
+              '...',
+              style: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeS,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
         );
       }
@@ -396,17 +480,28 @@ class _ReportsPageState extends State<ReportsPage> {
     return pages;
   }
 
-  Widget _buildPageButton({required IconData icon, required VoidCallback? onPressed}) {
+  Widget _buildPageButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
         color: onPressed != null ? AppColors.white : AppColors.backgroundLight,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: onPressed != null ? AppColors.grey300 : AppColors.grey200),
+        border: Border.all(
+          color: onPressed != null ? AppColors.grey300 : AppColors.grey200,
+        ),
       ),
       child: IconButton(
-        icon: Icon(icon, size: 16, color: onPressed != null ? AppColors.textPrimary : AppColors.textSecondary),
+        icon: Icon(
+          icon,
+          size: 16,
+          color: onPressed != null
+              ? AppColors.textPrimary
+              : AppColors.textSecondary,
+        ),
         padding: EdgeInsets.zero,
         onPressed: onPressed,
       ),
@@ -422,7 +517,10 @@ class _ReportsPageState extends State<ReportsPage> {
         'assets/icons/13.svg',
         width: 24,
         height: 24,
-        colorFilter: const ColorFilter.mode(AppColors.textWhite, BlendMode.srcIn),
+        colorFilter: const ColorFilter.mode(
+          AppColors.textWhite,
+          BlendMode.srcIn,
+        ),
       ),
     );
   }

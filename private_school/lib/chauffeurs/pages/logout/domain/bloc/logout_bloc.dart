@@ -1,5 +1,3 @@
-
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/services/logout_service.dart';
 import 'logout_event.dart';

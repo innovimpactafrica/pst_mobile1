@@ -1,12 +1,11 @@
-
 class DashboardModel {
   final DriverInfo driver;
   final DashboardStats stats;
-  final List<dynamic> upcomingTripsList;  
-  final List<dynamic> todayTrips;        
+  final List<dynamic> upcomingTripsList;
+  final List<dynamic> todayTrips;
   final List<NotificationItem> notifications;
   final int unreadNotificationsCount;
-  final List<dynamic> recentBookings;    
+  final List<dynamic> recentBookings;
   final SubscriptionStatus? subscription;
 
   DashboardModel({
@@ -20,7 +19,6 @@ class DashboardModel {
     this.subscription,
   });
 
-  
   int get totalTrips => stats.completedTrips + stats.upcomingTrips;
   int get completedTrips => stats.completedTrips;
   int get canceledTrips => stats.canceledTrips;
@@ -29,7 +27,11 @@ class DashboardModel {
   double get monthlyEarnings => 0.0;
   int get activePassengers => stats.totalChildrenTransported;
   double get rating => stats.averageRating;
-  List<dynamic> get recentTrips => [...upcomingTripsList, ...todayTrips, ...recentBookings];
+  List<dynamic> get recentTrips => [
+    ...upcomingTripsList,
+    ...todayTrips,
+    ...recentBookings,
+  ];
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
     return DashboardModel(
@@ -38,23 +40,23 @@ class DashboardModel {
       upcomingTripsList: json['upcomingTrips'] != null
           ? (json['upcomingTrips'] as List).map((trip) => trip).toList()
           : [],
-      
+
       todayTrips: json['todayTrips'] != null
           ? (json['todayTrips'] as List).map((trip) => trip).toList()
           : [],
-      
+
       notifications: json['notifications'] != null
           ? (json['notifications'] as List)
-              .map((notif) => NotificationItem.fromJson(notif))
-              .toList()
+                .map((notif) => NotificationItem.fromJson(notif))
+                .toList()
           : [],
-      
+
       unreadNotificationsCount: json['unreadNotificationsCount'] ?? 0,
-      
+
       recentBookings: json['recentBookings'] != null
           ? (json['recentBookings'] as List).map((booking) => booking).toList()
           : [],
-      
+
       subscription: json['subscription'] != null
           ? SubscriptionStatus.fromJson(json['subscription'])
           : null,
@@ -98,12 +100,7 @@ class DriverInfo {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'user_id': userId,
-      'name': name,
-      'status': status,
-    };
+    return {'id': id, 'user_id': userId, 'name': name, 'status': status};
   }
 }
 
@@ -225,7 +222,8 @@ class NotificationItem {
       description: json['description'] ?? '',
       imageUrl: json['image_url'],
       dateCreation: json['date_creation'] != null
-          ? DateTime.tryParse(json['date_creation'].toString()) ?? DateTime.now()
+          ? DateTime.tryParse(json['date_creation'].toString()) ??
+                DateTime.now()
           : DateTime.now(),
       status: json['statut'] ?? json['status'] ?? '',
       isRead: json['lu'] ?? json['isRead'] ?? false,

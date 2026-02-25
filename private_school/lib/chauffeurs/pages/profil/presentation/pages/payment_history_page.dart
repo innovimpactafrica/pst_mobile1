@@ -61,12 +61,16 @@ class PaymentHistoryPage extends StatelessWidget {
                         decoration: InputDecoration(
                           hintText: 'search'.tr(),
                           hintStyle: TextStyle(
-                            color: AppColors.textSecondary.withValues(alpha: 0.6),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.6,
+                            ),
                             fontSize: AppConstants.fontSizeM,
                           ),
                           prefixIcon: Icon(
                             Icons.search,
-                            color: AppColors.textSecondary.withValues(alpha: 0.6),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           filled: true,
                           fillColor: AppColors.white,
@@ -75,12 +79,20 @@ class PaymentHistoryPage extends StatelessWidget {
                             vertical: AppConstants.spacingL,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                            borderSide: const BorderSide(color: AppColors.borderLight),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.radiusL,
+                            ),
+                            borderSide: const BorderSide(
+                              color: AppColors.borderLight,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-                            borderSide: const BorderSide(color: AppColors.borderLight),
+                            borderRadius: BorderRadius.circular(
+                              AppConstants.radiusL,
+                            ),
+                            borderSide: const BorderSide(
+                              color: AppColors.borderLight,
+                            ),
                           ),
                         ),
                       ),
@@ -88,7 +100,9 @@ class PaymentHistoryPage extends StatelessWidget {
                     // Payment List
                     Expanded(
                       child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.spacingM,
+                        ),
                         itemCount: payments.length,
                         itemBuilder: (context, index) {
                           final payment = payments[index];

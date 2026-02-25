@@ -1,5 +1,3 @@
-
-
 import '../../data/models/driver_model.dart';
 
 abstract class DriverAuthState {}
@@ -24,10 +22,9 @@ class DriverOTPSent extends DriverAuthState {
 
 class DriverOTPVerified extends DriverAuthState {}
 
-
 class DriverPasswordResetRequested extends DriverAuthState {
   final String contact;
-  final int? userId; 
+  final int? userId;
 
   DriverPasswordResetRequested(this.contact, {this.userId});
 }

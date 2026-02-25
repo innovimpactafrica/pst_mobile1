@@ -1,4 +1,3 @@
-
 import '../../../../../core/services/api_service.dart';
 
 class NotificationsRepository {
@@ -17,10 +16,13 @@ class NotificationsRepository {
           notificationsList = data['notifications'] as List<dynamic>;
         }
       }
-      
-      if (notificationsList.isEmpty && response['unreadNotificationsCount'] != null) {
+
+      if (notificationsList.isEmpty &&
+          response['unreadNotificationsCount'] != null) {
         final count = response['unreadNotificationsCount'];
-        final result = count is int ? count : int.tryParse(count.toString()) ?? 0;
+        final result = count is int
+            ? count
+            : int.tryParse(count.toString()) ?? 0;
         return result;
       }
       int count = 0;

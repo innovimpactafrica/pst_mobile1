@@ -1,6 +1,3 @@
-// States pour le profil utilisateur
-// Chemin: lib/parents/profil/domain/bloc/profil_state.dart
-
 import 'package:equatable/equatable.dart';
 import 'package:private_school/core/models/user_model.dart';
 

@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -10,21 +8,19 @@ import '../../domain/bloc/driver_auth_state.dart';
 
 class VerifyOtpForgotPage extends StatefulWidget {
   final String contact;
-  final int? userId; 
+  final int? userId;
 
-  const VerifyOtpForgotPage({
-    super.key,
-    required this.contact,
-    this.userId, 
-  });
+  const VerifyOtpForgotPage({super.key, required this.contact, this.userId});
 
   @override
   State<VerifyOtpForgotPage> createState() => _VerifyOtpForgotPageState();
 }
 
 class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _otpControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _otpFocusNodes = List.generate(4, (_) => FocusNode());
 
   @override
@@ -51,7 +47,6 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
       return;
     }
 
-   
     if (widget.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -62,16 +57,12 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
       return;
     }
 
-    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<DriverAuthBloc>(),
-          child: ResetPasswordPage(
-            userId: widget.userId!,  
-            code: otp,              
-          ),
+          child: ResetPasswordPage(userId: widget.userId!, code: otp),
         ),
       ),
     );
@@ -167,8 +158,9 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
                           decoration: InputDecoration(
                             counterText: '',
                             filled: true,
-                            fillColor:
-                                AppColors.background.withValues(alpha: 0.3),
+                            fillColor: AppColors.background.withValues(
+                              alpha: 0.3,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -220,9 +212,7 @@ class _VerifyOtpForgotPageState extends State<VerifyOtpForgotPage> {
 
                   // Resend code
                   TextButton(
-                    onPressed: () {
-                      // TODO: Implémenter renvoyer le code
-                    },
+                    onPressed: () {},
                     child: Text(
                       'resend_code'.tr(),
                       style: TextStyle(

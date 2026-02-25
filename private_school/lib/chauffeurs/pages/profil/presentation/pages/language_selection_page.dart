@@ -23,11 +23,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary, 
+      backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Column(
           children: [
-           
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppConstants.spacingL,
@@ -37,7 +36,11 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   Text(
                     'language'.tr(),
@@ -53,7 +56,6 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
             const SizedBox(height: AppConstants.spacingL),
 
-            
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -67,7 +69,8 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(AppConstants.spacingXL),
                   itemCount: languages.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final lang = languages[index];
                     final isSelected = selectedLanguage == lang['name'];
@@ -77,19 +80,21 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                         setState(() {
                           selectedLanguage = lang['name']!;
                         });
-                        
                       },
                       child: Container(
-                        
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppConstants.spacingXL,
                           vertical: AppConstants.spacingL + 4,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.white,
-                          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : Colors.transparent,
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
                             width: 1.5,
                           ),
                           boxShadow: [
@@ -107,8 +112,12 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                               lang['name']!,
                               style: GoogleFonts.inter(
                                 fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.textPrimary,
                               ),
                             ),
                             if (isSelected)

@@ -1,4 +1,3 @@
-
 import '../../../../../core/services/api_service.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/notification_model.dart';
@@ -9,7 +8,6 @@ class NotificationRepository {
 
   Future<List<NotificationModel>> getNotifications() async {
     try {
-
       final response = await _apiService.get(ApiConstants.notifications);
 
       List<dynamic> notificationsList = [];
@@ -23,41 +21,39 @@ class NotificationRepository {
       final filteredList = notificationsList.where((json) {
         final id = json['id'] as int;
         final statut = (json['statut'] as String?)?.toLowerCase() ?? 'active';
-        
-       
+
         if (_deletedIds.contains(id)) {
-          
           return false;
         }
-        
+
         if (statut == 'deleted' || statut == 'archived') {
-          
           return false;
         }
-        
+
         return true;
       }).toList();
 
       final notifications = filteredList
-          .map((json) => NotificationModel.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => NotificationModel.fromJson(json as Map<String, dynamic>),
+          )
           .toList();
 
-    
       return notifications;
     } catch (e) {
       throw Exception('Erreur récupération notifications: $e');
     }
   }
 
- 
   Future<void> markAsRead(int notificationId) async {
-    try {    
-      await _apiService.put(ApiConstants.notificationMarkAsRead(notificationId));
+    try {
+      await _apiService.put(
+        ApiConstants.notificationMarkAsRead(notificationId),
+      );
     } catch (e) {
       throw Exception('Erreur marquage notification: $e');
     }
   }
-
 
   Future<void> deleteNotification(int notificationId) async {
     try {

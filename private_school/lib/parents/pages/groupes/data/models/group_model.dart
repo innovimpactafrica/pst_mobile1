@@ -1,21 +1,20 @@
 import 'package:flutter/foundation.dart';
 
-
 class GroupModel {
   final String id;
   final String name;
-  final String createdBy;       // creator_name de l'API
-  final String creatorId;       // creator_id de l'API
+  final String createdBy;
+  final String creatorId;
   final DateTime createdAt;
   final int membersCount;
   final List<GroupMember> members;
   final List<Planning> plannings;
   final String? description;
   final String? avatar;
-  final String? schoolName;     // school_name de l'API
-  final String status;          // status de l'API
-  final String? membershipStatus; // membership_status
-  final bool isCreator;         // is_creator
+  final String? schoolName;
+  final String status;
+  final String? membershipStatus;
+  final bool isCreator;
 
   GroupModel({
     required this.id,
@@ -34,30 +33,35 @@ class GroupModel {
     this.isCreator = false,
   });
 
-  /// ✅ fromJson corrigé — mappe creator_name, members_count (String→int)
   factory GroupModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('🔍 [GroupModel.fromJson] Parsing group: ${json['id']}');
+    debugPrint(' [GroupModel.fromJson] Parsing group: ${json['id']}');
     debugPrint('   name: ${json['name']}');
     debugPrint('   creator_name: ${json['creator_name']}');
-    debugPrint('   members_count: ${json['members_count']} (${json['members_count'].runtimeType})');
+    debugPrint(
+      '   members_count: ${json['members_count']} (${json['members_count'].runtimeType})',
+    );
 
     return GroupModel(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
-      // ✅ FIX : utiliser creator_name (pas creator_id)
+
       createdBy: json['creator_name'] ?? json['created_by'] ?? 'Inconnu',
       creatorId: json['creator_id']?.toString() ?? '',
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at']) ?? DateTime.now()
           : DateTime.now(),
-      // ✅ FIX : members_count arrive comme String "0" → int
+
       membersCount: _parseInt(json['members_count']),
-      members: (json['members'] as List<dynamic>?)
-          ?.map((m) => GroupMember.fromJson(m as Map<String, dynamic>))
-          .toList() ?? [],
-      plannings: (json['plannings'] as List<dynamic>?)
-          ?.map((p) => Planning.fromJson(p as Map<String, dynamic>))
-          .toList() ?? [],
+      members:
+          (json['members'] as List<dynamic>?)
+              ?.map((m) => GroupMember.fromJson(m as Map<String, dynamic>))
+              .toList() ??
+          [],
+      plannings:
+          (json['plannings'] as List<dynamic>?)
+              ?.map((p) => Planning.fromJson(p as Map<String, dynamic>))
+              .toList() ??
+          [],
       description: json['description'],
       avatar: json['avatar'],
       schoolName: json['school_name'],
@@ -68,11 +72,11 @@ class GroupModel {
   }
 
   static int _parseInt(dynamic value) {
-  if (value == null) return 0;
-  if (value is int) return value;
-  if (value is String) return int.tryParse(value) ?? 0;
-  return 0;
-}
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -91,33 +95,47 @@ class GroupModel {
   String get initial => avatar ?? name.substring(0, 1).toUpperCase();
 
   GroupModel copyWith({
-    String? id, String? name, String? createdBy, String? creatorId,
-    DateTime? createdAt, int? membersCount, List<GroupMember>? members,
-    List<Planning>? plannings, String? description, String? avatar,
-    String? schoolName, String? status, String? membershipStatus, bool? isCreator,
+    String? id,
+    String? name,
+    String? createdBy,
+    String? creatorId,
+    DateTime? createdAt,
+    int? membersCount,
+    List<GroupMember>? members,
+    List<Planning>? plannings,
+    String? description,
+    String? avatar,
+    String? schoolName,
+    String? status,
+    String? membershipStatus,
+    bool? isCreator,
   }) {
     return GroupModel(
-      id: id ?? this.id, name: name ?? this.name,
-      createdBy: createdBy ?? this.createdBy, creatorId: creatorId ?? this.creatorId,
-      createdAt: createdAt ?? this.createdAt, membersCount: membersCount ?? this.membersCount,
-      members: members ?? this.members, plannings: plannings ?? this.plannings,
-      description: description ?? this.description, avatar: avatar ?? this.avatar,
-      schoolName: schoolName ?? this.schoolName, status: status ?? this.status,
-      membershipStatus: membershipStatus ?? this.membershipStatus, isCreator: isCreator ?? this.isCreator,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      createdBy: createdBy ?? this.createdBy,
+      creatorId: creatorId ?? this.creatorId,
+      createdAt: createdAt ?? this.createdAt,
+      membersCount: membersCount ?? this.membersCount,
+      members: members ?? this.members,
+      plannings: plannings ?? this.plannings,
+      description: description ?? this.description,
+      avatar: avatar ?? this.avatar,
+      schoolName: schoolName ?? this.schoolName,
+      status: status ?? this.status,
+      membershipStatus: membershipStatus ?? this.membershipStatus,
+      isCreator: isCreator ?? this.isCreator,
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// INVITATION MODEL — pour GET /api/parents/carpool/invitations
-// ─────────────────────────────────────────────
 class GroupInvitation {
   final String id;
   final String groupId;
   final String groupName;
   final String invitedBy;
   final String? invitedAt;
-  final String status; // 'pending', 'accepted', 'declined'
+  final String status;
 
   GroupInvitation({
     required this.id,
@@ -131,7 +149,8 @@ class GroupInvitation {
   factory GroupInvitation.fromJson(Map<String, dynamic> json) {
     return GroupInvitation(
       id: json['id']?.toString() ?? '',
-      groupId: json['group_id']?.toString() ?? json['groupId']?.toString() ?? '',
+      groupId:
+          json['group_id']?.toString() ?? json['groupId']?.toString() ?? '',
       groupName: json['group_name'] ?? json['groupName'] ?? '',
       invitedBy: json['invited_by'] ?? json['inviter_name'] ?? 'Inconnu',
       invitedAt: json['invited_at'],
@@ -163,47 +182,52 @@ class GroupMember {
   });
 
   factory GroupMember.fromJson(Map<String, dynamic> json) {
-  final name = json['name'] ?? json['full_name'] ?? '';
-  String calculatedInitials = '';
-  if (name.isNotEmpty) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      // Prendre la première lettre du prénom et du nom
-      calculatedInitials = '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
-    } else {
-      // Si un seul mot, prendre les 2 premières lettres
-      calculatedInitials = name.length >= 2 
-          ? name.substring(0, 2).toUpperCase() 
-          : name[0].toUpperCase();
+    final name = json['name'] ?? json['full_name'] ?? '';
+    String calculatedInitials = '';
+    if (name.isNotEmpty) {
+      final parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        calculatedInitials = '${parts[0][0]}${parts[parts.length - 1][0]}'
+            .toUpperCase();
+      } else {
+        calculatedInitials = name.length >= 2
+            ? name.substring(0, 2).toUpperCase()
+            : name[0].toUpperCase();
+      }
     }
+
+    return GroupMember(
+      id: json['id']?.toString() ?? '',
+      name: name,
+      role: json['role'] ?? 'Membre',
+      availability: json['availability'] ?? 'Disponible 0/5',
+      photo: json['photo'],
+      initials: calculatedInitials,
+    );
   }
 
-  return GroupMember(
-    id: json['id']?.toString() ?? '',
-    name: name,
-    role: json['role'] ?? 'Membre',
-    availability: json['availability'] ?? 'Disponible 0/5',
-    photo: json['photo'],
-    initials: calculatedInitials, 
-  );
-}
-
   Map<String, dynamic> toJson() => {
-    'id': id, 'name': name, 'role': role,
-    'availability': availability, 'photo': photo, 'initials': initials,
+    'id': id,
+    'name': name,
+    'role': role,
+    'availability': availability,
+    'photo': photo,
+    'initials': initials,
   };
 
   String get displayInitials =>
-      initials ?? name.split(' ').map((n) => n.isNotEmpty ? n[0] : '').take(2).join().toUpperCase();
+      initials ??
+      name
+          .split(' ')
+          .map((n) => n.isNotEmpty ? n[0] : '')
+          .take(2)
+          .join()
+          .toUpperCase();
 }
 
 // ─────────────────────────────────────────────
 // PLANNING
 // ─────────────────────────────────────────────
-// ─────────────────────────────────────────────
-// PLANNING - UPDATED pour correspondre à l'API
-// ─────────────────────────────────────────────
-// ✅ AJOUTEZ ce champ dans votre modèle Planning (group_model.dart)
 
 class Planning {
   final String id;
@@ -224,12 +248,12 @@ class Planning {
   final String? notes;
   final String? replacementAcceptedBy;
   final String? replacementAcceptedByName;
- final String? replacementRequesterName;
-final String? replacementRequesterId;
-final String? replacementRequestId;
-final String? replacementRequestCreatedAt;
-final bool needsReplacementFlag; 
-final String? confirmationStatus;      
+  final String? replacementRequesterName;
+  final String? replacementRequesterId;
+  final String? replacementRequestId;
+  final String? replacementRequestCreatedAt;
+  final bool needsReplacementFlag;
+  final String? confirmationStatus;
 
   Planning({
     required this.id,
@@ -252,58 +276,57 @@ final String? confirmationStatus;
     this.replacementAcceptedByName,
     this.replacementRequesterName,
     this.replacementRequesterId,
-this.replacementRequestId, 
-this.replacementRequestCreatedAt,
-this.needsReplacementFlag = false, 
-this.confirmationStatus,
-    
+    this.replacementRequestId,
+    this.replacementRequestCreatedAt,
+    this.needsReplacementFlag = false,
+    this.confirmationStatus,
   });
 
   factory Planning.fromJson(Map<String, dynamic> json) {
-  final replacementRequest = json['replacement_request'];
-  final bool hasPendingRequest = replacementRequest != null &&
-      replacementRequest['status'] == 'pending';
+    final replacementRequest = json['replacement_request'];
+    final bool hasPendingRequest =
+        replacementRequest != null && replacementRequest['status'] == 'pending';
 
-  return Planning(
-    id: json['id']?.toString() ?? '',
-    groupId: json['group_id']?.toString() ?? '',
-    date: json['date'] != null
-        ? DateTime.tryParse(json['date']) ?? DateTime.now()
-        : DateTime.now(),
+    return Planning(
+      id: json['id']?.toString() ?? '',
+      groupId: json['group_id']?.toString() ?? '',
+      date: json['date'] != null
+          ? DateTime.tryParse(json['date']) ?? DateTime.now()
+          : DateTime.now(),
 
-    driverId: json['driver_id']?.toString(),
-    driverName: json['assigned_to_name'] ?? json['driver_name'],
-    driverPhone: json['assigned_to_phone'] ?? json['driver_phone'],
-    driverEmail: json['assigned_to_email'] ?? json['driver_email'],
+      driverId: json['driver_id']?.toString(),
+      driverName: json['assigned_to_name'] ?? json['driver_name'],
+      driverPhone: json['assigned_to_phone'] ?? json['driver_phone'],
+      driverEmail: json['assigned_to_email'] ?? json['driver_email'],
 
-    isMyTurn: json['is_my_turn'] as bool?,
-    status: json['status'] ?? 'scheduled',
-    replacementReason: replacementRequest != null
-        ? replacementRequest['reason']?.toString()
-        : json['replacement_reason'],
+      isMyTurn: json['is_my_turn'] as bool?,
+      status: json['status'] ?? 'scheduled',
+      replacementReason: replacementRequest != null
+          ? replacementRequest['reason']?.toString()
+          : json['replacement_reason'],
 
-    startPoint: json['start_point'],
-    endPoint: json['end_point'],
-    departureTime: json['departure_time'],
-    returnTime: json['return_time'],
-    capacityMax: json['capacity_max'],
-    notes: json['notes'],
+      startPoint: json['start_point'],
+      endPoint: json['end_point'],
+      departureTime: json['departure_time'],
+      returnTime: json['return_time'],
+      capacityMax: json['capacity_max'],
+      notes: json['notes'],
 
-    replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
-    replacementAcceptedByName: json['replacement_accepted_by_name'],
-    replacementRequesterName: json['replacement_requester_name'],
-    replacementRequesterId: json['replacement_requester_id']?.toString(),
+      replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
+      replacementAcceptedByName: json['replacement_accepted_by_name'],
+      replacementRequesterName: json['replacement_requester_name'],
+      replacementRequesterId: json['replacement_requester_id']?.toString(),
 
-    replacementRequestId: replacementRequest != null
-        ? replacementRequest['id']?.toString()
-        : json['replacement_request_id']?.toString(),
-    replacementRequestCreatedAt: replacementRequest != null
-    ? replacementRequest['created_at']?.toString()
-    : null,
-    needsReplacementFlag: hasPendingRequest,
-    confirmationStatus: json['confirmation_status']?.toString(),
-  );
-}
+      replacementRequestId: replacementRequest != null
+          ? replacementRequest['id']?.toString()
+          : json['replacement_request_id']?.toString(),
+      replacementRequestCreatedAt: replacementRequest != null
+          ? replacementRequest['created_at']?.toString()
+          : null,
+      needsReplacementFlag: hasPendingRequest,
+      confirmationStatus: json['confirmation_status']?.toString(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -325,22 +348,27 @@ this.confirmationStatus,
     'replacement_accepted_by': replacementAcceptedBy,
     'replacement_accepted_by_name': replacementAcceptedByName,
     'replacement_requester_name': replacementRequesterName,
-'replacement_requester_id': replacementRequesterId,
-'replacement_request_id': replacementRequestId, // ✅ NOUVEAU
-'needs_replacement': needsReplacementFlag,     
+    'replacement_requester_id': replacementRequesterId,
+    'replacement_request_id': replacementRequestId,
+    'needs_replacement': needsReplacementFlag,
   };
 
-  bool get isConfirmed => confirmationStatus == 'confirmed' || status == 'confirmed';
+  bool get isConfirmed =>
+      confirmationStatus == 'confirmed' || status == 'confirmed';
   bool get isPending => status == 'scheduled' || status == 'pending';
- bool get needsReplacement => needsReplacementFlag || status == 'replacement_requested';
- bool get isReplacementAccepted => 
-  status == 'replacement_accepted' || 
-  (replacementAcceptedByName != null && replacementAcceptedByName!.isNotEmpty);
+  bool get needsReplacement =>
+      needsReplacementFlag || status == 'replacement_requested';
+  bool get isReplacementAccepted =>
+      status == 'replacement_accepted' ||
+      (replacementAcceptedByName != null &&
+          replacementAcceptedByName!.isNotEmpty);
   bool get isToday {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
-  
+
   String get assignedTo {
     if (isMyTurn == true) return 'Vous';
     if (driverName != null && driverName!.isNotEmpty) return driverName!;
@@ -368,11 +396,10 @@ this.confirmationStatus,
     String? replacementAcceptedByName,
     String? replacementRequesterName,
     String? replacementRequesterId,
-String? replacementRequestId, 
-String? replacementRequestCreatedAt,
-bool? needsReplacement,  
-String? confirmationStatus,
-
+    String? replacementRequestId,
+    String? replacementRequestCreatedAt,
+    bool? needsReplacement,
+    String? confirmationStatus,
   }) {
     return Planning(
       id: id ?? this.id,
@@ -391,14 +418,19 @@ String? confirmationStatus,
       returnTime: returnTime ?? this.returnTime,
       capacityMax: capacityMax ?? this.capacityMax,
       notes: notes ?? this.notes,
-      replacementAcceptedBy: replacementAcceptedBy ?? this.replacementAcceptedBy,
-      replacementAcceptedByName: replacementAcceptedByName ?? this.replacementAcceptedByName,
-      replacementRequesterName: replacementRequesterName ?? this.replacementRequesterName,
-      replacementRequesterId: replacementRequesterId ?? this.replacementRequesterId,
-replacementRequestId: replacementRequestId ?? this.replacementRequestId, 
-replacementRequestCreatedAt: replacementRequestCreatedAt ?? this.replacementRequestCreatedAt,
-needsReplacementFlag: needsReplacement ?? needsReplacementFlag,  
-confirmationStatus: confirmationStatus ?? this.confirmationStatus,
+      replacementAcceptedBy:
+          replacementAcceptedBy ?? this.replacementAcceptedBy,
+      replacementAcceptedByName:
+          replacementAcceptedByName ?? this.replacementAcceptedByName,
+      replacementRequesterName:
+          replacementRequesterName ?? this.replacementRequesterName,
+      replacementRequesterId:
+          replacementRequesterId ?? this.replacementRequesterId,
+      replacementRequestId: replacementRequestId ?? this.replacementRequestId,
+      replacementRequestCreatedAt:
+          replacementRequestCreatedAt ?? this.replacementRequestCreatedAt,
+      needsReplacementFlag: needsReplacement ?? needsReplacementFlag,
+      confirmationStatus: confirmationStatus ?? this.confirmationStatus,
     );
   }
 }

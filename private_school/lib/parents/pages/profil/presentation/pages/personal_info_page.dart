@@ -12,8 +12,6 @@ import '../../domain/bloc/profil_bloc.dart';
 import '../../domain/bloc/profil_event.dart';
 import '../../domain/bloc/profil_state.dart';
 
-/// Personal information page
-/// Allows users to view and edit their profile information
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
 
@@ -34,26 +32,24 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   @override
-void initState() {
-  super.initState();
-  _firstNameController = TextEditingController();
-  _lastNameController = TextEditingController();
-  _phoneController = TextEditingController();
-  _emailController = TextEditingController();
-  _addressController = TextEditingController();
+  void initState() {
+    super.initState();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _emailController = TextEditingController();
+    _addressController = TextEditingController();
 
-  // Initialiser immédiatement si le state est déjà chargé
-  final state = context.read<ProfilBloc>().state;
-  if (state is ProfilLoaded) {
-    _firstNameController.text = state.user.firstName;
-    _lastNameController.text = state.user.lastName;
-    _phoneController.text = state.user.phone ?? '';
-    _emailController.text = state.user.email;
-    _addressController.text = state.user.address ?? '';
+    // Initialiser immédiatement si le state est déjà chargé
+    final state = context.read<ProfilBloc>().state;
+    if (state is ProfilLoaded) {
+      _firstNameController.text = state.user.firstName;
+      _lastNameController.text = state.user.lastName;
+      _phoneController.text = state.user.phone ?? '';
+      _emailController.text = state.user.email;
+      _addressController.text = state.user.address ?? '';
+    }
   }
-}
-
-  
 
   @override
   void dispose() {
@@ -82,12 +78,18 @@ void initState() {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.photo_camera, color: AppColors.success),
+                  leading: const Icon(
+                    Icons.photo_camera,
+                    color: AppColors.success,
+                  ),
                   title: Text('take_photo'.tr()),
                   onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library, color: AppColors.success),
+                  leading: const Icon(
+                    Icons.photo_library,
+                    color: AppColors.success,
+                  ),
                   title: Text('choose_from_gallery'.tr()),
                   onTap: () => Navigator.pop(context, ImageSource.gallery),
                 ),
@@ -100,19 +102,18 @@ void initState() {
       if (source != null) {
         final XFile? image = await picker.pickImage(
           source: source,
-          imageQuality: 80, // Compresser l'image à 80%
+          imageQuality: 80,
         );
 
         if (image != null && mounted) {
           setState(() {
             _selectedImageFile = File(image.path);
           });
-          
-          // Envoyer immédiatement la photo à l'API
+
           if (mounted) {
             context.read<ProfilBloc>().add(
-                  UpdateProfilePhotoFromPathEvent(image.path),
-                );
+              UpdateProfilePhotoFromPathEvent(image.path),
+            );
           }
         }
       }
@@ -160,20 +161,19 @@ void initState() {
       return;
     }
 
-    // Envoyer les modifications à l'API
     context.read<ProfilBloc>().add(
-          UpdateUserFieldsEvent(
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            phone: _phoneController.text.trim().isEmpty 
-                ? null 
-                : _phoneController.text.trim(),
-            email: _emailController.text.trim(),
-            address: _addressController.text.trim().isEmpty 
-                ? null 
-                : _addressController.text.trim(),
-          ),
-        );
+      UpdateUserFieldsEvent(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
+        email: _emailController.text.trim(),
+        address: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -279,27 +279,27 @@ void initState() {
             if (state is ProfilLoaded) {
               final user = state.user;
 
-            return SingleChildScrollView(
-  padding: EdgeInsets.fromLTRB(
-    AppConstants.spacingXL + 4,
-    AppConstants.spacingXL + 4,
-    AppConstants.spacingXL + 4,
-    MediaQuery.of(context).padding.bottom + 80,
-  ),
-  child: Column(
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  AppConstants.spacingXL + 4,
+                  AppConstants.spacingXL + 4,
+                  AppConstants.spacingXL + 4,
+                  MediaQuery.of(context).padding.bottom + 80,
+                ),
+                child: Column(
                   children: [
-                    // Photo de profil
                     Center(
                       child: Stack(
                         children: [
-                          // Afficher l'image sélectionnée localement OU l'image de l'API
                           _selectedImageFile != null
                               ? CircleAvatar(
                                   radius: 60,
-                                  backgroundImage: FileImage(_selectedImageFile!),
+                                  backgroundImage: FileImage(
+                                    _selectedImageFile!,
+                                  ),
                                 )
                               : _buildProfileAvatar(user.photo),
-                          
+
                           // Bouton caméra
                           Positioned(
                             bottom: 0,
@@ -337,14 +337,14 @@ void initState() {
                       user.firstName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
-                    
+
                     _buildField(
                       'last_name'.tr(),
                       _lastNameController,
                       user.lastName,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
-                    
+
                     _buildField(
                       'phone'.tr(),
                       _phoneController,
@@ -352,7 +352,7 @@ void initState() {
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
-                    
+
                     _buildField(
                       'email'.tr(),
                       _emailController,
@@ -360,7 +360,7 @@ void initState() {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: AppConstants.spacingXL),
-                    
+
                     _buildAddressField(
                       'address'.tr(),
                       _addressController,
@@ -369,7 +369,6 @@ void initState() {
 
                     const SizedBox(height: AppConstants.spacingXXXL),
 
-                    // Bouton Modifier / Enregistrer
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -416,89 +415,86 @@ void initState() {
     );
   }
 
-
-Widget _buildAddressField(
-  String label,
-  TextEditingController controller,
-  String value,
-) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: AppConstants.fontSizeS + 1,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textSecondary,
+  Widget _buildAddressField(
+    String label,
+    TextEditingController controller,
+    String value,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: AppConstants.fontSizeS + 1,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
         ),
-      ),
-      const SizedBox(height: AppConstants.spacingS),
-      if (!_isEditMode)
-        // ✅ Mode lecture : simple Text dans un Container
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-            border: Border.all(color: AppColors.grey300),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: AppConstants.fontSizeL - 1,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+        const SizedBox(height: AppConstants.spacingS),
+        if (!_isEditMode)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              border: Border.all(color: AppColors.grey300),
             ),
-          ),
-        )
-      else
-        // ✅ Mode édition : Google Places dans son propre Container
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-            border: Border.all(color: AppColors.success),
-          ),
-          child: GooglePlaceAutoCompleteTextField(
-            textEditingController: controller,
-            googleAPIKey: GoogleMapsConfig.apiKey,
-            inputDecoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-              hintText: 'address_example'.tr(),
-              hintStyle: GoogleFonts.inter(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
                 fontSize: AppConstants.fontSizeL - 1,
-                color: AppColors.grey400,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            textStyle: GoogleFonts.inter(
-              fontSize: AppConstants.fontSizeL - 1,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+          )
+        else
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              border: Border.all(color: AppColors.success),
             ),
-            debounceTime: 800,
-            countries: const ["sn"],
-            isLatLngRequired: false,
-            getPlaceDetailWithLatLng: (prediction) {
-              setState(() {
+            child: GooglePlaceAutoCompleteTextField(
+              textEditingController: controller,
+              googleAPIKey: GoogleMapsConfig.apiKey,
+              inputDecoration: InputDecoration(
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                hintText: 'address_example'.tr(),
+                hintStyle: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeL - 1,
+                  color: AppColors.grey400,
+                ),
+              ),
+              textStyle: GoogleFonts.inter(
+                fontSize: AppConstants.fontSizeL - 1,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              debounceTime: 800,
+              countries: const ["sn"],
+              isLatLngRequired: false,
+              getPlaceDetailWithLatLng: (prediction) {
+                setState(() {
+                  controller.text = prediction.description ?? '';
+                });
+              },
+              itemClick: (prediction) {
                 controller.text = prediction.description ?? '';
-              });
-            },
-            itemClick: (prediction) {
-              controller.text = prediction.description ?? '';
-              controller.selection = TextSelection.fromPosition(
-                TextPosition(offset: controller.text.length),
-              );
-            },
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.text.length),
+                );
+              },
+            ),
           ),
-        ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   Widget _buildField(
     String label,
@@ -558,18 +554,13 @@ Widget _buildAddressField(
     );
   }
 
-  /// Construit l'avatar depuis l'URL de l'API
   Widget _buildProfileAvatar(String? photoUrl) {
     // Pas de photo
     if (photoUrl == null || photoUrl.isEmpty) {
       return CircleAvatar(
         radius: 60,
         backgroundColor: AppColors.grey200,
-        child: Icon(
-          Icons.person,
-          size: 60,
-          color: AppColors.grey600,
-        ),
+        child: Icon(Icons.person, size: 60, color: AppColors.grey600),
       );
     }
 
@@ -580,7 +571,7 @@ Widget _buildAddressField(
         backgroundColor: AppColors.grey200,
         backgroundImage: NetworkImage(photoUrl),
         onBackgroundImageError: (exception, stackTrace) {
-          debugPrint('⚠️ Erreur chargement photo: $exception');
+          debugPrint('Erreur chargement photo: $exception');
         },
       );
     }
@@ -592,7 +583,7 @@ Widget _buildAddressField(
       backgroundColor: AppColors.grey200,
       backgroundImage: NetworkImage(fullUrl),
       onBackgroundImageError: (exception, stackTrace) {
-        debugPrint('⚠️ Erreur chargement photo: $exception');
+        debugPrint(' Erreur chargement photo: $exception');
       },
     );
   }

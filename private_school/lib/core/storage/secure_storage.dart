@@ -1,4 +1,3 @@
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorage {
@@ -7,9 +6,7 @@ class SecureStorage {
   SecureStorage._internal();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
   // Storage keys
@@ -65,11 +62,11 @@ class SecureStorage {
 
   static const String _userRoleKey = 'user_role';
 
-Future<void> saveUserRole(String role) async {
-  await _storage.write(key: _userRoleKey, value: role);
-}
+  Future<void> saveUserRole(String role) async {
+    await _storage.write(key: _userRoleKey, value: role);
+  }
 
-Future<String?> getUserRole() async {
-  return await _storage.read(key: _userRoleKey);
-}
+  Future<String?> getUserRole() async {
+    return await _storage.read(key: _userRoleKey);
+  }
 }

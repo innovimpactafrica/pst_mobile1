@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/notifications_repository.dart';
 
@@ -16,7 +15,6 @@ class UpdateUnreadCountEvent extends UnreadNotificationsEvent {
   final int count;
   UpdateUnreadCountEvent(this.count);
 }
-
 
 class MarkNotificationAsReadLocalEvent extends UnreadNotificationsEvent {
   final int notificationId;
@@ -51,20 +49,17 @@ class UnreadNotificationsBloc
     extends Bloc<UnreadNotificationsEvent, UnreadNotificationsState> {
   final NotificationsRepository repository;
 
- 
   final Set<int> _locallyReadIds = {};
 
- 
   int _baseCount = 0;
 
   UnreadNotificationsBloc({required this.repository})
-      : super(UnreadNotificationsInitial()) {
+    : super(UnreadNotificationsInitial()) {
     on<LoadUnreadNotificationsCountEvent>(_onLoad);
     on<RefreshUnreadNotificationsCountEvent>(_onRefresh);
     on<UpdateUnreadCountEvent>(_onUpdate);
     on<MarkNotificationAsReadLocalEvent>(_onMarkLocal);
   }
-
 
   int get _effectiveCount {
     final c = _baseCount - _locallyReadIds.length;
@@ -82,7 +77,6 @@ class UnreadNotificationsBloc
       _locallyReadIds.clear();
       emit(UnreadNotificationsLoaded(count: _baseCount));
     } catch (e) {
-     
       emit(UnreadNotificationsError(message: e.toString()));
     }
   }
@@ -95,7 +89,7 @@ class UnreadNotificationsBloc
       final count = await repository.getUnreadCount();
       _baseCount = count;
       _locallyReadIds.clear();
-     
+
       emit(UnreadNotificationsLoaded(count: _baseCount));
     } catch (e) {
       if (state is UnreadNotificationsLoaded) {

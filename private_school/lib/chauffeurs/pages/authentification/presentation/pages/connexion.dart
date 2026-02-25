@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,8 +7,7 @@ import '../../domain/bloc/driver_auth_event.dart';
 import '../../domain/bloc/driver_auth_state.dart';
 import '../../../../widgets/main_layout.dart';
 import 'inscription.dart';
-import 'forgot_password_page.dart'; 
-
+import 'forgot_password_page.dart';
 
 class Connexion extends StatefulWidget {
   const Connexion({super.key});
@@ -37,29 +34,24 @@ class _ConnexionState extends State<Connexion> {
       listener: (context, state) {
         if (state is DriverAuthLoading) {
           ScaffoldMessenger.of(context).clearSnackBars();
-          
+
           showDialog(
             context: context,
             barrierDismissible: false,
             builder: (_) => PopScope(
               canPop: false,
               child: const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                ),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
           );
-        } 
-        else if (state is DriverAuthenticated) {
-       
+        } else if (state is DriverAuthenticated) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
-          
+
           ScaffoldMessenger.of(context).clearSnackBars();
-          
-         
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('login_success'.tr()),
@@ -67,26 +59,20 @@ class _ConnexionState extends State<Connexion> {
               duration: const Duration(seconds: 2),
             ),
           );
-          
-         
+
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const MainLayout(),
-            ),
+            MaterialPageRoute(builder: (_) => const MainLayout()),
           );
-        } 
-        else if (state is DriverAuthError) {
-        
+        } else if (state is DriverAuthError) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
-          
+
           ScaffoldMessenger.of(context).clearSnackBars();
-          
-         
+
           String errorMessage = state.message;
-          
+
           if (errorMessage.contains('User not found')) {
             errorMessage = 'invalid_email'.tr();
           } else if (errorMessage.contains('Exception:')) {
@@ -94,13 +80,12 @@ class _ConnexionState extends State<Connexion> {
           } else if (errorMessage.contains('Login failed:')) {
             errorMessage = errorMessage.replaceAll('Login failed:', '').trim();
           }
-          
+
           if (errorMessage.contains('Exception:')) {
             final parts = errorMessage.split('Exception:');
             errorMessage = parts.last.trim();
           }
-          
-         
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -119,9 +104,8 @@ class _ConnexionState extends State<Connexion> {
         }
       },
       builder: (context, state) {
-      
         final isLoading = state is DriverAuthLoading;
-        
+
         return Scaffold(
           backgroundColor: AppColors.textWhite,
           appBar: AppBar(
@@ -150,17 +134,26 @@ class _ConnexionState extends State<Connexion> {
                     setState(() {});
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.language, color: AppColors.primary, size: 20),
+                        const Icon(
+                          Icons.language,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 6),
                         Text(
-                          context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                          context.locale.languageCode == 'fr'
+                              ? 'Français'
+                              : 'English',
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontSize: 14,
@@ -182,12 +175,10 @@ class _ConnexionState extends State<Connexion> {
                 children: [
                   const SizedBox(height: 20),
 
-                 
                   Image.asset('assets/images/2.jpg', height: 100),
 
                   const SizedBox(height: 30),
 
-                  
                   Text(
                     'login'.tr(),
                     style: TextStyle(
@@ -199,7 +190,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 12),
 
-                  
                   Text(
                     'connection_description'.tr(),
                     textAlign: TextAlign.center,
@@ -212,7 +202,6 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 40),
 
-                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -286,24 +275,25 @@ class _ConnexionState extends State<Connexion> {
                               : Icons.visibility,
                           color: AppColors.textSecondary,
                         ),
-                        onPressed: isLoading ? null : () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 40),
 
-                
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isLoading 
+                        backgroundColor: isLoading
                             ? AppColors.primary.withValues(alpha: 0.6)
                             : AppColors.primary,
                         shape: RoundedRectangleBorder(
@@ -311,43 +301,51 @@ class _ConnexionState extends State<Connexion> {
                         ),
                         elevation: 0,
                       ),
-                      onPressed: isLoading ? null : () {
-                        // Validation
-                        if (_phoneController.text.trim().isEmpty ||
-                            _passwordController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('please_fill_all_fields'.tr()),
-                              backgroundColor: AppColors.warning,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          return;
-                        }
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              // Validation
+                              if (_phoneController.text.trim().isEmpty ||
+                                  _passwordController.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'please_fill_all_fields'.tr(),
+                                    ),
+                                    backgroundColor: AppColors.warning,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                return;
+                              }
 
-                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                        if (!emailRegex.hasMatch(_phoneController.text.trim())) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('invalid_email'.tr()),
-                              backgroundColor: AppColors.warning,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          return;
-                        }
+                              final emailRegex = RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              );
+                              if (!emailRegex.hasMatch(
+                                _phoneController.text.trim(),
+                              )) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('invalid_email'.tr()),
+                                    backgroundColor: AppColors.warning,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                return;
+                              }
 
-                        // Close keyboard
-                        FocusScope.of(context).unfocus();
+                              // Close keyboard
+                              FocusScope.of(context).unfocus();
 
-                        // Trigger login event
-                        context.read<DriverAuthBloc>().add(
-                          DriverLoginEvent(
-                            phone: _phoneController.text.trim(),
-                            password: _passwordController.text,
-                          ),
-                        );
-                      },
+                              // Trigger login event
+                              context.read<DriverAuthBloc>().add(
+                                DriverLoginEvent(
+                                  phone: _phoneController.text.trim(),
+                                  password: _passwordController.text,
+                                ),
+                              );
+                            },
                       child: isLoading
                           ? const SizedBox(
                               height: 24,
@@ -372,16 +370,20 @@ class _ConnexionState extends State<Connexion> {
 
                   // Forgot Password
                   GestureDetector(
-                     onTap: isLoading ? null : () {
-                    Navigator.push(
-                   context,
-                   MaterialPageRoute(builder: (_) => const ForgotPasswordPage()), 
-                               );
-                                },
-                       child: Text(
-                     'forgot_password'.tr(),
+                    onTap: isLoading
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordPage(),
+                              ),
+                            );
+                          },
+                    child: Text(
+                      'forgot_password'.tr(),
                       style: TextStyle(
-                        color: isLoading 
+                        color: isLoading
                             ? AppColors.primary.withValues(alpha: 0.5)
                             : AppColors.primary,
                         fontSize: 14,
@@ -404,14 +406,16 @@ class _ConnexionState extends State<Connexion> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: isLoading ? null : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const InscriptionPage(),
-                            ),
-                          );
-                        },
+                        onTap: isLoading
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const InscriptionPage(),
+                                  ),
+                                );
+                              },
                         child: Text(
                           'sign_up_link'.tr(),
                           style: TextStyle(

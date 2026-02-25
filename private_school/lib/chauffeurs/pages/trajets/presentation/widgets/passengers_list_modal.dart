@@ -154,5 +154,4 @@ class PassengersListModal extends StatelessWidget {
       ),
     );
   }
-
 }

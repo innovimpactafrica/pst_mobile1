@@ -5,125 +5,121 @@ import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../../../../../core/models/user_model.dart';
 
-/// Service for managing parent profile API calls
-/// Handles profile retrieval, updates, and photo management
 class UserService {
   final ApiClient _apiClient = ApiClient();
 
- Future<UserModel> fetchCurrentUser() async {
-  try {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📥 [UserService] CHARGEMENT PROFIL');
+  Future<UserModel> fetchCurrentUser() async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(' [UserService] CHARGEMENT PROFIL');
 
-    final response = await _apiClient.get(ApiConstants.parentAccount);
+      final response = await _apiClient.get(ApiConstants.parentAccount);
 
-    debugPrint('✅ Response Status: ${response.statusCode}');
-    debugPrint('📦 Response Type: ${response.data.runtimeType}');
-    debugPrint('📦 Response Data: ${response.data}');
+      debugPrint(' Response Status: ${response.statusCode}');
+      debugPrint(' Response Type: ${response.data.runtimeType}');
+      debugPrint(' Response Data: ${response.data}');
 
-    final userData = response.data is Map
-        ? (response.data['data'] ?? response.data)
-        : response.data;
+      final userData = response.data is Map
+          ? (response.data['data'] ?? response.data)
+          : response.data;
 
-    // ✅ LOG CRITIQUE : Vérifier tous les formats d'adresse
-    debugPrint('');
-    debugPrint('🔍 ADRESSE DANS LA RÉPONSE API:');
-    debugPrint('   address: ${userData['address']}');
-    debugPrint('   adresse: ${userData['adresse']}');
-    debugPrint('   home_address: ${userData['home_address']}');
-    debugPrint('   homeAddress: ${userData['homeAddress']}');
-    debugPrint('');
+      debugPrint('');
+      debugPrint(' ADRESSE DANS LA RÉPONSE API:');
+      debugPrint('   address: ${userData['address']}');
+      debugPrint('   adresse: ${userData['adresse']}');
+      debugPrint('   home_address: ${userData['home_address']}');
+      debugPrint('   homeAddress: ${userData['homeAddress']}');
+      debugPrint('');
 
-    final user = UserModel.fromJson(userData as Map<String, dynamic>);
+      final user = UserModel.fromJson(userData as Map<String, dynamic>);
 
-    debugPrint('👤 UserModel créé:');
-    debugPrint('   fullName: ${user.fullName}');
-    debugPrint('   email: ${user.email}');
-    debugPrint('   phone: ${user.phone}');
-    debugPrint('   address: ${user.address}');  // ← RÉSULTAT FINAL
-    debugPrint('   photo: ${user.photo}');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      debugPrint(' UserModel créé:');
+      debugPrint('   fullName: ${user.fullName}');
+      debugPrint('   email: ${user.email}');
+      debugPrint('   phone: ${user.phone}');
+      debugPrint('   address: ${user.address}');
+      debugPrint('   photo: ${user.photo}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    return user;
-  } catch (e) {
-    debugPrint('❌ [UserService] Error fetching user: $e');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    throw Exception('Unable to load profile: $e');
+      return user;
+    } catch (e) {
+      debugPrint(' [UserService] Error fetching user: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      throw Exception('Unable to load profile: $e');
+    }
   }
-}
 
   Future<UserModel> updateUserProfile({
-  String? firstName,
-  String? lastName,
-  String? phone,
-  String? email,
-  String? address,
-}) async {
-  try {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📝 [UserService] MISE À JOUR PROFIL');
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? email,
+    String? address,
+  }) async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(' [UserService] MISE À JOUR PROFIL');
 
-    String? fullName;
-    if (firstName != null && lastName != null) {
-      fullName = '$firstName $lastName';
-    } else if (firstName != null) {
-      fullName = firstName;
-    } else if (lastName != null) {
-      fullName = lastName;
-    }
+      String? fullName;
+      if (firstName != null && lastName != null) {
+        fullName = '$firstName $lastName';
+      } else if (firstName != null) {
+        fullName = firstName;
+      } else if (lastName != null) {
+        fullName = lastName;
+      }
 
-    final requestData = {
-      if (fullName != null) 'name': fullName,
-      if (phone != null) 'phone': phone,
-      if (email != null) 'email': email,
-      // ✅ CRITIQUE : Envoyer l'adresse au bon format
-      if (address != null) 'home_address': address,  // Backend format
-      if (address != null) 'address': address,       // Au cas où
-    };
+      final requestData = {
+        if (fullName != null) 'name': fullName,
+        if (phone != null) 'phone': phone,
+        if (email != null) 'email': email,
+        if (address != null) 'home_address': address,
+        if (address != null) 'address': address,
+      };
 
-    debugPrint('📤 Request data:');
-    debugPrint('   name: $fullName');
-    debugPrint('   phone: $phone');
-    debugPrint('   email: $email');
-    debugPrint('   home_address: $address');  // ← LOG CRITIQUE
-    debugPrint('   address: $address');
+      debugPrint(' Request data:');
+      debugPrint('   name: $fullName');
+      debugPrint('   phone: $phone');
+      debugPrint('   email: $email');
+      debugPrint('   home_address: $address');
+      debugPrint('   address: $address');
 
-    final response = await _apiClient.put(
-      ApiConstants.parentAccount,
-      data: requestData,
-    );
+      final response = await _apiClient.put(
+        ApiConstants.parentAccount,
+        data: requestData,
+      );
 
-    debugPrint('✅ Profile updated successfully');
-    debugPrint('📦 Response: ${response.data}');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-    final userData = response.data is Map
-        ? (response.data['data'] ?? response.data)
-        : response.data;
-
-    return UserModel.fromJson(userData as Map<String, dynamic>);
-  } catch (e) {
-    if (e is DioException && e.response != null) {
-      final errorMsg = e.response!.data['error'] ?? 
-                      e.response!.data['message'] ?? 
-                      'Erreur serveur';
-      debugPrint('❌ [UserService] Error: $errorMsg');
+      debugPrint(' Profile updated successfully');
+      debugPrint(' Response: ${response.data}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      throw Exception('Requête invalide: $errorMsg');
-    }
-    debugPrint('❌ [UserService] Error: $e');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    throw Exception('Unable to update profile: $e');
-  }
-}
 
+      final userData = response.data is Map
+          ? (response.data['data'] ?? response.data)
+          : response.data;
+
+      return UserModel.fromJson(userData as Map<String, dynamic>);
+    } catch (e) {
+      if (e is DioException && e.response != null) {
+        final errorMsg =
+            e.response!.data['error'] ??
+            e.response!.data['message'] ??
+            'Erreur serveur';
+        debugPrint(' [UserService] Error: $errorMsg');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        throw Exception('Requête invalide: $errorMsg');
+      }
+      debugPrint(' [UserService] Error: $e');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      throw Exception('Unable to update profile: $e');
+    }
+  }
 
   Future<String> updateProfilePhoto(File photoFile) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📸 [UserService] Uploading profile photo...');
-      debugPrint('📂 File path: ${photoFile.path}');
-      debugPrint('📏 File size: ${await photoFile.length()} bytes');
+      debugPrint(' [UserService] Uploading profile photo...');
+      debugPrint(' File path: ${photoFile.path}');
+      debugPrint(' File size: ${await photoFile.length()} bytes');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final formData = FormData.fromMap({
@@ -133,7 +129,7 @@ class UserService {
         ),
       });
 
-      debugPrint('📤 Sending FormData with photo field');
+      debugPrint(' Sending FormData with photo field');
 
       final response = await _apiClient.post(
         ApiConstants.parentAccountPhoto,
@@ -141,11 +137,10 @@ class UserService {
         options: Options(contentType: 'multipart/form-data'),
       );
 
-      debugPrint('✅ [UserService] Photo uploaded successfully');
-      debugPrint('📦 Response: ${response.data}');
+      debugPrint(' [UserService] Photo uploaded successfully');
+      debugPrint(' Response: ${response.data}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      // L'API retourne {data: {photo_url: "..."}}
       final photoUrl = response.data is Map
           ? (response.data['data']?['photo_url'] ??
                 response.data['photoUrl'] ??
@@ -156,58 +151,53 @@ class UserService {
 
       return photoUrl.toString();
     } catch (e) {
-      debugPrint('❌ [UserService] Error uploading photo: $e');
+      debugPrint(' [UserService] Error uploading photo: $e');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       throw Exception('Unable to upload photo: $e');
     }
   }
 
-  /// Update profile photo from file path
   Future<String> updateProfilePhotoFromPath(String photoPath) async {
     try {
-      debugPrint('📂 [UserService] Preparing to upload photo from: $photoPath');
-      
+      debugPrint(' [UserService] Preparing to upload photo from: $photoPath');
+
       final file = File(photoPath);
       if (!await file.exists()) {
         throw Exception('File does not exist at path: $photoPath');
       }
 
-      debugPrint('✅ File exists, proceeding with upload...');
+      debugPrint(' File exists, proceeding with upload...');
       return await updateProfilePhoto(file);
     } catch (e) {
-      debugPrint('❌ [UserService] Error updating photo from path: $e');
+      debugPrint(' [UserService] Error updating photo from path: $e');
       throw Exception('Unable to update photo: $e');
     }
   }
 
-  /// Delete profile photo
-  /// Endpoint: DELETE /api/parents/account/photo
   Future<void> deleteProfilePhoto() async {
     try {
-      debugPrint('🗑️ [UserService] Deleting profile photo...');
+      debugPrint(' [UserService] Deleting profile photo...');
 
       await _apiClient.delete(ApiConstants.parentAccountPhoto);
 
-      debugPrint('✅ [UserService] Photo deleted successfully');
+      debugPrint('[UserService] Photo deleted successfully');
     } catch (e) {
-      debugPrint('❌ [UserService] Error deleting photo: $e');
+      debugPrint(' [UserService] Error deleting photo: $e');
       throw Exception('Unable to delete photo: $e');
     }
   }
 
-  /// Logout
-  /// Endpoint: POST /api/auth/logout
   Future<void> logout() async {
     try {
-      debugPrint('👋 [UserService] Logging out...');
+      debugPrint(' [UserService] Logging out...');
 
       await _apiClient.post(ApiConstants.logout);
 
-      debugPrint('✅ [UserService] Logged out successfully');
+      debugPrint(' [UserService] Logged out successfully');
     } catch (e) {
-      debugPrint('❌ [UserService] Error logging out: $e');
+      debugPrint(' [UserService] Error logging out: $e');
       debugPrint(
-        '⚠️ [UserService] Continuing with local logout despite API error',
+        ' [UserService] Continuing with local logout despite API error',
       );
     }
   }

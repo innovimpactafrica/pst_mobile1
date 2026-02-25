@@ -17,8 +17,8 @@ class GroupesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => GroupBloc(repository: GroupRepository())
-        ..add(LoadAllGroupsEvent()), 
+      create: (context) =>
+          GroupBloc(repository: GroupRepository())..add(LoadAllGroupsEvent()),
       child: const GroupesPageContent(),
     );
   }
@@ -48,7 +48,9 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
       builder: (modalContext) => BlocProvider.value(
         value: context.read<GroupBloc>(),
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(modalContext).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(modalContext).viewInsets.bottom,
+          ),
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -60,7 +62,7 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: const _CreateGroupForm(), 
+                child: const _CreateGroupForm(),
               ),
             ),
           ),
@@ -75,7 +77,6 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
       backgroundColor: Colors.grey.shade50,
       body: Column(
         children: [
-          // ── HEADER VERT (design conservé) ──
           Container(
             width: double.infinity,
             padding: EdgeInsets.only(
@@ -94,15 +95,20 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('groups'.tr(),
-                    style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(
+                  'groups'.tr(),
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // ── BARRE DE RECHERCHE (design conservé) ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -110,7 +116,13 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: TextField(
                 controller: _searchController,
@@ -119,8 +131,15 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 },
                 decoration: InputDecoration(
                   hintText: 'search'.tr(),
-                  hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                  hintStyle: GoogleFonts.inter(
+                    color: Colors.grey.shade400,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.grey.shade400,
+                    size: 20,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -130,70 +149,92 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
 
           const SizedBox(height: 20),
 
-          // ── CONTENU ──
           Expanded(
             child: BlocConsumer<GroupBloc, GroupState>(
-             listener: (context, state) {
-if (state is GroupJoined) {
-  context.read<GroupBloc>().add(LoadAllGroupsEvent());
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('Vous avez rejoint le groupe ! ', style: GoogleFonts.inter()), 
-      backgroundColor: AppColors.success,
-      duration: const Duration(seconds: 3),
-    ),
-  );
-}
+              listener: (context, state) {
+                if (state is GroupJoined) {
+                  context.read<GroupBloc>().add(LoadAllGroupsEvent());
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Vous avez rejoint le groupe ! ',
+                        style: GoogleFonts.inter(),
+                      ),
+                      backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
                 if (state is InvitationResponded) {
                   context.read<GroupBloc>().add(LoadAllGroupsEvent());
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        state.accepted 
-                          ? 'Invitation acceptée ! Le groupe apparaît maintenant dans "Mes groupes"' 
-                          : 'Invitation refusée', 
-                        style: GoogleFonts.inter()
+                        state.accepted
+                            ? 'Invitation acceptée ! Le groupe apparaît maintenant dans "Mes groupes"'
+                            : 'Invitation refusée',
+                        style: GoogleFonts.inter(),
                       ),
-                      backgroundColor: state.accepted ? AppColors.success : Colors.grey,
+                      backgroundColor: state.accepted
+                          ? AppColors.success
+                          : Colors.grey,
                       duration: const Duration(seconds: 3),
                     ),
                   );
                 }
                 if (state is GroupError) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message, style: GoogleFonts.inter()), backgroundColor: Colors.red),
+                    SnackBar(
+                      content: Text(state.message, style: GoogleFonts.inter()),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               },
               builder: (context, state) {
-
-                // ── CHARGEMENT INITIAL ──
                 if (state is GroupLoading) {
-                  return Center(child: CircularProgressIndicator(color: AppColors.success));
+                  return Center(
+                    child: CircularProgressIndicator(color: AppColors.success),
+                  );
                 }
 
-                // ── ERREUR CRITIQUE ──
                 if (state is GroupError) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red.shade300,
+                        ),
                         const SizedBox(height: 16),
-                        Text(state.message,
-                            style: GoogleFonts.inter(fontSize: 16, color: Colors.red.shade700), textAlign: TextAlign.center),
+                        Text(
+                          state.message,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.red.shade700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () => context.read<GroupBloc>().add(LoadAllGroupsEvent()),
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-                          child: Text('Réessayer', style: GoogleFonts.inter(color: Colors.white)),
+                          onPressed: () => context.read<GroupBloc>().add(
+                            LoadAllGroupsEvent(),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.success,
+                          ),
+                          child: Text(
+                            'Réessayer',
+                            style: GoogleFonts.inter(color: Colors.white),
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
 
-                // ── ✅ DONNÉES RÉELLES — état GroupsLoaded ──
                 List<GroupModel> myGroups = [];
                 List<GroupModel> availableGroups = [];
                 List<GroupInvitation> invitations = [];
@@ -215,18 +256,24 @@ if (state is GroupJoined) {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
-                        // ──  INVITATIONS EN ATTENTE (depuis l'API) ──
                         if (invitations.isNotEmpty)
-                          ...invitations.map((invitation) => _buildInvitationCard(context, invitation)),
+                          ...invitations.map(
+                            (invitation) =>
+                                _buildInvitationCard(context, invitation),
+                          ),
 
                         const SizedBox(height: 24),
 
-                        // ── MES GROUPES ──
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text('my_groups'.tr(),
-                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
+                          child: Text(
+                            'my_groups'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E3A8A),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
 
@@ -235,21 +282,25 @@ if (state is GroupJoined) {
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Center(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 40,
+                                ),
                                 child: Column(
                                   children: [
                                     Icon(
-                                      state is GroupsLoaded && state.searchQuery.isNotEmpty
-                                        ? Icons.search_off
-                                        : Icons.group_outlined,
+                                      state is GroupsLoaded &&
+                                              state.searchQuery.isNotEmpty
+                                          ? Icons.search_off
+                                          : Icons.group_outlined,
                                       size: 64,
                                       color: Colors.grey.shade300,
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      state is GroupsLoaded && state.searchQuery.isNotEmpty
-                                        ? 'Aucun résultat pour "${state.searchQuery}"'
-                                        : 'no_groups'.tr(),
+                                      state is GroupsLoaded &&
+                                              state.searchQuery.isNotEmpty
+                                          ? 'Aucun résultat pour "${state.searchQuery}"'
+                                          : 'no_groups'.tr(),
                                       style: GoogleFonts.inter(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -257,10 +308,16 @@ if (state is GroupJoined) {
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
-                                    if (state is! GroupsLoaded || state.searchQuery.isEmpty) ...[
+                                    if (state is! GroupsLoaded ||
+                                        state.searchQuery.isEmpty) ...[
                                       const SizedBox(height: 8),
-                                      Text('create_your_first_group'.tr(),
-                                          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+                                      Text(
+                                        'create_your_first_group'.tr(),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ),
                                     ],
                                   ],
                                 ),
@@ -271,17 +328,27 @@ if (state is GroupJoined) {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
-                              children: myGroups.map((group) => _buildVerticalGroupCard(group, context)).toList(),
+                              children: myGroups
+                                  .map(
+                                    (group) =>
+                                        _buildVerticalGroupCard(group, context),
+                                  )
+                                  .toList(),
                             ),
                           ),
 
                         const SizedBox(height: 32),
 
-                        // ── GROUPES DISPONIBLES ──
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text('groups_you_can_join'.tr(),
-                              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF1E3A8A))),
+                          child: Text(
+                            'groups_you_can_join'.tr(),
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E3A8A),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 16),
                         _buildAvailableGroupsSection(context, availableGroups),
@@ -296,7 +363,7 @@ if (state is GroupJoined) {
           ),
         ],
       ),
-      // ── BOUTON FLOTTANT (design conservé) ──
+
       floatingActionButton: Container(
         margin: const EdgeInsets.only(bottom: 60),
         child: FloatingActionButton(
@@ -309,30 +376,43 @@ if (state is GroupJoined) {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ✅ CARTE INVITATION — données réelles de l'API
-  // ─────────────────────────────────────────────
-  Widget _buildInvitationCard(BuildContext context, GroupInvitation invitation) {
+  Widget _buildInvitationCard(
+    BuildContext context,
+    GroupInvitation invitation,
+  ) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           // AVATAR
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.success.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Text(invitation.initial,
-                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.success)),
+              child: Text(
+                invitation.initial,
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -341,53 +421,83 @@ if (state is GroupJoined) {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('invitation_to_join'.tr(),
-                    style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                Text(
+                  'invitation_to_join'.tr(),
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   invitation.groupName.isNotEmpty
                       ? invitation.groupName
                       : 'invitation_message'.tr(),
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (invitation.invitedBy.isNotEmpty)
-                  Text('Par ${invitation.invitedBy}',
-                      style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade400)),
+                  Text(
+                    'Par ${invitation.invitedBy}',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: Colors.grey.shade400,
+                    ),
+                  ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          // ✅ BOUTONS connectés au BLoC
+
           Row(
             children: [
               Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
                 child: IconButton(
                   icon: Icon(Icons.close, size: 18, color: Colors.red.shade400),
                   padding: EdgeInsets.zero,
                   onPressed: () {
-                    context.read<GroupBloc>().add(RespondToInvitationEvent(
-                      invitationId: invitation.id,
-                      accept: false,
-                    ));
+                    context.read<GroupBloc>().add(
+                      RespondToInvitationEvent(
+                        invitationId: invitation.id,
+                        accept: false,
+                      ),
+                    );
                   },
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  shape: BoxShape.circle,
+                ),
                 child: IconButton(
-                  icon: Icon(Icons.check, size: 18, color: Colors.green.shade600),
+                  icon: Icon(
+                    Icons.check,
+                    size: 18,
+                    color: Colors.green.shade600,
+                  ),
                   padding: EdgeInsets.zero,
                   onPressed: () {
-                    context.read<GroupBloc>().add(RespondToInvitationEvent(
-                      invitationId: invitation.id,
-                      accept: true,
-                    ));
+                    context.read<GroupBloc>().add(
+                      RespondToInvitationEvent(
+                        invitationId: invitation.id,
+                        accept: true,
+                      ),
+                    );
                   },
                 ),
               ),
@@ -398,13 +508,13 @@ if (state is GroupJoined) {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // CARTE VERTICALE MES GROUPES (design conservé)
-  // ─────────────────────────────────────────────
   Widget _buildVerticalGroupCard(GroupModel group, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => GroupDetailPage(group: group)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => GroupDetailPage(group: group)),
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -412,19 +522,32 @@ if (state is GroupJoined) {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(group.initial,
-                    style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.success)),
+                child: Text(
+                  group.initial,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.success,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -432,14 +555,30 @@ if (state is GroupJoined) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(group.name,
-                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                  Text(
+                    group.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${group.membersCount} ${'members'.tr()}',
-                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600)),
+                  Text(
+                    '${group.membersCount} ${'members'.tr()}',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                   if (group.schoolName != null && group.schoolName!.isNotEmpty)
-                    Text(group.schoolName!,
-                        style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade400)),
+                    Text(
+                      group.schoolName!,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -450,14 +589,14 @@ if (state is GroupJoined) {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // GROUPES DISPONIBLES HORIZONTAL (design conservé)
-  // ─────────────────────────────────────────────
-  Widget _buildAvailableGroupsSection(BuildContext context, List<GroupModel> availableGroups) {
+  Widget _buildAvailableGroupsSection(
+    BuildContext context,
+    List<GroupModel> availableGroups,
+  ) {
     if (availableGroups.isEmpty) {
       final state = context.read<GroupBloc>().state;
       final hasSearch = state is GroupsLoaded && state.searchQuery.isNotEmpty;
-      
+
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
@@ -471,9 +610,12 @@ if (state is GroupJoined) {
               const SizedBox(height: 12),
               Text(
                 hasSearch
-                  ? 'Aucun groupe disponible pour cette recherche'
-                  : 'no_available_groups'.tr(),
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500),
+                    ? 'Aucun groupe disponible pour cette recherche'
+                    : 'no_available_groups'.tr(),
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -512,29 +654,55 @@ if (state is GroupJoined) {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: Text(group.initial,
-                    style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.success)),
+                child: Text(
+                  group.initial,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.success,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 12),
-            Text(group.name,
-                style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87),
-                maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+            Text(
+              group.name,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 4),
-            Text('${group.membersCount} ${'members'.tr()}',
-                style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600)),
+            Text(
+              '${group.membersCount} ${'members'.tr()}',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+              ),
+            ),
           ],
         ),
       ),
@@ -542,9 +710,6 @@ if (state is GroupJoined) {
   }
 }
 
-// ─────────────────────────────────────────────
-// ✅ Widget formulaire de création (design original)
-// ─────────────────────────────────────────────
 class _CreateGroupForm extends StatefulWidget {
   const _CreateGroupForm();
 
@@ -569,7 +734,6 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
   void _createGroup(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
 
-    // Séparer les emails/usernames par virgule, espace ou retour ligne
     final memberEmails = _membersController.text
         .split(RegExp(r'[,\s\n]+'))
         .map((e) => e.trim())
@@ -577,7 +741,7 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
         .toList();
 
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🟢 [CreateGroupForm] CREATE GROUP');
+    debugPrint(' [CreateGroupForm] CREATE GROUP');
     debugPrint('   Name: ${_nameController.text.trim()}');
     debugPrint('   Description: ${_descriptionController.text.trim()}');
     debugPrint('   Members: $memberEmails');
@@ -603,7 +767,10 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
           context.read<GroupBloc>().add(LoadAllGroupsEvent());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Groupe créé avec succès ✅', style: GoogleFonts.inter()),
+              content: Text(
+                'Groupe créé avec succès ✅',
+                style: GoogleFonts.inter(),
+              ),
               backgroundColor: AppColors.success,
             ),
           );
@@ -645,7 +812,6 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
               ),
               const SizedBox(height: 24),
 
-              // NOM DU GROUPE
               Text(
                 'group_name'.tr(),
                 style: GoogleFonts.inter(
@@ -687,7 +853,6 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
               ),
               const SizedBox(height: 16),
 
-              // DESCRIPTION (optionnel)
               Text(
                 'Description (optionnel)',
                 style: GoogleFonts.inter(
@@ -734,7 +899,7 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
                 ),
               ),
               const SizedBox(height: 4),
-              // ✅ INFO : Comportement des invitations
+
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -744,7 +909,11 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, size: 16, color: Colors.blue.shade700),
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.blue.shade700,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -787,7 +956,6 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
               ),
               const SizedBox(height: 32),
 
-              // BOUTON CRÉER
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

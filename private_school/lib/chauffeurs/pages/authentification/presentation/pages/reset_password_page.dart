@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,8 +7,8 @@ import '../../domain/bloc/driver_auth_event.dart';
 import '../../domain/bloc/driver_auth_state.dart';
 
 class ResetPasswordPage extends StatefulWidget {
-  final int userId;    
-  final String code;   
+  final int userId;
+  final String code;
 
   const ResetPasswordPage({
     super.key,
@@ -70,14 +68,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       return;
     }
 
-   
     context.read<DriverAuthBloc>().add(
-          DriverResetPasswordEvent(
-            userId: widget.userId,   
-            code: widget.code,       
-            newPassword: password,
-          ),
-        );
+      DriverResetPasswordEvent(
+        userId: widget.userId,
+        code: widget.code,
+        newPassword: password,
+      ),
+    );
   }
 
   @override
@@ -107,7 +104,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             ),
           );
 
-          
           Navigator.of(context).popUntil((route) => route.isFirst);
         } else if (state is DriverAuthError) {
           if (Navigator.canPop(context)) {
@@ -168,7 +164,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 12),
 
-                  
                   Text(
                     'choose_secure_password'.tr(),
                     textAlign: TextAlign.center,
@@ -181,7 +176,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 40),
 
-                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -231,7 +225,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 20),
 
-                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -281,7 +274,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 40),
 
-                  
                   SizedBox(
                     width: double.infinity,
                     height: 56,

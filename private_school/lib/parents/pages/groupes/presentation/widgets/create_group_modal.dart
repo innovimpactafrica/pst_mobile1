@@ -31,7 +31,6 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
   void _createGroup(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
 
-    // Séparer les emails/téléphones par virgule, espace ou retour ligne
     final memberEmails = _membersController.text
         .split(RegExp(r'[,\s\n]+'))
         .map((e) => e.trim())
@@ -39,13 +38,12 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
         .toList();
 
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🟢 [CreateGroupModal] CREATE GROUP');
+    debugPrint(' [CreateGroupModal] CREATE GROUP');
     debugPrint('   Name: ${_nameController.text.trim()}');
     debugPrint('   Description: ${_descriptionController.text.trim()}');
     debugPrint('   Members: $memberEmails');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // ✅ Utilise le BLoC parent (fourni par GroupesPage)
     context.read<GroupBloc>().add(
       CreateGroupEvent(
         name: _nameController.text.trim(),
@@ -59,242 +57,241 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
 
   @override
   @override
-Widget build(BuildContext context) {
-  return BlocConsumer<GroupBloc, GroupState>(
-    listener: (context, state) {
-      if (state is GroupCreated) {
-        Navigator.pop(context);
-        context.read<GroupBloc>().add(LoadAllGroupsEvent());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('group_created_success'.tr(), style: GoogleFonts.inter()),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } else if (state is GroupError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message, style: GoogleFonts.inter()),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    },
-    builder: (context, state) {
-      final isLoading = state is GroupLoading;
-
-      return GestureDetector(
-        // ✅ AJOUTÉ : Fermer le clavier en tapant en dehors
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: SafeArea(
-            // ✅ AJOUTÉ : SingleChildScrollView pour scroll avec clavier
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 24,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24, // ✅ Important
+  Widget build(BuildContext context) {
+    return BlocConsumer<GroupBloc, GroupState>(
+      listener: (context, state) {
+        if (state is GroupCreated) {
+          Navigator.pop(context);
+          context.read<GroupBloc>().add(LoadAllGroupsEvent());
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'group_created_success'.tr(),
+                style: GoogleFonts.inter(),
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // HEADER
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'create_carpooling_group'.tr(),
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+              backgroundColor: AppColors.success,
+            ),
+          );
+        } else if (state is GroupError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message, style: GoogleFonts.inter()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is GroupLoading;
+
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'create_carpooling_group'.tr(),
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // NOM DU GROUPE
-                    Text(
-                      'group_name'.tr(),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      textInputAction: TextInputAction.next, // ✅ AJOUTÉ
-                      decoration: InputDecoration(
-                        hintText: 'group_name_example'.tr(),
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.grey.shade400,
-                          fontSize: 14,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.success),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'enter_group_name'.tr();
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // DESCRIPTION (optionnel)
-                    Text(
-                      'description_optional'.tr(),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _descriptionController,
-                      maxLines: 2,
-                      textInputAction: TextInputAction.next, // ✅ AJOUTÉ
-                      decoration: InputDecoration(
-                        hintText: 'describe_group'.tr(),
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.success),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // MEMBRES
-                    Text(
-                      'members_optional'.tr(),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _membersController,
-                      maxLines: 3,
-                      textInputAction: TextInputAction.done, // ✅ AJOUTÉ
-                      onFieldSubmitted: (_) {
-                        // ✅ Fermer le clavier quand on appuie sur "Terminé"
-                        FocusScope.of(context).unfocus();
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'email_or_phone_separate'.tr(),
-                        hintStyle: GoogleFonts.inter(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: AppColors.success),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // ✅ BOUTON CRÉER (maintenant visible)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : () => _createGroup(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.success,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          elevation: 0,
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                'create_group'.tr(),
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+
+                      Text(
+                        'group_name'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _nameController,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          hintText: 'group_name_example'.tr(),
+                          hintStyle: GoogleFonts.inter(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: AppColors.success),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'enter_group_name'.tr();
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // DESCRIPTION (optionnel)
+                      Text(
+                        'description_optional'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _descriptionController,
+                        maxLines: 2,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          hintText: 'describe_group'.tr(),
+                          hintStyle: GoogleFonts.inter(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: AppColors.success),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // MEMBRES
+                      Text(
+                        'members_optional'.tr(),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _membersController,
+                        maxLines: 3,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).unfocus();
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'email_or_phone_separate'.tr(),
+                          hintStyle: GoogleFonts.inter(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: AppColors.success),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => _createGroup(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.success,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'create_group'.tr(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 }

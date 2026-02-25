@@ -1,8 +1,5 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 
 import '../../domain/bloc/notification_bloc.dart';
 import '../../domain/bloc/notification_state.dart';
@@ -32,9 +29,7 @@ class NotificationBadge extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationsPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const NotificationsPage()),
                 );
               },
             ),

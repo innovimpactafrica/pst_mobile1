@@ -3,11 +3,10 @@ import 'package:dio/dio.dart';
 
 abstract class DriverProfileEvent extends Equatable {
   const DriverProfileEvent();
-  
+
   @override
   List<Object?> get props => [];
 }
-
 
 class LoadDriverProfileEvent extends DriverProfileEvent {}
 
@@ -37,15 +36,11 @@ class UpdateDriverProfileWithPhotoEvent extends DriverProfileEvent {
   List<Object?> get props => [formData];
 }
 
-
 class UpdateDriverByIdEvent extends DriverProfileEvent {
   final String driverId;
   final FormData formData;
 
-  const UpdateDriverByIdEvent({
-    required this.driverId,
-    required this.formData,
-  });
+  const UpdateDriverByIdEvent({required this.driverId, required this.formData});
 
   @override
   List<Object?> get props => [driverId, formData];

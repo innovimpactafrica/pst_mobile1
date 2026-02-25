@@ -1,5 +1,3 @@
-
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
 import '../../data/repositories/driver_auth_repository.dart';
@@ -29,9 +27,9 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
         phone: event.phone,
         password: event.password,
       );
-    
-await SecureStorage().saveUserRole('driver');
-emit(DriverAuthenticated(driver));
+
+      await SecureStorage().saveUserRole('driver');
+      emit(DriverAuthenticated(driver));
       emit(DriverAuthenticated(driver));
     } catch (e) {
       emit(DriverAuthError(e.toString()));
@@ -70,37 +68,33 @@ emit(DriverAuthenticated(driver));
   ) async {
     emit(DriverAuthLoading());
     try {
-      await repository.verifyOTP(
-        phone: event.phone,
-        otp: event.otp,
-      );
+      await repository.verifyOTP(phone: event.phone, otp: event.otp);
       emit(DriverOTPVerified());
     } catch (e) {
       emit(DriverAuthError(e.toString()));
     }
   }
 
-
   Future<void> _onForgotPassword(
-  DriverForgotPasswordEvent event,
-  Emitter<DriverAuthState> emit,
-) async {
-  emit(DriverAuthLoading());
-  try {
-    final response = await repository.forgotPassword(contact: event.contact);
-    
-    final userId = response['userId'] as int?;
-    
-    if (userId == null) {
-      emit(DriverAuthError('ID utilisateur manquant dans la réponse'));
-      return;
+    DriverForgotPasswordEvent event,
+    Emitter<DriverAuthState> emit,
+  ) async {
+    emit(DriverAuthLoading());
+    try {
+      final response = await repository.forgotPassword(contact: event.contact);
+
+      final userId = response['userId'] as int?;
+
+      if (userId == null) {
+        emit(DriverAuthError('ID utilisateur manquant dans la réponse'));
+        return;
+      }
+
+      emit(DriverPasswordResetRequested(event.contact, userId: userId));
+    } catch (e) {
+      emit(DriverAuthError(e.toString()));
     }
-    
-    emit(DriverPasswordResetRequested(event.contact, userId: userId));
-  } catch (e) {
-    emit(DriverAuthError(e.toString()));
   }
-}
 
   Future<void> _onResetPassword(
     DriverResetPasswordEvent event,

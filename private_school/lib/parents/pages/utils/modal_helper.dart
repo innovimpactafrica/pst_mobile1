@@ -16,15 +16,16 @@ class ModalHelper {
         duration: const Duration(milliseconds: 300),
       ),
       builder: (context) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 1), // Start from bottom
-          end: Offset.zero, // End at current position
-        ).animate(
-          CurvedAnimation(
-            parent: ModalRoute.of(context)!.animation!,
-            curve: Curves.easeOutCubic,
-          ),
-        ),
+        position:
+            Tween<Offset>(
+              begin: const Offset(0, 1), // Start from bottom
+              end: Offset.zero, // End at current position
+            ).animate(
+              CurvedAnimation(
+                parent: ModalRoute.of(context)!.animation!,
+                curve: Curves.easeOutCubic,
+              ),
+            ),
         child: child,
       ),
     );

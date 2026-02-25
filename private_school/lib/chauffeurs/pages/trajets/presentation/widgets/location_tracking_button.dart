@@ -6,11 +6,8 @@ import '../../../../../core/utils/app_colors.dart';
 /// Widget bouton pour démarrer/arrêter le suivi GPS
 class LocationTrackingButton extends StatefulWidget {
   final String tripId;
-  
-  const LocationTrackingButton({
-    super.key,
-    required this.tripId,
-  });
+
+  const LocationTrackingButton({super.key, required this.tripId});
 
   @override
   State<LocationTrackingButton> createState() => _LocationTrackingButtonState();
@@ -20,18 +17,18 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
   final LocationService _locationService = LocationService();
   bool _isTracking = false;
   bool _isLoading = false;
-  
+
   @override
   void dispose() {
     _locationService.stopLocationTracking();
     super.dispose();
   }
-  
+
   Future<void> _toggleTracking() async {
     if (_isLoading) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       if (_isTracking) {
         // Arrêter le suivi
@@ -40,7 +37,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
           _isTracking = false;
           _isLoading = false;
         });
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -56,7 +53,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
           _isTracking = true;
           _isLoading = false;
         });
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -68,7 +65,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -79,7 +76,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
@@ -107,9 +104,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
       style: ElevatedButton.styleFrom(
         backgroundColor: _isTracking ? AppColors.error : AppColors.success,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

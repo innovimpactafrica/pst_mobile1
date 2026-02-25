@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/trip_model.dart';
+import '../../data/models/evaluation_model.dart';
 import '../../data/repositories/evaluation_repository.dart';
 import '../../../../../core/utils/app_colors.dart';
 
 class ReviewPage extends StatefulWidget {
   final TripModel trip;
+  final EvaluationModel? existingEvaluation;
 
-  const ReviewPage({super.key, required this.trip});
+  const ReviewPage({super.key, required this.trip, this.existingEvaluation});
 
   @override
   State<ReviewPage> createState() => _ReviewPageState();
@@ -20,6 +22,16 @@ class _ReviewPageState extends State<ReviewPage> {
   final _commentController = TextEditingController();
   final _repository = EvaluationRepository();
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.existingEvaluation != null) {
+      _rating = widget.existingEvaluation!.rating;
+      _commentController.text = widget.existingEvaluation!.comment ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -34,7 +46,6 @@ class _ReviewPageState extends State<ReviewPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER AVEC CROIX
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -48,7 +59,7 @@ class _ReviewPageState extends State<ReviewPage> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  // BOUTON FERMER (CROIX)
+
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
@@ -74,7 +85,6 @@ class _ReviewPageState extends State<ReviewPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    // ICÔNE SUCCESS
                     Container(
                       width: 100,
                       height: 100,
@@ -91,9 +101,10 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 24),
 
-                    // TITRE
                     Text(
-                      'trip_completed'.tr(),
+                      widget.existingEvaluation != null
+                          ? 'edit_your_review'.tr()
+                          : 'trip_completed'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -103,7 +114,6 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 8),
 
-                    // SOUS-TITRE
                     Text(
                       'thank_you_message'.tr(),
                       style: GoogleFonts.inter(
@@ -116,7 +126,6 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 32),
 
-                    // NOTEZ VOTRE EXPÉRIENCE
                     Text(
                       'rate_your_experience'.tr(),
                       style: GoogleFonts.inter(
@@ -128,7 +137,6 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 16),
 
-                    // ÉTOILES
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(5, (index) {
@@ -152,7 +160,6 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 32),
 
-                    // QU'AVEZ-VOUS PARTICULIÈREMENT APPRÉCIÉ ?
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -198,7 +205,6 @@ class _ReviewPageState extends State<ReviewPage> {
 
                     const SizedBox(height: 24),
 
-                    // COMMENTAIRE
                     TextField(
                       controller: _commentController,
                       maxLines: 4,
@@ -270,7 +276,9 @@ class _ReviewPageState extends State<ReviewPage> {
                     ),
                   )
                 : Text(
-                    'send_rating'.tr(),
+                    widget.existingEvaluation != null
+                        ? 'update_rating'.tr()
+                        : 'send_rating'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -331,81 +339,97 @@ class _ReviewPageState extends State<ReviewPage> {
   }
 
   Future<void> _submitReview() async {
-  if (_rating == 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('please_give_rating'.tr(), style: GoogleFonts.inter()),
-        backgroundColor: Colors.orange,
-      ),
-    );
-    return;
-  }
-
-  setState(() {
-    _isSubmitting = true;
-  });
-
-  try {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🟢 [ReviewPage] ENVOI ÉVALUATION');
-    debugPrint('📤 Trip ID: ${widget.trip.id}');
-    debugPrint('📤 Rating: $_rating');
-    debugPrint('📤 Badge: $_selectedBadge');
-    debugPrint('📤 Comment: ${_commentController.text}');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    // Envoyer l'évaluation
-    final evaluation = await _repository.createEvaluation(
-      tripId: int.parse(widget.trip.id),
-      driverId: int.parse(widget.trip.driverId!),
-      rating: _rating,
-      comment: _commentController.text.trim().isNotEmpty 
-          ? _commentController.text.trim() 
-          : null,
-    );
-
-    debugPrint('✅ Évaluation créée: ${evaluation.id}');
-
-    if (!mounted) return;
-
-    // ✅ CORRECTION : Un seul pop() pour fermer ReviewPage
-    Navigator.pop(context, true); // ← Retourne 'true' pour indiquer succès
-
-    // Afficher snackbar de succès
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'review_sent_success'.tr(),
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+    if (_rating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('please_give_rating'.tr(), style: GoogleFonts.inter()),
+          backgroundColor: Colors.orange,
         ),
-        backgroundColor: AppColors.success,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
+      return;
+    }
 
-  } catch (e) {
-    debugPrint('❌ Erreur: $e');
+    setState(() {
+      _isSubmitting = true;
+    });
 
-    if (!mounted) return;
+    try {
+      final isEditing = widget.existingEvaluation != null;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          e.toString().contains('déjà évalué')
-              ? 'already_evaluated_trip'.tr()
-              : '${'error_sending_review'.tr()}: $e',
-          style: GoogleFonts.inter(),
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(
+        isEditing
+            ? ' [ReviewPage] MODIFICATION ÉVALUATION'
+            : '🟢 [ReviewPage] ENVOI ÉVALUATION',
+      );
+      debugPrint(' Trip ID: ${widget.trip.id}');
+      debugPrint(' Rating: $_rating');
+      debugPrint(' Comment: ${_commentController.text}');
+      if (isEditing) {
+        debugPrint(' Evaluation ID: ${widget.existingEvaluation!.id}');
+      }
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      if (isEditing) {
+        //  MODIFICATION
+        await _repository.updateEvaluation(
+          id: widget.existingEvaluation!.id!,
+          rating: _rating,
+          comment: _commentController.text.trim().isNotEmpty
+              ? _commentController.text.trim()
+              : null,
+        );
+        debugPrint(' Évaluation modifiée');
+      } else {
+        // CRÉATION
+        await _repository.createEvaluation(
+          tripId: int.parse(widget.trip.id),
+          driverId: int.parse(widget.trip.driverId!),
+          rating: _rating,
+          comment: _commentController.text.trim().isNotEmpty
+              ? _commentController.text.trim()
+              : null,
+        );
+        debugPrint(' Évaluation créée');
+      }
+
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'review_updated_success'.tr()
+                : 'review_sent_success'.tr(),
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 2),
         ),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isSubmitting = false;
-      });
+      );
+    } catch (e) {
+      debugPrint(' Erreur: $e');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${'error_sending_review'.tr()}: $e',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
-}
 }

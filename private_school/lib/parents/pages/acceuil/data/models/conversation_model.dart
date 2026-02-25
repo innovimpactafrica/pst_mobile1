@@ -1,5 +1,3 @@
-
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -10,22 +8,22 @@ class ConversationModel extends Equatable {
   final DateTime? lastMessageTime;
   final bool isMuted;
   final bool isArchived;
-  final String type; // 'direct' ou 'group'
+  final String type;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
   // Participant info (pour les conversations directes)
   final int? otherUserId;
   final String? otherUserName;
   final String? otherUserAvatar;
-  final String? otherUserRole; // 'parent' ou 'driver'
-  
+  final String? otherUserRole;
+
   // Group info (pour les conversations de groupe)
   final int? groupId;
   final String? groupName;
   final String? groupAvatar;
   final int? memberCount;
-  
+
   // Message stats
   final int unreadCount;
 
@@ -51,74 +49,75 @@ class ConversationModel extends Equatable {
   });
 
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('📥 ConversationModel.fromJson: $json');
-    
+    debugPrint(' ConversationModel.fromJson: $json');
+
     try {
-     
       final type = (json['type'] as String?) ?? 'direct';
-      
-    
+
       DateTime parseDate(dynamic value) {
         if (value == null) return DateTime.now();
         try {
           return DateTime.parse(value.toString());
         } catch (e) {
-          debugPrint('⚠️ Erreur parsing date: $value');
+          debugPrint(' Erreur parsing date: $value');
           return DateTime.now();
         }
       }
-      
+
       return ConversationModel(
         id: json['id'] as int,
         lastMessageId: json['last_message_id'] as int?,
-        lastMessageContent: json['last_message'] as String? ?? 
-                           json['last_message_content'] as String?,
-        lastMessageTime: json['last_message_at'] != null 
+        lastMessageContent:
+            json['last_message'] as String? ??
+            json['last_message_content'] as String?,
+        lastMessageTime: json['last_message_at'] != null
             ? parseDate(json['last_message_at'])
             : (json['last_message_date'] != null
-                ? parseDate(json['last_message_date'])
-                : (json['last_message_time'] != null
-                    ? parseDate(json['last_message_time'])
-                    : null)),
-        
+                  ? parseDate(json['last_message_date'])
+                  : (json['last_message_time'] != null
+                        ? parseDate(json['last_message_time'])
+                        : null)),
+
         isMuted: json['is_muted'] as bool? ?? false,
         isArchived: json['is_archived'] as bool? ?? false,
         type: type,
-        
-        createdAt: json['created_at'] != null 
+
+        createdAt: json['created_at'] != null
             ? parseDate(json['created_at'])
             : DateTime.now(),
         updatedAt: json['updated_at'] != null
             ? parseDate(json['updated_at'])
             : (json['last_message_at'] != null
-                ? parseDate(json['last_message_at'])
-                : DateTime.now()),
-  
-        otherUserId: json['other_participant_id'] as int? ?? 
-                    json['other_user_id'] as int?,
-        otherUserName: json['other_participant_name'] as String? ?? 
-                      json['other_user_name'] as String?,
-        otherUserAvatar: json['other_participant_avatar'] as String? ?? 
-                        json['other_user_avatar'] as String?,
-        otherUserRole: json['other_participant_role'] as String? ?? 
-                      json['other_user_role'] as String?,
-        
-        
+                  ? parseDate(json['last_message_at'])
+                  : DateTime.now()),
+
+        otherUserId:
+            json['other_participant_id'] as int? ??
+            json['other_user_id'] as int?,
+        otherUserName:
+            json['other_participant_name'] as String? ??
+            json['other_user_name'] as String?,
+        otherUserAvatar:
+            json['other_participant_avatar'] as String? ??
+            json['other_user_avatar'] as String?,
+        otherUserRole:
+            json['other_participant_role'] as String? ??
+            json['other_user_role'] as String?,
+
         groupId: json['group_id'] as int? ?? json['trip_id'] as int?,
-        groupName: json['group_name'] as String? ?? 
-                  (json['title'] as String?),
+        groupName: json['group_name'] as String? ?? (json['title'] as String?),
         groupAvatar: json['group_avatar'] as String?,
         memberCount: json['member_count'] != null
             ? int.tryParse(json['member_count'].toString())
             : (json['participant_count'] != null
-                ? int.tryParse(json['participant_count'].toString())
-                : null),
-        
+                  ? int.tryParse(json['participant_count'].toString())
+                  : null),
+
         unreadCount: json['unread_count'] as int? ?? 0,
       );
     } catch (e, stackTrace) {
-      debugPrint('❌ Erreur lors du parsing de ConversationModel: $e');
-      debugPrint('📋 StackTrace: $stackTrace');
+      debugPrint(' Erreur lors du parsing de ConversationModel: $e');
+      debugPrint(' StackTrace: $stackTrace');
       rethrow;
     }
   }
@@ -146,7 +145,6 @@ class ConversationModel extends Equatable {
     };
   }
 
-  
   String get displayName {
     if (type == 'group') {
       return groupName ?? 'Groupe sans nom';
@@ -173,10 +171,10 @@ class ConversationModel extends Equatable {
 
   String get timeAgo {
     if (lastMessageTime == null) return '';
-    
+
     final now = DateTime.now();
     final difference = now.difference(lastMessageTime!);
-    
+
     if (difference.inDays > 365) {
       final years = (difference.inDays / 365).floor();
       return 'Il y a $years an${years > 1 ? 's' : ''}';
@@ -238,25 +236,25 @@ class ConversationModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        lastMessageId,
-        lastMessageContent,
-        lastMessageTime,
-        isMuted,
-        isArchived,
-        type,
-        createdAt,
-        updatedAt,
-        otherUserId,
-        otherUserName,
-        otherUserAvatar,
-        otherUserRole,
-        groupId,
-        groupName,
-        groupAvatar,
-        memberCount,
-        unreadCount,
-      ];
+    id,
+    lastMessageId,
+    lastMessageContent,
+    lastMessageTime,
+    isMuted,
+    isArchived,
+    type,
+    createdAt,
+    updatedAt,
+    otherUserId,
+    otherUserName,
+    otherUserAvatar,
+    otherUserRole,
+    groupId,
+    groupName,
+    groupAvatar,
+    memberCount,
+    unreadCount,
+  ];
 
   @override
   String toString() {

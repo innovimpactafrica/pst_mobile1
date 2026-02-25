@@ -19,14 +19,13 @@ class NotificationsPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => ParentNotificationBloc(
-            repository: NotificationRepository(),
-          )..add(const LoadNotificationsEvent()),
+          create: (context) =>
+              ParentNotificationBloc(repository: NotificationRepository())
+                ..add(const LoadNotificationsEvent()),
         ),
         BlocProvider(
-          create: (context) => UnreadNotificationsBloc(
-            repository: NotificationRepository(),
-          ),
+          create: (context) =>
+              UnreadNotificationsBloc(repository: NotificationRepository()),
         ),
       ],
       child: const NotificationsPageContent(),
@@ -101,28 +100,30 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
                 return _buildEmptyState();
               }
 
-              final totalPages =
-                  (state.notifications.length / _itemsPerPage).ceil();
+              final totalPages = (state.notifications.length / _itemsPerPage)
+                  .ceil();
               final startIndex = (_currentPage - 1) * _itemsPerPage;
-              final endIndex =
-                  (startIndex + _itemsPerPage).clamp(0, state.notifications.length);
-              final pageNotifications =
-                  state.notifications.sublist(startIndex, endIndex);
+              final endIndex = (startIndex + _itemsPerPage).clamp(
+                0,
+                state.notifications.length,
+              );
+              final pageNotifications = state.notifications.sublist(
+                startIndex,
+                endIndex,
+              );
 
               return Column(
                 children: [
-                  // ✅ Pagination EN HAUT (visible, pas cachée par la navbar)
                   if (totalPages > 1) _buildPaginationBar(totalPages),
 
-                  // ✅ Liste des notifications
                   Expanded(
                     child: RefreshIndicator(
                       color: AppColors.success,
                       onRefresh: () async {
                         setState(() => _currentPage = 1);
-                        context
-                            .read<ParentNotificationBloc>()
-                            .add(const RefreshNotificationsEvent());
+                        context.read<ParentNotificationBloc>().add(
+                          const RefreshNotificationsEvent(),
+                        );
                       },
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(
@@ -152,7 +153,6 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
     );
   }
 
-  // ✅ Pagination EN HAUT avec design propre
   Widget _buildPaginationBar(int totalPages) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -171,17 +171,18 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         children: [
           // Bouton précédent
           IconButton(
-            onPressed:
-                _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
             icon: Icon(
               Icons.arrow_back_ios,
               size: 18,
-              color:
-                  _currentPage > 1 ? AppColors.success : Colors.grey.shade300,
+              color: _currentPage > 1
+                  ? AppColors.success
+                  : Colors.grey.shade300,
             ),
           ),
 
-          // Numéros de pages
           Row(
             children: List.generate(totalPages, (index) {
               final page = index + 1;
@@ -254,23 +255,27 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
         child: const Icon(Icons.delete, color: AppColors.white),
       ),
       onDismissed: (direction) {
-        context
-            .read<ParentNotificationBloc>()
-            .add(DeleteNotificationEvent(notification.id));
+        context.read<ParentNotificationBloc>().add(
+          DeleteNotificationEvent(notification.id),
+        );
       },
       child: GestureDetector(
         onTap: () {
           if (!notification.isRead) {
-            debugPrint('👆 [NotificationPage] Tap sur notification ${notification.id} (non lue)');
-            // ✅ Marquer comme lue dans les 2 blocs
-            context
-                .read<ParentNotificationBloc>()
-                .add(MarkAsReadEvent(notification.id));
-            context
-                .read<UnreadNotificationsBloc>()
-                .add(MarkNotificationAsReadEvent(notification.id));
+            debugPrint(
+              ' [NotificationPage] Tap sur notification ${notification.id} (non lue)',
+            );
+
+            context.read<ParentNotificationBloc>().add(
+              MarkAsReadEvent(notification.id),
+            );
+            context.read<UnreadNotificationsBloc>().add(
+              MarkNotificationAsReadEvent(notification.id),
+            );
           } else {
-            debugPrint('ℹ️ [NotificationPage] Tap sur notification ${notification.id} (déjà lue)');
+            debugPrint(
+              ' [NotificationPage] Tap sur notification ${notification.id} (déjà lue)',
+            );
           }
         },
         child: Container(
@@ -300,8 +305,9 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
               Container(
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
-                  color: _getNotificationColor(notification.notificationType)
-                      .withValues(alpha: 0.1),
+                  color: _getNotificationColor(
+                    notification.notificationType,
+                  ).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -413,12 +419,10 @@ class _NotificationsPageContentState extends State<NotificationsPageContent> {
           ),
           const SizedBox(height: AppConstants.spacingXL),
           ElevatedButton(
-            onPressed: () => context
-                .read<ParentNotificationBloc>()
-                .add(const LoadNotificationsEvent()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
+            onPressed: () => context.read<ParentNotificationBloc>().add(
+              const LoadNotificationsEvent(),
             ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             child: Text(
               'retry'.tr(),
               style: GoogleFonts.inter(color: AppColors.white),

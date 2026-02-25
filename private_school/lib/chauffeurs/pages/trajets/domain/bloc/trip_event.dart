@@ -46,10 +46,7 @@ class CancelTripEvent extends TripEvent {
   final String tripId;
   final String reason;
 
-  CancelTripEvent({
-    required this.tripId,
-    required this.reason,
-  });
+  CancelTripEvent({required this.tripId, required this.reason});
 }
 
 class LoadTripDetailEvent extends TripEvent {

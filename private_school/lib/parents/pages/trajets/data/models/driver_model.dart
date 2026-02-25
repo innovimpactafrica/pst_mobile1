@@ -31,29 +31,25 @@ class TripModel {
     this.schools = const [],
   });
 
-  // 🔁 Compatibilité ancien code
   String get driverName => driver?.fullName ?? '';
   String get plate => driver?.licenseNumber ?? '';
-  String get rating => '4.5'; // Rating non disponible dans le modèle actuel
+  String get rating => '4.5';
   String get driverImg => driver?.photo ?? '';
-  String get busImg => ''; // Photo du véhicule non disponible
+  String get busImg => '';
   String get schoolsCount => schools.length.toString();
   String get children => passengers.length.toString();
-  String get total => '0'; // Capacité non disponible dans le modèle actuel
+  String get total => '0';
   String get passengersText =>
       '${passengers.length.toString().padLeft(2, '0')} passagers';
   int get numberOfSchools => schools.length;
   List<String> get schoolNames => schools.map((s) => s.name).toList();
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
-    final departureDateTime =
-        DateTime.tryParse(json['departure_time'] ?? '');
+    final departureDateTime = DateTime.tryParse(json['departure_time'] ?? '');
 
     return TripModel(
-      // ⚠️ API = int → String
       id: json['id']?.toString() ?? '',
 
-      // API keys réelles
       departure: json['start_point'] ?? '',
       arrival: json['end_point'] ?? '',
 
@@ -77,18 +73,12 @@ class TripModel {
 
       passengers: json['passengers'] != null
           ? (json['passengers'] as List)
-              .map((p) => PassengerModel.fromJson(p))
-              .toList()
+                .map((p) => PassengerModel.fromJson(p))
+                .toList()
           : [],
 
       schools: json['school_name'] != null
-          ? [
-              SchoolModel(
-                id: null,
-                name: json['school_name'],
-                address: '',
-              )
-            ]
+          ? [SchoolModel(id: null, name: json['school_name'], address: '')]
           : [],
     );
   }

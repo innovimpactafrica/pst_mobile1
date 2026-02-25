@@ -38,7 +38,6 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
       ),
       child: Column(
         children: [
-          // ===== HANDLE =====
           Container(
             margin: const EdgeInsets.only(top: AppConstants.spacingM),
             width: 40,
@@ -49,7 +48,6 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
             ),
           ),
 
-          // ===== HEADER =====
           Padding(
             padding: const EdgeInsets.all(AppConstants.spacingXL),
             child: Row(
@@ -87,12 +85,16 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
 
           // ===== TRIP INFO =====
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+            margin: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingXL,
+            ),
             padding: const EdgeInsets.all(AppConstants.spacingL),
             decoration: BoxDecoration(
               color: AppColors.successBackground,
               borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.success.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               children: [
@@ -144,7 +146,11 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.error,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           state.error,
@@ -190,11 +196,15 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.spacingXL,
+                    ),
                     itemCount: state.children.length,
                     itemBuilder: (context, index) {
                       final child = state.children[index];
-                      final isSelected = _selectedChildIds.contains(child.id.toString());
+                      final isSelected = _selectedChildIds.contains(
+                        child.id.toString(),
+                      );
 
                       return _buildChildTile(child, isSelected);
                     },
@@ -225,16 +235,24 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
                   // Compteur de places
                   if (_selectedChildIds.isNotEmpty)
                     Container(
-                      margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
+                      margin: const EdgeInsets.only(
+                        bottom: AppConstants.spacingM,
+                      ),
                       padding: const EdgeInsets.all(AppConstants.spacingM),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppConstants.radiusM),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusM,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                          Icon(
+                            Icons.check_circle,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             '${_selectedChildIds.length} ${'children_selected'.tr()}',
@@ -262,7 +280,9 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
                           vertical: AppConstants.spacingL,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusL,
+                          ),
                         ),
                         elevation: 0,
                       ),
@@ -302,7 +322,8 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
             _selectedChildIds.remove(child.id.toString());
           } else {
             // Vérifier s'il reste de la place
-            final remainingSeats = widget.trip.totalSeats - widget.trip.passengers.length;
+            final remainingSeats =
+                widget.trip.totalSeats - widget.trip.passengers.length;
             if (_selectedChildIds.length < remainingSeats) {
               _selectedChildIds.add(child.id.toString());
             } else {
@@ -389,11 +410,7 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
                 ),
               ),
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 16,
-                      color: AppColors.white,
-                    )
+                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
                   : null,
             ),
           ],
@@ -408,11 +425,11 @@ class _ReserveTripModalState extends State<ReserveTripModal> {
     try {
       // Déclencher l'événement de réservation
       context.read<TripBloc>().add(
-            ReserveTripEvent(
-              tripId: widget.trip.id,
-              childIds: _selectedChildIds.toList(),
-            ),
-          );
+        ReserveTripEvent(
+          tripId: widget.trip.id,
+          childIds: _selectedChildIds.toList(),
+        ),
+      );
 
       // Attendre un peu pour que le BLoC traite
       await Future.delayed(const Duration(milliseconds: 500));

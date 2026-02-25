@@ -15,28 +15,28 @@ class SubscriptionPlan {
   });
 
   factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
-  List<String> featuresList = [];
-  if (json['features'] != null) {
-    final rawFeatures = json['features'];
-    if (rawFeatures is List) {
-      for (var f in rawFeatures) {
-        if (f is Map && f['name'] != null) {
-          featuresList.add(f['name'].toString());
-        } else if (f is String) {
-          featuresList.add(f);
+    List<String> featuresList = [];
+    if (json['features'] != null) {
+      final rawFeatures = json['features'];
+      if (rawFeatures is List) {
+        for (var f in rawFeatures) {
+          if (f is Map && f['name'] != null) {
+            featuresList.add(f['name'].toString());
+          } else if (f is String) {
+            featuresList.add(f);
+          }
         }
       }
     }
-  }
 
-  return SubscriptionPlan(
-    id: json['id']?.toString() ?? '',
-    name: json['name'] ?? json['nom'] ?? 'Plan',
-    price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-    durationDays: json['duration_days'] ?? json['dureejours'] ?? 30,
-    features: featuresList,
-  );
-}
+    return SubscriptionPlan(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? json['nom'] ?? 'Plan',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      durationDays: json['duration_days'] ?? json['dureejours'] ?? 30,
+      features: featuresList,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -81,23 +81,31 @@ class SubscriptionModel {
   bool get isExpired => daysRemaining == 0;
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? json; 
-    
+    final data = json['data'] ?? json;
+
     return SubscriptionModel(
       id: data['_id']?.toString() ?? data['id']?.toString() ?? '',
-      driverId: data['driver_id']?.toString() ?? data['chauffeur_id']?.toString() ?? '',
-      plan: data['plan'] ?? data['formule'] ?? data['libelle'] ?? 'Plan Standard',
+      driverId:
+          data['driver_id']?.toString() ??
+          data['chauffeur_id']?.toString() ??
+          '',
+      plan:
+          data['plan'] ?? data['formule'] ?? data['libelle'] ?? 'Plan Standard',
       price: (data['price'] ?? data['prix'] ?? 0).toDouble(),
-      startDate: data['startDate'] != null 
-          ? DateTime.parse(data['startDate']) 
-          : (data['date_creation'] != null ? DateTime.parse(data['date_creation']) : DateTime.now()),
-      expiryDate: data['expiryDate'] != null 
-          ? DateTime.parse(data['expiryDate']) 
+      startDate: data['startDate'] != null
+          ? DateTime.parse(data['startDate'])
+          : (data['date_creation'] != null
+                ? DateTime.parse(data['date_creation'])
+                : DateTime.now()),
+      expiryDate: data['expiryDate'] != null
+          ? DateTime.parse(data['expiryDate'])
           : DateTime.now().add(const Duration(days: 30)),
       isActive: data['isActive'] ?? (data['statut'] == 'active') ?? false,
       status: data['status'] ?? data['statut'] ?? 'active',
       paymentMethods: data['paymentMethods'] != null
-          ? (data['paymentMethods'] as List).map((pm) => PaymentMethod.fromJson(pm)).toList()
+          ? (data['paymentMethods'] as List)
+                .map((pm) => PaymentMethod.fromJson(pm))
+                .toList()
           : const [],
     );
   }

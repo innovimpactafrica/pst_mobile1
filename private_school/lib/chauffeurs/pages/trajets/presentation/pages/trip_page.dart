@@ -14,7 +14,6 @@ import '../../domain/bloc/trip_state.dart';
 import '../widgets/trip_card_widget.dart';
 import '../widgets/trip_detail_modal.dart';
 
-
 class TripPage extends StatefulWidget {
   const TripPage({super.key});
 
@@ -25,12 +24,14 @@ class TripPage extends StatefulWidget {
 class _TripPageState extends State<TripPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Charger les trajets
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TripBloc>().add(LoadTripsEvent());
@@ -40,6 +41,7 @@ class _TripPageState extends State<TripPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -97,10 +99,7 @@ class _TripPageState extends State<TripPage>
         ),
         labelColor: AppColors.primary,
         unselectedLabelColor: Colors.white,
-        labelStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-        ),
+        labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
@@ -125,37 +124,33 @@ class _TripPageState extends State<TripPage>
           topRight: Radius.circular(AppConstants.radiusXL),
         ),
       ),
-      child: BlocBuilder<TripBloc, TripState>(
-        builder: (context, state) {
-         
+      child: Column(
+        children: [
+          _buildSearchBar(),
+          Expanded(
+            child: BlocBuilder<TripBloc, TripState>(
+              builder: (context, state) {
+                if (state is TripLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  );
+                }
 
-          if (state is TripLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            );
-          }
+                if (state is TripError) {
+                  return _buildErrorState(state.message);
+                }
 
-          if (state is TripError) {
-           
-            return _buildErrorState(state.message);
-          }
+                if (state is TripsLoaded) {
+                  return _buildTabBarViewContent(state.trips);
+                }
 
-          if (state is TripsLoaded) {
-           
-            
-            //  Afficher tous les statuts
-            for (var trip in state.trips) {
-              
-            }
-            
-            return _buildTabBarViewContent(state.trips);
-          }
-
-          // État initial
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
-        },
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -163,35 +158,44 @@ class _TripPageState extends State<TripPage>
   Widget _buildTabBarViewContent(List<TripModel> trips) {
     return TabBarView(
       controller: _tabController,
-      children: [
-        _buildUpcomingTrips(trips),
-        _buildHistoryTrips(trips),
-      ],
+      children: [_buildUpcomingTrips(trips), _buildHistoryTrips(trips)],
     );
   }
 
   Widget _buildUpcomingTrips(List<TripModel> trips) {
-    final upcomingTrips = trips
-        .where((trip) {
-         
-          if (trip.status == 'canceled') return false;
-          
-          
-          if (trip.tripType == 'aller' && trip.status == 'completed') return false;
-          
-         
-          if (trip.tripType == 'retour' && trip.status == 'completed') return false;
-          
-        
-          if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return false;
-          
-         
-          return true;
-        })
-        .toList();
+    final upcomingTrips = trips.where((trip) {
+      if (trip.status == 'canceled') return false;
+      if (trip.tripType == 'aller' && trip.status == 'completed') return false;
+      if (trip.tripType == 'retour' && trip.status == 'completed') return false;
+      if (trip.tripType == 'aller_retour' &&
+          trip.status == 'completed' &&
+          trip.returnStatus == 'completed')
+        return false;
+
+      // Filtre de recherche
+      if (_searchQuery.isNotEmpty) {
+        final query = _searchQuery.toLowerCase();
+        final matchesDestination = trip.destination.toLowerCase().contains(
+          query,
+        );
+        final matchesStart = (trip.startLocation ?? '').toLowerCase().contains(
+          query,
+        );
+        final matchesSchool = trip.schools.any(
+          (s) => s.name.toLowerCase().contains(query),
+        );
+        return matchesDestination || matchesStart || matchesSchool;
+      }
+
+      return true;
+    }).toList();
 
     if (upcomingTrips.isEmpty) {
-      return _buildEmptyState('no_upcoming_trips'.tr());
+      return _buildEmptyState(
+        _searchQuery.isNotEmpty
+            ? 'no_search_results'.tr()
+            : 'no_upcoming_trips'.tr(),
+      );
     }
 
     return RefreshIndicator(
@@ -215,24 +219,40 @@ class _TripPageState extends State<TripPage>
   Widget _buildHistoryTrips(List<TripModel> trips) {
     final historyTrips = trips
         .where((trip) {
-      
           if (trip.status == 'canceled') return true;
-          
-       
-          if (trip.tripType == 'aller' && trip.status == 'completed') return true;
-          
-          
-          if (trip.tripType == 'retour' && trip.status == 'completed') return true;
-          
-          
-          if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return true;
-          
-          
+          if (trip.tripType == 'aller' && trip.status == 'completed')
+            return true;
+          if (trip.tripType == 'retour' && trip.status == 'completed')
+            return true;
+          if (trip.tripType == 'aller_retour' &&
+              trip.status == 'completed' &&
+              trip.returnStatus == 'completed')
+            return true;
           return false;
         })
+        .where((trip) {
+          // Filtre de recherche
+          if (_searchQuery.isNotEmpty) {
+            final query = _searchQuery.toLowerCase();
+            final matchesDestination = trip.destination.toLowerCase().contains(
+              query,
+            );
+            final matchesStart = (trip.startLocation ?? '')
+                .toLowerCase()
+                .contains(query);
+            final matchesSchool = trip.schools.any(
+              (s) => s.name.toLowerCase().contains(query),
+            );
+            return matchesDestination || matchesStart || matchesSchool;
+          }
+          return true;
+        })
         .toList();
+
     if (historyTrips.isEmpty) {
-      return _buildEmptyState('no_history'.tr());
+      return _buildEmptyState(
+        _searchQuery.isNotEmpty ? 'no_search_results'.tr() : 'no_history'.tr(),
+      );
     }
 
     return RefreshIndicator(
@@ -258,11 +278,7 @@ class _TripPageState extends State<TripPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: AppColors.grey400,
-          ),
+          Icon(Icons.inbox_outlined, size: 64, color: AppColors.grey400),
           const SizedBox(height: AppConstants.spacingM),
           Text(
             message,
@@ -283,11 +299,7 @@ class _TripPageState extends State<TripPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: AppConstants.spacingM),
             Text(
               'error_loading_trips'.tr(),
@@ -350,10 +362,57 @@ class _TripPageState extends State<TripPage>
         );
       },
       backgroundColor: AppColors.primary,
-      child: const Icon(
-        Icons.route,
-        color: AppColors.white,
-        size: 28,
+      child: const Icon(Icons.route, color: AppColors.white, size: 28),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(AppConstants.spacingXXL),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          setState(() => _searchQuery = value);
+        },
+        decoration: InputDecoration(
+          hintText: 'search_trip'.tr(),
+          hintStyle: TextStyle(
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            fontSize: AppConstants.fontSizeM,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            size: AppConstants.iconSizeM,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, size: AppConstants.iconSizeM),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: AppColors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.spacingM,
+            vertical: AppConstants.spacingL,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
+        ),
       ),
     );
   }

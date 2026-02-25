@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -35,8 +33,8 @@ class LogoutBottomSheet extends StatelessWidget {
           Navigator.pop(context);
           Navigator.pushNamedAndRemoveUntil(
             context,
-           '/role-selection', 
-            (route) => false, 
+            '/role-selection',
+            (route) => false,
           );
         } else if (state is LogoutError) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -49,7 +47,10 @@ class LogoutBottomSheet extends StatelessWidget {
         }
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXXL, vertical: 40),
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppConstants.spacingXXL,
+          vertical: 40,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppConstants.radiusXL),
@@ -97,7 +98,7 @@ class LogoutBottomSheet extends StatelessWidget {
                 builder: (context, state) {
                   final isLoading = state is LogoutLoading;
 
-                  return IntrinsicHeight( 
+                  return IntrinsicHeight(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -113,34 +114,32 @@ class LogoutBottomSheet extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                             'cancel'.tr(),
+                              'cancel'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary, 
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
                         ),
 
-                        
                         const VerticalDivider(
-                          color: AppColors.divider, 
+                          color: AppColors.divider,
                           thickness: 1,
                           width: 1,
-                          indent: 8, 
-                          endIndent: 8, 
+                          indent: 8,
+                          endIndent: 8,
                         ),
 
-                        
                         Expanded(
                           child: TextButton(
                             onPressed: isLoading
                                 ? null
                                 : () {
-                                    context
-                                        .read<LogoutBloc>()
-                                        .add(LogoutRequestedEvent());
+                                    context.read<LogoutBloc>().add(
+                                      LogoutRequestedEvent(),
+                                    );
                                   },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
@@ -157,11 +156,11 @@ class LogoutBottomSheet extends StatelessWidget {
                                     ),
                                   )
                                 : Text(
-                                   'logout'.tr(), 
+                                    'logout'.tr(),
                                     style: GoogleFonts.inter(
                                       fontSize: AppConstants.fontSizeL,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.error, 
+                                      color: AppColors.error,
                                     ),
                                   ),
                           ),
@@ -177,5 +176,4 @@ class LogoutBottomSheet extends StatelessWidget {
       ),
     );
   }
-  
 }

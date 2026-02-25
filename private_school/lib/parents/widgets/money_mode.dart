@@ -60,11 +60,14 @@ class _PaymentModalState extends State<PaymentModal> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColors.textSecondary,
+                        ),
                         onPressed: () {
                           Navigator.pop(context);
-                          if (widget.onClose != null){
-                                 widget.onClose!();
+                          if (widget.onClose != null) {
+                            widget.onClose!();
                           }
                         },
                       ),
@@ -173,7 +176,10 @@ class _PaymentModalState extends State<PaymentModal> {
                   Text(
                     'payment_terms'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),

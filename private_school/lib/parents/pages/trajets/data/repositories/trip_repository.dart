@@ -5,24 +5,23 @@ import '../models/trip_model.dart';
 class TripRepository {
   final TripService _service = TripService();
 
-  /// ✅ GET /api/parents/trips/available
   /// Récupère les trajets disponibles (pas encore réservés)
   Future<List<TripModel>> getAvailableTrips() async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔍 [TripRepository] GET AVAILABLE TRIPS');
+      debugPrint(' [TripRepository] GET AVAILABLE TRIPS');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final trips = await _service.getAllTrips();
 
-      debugPrint('✅ [TripRepository] ${trips.length} trajets disponibles');
+      debugPrint(' [TripRepository] ${trips.length} trajets disponibles');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return trips;
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('❌ [TripRepository] ERROR');
+      debugPrint(' [TripRepository] ERROR');
       debugPrint('Error: $e');
       debugPrint('Stack: $stackTrace');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -30,25 +29,23 @@ class TripRepository {
     }
   }
 
-  /// ✅ GET /api/parents/trips
   /// Récupère les trajets déjà réservés par le parent
   Future<List<TripModel>> getMyReservations() async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔍 [TripRepository] GET MY RESERVATIONS');
+      debugPrint(' [TripRepository] GET MY RESERVATIONS');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final reservations = await _service.getMyReservations();
 
-      debugPrint('✅ [TripRepository] ${reservations.length} réservations');
+      debugPrint(' [TripRepository] ${reservations.length} réservations');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      // ⚠️ L'enrichissement est désactivé car l'API retourne déjà les infos du chauffeur
       return reservations;
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('❌ [TripRepository] ERROR');
+      debugPrint(' [TripRepository] ERROR');
       debugPrint('Error: $e');
       debugPrint('Stack: $stackTrace');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -56,7 +53,6 @@ class TripRepository {
     }
   }
 
-  /// ✅ POST /api/parents/reservations
   /// Réserver un trajet pour un ou plusieurs enfants
   Future<Map<String, dynamic>> reserveTrip({
     required String tripId,
@@ -64,7 +60,7 @@ class TripRepository {
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟢 [TripRepository] RESERVE TRIP');
+      debugPrint(' [TripRepository] RESERVE TRIP');
       debugPrint('   Trip: $tripId');
       debugPrint('   Children: ${childIds.length}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -74,14 +70,14 @@ class TripRepository {
         childIds: childIds,
       );
 
-      debugPrint('✅ [TripRepository] Reservation successful');
+      debugPrint(' [TripRepository] Reservation successful');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return result;
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('❌ [TripRepository] RESERVATION ERROR');
+      debugPrint(' [TripRepository] RESERVATION ERROR');
       debugPrint('Error: $e');
       debugPrint('Stack: $stackTrace');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -89,7 +85,6 @@ class TripRepository {
     }
   }
 
-  /// ✅ DELETE /api/parents/reservations/{tripId}/{childId}
   /// Annuler une réservation
   Future<void> cancelReservation({
     required String tripId,
@@ -97,22 +92,19 @@ class TripRepository {
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔴 [TripRepository] CANCEL RESERVATION');
+      debugPrint(' [TripRepository] CANCEL RESERVATION');
       debugPrint('   Trip: $tripId');
       debugPrint('   Child: $childId');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      await _service.cancelReservation(
-        tripId: tripId,
-        childId: childId,
-      );
+      await _service.cancelReservation(tripId: tripId, childId: childId);
 
-      debugPrint('✅ [TripRepository] Cancellation successful');
+      debugPrint(' [TripRepository] Cancellation successful');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('❌ [TripRepository] CANCEL ERROR');
+      debugPrint(' [TripRepository] CANCEL ERROR');
       debugPrint('Error: $e');
       debugPrint('Stack: $stackTrace');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -150,10 +142,7 @@ class TripRepository {
     required String tripId,
     required String message,
   }) async {
-    return await _service.contactDriver(
-      tripId: tripId,
-      message: message,
-    );
+    return await _service.contactDriver(tripId: tripId, message: message);
   }
 
   /// Obtenir les options de filtres disponibles

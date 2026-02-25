@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -72,9 +71,9 @@ class _InscriptionPageState extends State<InscriptionPage> {
           _phoneController.text.isEmpty ||
           _emailController.text.isEmpty ||
           _passwordController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('please_fill_all_fields'.tr())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('please_fill_all_fields'.tr())));
         return;
       }
     }
@@ -166,17 +165,26 @@ class _InscriptionPageState extends State<InscriptionPage> {
                   setState(() {});
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.language, color: AppColors.primary, size: 20),
+                      const Icon(
+                        Icons.language,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 6),
                       Text(
-                        context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                        context.locale.languageCode == 'fr'
+                            ? 'Français'
+                            : 'English',
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontSize: 14,
@@ -271,7 +279,11 @@ class _InscriptionPageState extends State<InscriptionPage> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          _buildTextField('first_last_name'.tr(), 'name_example'.tr(), _nameController),
+          _buildTextField(
+            'first_last_name'.tr(),
+            'name_example'.tr(),
+            _nameController,
+          ),
           const SizedBox(height: 16),
           _buildTextField(
             'phone_number'.tr(),

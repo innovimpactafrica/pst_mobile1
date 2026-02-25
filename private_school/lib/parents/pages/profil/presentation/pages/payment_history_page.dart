@@ -100,7 +100,7 @@ class PaymentHistoryPage extends StatelessWidget {
     //
     final Color iconColor = isCardPayment
         ? AppColors.success
-        : AppColors.primary; // Mauve pour mobile
+        : AppColors.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

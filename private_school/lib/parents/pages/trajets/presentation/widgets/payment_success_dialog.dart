@@ -18,7 +18,6 @@ class PaymentSuccessDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ICÔNE SUCCESS
             Container(
               width: 80,
               height: 80,
@@ -56,13 +55,11 @@ class PaymentSuccessDialog extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // ✅ CORRECTION : pushAndRemoveUntil ferme TOUT la stack
-                  // (dialog + PaymentPage + TripDetailPage) et pousse TripTrackingPage
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
                       builder: (_) => TripTrackingPage(trip: trip),
                     ),
-                    // Garder seulement la première route (accueil/liste des trajets)
+
                     (route) => route.isFirst,
                   );
                 },

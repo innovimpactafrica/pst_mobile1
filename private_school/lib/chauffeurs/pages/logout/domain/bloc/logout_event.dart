@@ -1,5 +1,3 @@
-
-
 abstract class LogoutEvent {}
 
 /// Événement pour déconnecter l'utilisateur

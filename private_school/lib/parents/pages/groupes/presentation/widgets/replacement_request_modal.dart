@@ -38,12 +38,11 @@ class _ReplacementRequestModalState extends State<ReplacementRequestModal> {
       return;
     }
 
-    debugPrint('🔄 [ReplacementRequestModal] REQUEST REPLACEMENT');
+    debugPrint(' [ReplacementRequestModal] REQUEST REPLACEMENT');
     debugPrint('   Planning ID: ${widget.planning.id}');
     debugPrint('   Group ID: ${widget.planning.groupId}');
     debugPrint('   Reason: ${_reasonController.text.trim()}');
 
-    // ✅ CORRIGÉ : Passer l'objet Planning complet
     context.read<GroupBloc>().add(
       RequestReplacementEvent(
         planning: widget.planning,
@@ -54,7 +53,6 @@ class _ReplacementRequestModalState extends State<ReplacementRequestModal> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ PAS de BlocProvider ici - utilise celui du parent
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is ReplacementRequested) {
@@ -151,7 +149,10 @@ class _ReplacementRequestModalState extends State<ReplacementRequestModal> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              DateFormat('EEEE dd MMMM', 'fr_FR').format(widget.planning.date),
+                              DateFormat(
+                                'EEEE dd MMMM',
+                                'fr_FR',
+                              ).format(widget.planning.date),
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -208,7 +209,9 @@ class _ReplacementRequestModalState extends State<ReplacementRequestModal> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : () => _requestReplacement(context),
+                      onPressed: isLoading
+                          ? null
+                          : () => _requestReplacement(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,

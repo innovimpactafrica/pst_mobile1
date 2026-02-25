@@ -12,7 +12,7 @@ class MessagingService {
     try {
       final token = await _storage.getAccessToken();
       final url = Uri.parse('${BaseUrl.current}/api/conversations');
-      
+
       final response = await http.get(
         url,
         headers: {
@@ -21,11 +21,18 @@ class MessagingService {
           'Accept': 'application/json',
         },
       );
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<dynamic> conversationsJson = data is List ? data : (data['data'] ?? data['conversations'] ?? []);
-        return conversationsJson.map((json) => ConversationModel.fromJson(json as Map<String, dynamic>)).toList();
+        final List<dynamic> conversationsJson = data is List
+            ? data
+            : (data['data'] ?? data['conversations'] ?? []);
+        return conversationsJson
+            .map(
+              (json) =>
+                  ConversationModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
       }
       return [];
     } catch (e) {
@@ -40,15 +47,13 @@ class MessagingService {
     try {
       final token = await _storage.getAccessToken();
       final url = Uri.parse('${BaseUrl.current}/api/conversations');
-      
-      final requestBody = <String, dynamic>{
-        'other_user_id': otherUserId,
-      };
-      
+
+      final requestBody = <String, dynamic>{'other_user_id': otherUserId};
+
       if (initialMessage != null && initialMessage.trim().isNotEmpty) {
         requestBody['initial_message'] = initialMessage.trim();
       }
-      
+
       final response = await http.post(
         url,
         headers: {
@@ -58,7 +63,7 @@ class MessagingService {
         },
         body: json.encode(requestBody),
       );
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         final conversationJson = data['data'] ?? data['conversation'] ?? data;
@@ -73,8 +78,10 @@ class MessagingService {
   Future<List<MessageModel>> getMessages(int conversationId) async {
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages');
-      
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/messages',
+      );
+
       final response = await http.get(
         url,
         headers: {
@@ -83,11 +90,15 @@ class MessagingService {
           'Accept': 'application/json',
         },
       );
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<dynamic> messagesJson = data is List ? data : (data['data'] ?? data['messages'] ?? []);
-        return messagesJson.map((json) => MessageModel.fromJson(json as Map<String, dynamic>)).toList();
+        final List<dynamic> messagesJson = data is List
+            ? data
+            : (data['data'] ?? data['messages'] ?? []);
+        return messagesJson
+            .map((json) => MessageModel.fromJson(json as Map<String, dynamic>))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -102,13 +113,15 @@ class MessagingService {
   }) async {
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages');
-      
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/messages',
+      );
+
       final body = {
         'content': content,
         if (replyToId != null) 'parent_message_id': replyToId,
       };
-      
+
       final response = await http.post(
         url,
         headers: {
@@ -118,7 +131,7 @@ class MessagingService {
         },
         body: json.encode(body),
       );
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         final messageJson = data['data'] ?? data['message'] ?? data;
@@ -137,8 +150,10 @@ class MessagingService {
   }) async {
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId');
-      
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId',
+      );
+
       final response = await http.patch(
         url,
         headers: {
@@ -148,7 +163,7 @@ class MessagingService {
         },
         body: json.encode({'content': content}),
       );
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final messageJson = data['data'] ?? data['message'] ?? data;
@@ -166,8 +181,10 @@ class MessagingService {
   }) async {
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId');
-      
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/messages/$messageId',
+      );
+
       await http.delete(
         url,
         headers: {
@@ -177,35 +194,40 @@ class MessagingService {
         },
       );
     } catch (e) {
-    
-    //
+      //
     }
   }
 
- Future<void> markConversationAsRead(int conversationId) async {
-  try {
-    final token = await _storage.getAccessToken();
-    final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/read');
-    
-    await http.patch( 
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    );
-    
-  } catch (e) {
-    //
-  }
-}
-
-  Future<void> toggleArchiveConversation(int conversationId, bool archive) async {
+  Future<void> markConversationAsRead(int conversationId) async {
     try {
       final token = await _storage.getAccessToken();
-      final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/archive');
-      
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/read',
+      );
+
+      await http.patch(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+    } catch (e) {
+      //
+    }
+  }
+
+  Future<void> toggleArchiveConversation(
+    int conversationId,
+    bool archive,
+  ) async {
+    try {
+      final token = await _storage.getAccessToken();
+      final url = Uri.parse(
+        '${BaseUrl.current}/api/conversations/$conversationId/archive',
+      );
+
       await http.patch(
         url,
         headers: {

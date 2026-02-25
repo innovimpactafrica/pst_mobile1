@@ -6,7 +6,7 @@ class EvaluationModel {
   final int? driverId;
   final int? parentId;
   final String? parentName;
-  final int rating; // Note de 1 à 5
+  final int rating;
   final String? badge; // ponctuel, professionnel, sympathique
   final String? comment;
   final DateTime? createdAt;
@@ -31,7 +31,7 @@ class EvaluationModel {
 
   factory EvaluationModel.fromJson(Map<String, dynamic> json) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔍 [EvaluationModel] Parsing evaluation:');
+    debugPrint(' [EvaluationModel] Parsing evaluation:');
     debugPrint('   ID: ${json['id']}');
     debugPrint('   Trip ID: ${json['trip_id']}');
     debugPrint('   Rating: ${json['rating']}');
@@ -41,11 +41,11 @@ class EvaluationModel {
     return EvaluationModel(
       id: json['id'] != null ? int.tryParse(json['id'].toString()) : null,
       tripId: int.parse(json['trip_id'].toString()),
-      driverId: json['driver_id'] != null 
-          ? int.tryParse(json['driver_id'].toString()) 
+      driverId: json['driver_id'] != null
+          ? int.tryParse(json['driver_id'].toString())
           : null,
-      parentId: json['parent_id'] != null 
-          ? int.tryParse(json['parent_id'].toString()) 
+      parentId: json['parent_id'] != null
+          ? int.tryParse(json['parent_id'].toString())
           : null,
       parentName: json['parent_name']?.toString(),
       rating: int.parse(json['rating'].toString()),

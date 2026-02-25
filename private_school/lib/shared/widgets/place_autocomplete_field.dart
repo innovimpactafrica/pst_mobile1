@@ -84,33 +84,38 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
                       ),
                     )
                   : _predictions.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            'Aucun résultat',
-                            style: GoogleFonts.inter(color: Colors.grey),
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Aucun résultat',
+                        style: GoogleFonts.inter(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: _predictions.length,
+                      itemBuilder: (context, index) {
+                        final prediction = _predictions[index];
+                        return ListTile(
+                          leading: const Icon(
+                            Icons.location_on,
+                            color: AppColors.primary,
                           ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: _predictions.length,
-                          itemBuilder: (context, index) {
-                            final prediction = _predictions[index];
-                            return ListTile(
-                              leading: const Icon(Icons.location_on, color: AppColors.primary),
-                              title: Text(
-                                prediction.mainText,
-                                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                              ),
-                              subtitle: Text(
-                                prediction.secondaryText,
-                                style: GoogleFonts.inter(fontSize: 12),
-                              ),
-                              onTap: () => _selectPlace(prediction),
-                            );
-                          },
-                        ),
+                          title: Text(
+                            prediction.mainText,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            prediction.secondaryText,
+                            style: GoogleFonts.inter(fontSize: 12),
+                          ),
+                          onTap: () => _selectPlace(prediction),
+                        );
+                      },
+                    ),
             ),
           ),
         ),
@@ -129,7 +134,7 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
     _showOverlay();
 
     final predictions = await _placesService.getPlacePredictions(value);
-    
+
     if (mounted) {
       setState(() {
         _predictions = predictions;
@@ -159,7 +164,10 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Veuillez activer la localisation', style: GoogleFonts.inter()),
+              content: Text(
+                'Veuillez activer la localisation',
+                style: GoogleFonts.inter(),
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -174,7 +182,10 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Permission de localisation refusée', style: GoogleFonts.inter()),
+                content: Text(
+                  'Permission de localisation refusée',
+                  style: GoogleFonts.inter(),
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -184,25 +195,33 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
       }
 
       final position = await Geolocator.getCurrentPosition();
-      final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-      
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         final address = '${placemark.street}, ${placemark.locality}';
         widget.controller.text = address;
-        
-        widget.onPlaceSelected(PlaceDetails(
-          address: address,
-          latitude: position.latitude,
-          longitude: position.longitude,
-        ));
+
+        widget.onPlaceSelected(
+          PlaceDetails(
+            address: address,
+            latitude: position.latitude,
+            longitude: position.longitude,
+          ),
+        );
       }
     } catch (e) {
       debugPrint('Error getting current location: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la récupération de la position', style: GoogleFonts.inter()),
+            content: Text(
+              'Erreur lors de la récupération de la position',
+              style: GoogleFonts.inter(),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -235,7 +254,10 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
               prefixIcon: const Icon(Icons.search, color: AppColors.primary),
               suffixIcon: widget.showCurrentLocationButton
                   ? IconButton(
-                      icon: const Icon(Icons.my_location, color: AppColors.primary),
+                      icon: const Icon(
+                        Icons.my_location,
+                        color: AppColors.primary,
+                      ),
                       onPressed: _getCurrentLocation,
                       tooltip: 'Ma position',
                     )
@@ -252,7 +274,10 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
             ),
           ),

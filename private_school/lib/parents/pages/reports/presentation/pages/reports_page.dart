@@ -23,12 +23,7 @@ class _ReportsPageState extends State<ReportsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'all';
 
-  final List<String> _filters = [
-    'all',
-    'incident',
-    'disputes',
-    'security',
-  ];
+  final List<String> _filters = ['all', 'incident', 'disputes', 'security'];
 
   @override
   void initState() {
@@ -191,134 +186,136 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-Widget _buildReportsList() {
-  return BlocListener<ReportBloc, ReportState>(
-    listener: (context, state) {
-      if (state is ReportDeleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('report_deleted_successfully'.tr()),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else if (state is ReportError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.message),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    },
-    child: BlocBuilder<ReportBloc, ReportState>(
-      builder: (context, state) {
-        if (state is ReportLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.success),
+  Widget _buildReportsList() {
+    return BlocListener<ReportBloc, ReportState>(
+      listener: (context, state) {
+        if (state is ReportDeleted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('report_deleted_successfully'.tr()),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (state is ReportError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
-
-        if (state is ReportError) {
-          return _buildErrorState(state.message);
-        }
-
-        if (state is ReportsLoaded) {
-          if (state.filteredReports.isEmpty) {
-            return _buildEmptyState();
+      },
+      child: BlocBuilder<ReportBloc, ReportState>(
+        builder: (context, state) {
+          if (state is ReportLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.success),
+            );
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: RefreshIndicator(
-                  color: AppColors.success,
-                  onRefresh: () async {
-                    context.read<ReportBloc>().add(RefreshReportsEvent());
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppConstants.spacingXL),
-                    itemCount: state.filteredReports.length,
-                    itemBuilder: (context, index) {
-                      return ReportCardWidget(
-                        report: state.filteredReports[index],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportDetailPage(
-                                report: state.filteredReports[index],
-                              ),
-                            ),
-                          );
-                        },
-                      );
+          if (state is ReportError) {
+            return _buildErrorState(state.message);
+          }
+
+          if (state is ReportsLoaded) {
+            if (state.filteredReports.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    color: AppColors.success,
+                    onRefresh: () async {
+                      context.read<ReportBloc>().add(RefreshReportsEvent());
                     },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(AppConstants.spacingXL),
+                      itemCount: state.filteredReports.length,
+                      itemBuilder: (context, index) {
+                        return ReportCardWidget(
+                          report: state.filteredReports[index],
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReportDetailPage(
+                                  report: state.filteredReports[index],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              if (state.totalPages > 1) _buildPaginationTabs(state),
-            ],
-          );
-        }
+                if (state.totalPages > 1) _buildPaginationTabs(state),
+              ],
+            );
+          }
 
-        return const SizedBox.shrink();
-      },
-    ),
-  );
-}
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
 
-Widget _buildPaginationTabs(ReportsLoaded state) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-    decoration: BoxDecoration(
-      color: AppColors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          blurRadius: 8,
-          offset: const Offset(0, -2),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(state.totalPages, (index) {
-        final pageNumber = index + 1;
-        final isCurrentPage = pageNumber == state.currentPage;
-        
-        return GestureDetector(
-          onTap: isCurrentPage || state.isLoadingMore
-              ? null
-              : () {
-                  context.read<ReportBloc>().add(LoadPageEvent(pageNumber));
-                },
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isCurrentPage ? AppColors.primary : AppColors.white,
-              border: Border.all(
-                color: isCurrentPage ? AppColors.primary : AppColors.grey400,
-                width: 1.5,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '$pageNumber',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isCurrentPage ? AppColors.white : AppColors.textPrimary,
-              ),
-            ),
+  Widget _buildPaginationTabs(ReportsLoaded state) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
-        );
-      }),
-    ),
-  );
-}
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(state.totalPages, (index) {
+          final pageNumber = index + 1;
+          final isCurrentPage = pageNumber == state.currentPage;
+
+          return GestureDetector(
+            onTap: isCurrentPage || state.isLoadingMore
+                ? null
+                : () {
+                    context.read<ReportBloc>().add(LoadPageEvent(pageNumber));
+                  },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isCurrentPage ? AppColors.primary : AppColors.white,
+                border: Border.all(
+                  color: isCurrentPage ? AppColors.primary : AppColors.grey400,
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$pageNumber',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isCurrentPage
+                      ? AppColors.white
+                      : AppColors.textPrimary,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
 
   Widget _buildEmptyState() {
     return Center(
@@ -357,11 +354,7 @@ Widget _buildPaginationTabs(ReportsLoaded state) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.error,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
           const SizedBox(height: AppConstants.spacingL),
           Text(
             'loading_error'.tr(),

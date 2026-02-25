@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 import '../../../../../core/storage/secure_storage.dart';
 import '../models/driver_model.dart';
@@ -9,15 +7,11 @@ class DriverAuthRepository {
   final DriverAuthService _authService = DriverAuthService();
   final SecureStorage _storage = SecureStorage();
 
- 
   Future<DriverModel> login({
     required String phone,
     required String password,
   }) async {
-    final result = await _authService.login(
-      phone: phone,
-      password: password,
-    );
+    final result = await _authService.login(phone: phone, password: password);
     return result['driver'] as DriverModel;
   }
 
@@ -52,18 +46,13 @@ class DriverAuthRepository {
     return result['driver'] as DriverModel;
   }
 
-  Future<void> verifyOTP({
-    required String phone,
-    required String otp,
-  }) async {
+  Future<void> verifyOTP({required String phone, required String otp}) async {
     await _authService.verifyOTP(phone: phone, otp: otp);
   }
 
- 
   Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
     return await _authService.forgotPassword(contact: contact);
   }
-
 
   Future<void> resetPassword({
     required int userId,
@@ -81,7 +70,7 @@ class DriverAuthRepository {
     try {
       await _authService.logout();
     } catch (e) {
-      // 
+      //
     } finally {
       await _storage.clearAll();
     }

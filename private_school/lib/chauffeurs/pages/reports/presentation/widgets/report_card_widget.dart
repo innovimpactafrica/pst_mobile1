@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -101,10 +99,7 @@ class ReportCardWidget extends StatelessWidget {
 
             // Status badge
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: _getStatusBackgroundColor(report.status),
                 borderRadius: BorderRadius.circular(AppConstants.radiusL),

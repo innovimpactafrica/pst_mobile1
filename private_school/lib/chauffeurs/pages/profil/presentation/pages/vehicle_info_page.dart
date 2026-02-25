@@ -59,8 +59,6 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     _colorController.text = vehicle?.color ?? '';
     _plateController.text = vehicle?.plate ?? '';
     _capacityController.text = vehicle?.capacity?.toString() ?? '';
-    
-   
   }
 
   Future<void> _pickVehicleImage() async {
@@ -106,7 +104,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     if (_plateController.text.trim().isNotEmpty) {
       data['vehicle_plate'] = _plateController.text.trim();
     }
-    
+
     final int? capacity = int.tryParse(_capacityController.text.trim());
     if (capacity != null) {
       data['capacity'] = capacity;
@@ -116,10 +114,12 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
       final FormData formData = FormData.fromMap(data);
 
       if (_selectedVehicleImage != null) {
-        formData.files.add(MapEntry(
-          'vehicle_photo',
-          await MultipartFile.fromFile(_selectedVehicleImage!.path),
-        ));
+        formData.files.add(
+          MapEntry(
+            'vehicle_photo',
+            await MultipartFile.fromFile(_selectedVehicleImage!.path),
+          ),
+        );
       }
 
       final String driverId = widget.profile.driver.id.toString();
@@ -154,11 +154,12 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<DriverProfileBloc, DriverProfileState>(
       builder: (context, state) {
-        final DriverProfileModel profile =
-            state is DriverProfileLoaded ? state.profile : widget.profile;
+        final DriverProfileModel profile = state is DriverProfileLoaded
+            ? state.profile
+            : widget.profile;
 
         final vehicle = profile.vehicle;
-      
+
         if (state is DriverProfileLoaded || state is DriverProfileUpdated) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && !_isEditMode) {
@@ -178,7 +179,10 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                 _selectedVehicleImage = null;
                 _initializeControllers();
               });
-              _showSnackBar('vehicle_updated_successfully'.tr(), isError: false);
+              _showSnackBar(
+                'vehicle_updated_successfully'.tr(),
+                isError: false,
+              );
             } else if (state is DriverProfileError) {
               _showSnackBar(state.message);
             }
@@ -235,9 +239,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   BlocBuilder<DriverProfileBloc, DriverProfileState>(
                     builder: (context, state) {
                       return PrimaryButton(
-                        text: _isEditMode
-                            ? 'save'.tr()
-                            : 'edit'.tr(),
+                        text: _isEditMode ? 'save'.tr() : 'edit'.tr(),
                         isLoading: state is DriverProfileUpdating,
                         onPressed: () {
                           if (_isEditMode) {
@@ -273,65 +275,64 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
   }
 
   Widget _buildVehiclePhoto(VehicleModel? vehicle) {
-  return GestureDetector(
-    onTap: _isEditMode ? _pickVehicleImage : null,
-    child: Center(
-      child: Stack(
-        children: [
-          Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppConstants.radiusL),
-              child: _selectedVehicleImage != null
-                  
-                  ? Image.file(
-                      _selectedVehicleImage!,
-                      fit: BoxFit.cover,
-                    )
-                  : (vehicle?.photo != null && vehicle!.photo!.isNotEmpty)
-                      
-                      ? Image.network(
-                          ImageUrlHelper.getFullImageUrl(vehicle.photo!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.directions_car, size: 50, color: AppColors.primary),
-                        )
-                      //  Image par défaut si aucune photo n'existe
-                      : const Icon(
-                          Icons.directions_car,
-                          size: 50,
-                          color: AppColors.primary,
-                        ),
-            ),
-          ),
-          if (_isEditMode)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(AppConstants.radiusM),
-                child: const Icon(
-                  Icons.camera_alt,
-                  size: AppConstants.iconSizeS,
-                  color: Colors.white,
+    return GestureDetector(
+      onTap: _isEditMode ? _pickVehicleImage : null,
+      child: Center(
+        child: Stack(
+          children: [
+            Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
                 ),
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                child: _selectedVehicleImage != null
+                    ? Image.file(_selectedVehicleImage!, fit: BoxFit.cover)
+                    : (vehicle?.photo != null && vehicle!.photo!.isNotEmpty)
+                    ? Image.network(
+                        ImageUrlHelper.getFullImageUrl(vehicle.photo!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.directions_car,
+                              size: 50,
+                              color: AppColors.primary,
+                            ),
+                      )
+                    //  Image par défaut si aucune photo n'existe
+                    : const Icon(
+                        Icons.directions_car,
+                        size: 50,
+                        color: AppColors.primary,
+                      ),
+              ),
             ),
-        ],
+            if (_isEditMode)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(AppConstants.radiusM),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: AppConstants.iconSizeS,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

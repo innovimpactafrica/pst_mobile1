@@ -1,7 +1,3 @@
-
-// Payment Model
-// Path: lib/parents/profil/data/models/payment_model.dart
-
 class PaymentModel {
   final String id;
   final double amount;
@@ -56,18 +52,30 @@ class PaymentModel {
   }
 
   String get formattedDate {
-    const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
-      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    const months = [
+      'janv.',
+      'févr.',
+      'mars',
+      'avr.',
+      'mai',
+      'juin',
+      'juil.',
+      'août',
+      'sept.',
+      'oct.',
+      'nov.',
+      'déc.',
+    ];
     return '${date.day} ${months[date.month - 1]}, ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   bool get isCardPayment =>
       paymentMethod.toLowerCase() == 'card' ||
-          paymentMethod.toLowerCase() == 'carte';
+      paymentMethod.toLowerCase() == 'carte';
 
   bool get isMobilePayment =>
       paymentMethod.toLowerCase() == 'mobile' ||
-          paymentMethod.toLowerCase() == 'orange_money' ||
-        paymentMethod.toLowerCase()  == 'kpay' ||
-          paymentMethod.toLowerCase() == 'wave';
+      paymentMethod.toLowerCase() == 'orange_money' ||
+      paymentMethod.toLowerCase() == 'kpay' ||
+      paymentMethod.toLowerCase() == 'wave';
 }

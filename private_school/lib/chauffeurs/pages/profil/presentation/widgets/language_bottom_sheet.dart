@@ -12,16 +12,8 @@ class LanguageBottomSheet extends StatefulWidget {
 
 class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
   final List<Map<String, dynamic>> languages = [
-    {
-      'name': 'Français',
-      'code': 'fr',
-      'flag': '🇫🇷',
-    },
-    {
-      'name': 'English',
-      'code': 'en',
-      'flag': '🇬🇧',
-    },
+    {'name': 'Français', 'code': 'fr', 'flag': '🇫🇷'},
+    {'name': 'English', 'code': 'en', 'flag': '🇬🇧'},
   ];
 
   String? selectedLanguage;
@@ -56,18 +48,16 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            
             Container(
               width: 40,
               height: 4,
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
 
-            
             Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.88,
@@ -76,7 +66,7 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:0.10),
+                      color: Colors.black.withValues(alpha: 0.10),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
                     ),
@@ -105,13 +95,17 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: AppColors.textSecondary.withValues(alpha:0.08),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.08,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.close_rounded,
                               size: 18,
-                              color: AppColors.textPrimary.withValues(alpha:0.6),
+                              color: AppColors.textPrimary.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
                         ),
@@ -135,7 +129,7 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primary.withValues(alpha:0.07)
+                                  ? AppColors.primary.withValues(alpha: 0.07)
                                   : Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
@@ -150,13 +144,17 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
                                 // Flag in a pill
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha:0.06),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.06,
+                                        ),
                                         blurRadius: 6,
                                       ),
                                     ],
@@ -214,7 +212,7 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),

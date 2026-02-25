@@ -1,14 +1,8 @@
 import '../models/driver_model.dart';
 
 class DriverRepository {
-  // Cette méthode récupère la liste des chauffeurs
-  // Pour l'instant, on retourne des données en dur
-  // Plus tard, ce sera un appel API via un service
   Future<List<DriverModel>> getDrivers() async {
-    // Simule un délai réseau
     await Future.delayed(const Duration(milliseconds: 500));
-
-    // Retourne vos données actuelles mais dans des objets DriverModel
     return [
       DriverModel(
         name: 'Birima Diop',

@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/dashboard_model.dart';
 

@@ -10,6 +10,7 @@ import '../../domain/bloc/trip_bloc.dart';
 import '../../domain/bloc/trip_event.dart';
 import 'passengers_list_modal.dart';
 import 'schools_list_modal.dart';
+import 'location_tracking_button.dart';
 
 /// Trip detail modal with passenger count validation
 class TripDetailModal extends StatefulWidget {
@@ -33,22 +34,13 @@ class _TripDetailModalState extends State<TripDetailModal> {
     debugPrint('Nombre de passagers: ${widget.trip.passengers.length}');
   }
 
-  void _onRouteCalculated(double distance, int duration) {
-    setState(() {
-      _durationMinutes = duration;
-    });
-    
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
         height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-        ),
+        decoration: const BoxDecoration(color: AppColors.white),
         child: Column(
           children: [
             _buildHeader(context),
@@ -58,12 +50,12 @@ class _TripDetailModalState extends State<TripDetailModal> {
                 slivers: [
                   SliverToBoxAdapter(child: _buildMap()),
                   SliverToBoxAdapter(child: _buildTripInfoCard()),
-                  SliverToBoxAdapter(
-                      child: _buildPassengersSection(context)),
+                  SliverToBoxAdapter(child: _buildPassengersSection(context)),
                   SliverToBoxAdapter(child: _buildSchoolsSection(context)),
-                 
+
                   const SliverToBoxAdapter(
-                      child: SizedBox(height: AppConstants.spacingXXXL)),
+                    child: SizedBox(height: AppConstants.spacingXXXL),
+                  ),
                 ],
               ),
             ),
@@ -121,31 +113,31 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
-
-Widget _buildMap() {
-  return SizedBox(
-    height: 300,
-    child: Padding(
-      padding: const EdgeInsets.all(AppConstants.spacingXL),
-      child: GestureDetector(
-        onVerticalDragUpdate: (_) {},
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppConstants.radiusL),
-          child: RealtimeTripMapWidget(
-            tripId: widget.trip.id,
-            startLocation: widget.trip.startLocation ?? 'Dakar',
-            destination: widget.trip.destination,
-            stops: widget.trip.schools,
-            enableRealtime: false,
+  Widget _buildMap() {
+    return SizedBox(
+      height: 300,
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.spacingXL),
+        child: GestureDetector(
+          onVerticalDragUpdate: (_) {},
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+            child: RealtimeTripMapWidget(
+              tripId: widget.trip.id,
+              startLocation: widget.trip.startLocation ?? 'Dakar',
+              destination: widget.trip.destination,
+              stops: widget.trip.schools,
+              enableRealtime: false,
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTripInfoCard() {
-    final isAllerCompleted = widget.trip.status == 'completed' ||
+    final isAllerCompleted =
+        widget.trip.status == 'completed' ||
         widget.trip.status == 'partially_completed';
     final isRetourPending = widget.trip.returnStatus == 'pending';
     final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
@@ -158,10 +150,9 @@ Widget _buildMap() {
     final endPoint = showReturnInfo
         ? (widget.trip.startLocation ?? 'Non renseigné')
         : widget.trip.destination;
-    final departureTime =
-        showReturnInfo && widget.trip.returnTime != null
-            ? widget.trip.returnTime!
-            : widget.trip.time;
+    final departureTime = showReturnInfo && widget.trip.returnTime != null
+        ? widget.trip.returnTime!
+        : widget.trip.time;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
@@ -186,8 +177,7 @@ Widget _buildMap() {
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
                   color: AppColors.successBackground,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.radiusS),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusS),
                 ),
                 child: const Icon(
                   Icons.calendar_today,
@@ -328,8 +318,7 @@ Widget _buildMap() {
     final passengerCount = widget.trip.passengers.length;
 
     return GestureDetector(
-      onTap:
-          passengerCount > 0 ? () => _showPassengersList(context) : null,
+      onTap: passengerCount > 0 ? () => _showPassengersList(context) : null,
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppConstants.spacingXL,
@@ -360,8 +349,7 @@ Widget _buildMap() {
                 padding: const EdgeInsets.all(AppConstants.spacingS),
                 decoration: BoxDecoration(
                   color: AppColors.backgroundLight,
-                  borderRadius:
-                      BorderRadius.circular(AppConstants.radiusS),
+                  borderRadius: BorderRadius.circular(AppConstants.radiusS),
                 ),
                 child: const Icon(
                   Icons.people_outline,
@@ -518,7 +506,8 @@ Widget _buildMap() {
 
   Widget _buildActionButtons(BuildContext context) {
     final hasPassengers = widget.trip.passengers.isNotEmpty;
-    final isAllerCompleted = widget.trip.status == 'completed' ||
+    final isAllerCompleted =
+        widget.trip.status == 'completed' ||
         widget.trip.status == 'partially_completed';
     final isRetourPending = widget.trip.returnStatus == 'pending';
     final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
@@ -530,8 +519,7 @@ Widget _buildMap() {
         left: AppConstants.spacingXL,
         right: AppConstants.spacingXL,
         top: AppConstants.spacingXL,
-        bottom:
-            AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
+        bottom: AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -548,19 +536,16 @@ Widget _buildMap() {
           if (!hasPassengers &&
               widget.trip.status == AppConstants.statusActive) ...[
             Container(
-              margin:
-                  const EdgeInsets.only(bottom: AppConstants.spacingM),
+              margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
               padding: const EdgeInsets.all(AppConstants.spacingM),
               decoration: BoxDecoration(
                 color: const Color(0xFFFEF3C7),
-                borderRadius:
-                    BorderRadius.circular(AppConstants.radiusM),
+                borderRadius: BorderRadius.circular(AppConstants.radiusM),
                 border: Border.all(color: const Color(0xFFF59E0B)),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.warning_amber,
-                      color: Color(0xFFF59E0B), size: 20),
+                  Icon(Icons.warning_amber, color: Color(0xFFF59E0B), size: 20),
                   SizedBox(width: AppConstants.spacingM),
                   Expanded(
                     child: Text(
@@ -584,12 +569,16 @@ Widget _buildMap() {
                     onPressed: () => _showCancelDialog(context),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.spacingL + 2),
+                        vertical: AppConstants.spacingL + 2,
+                      ),
                       side: const BorderSide(
-                          color: AppColors.error, width: 1.5),
+                        color: AppColors.error,
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                       ),
                     ),
                     child: const Text(
@@ -612,10 +601,12 @@ Widget _buildMap() {
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.grey300,
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.spacingL + 2),
+                        vertical: AppConstants.spacingL + 2,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                       ),
                       elevation: 0,
                     ),
@@ -646,16 +637,21 @@ Widget _buildMap() {
                 ),
               ] else if (widget.trip.status == 'in_progress' ||
                   widget.trip.status == 'started') ...[
+                // Bouton de suivi GPS
+                LocationTrackingButton(tripId: widget.trip.id),
+                const SizedBox(height: AppConstants.spacingM),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _completeTrip(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.spacingL + 2),
+                        vertical: AppConstants.spacingL + 2,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                       ),
                       elevation: 0,
                     ),
@@ -671,8 +667,11 @@ Widget _buildMap() {
                           ),
                         ),
                         SizedBox(width: AppConstants.spacingS),
-                        Icon(Icons.check_circle,
-                            color: AppColors.white, size: 20),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
                       ],
                     ),
                   ),
@@ -687,10 +686,12 @@ Widget _buildMap() {
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.grey300,
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.spacingL + 2),
+                        vertical: AppConstants.spacingL + 2,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                       ),
                       elevation: 0,
                     ),
@@ -720,16 +721,21 @@ Widget _buildMap() {
                   ),
                 ),
               ] else if (showCompleteReturnButton) ...[
+                // Bouton de suivi GPS pour le retour
+                LocationTrackingButton(tripId: widget.trip.id),
+                const SizedBox(height: AppConstants.spacingM),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _completeReturnTrip(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.spacingL + 2),
+                        vertical: AppConstants.spacingL + 2,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                       ),
                       elevation: 0,
                     ),
@@ -745,8 +751,11 @@ Widget _buildMap() {
                           ),
                         ),
                         SizedBox(width: AppConstants.spacingS),
-                        Icon(Icons.check_circle,
-                            color: AppColors.white, size: 20),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
                       ],
                     ),
                   ),
@@ -859,8 +868,7 @@ Widget _buildMap() {
     } else if (difference == 1) {
       return 'Demain';
     } else {
-      final formatted =
-          DateFormat('EEEE d MMMM', 'fr_FR').format(date);
+      final formatted = DateFormat('EEEE d MMMM', 'fr_FR').format(date);
       return formatted[0].toUpperCase() + formatted.substring(1);
     }
   }
@@ -879,7 +887,7 @@ Widget _buildMap() {
         return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
-     //
+      //
     }
     return '--:--';
   }
@@ -899,8 +907,7 @@ Widget _buildMap() {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          SchoolsListModal(schools: widget.trip.schools),
+      builder: (context) => SchoolsListModal(schools: widget.trip.schools),
     );
   }
 
@@ -947,9 +954,9 @@ Widget _buildMap() {
       return;
     }
 
-    context
-        .read<TripBloc>()
-        .add(StartTripEvent(widget.trip.id, direction: 'retour'));
+    context.read<TripBloc>().add(
+      StartTripEvent(widget.trip.id, direction: 'retour'),
+    );
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -961,7 +968,8 @@ Widget _buildMap() {
 
   void _completeReturnTrip(BuildContext context) {
     context.read<TripBloc>().add(
-        CompleteTripEvent(widget.trip.id, direction: 'retour'));
+      CompleteTripEvent(widget.trip.id, direction: 'retour'),
+    );
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -997,11 +1005,11 @@ Widget _buildMap() {
           TextButton(
             onPressed: () {
               context.read<TripBloc>().add(
-                    CancelTripEvent(
-                      tripId: widget.trip.id,
-                      reason: 'Rejeté par le chauffeur',
-                    ),
-                  );
+                CancelTripEvent(
+                  tripId: widget.trip.id,
+                  reason: 'Rejeté par le chauffeur',
+                ),
+              );
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
@@ -1036,11 +1044,7 @@ class DottedLinePainter extends CustomPainter {
     double startY = 0;
 
     while (startY < size.height) {
-      canvas.drawLine(
-        Offset(0, startY),
-        Offset(0, startY + dashHeight),
-        paint,
-      );
+      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);
       startY += dashHeight + dashSpace;
     }
   }

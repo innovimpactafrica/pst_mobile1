@@ -15,14 +15,16 @@ class JoinGroupModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ SUPPRIMÉ : BlocProvider (utilise celui du parent)
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is GroupJoined) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('joined_group_success'.tr(), style: GoogleFonts.inter()), // ✅ CHANGÉ
+              content: Text(
+                'joined_group_success'.tr(),
+                style: GoogleFonts.inter(),
+              ),
               backgroundColor: AppColors.success,
             ),
           );
@@ -80,7 +82,8 @@ class JoinGroupModal extends StatelessWidget {
 
                     // AVATAR GRAND
                     Container(
-                      width: 80, height: 80,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
@@ -109,9 +112,10 @@ class JoinGroupModal extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // CRÉÉ PAR
                     Text(
-                      'created_by_date'.tr(args: [group.createdBy, _formatDate(group.createdAt)]),
+                      'created_by_date'.tr(
+                        args: [group.createdBy, _formatDate(group.createdAt)],
+                      ),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: Colors.grey.shade600,
@@ -119,7 +123,8 @@ class JoinGroupModal extends StatelessWidget {
                     ),
 
                     // DESCRIPTION
-                    if (group.description != null && group.description!.isNotEmpty) ...[
+                    if (group.description != null &&
+                        group.description!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -159,12 +164,17 @@ class JoinGroupModal extends StatelessWidget {
                       ],
                     ),
 
-                    if (group.schoolName != null && group.schoolName!.isNotEmpty) ...[
+                    if (group.schoolName != null &&
+                        group.schoolName!.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.school, color: Colors.grey.shade600, size: 16),
+                          Icon(
+                            Icons.school,
+                            color: Colors.grey.shade600,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             group.schoolName!,
@@ -179,15 +189,19 @@ class JoinGroupModal extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // ✅ BOUTON REJOINDRE (adhésion directe)
+                    // BOUTON REJOINDRE
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isLoading
                             ? null
                             : () {
-                                debugPrint('🔵 [JoinGroupModal] Rejoindre groupe DIRECT: ${group.id}');
-                                context.read<GroupBloc>().add(JoinGroupEvent(group.id));
+                                debugPrint(
+                                  ' [JoinGroupModal] Rejoindre groupe DIRECT: ${group.id}',
+                                );
+                                context.read<GroupBloc>().add(
+                                  JoinGroupEvent(group.id),
+                                );
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.success,
@@ -201,7 +215,8 @@ class JoinGroupModal extends StatelessWidget {
                         ),
                         child: isLoading
                             ? const SizedBox(
-                                height: 20, width: 20,
+                                height: 20,
+                                width: 20,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -213,7 +228,7 @@ class JoinGroupModal extends StatelessWidget {
                                   const Icon(Icons.group_add, size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'join_now'.tr(), // ✅ CHANGÉ : texte plus clair
+                                    'join_now'.tr(),
                                     style: GoogleFonts.inter(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -237,8 +252,10 @@ class JoinGroupModal extends StatelessWidget {
     final now = DateTime.now();
     final difference = now.difference(date);
     if (difference.inDays == 0) return 'today'.tr();
-    if (difference.inDays < 7) return 'days_ago'.tr(args: [difference.inDays.toString()]);
-    if (difference.inDays < 30) return 'weeks_ago'.tr(args: [(difference.inDays / 7).floor().toString()]);
+    if (difference.inDays < 7)
+      return 'days_ago'.tr(args: [difference.inDays.toString()]);
+    if (difference.inDays < 30)
+      return 'weeks_ago'.tr(args: [(difference.inDays / 7).floor().toString()]);
     return '${date.day}/${date.month}/${date.year}';
   }
 }

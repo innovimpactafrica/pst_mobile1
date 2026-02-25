@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/trip_repository.dart';
 import 'trip_event.dart';
@@ -22,12 +21,10 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     emit(TripLoading());
-    
+
     try {
-     
       final trips = await repository.getDriverTrips();
-      
-      
+
       emit(TripsLoaded(trips: trips));
     } catch (e) {
       emit(TripError('Erreur lors du chargement des trajets'));
@@ -40,13 +37,11 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     emit(TripCreating());
-    
+
     try {
-      
-      if (event.departureTime != null) ;
-      if (event.returnTime != null) ;
-  
-      
+      if (event.departureTime != null) {}
+      if (event.returnTime != null) {}
+
       await repository.createTrip(
         startPoint: event.startPoint,
         endPoint: event.endPoint,
@@ -60,33 +55,34 @@ class TripBloc extends Bloc<TripEvent, TripState> {
         endLatitude: event.endLatitude,
         endLongitude: event.endLongitude,
       );
-      
-   
-      
+
       emit(TripCreated());
-      
+
       // Recharger la liste des trajets
       add(LoadTripsEvent());
     } catch (e) {
-    
       String errorMessage = 'Erreur lors de la création du trajet';
-      
+
       final errorStr = e.toString().toLowerCase();
-      
+
       if (errorStr.contains('school_id') || errorStr.contains('école')) {
         errorMessage = 'École invalide ou non trouvée';
-      } else if (errorStr.contains('capacity') || errorStr.contains('capacité')) {
+      } else if (errorStr.contains('capacity') ||
+          errorStr.contains('capacité')) {
         errorMessage = 'Capacité invalide';
-      } else if (errorStr.contains('departure_time') || errorStr.contains('date')) {
+      } else if (errorStr.contains('departure_time') ||
+          errorStr.contains('date')) {
         errorMessage = 'Date et heure invalides';
-      } else if (errorStr.contains('unauthorized') || errorStr.contains('401')) {
-        errorMessage = 'Non autorisé. Vous devez être approuvé pour créer des trajets';
+      } else if (errorStr.contains('unauthorized') ||
+          errorStr.contains('401')) {
+        errorMessage =
+            'Non autorisé. Vous devez être approuvé pour créer des trajets';
       } else if (errorStr.contains('403') || errorStr.contains('forbidden')) {
         errorMessage = 'Accès refusé. Vérifiez vos permissions';
       } else if (errorStr.contains('500')) {
         errorMessage = 'Erreur serveur. Veuillez réessayer plus tard';
       }
-      
+
       emit(TripError(errorMessage));
     }
   }
@@ -97,15 +93,13 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      
       await repository.startTrip(event.tripId, direction: event.direction);
-     
+
       emit(TripStarted());
-      
+
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-      
       emit(TripError('Erreur lors du démarrage du trajet'));
     }
   }
@@ -116,15 +110,13 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      
       await repository.completeTrip(event.tripId, direction: event.direction);
-     
+
       emit(TripCompleted());
-      
+
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-     
       emit(TripError('Erreur lors de la finalisation du trajet'));
     }
   }
@@ -135,15 +127,13 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-     
       await repository.cancelTrip(event.tripId, event.reason);
-     
+
       emit(TripCanceled());
-      
+
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-      
       emit(TripError('Erreur lors de l\'annulation du trajet'));
     }
   }

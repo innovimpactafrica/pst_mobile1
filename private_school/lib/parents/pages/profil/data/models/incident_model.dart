@@ -1,6 +1,3 @@
-// Incident Model
-// Path: lib/parents/profil/data/models/incident_model.dart
-
 class IncidentModel {
   final String id;
   final String title;
@@ -11,7 +8,7 @@ class IncidentModel {
   final String? imageUrl;
   final String? response;
   final String? userId;
-  
+
   IncidentModel({
     required this.id,
     required this.title,

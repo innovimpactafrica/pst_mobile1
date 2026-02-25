@@ -17,7 +17,6 @@ import '../widgets/review_page.dart';
 import '../widgets/passengers_list_modal.dart';
 import '../widgets/schools_list_modal.dart';
 import '../widgets/driver_details_modal.dart';
-// import '../widgets/realtime_trip_map.dart'; // TODO: À activer plus tard
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
@@ -32,39 +31,40 @@ class TripTrackingPage extends StatefulWidget {
 
 class _TripTrackingPageState extends State<TripTrackingPage> {
   int? _durationMinutes;
-  List<EvaluationModel> _evaluations = []; // ← AJOUTÉ
-  bool _isLoadingEvaluations = false; // ← AJOUTÉ
-  final _evaluationRepository = EvaluationRepository(); // ← AJOUTÉ
+  List<EvaluationModel> _evaluations = [];
+  bool _isLoadingEvaluations = false;
+  double _avgRating = 0.0;
+  final _evaluationRepository = EvaluationRepository();
 
   @override
   void initState() {
     super.initState();
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📋 [TripTrackingPage] INFOS DU TRAJET');
+    debugPrint(' [TripTrackingPage] INFOS DU TRAJET');
     debugPrint('   Trip ID: ${widget.trip.id}');
     debugPrint('   Status: ${widget.trip.status}');
     debugPrint('   Driver Name: ${widget.trip.driverName}');
     debugPrint('   Driver Photo: ${widget.trip.driver?.photo}');
     debugPrint('');
-    debugPrint('🏫 [ÉCOLES] INFOS:');
+    debugPrint(' [ÉCOLES] INFOS:');
     debugPrint('   Nombre d\'écoles: ${widget.trip.schools.length}');
     debugPrint('   School Count: ${widget.trip.schoolCount}');
     for (var school in widget.trip.schools) {
       debugPrint('   - ${school.name} (ID: ${school.id})');
     }
     debugPrint('');
-    debugPrint('👥 [PASSAGERS] INFOS:');
+    debugPrint(' [PASSAGERS] INFOS:');
     debugPrint('   Nombre de passagers: ${widget.trip.passengers.length}');
     for (var passenger in widget.trip.passengers) {
-      debugPrint('   - ${passenger.name} (École: ${passenger.school ?? "non spécifiée"})');
+      debugPrint(
+        '   - ${passenger.name} (École: ${passenger.school ?? "non spécifiée"})',
+      );
     }
     debugPrint('');
-    debugPrint('🔍 DRIVER COMPLET:');
+    debugPrint(' DRIVER COMPLET:');
     debugPrint('   Driver existe? ${widget.trip.driver != null}');
     debugPrint('   Driver ID: ${widget.trip.driver?.id}');
-    debugPrint(
-      '   Driver User ID: ${widget.trip.driver?.userId}',
-    ); // ← CRUCIAL !
+    debugPrint('   Driver User ID: ${widget.trip.driver?.userId}');
     debugPrint('   Driver FullName: ${widget.trip.driver?.fullName}');
     debugPrint('   Driver Phone: ${widget.trip.driver?.phone}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -79,36 +79,35 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     });
 
     try {
-      debugPrint('🔍 [TripTrackingPage] Chargement des évaluations...');
+      debugPrint(' [TripTrackingPage] Chargement des évaluations...');
 
       final evaluations = await _evaluationRepository.getDriverEvaluations(
         driverId: int.parse(widget.trip.driverId!),
         limit: 10,
       );
 
-      debugPrint('✅ ${evaluations.length} évaluation(s) chargée(s)');
+      debugPrint(' ${evaluations.length} évaluation(s) chargée(s)');
 
       if (mounted) {
         setState(() {
           _evaluations = evaluations;
+
+          if (evaluations.isNotEmpty) {
+            _avgRating =
+                evaluations.map((e) => e.rating).reduce((a, b) => a + b) /
+                evaluations.length;
+          }
           _isLoadingEvaluations = false;
         });
       }
     } catch (e) {
-      debugPrint('❌ Erreur chargement évaluations: $e');
+      debugPrint(' Erreur chargement évaluations: $e');
       if (mounted) {
         setState(() {
           _isLoadingEvaluations = false;
         });
       }
     }
-  }
-
-  void _onRouteCalculated(double distance, int duration) {
-    setState(() => _durationMinutes = duration);
-    debugPrint(
-      '✅ [TripTrackingPage] Distance: ${distance.toStringAsFixed(1)} km, Durée: $duration min',
-    );
   }
 
   String _calculateArrivalTime() {
@@ -143,9 +142,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // ══════════════════════════════════════════
-          // HEADER — design inchangé
-          // ══════════════════════════════════════════
           Container(
             color: AppColors.success,
             padding: EdgeInsets.only(
@@ -180,76 +176,69 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             ),
           ),
 
-          // CONTENT
-          // ══════════════════════════════════════════
           Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // GOOGLE MAPS — Carte avec suivi en temps réel
-                    SizedBox(
-                      height: AppConstants.mapHeight,
-                      width: double.infinity,
-                      child: GestureDetector(
-                        onVerticalDragUpdate: (_) {},
-                        child: RealtimeTripMapWidget(
-                          tripId: widget.trip.id,
-                          startLocation: widget.trip.departure,
-                          destination: widget.trip.arrival,
-                          stops: widget.trip.schools,
-                          enableRealtime: widget.trip.isActive,
-                        ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // GOOGLE MAPS — Carte avec suivi en temps réel
+                  SizedBox(
+                    height: AppConstants.mapHeight,
+                    width: double.infinity,
+                    child: GestureDetector(
+                      onVerticalDragUpdate: (_) {},
+                      child: RealtimeTripMapWidget(
+                        tripId: widget.trip.id,
+                        startLocation: widget.trip.departure,
+                        destination: widget.trip.arrival,
+                        stops: widget.trip.schools,
+                        enableRealtime: widget.trip.isActive,
                       ),
                     ),
+                  ),
 
-                    // WHITE CONTENT
-                    Container(
-                      color: AppColors.white,
-                      padding: const EdgeInsets.all(AppConstants.spacingXL),
-                      child: Column(
-                        children: [
-                          // ✅ DRIVER CARD avec vraies infos
-                          if (widget.trip.driverName?.isNotEmpty ?? false)
-                            _driverCard(),
+                  Container(
+                    color: AppColors.white,
+                    padding: const EdgeInsets.all(AppConstants.spacingXL),
+                    child: Column(
+                      children: [
+                        if (widget.trip.driverName?.isNotEmpty ?? false)
+                          _driverCard(),
 
-                          const SizedBox(height: AppConstants.spacingM),
+                        const SizedBox(height: AppConstants.spacingM),
 
-                          // CALL / MESSAGE — inchangé
-                          _actionButtons(),
+                        _actionButtons(),
 
-                          const SizedBox(height: AppConstants.spacingXL),
+                        const SizedBox(height: AppConstants.spacingXL),
 
-                          // TRIP DETAILS — inchangé
-                          _tripDetails(),
+                        _tripDetails(),
 
-                          const SizedBox(height: AppConstants.spacingL),
+                        const SizedBox(height: AppConstants.spacingL),
 
-                          _dateEstimation(),
+                        _dateEstimation(),
 
-                          const SizedBox(height: AppConstants.spacingXL),
+                        const SizedBox(height: AppConstants.spacingXL),
 
-                          _passengersTile(),
+                        _passengersTile(),
 
-                          const SizedBox(height: AppConstants.spacingM),
+                        const SizedBox(height: AppConstants.spacingM),
 
-                          _schoolsTile(),
+                        _schoolsTile(),
 
-                          const SizedBox(height: AppConstants.spacingXXL),
+                        const SizedBox(height: AppConstants.spacingXXL),
 
-                          _reviewsSection(),
+                        _reviewsSection(),
 
-                          const SizedBox(height: 100),
-                        ],
-                      ),
+                        const SizedBox(height: 100),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
 
-      // BOTTOM BUTTON — inchangé
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(AppConstants.spacingXL),
         decoration: BoxDecoration(
@@ -265,7 +254,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
         child: SafeArea(
           child: ElevatedButton(
             onPressed: () async {
-              // ✅ Attendre le retour de ReviewPage
               final result = await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(
@@ -273,7 +261,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                 ),
               );
 
-              // ✅ Si avis envoyé, recharger les évaluations
               if (result == true) {
                 _loadEvaluations();
               }
@@ -303,12 +290,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ══════════════════════════════════════════
-  // ✅ DRIVER CARD — enrichie avec vraies infos
-  //    photo (NetworkImage si URL, sinon initiales)
-  //    nom complet, téléphone, email, statut actif
-  //    Toutes les erreurs null-safety corrigées
-  // ══════════════════════════════════════════
   Widget _driverCard() {
     final driver = widget.trip.driver;
 
@@ -319,129 +300,158 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             context: context,
             backgroundColor: Colors.transparent,
             isScrollControlled: true,
-            builder: (context) => DriverDetailsModal(driver: driver),
+            builder: (context) => DriverDetailsModal(
+              driver: driver,
+              vehiclePhotoUrl: widget.trip.vehiclePhotoUrl,
+            ),
           );
         }
       },
       child: Container(
-      padding: const EdgeInsets.all(AppConstants.spacingM),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppConstants.radiusXL),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.blackOpacity05,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // ✅ PHOTO — NetworkImage si URL disponible, sinon avatar avec initiales
-          _buildDriverAvatar(driver),
+        padding: const EdgeInsets.all(AppConstants.spacingM),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppConstants.radiusXL),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.blackOpacity05,
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            _buildDriverAvatar(driver),
 
-          const SizedBox(width: AppConstants.spacingM),
+            const SizedBox(width: AppConstants.spacingM),
 
-          // ✅ INFOS CHAUFFEUR
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // NOM
-                Text(
-                  widget.trip.driverName ?? '',
-                  style: GoogleFonts.inter(
-                    fontSize: AppConstants.fontSizeM,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-
-                const SizedBox(height: 2),
-
-                // TÉLÉPHONE si disponible
-                if (driver?.phone != null)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.phone,
-                        size: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        driver?.phone ?? '',
-                        style: GoogleFonts.inter(
-                          fontSize: AppConstants.fontSizeS,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+            //  INFOS CHAUFFEUR
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // NOM
+                  Text(
+                    widget.trip.driverName ?? '',
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeM,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
 
-                // EMAIL si disponible
-                if (driver?.email != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Row(
+                  const SizedBox(height: 2),
+
+                  // TÉLÉPHONE si disponible
+                  if (driver?.phone != null)
+                    Row(
                       children: [
                         Icon(
-                          Icons.email,
+                          Icons.phone,
                           size: 13,
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            driver?.email ?? '',
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS,
-                              color: AppColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          driver?.phone ?? '',
+                          style: GoogleFonts.inter(
+                            fontSize: AppConstants.fontSizeS,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
                     ),
-                  ),
 
-                // STATUT si driver présent
-                if (driver != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
+                  // EMAIL si disponible
+                  if (driver?.email != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.email,
+                            size: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              driver?.email ?? '',
+                              style: GoogleFonts.inter(
+                                fontSize: AppConstants.fontSizeS,
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      decoration: BoxDecoration(
-                        // ✅ driver.isActive — smart cast, pas de !
-                        color: driver.isActive
-                            ? AppColors.success.withValues(alpha: 0.1)
-                            : AppColors.grey200,
-                        borderRadius: BorderRadius.circular(12),
+                    ),
+
+                  // RATING RÉEL
+                  if (_evaluations.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(Icons.star, size: 14, color: AppColors.warning),
+                          const SizedBox(width: 4),
+                          Text(
+                            _avgRating.toStringAsFixed(1),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${_evaluations.length} ${'reviews'.tr()})',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        driver.isActive ? 'active'.tr() : 'inactive'.tr(),
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                    ),
+
+                  // STATUT si driver présent
+                  if (driver != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
                           color: driver.isActive
-                              ? AppColors.success
-                              : AppColors.textSecondary,
+                              ? AppColors.success.withValues(alpha: 0.1)
+                              : AppColors.grey200,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          driver.isActive ? 'active'.tr() : 'inactive'.tr(),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: driver.isActive
+                                ? AppColors.success
+                                : AppColors.textSecondary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          const Icon(Icons.chevron_right, color: AppColors.textGrey),
-        ],
-      ),
+            const Icon(Icons.chevron_right, color: AppColors.textGrey),
+          ],
+        ),
       ),
     );
   }
@@ -464,7 +474,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       backgroundColor: AppColors.success.withValues(alpha: 0.15),
       backgroundImage: hasPhoto ? NetworkImage(photoUrl) : null,
       onBackgroundImageError: hasPhoto
-          ? (_, __) => debugPrint('⚠️ Erreur chargement photo chauffeur')
+          ? (_, __) => debugPrint('Erreur chargement photo chauffeur')
           : null,
       child: !hasPhoto
           ? Text(
@@ -479,9 +489,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ══════════════════════════════════════════
-  // ACTION BUTTONS — design inchangé
-  // ══════════════════════════════════════════
   Widget _actionButtons() {
     return Row(
       children: [
@@ -506,7 +513,10 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           child: OutlinedButton.icon(
             onPressed: _openChatWithDriver,
             icon: Icon(Icons.chat, color: AppColors.success),
-            label: Text('message'.tr(), style: TextStyle(color: AppColors.success)),
+            label: Text(
+              'message'.tr(),
+              style: TextStyle(color: AppColors.success),
+            ),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.success),
               padding: const EdgeInsets.symmetric(
@@ -522,9 +532,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ══════════════════════════════════════════
-  // TRIP DETAILS — design inchangé
-  // ══════════════════════════════════════════
   Widget _tripDetails() {
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingM),
@@ -591,9 +598,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ══════════════════════════════════════════
-  // TILES — design inchangé
-  // ══════════════════════════════════════════
   Widget _passengersTile() => GestureDetector(
     onTap: _showPassengersList,
     child: _simpleTile('${widget.trip.passengers.length} ${'passengers'.tr()}'),
@@ -601,7 +605,9 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
 
   Widget _schoolsTile() => GestureDetector(
     onTap: _showSchoolsList,
-    child: _simpleTile('${widget.trip.schools.length} ${widget.trip.schools.length > 1 ? 'schools_served'.tr() : 'school_served'.tr()}'),
+    child: _simpleTile(
+      '${widget.trip.schools.length} ${widget.trip.schools.length > 1 ? 'schools_served'.tr() : 'school_served'.tr()}',
+    ),
   );
 
   Widget _simpleTile(String text) {
@@ -630,7 +636,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // HEADER avec moyenne
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -706,7 +711,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ✅ Graphique des étoiles (comme sur Figma)
+  //  Graphique des étoiles
   Widget _buildRatingBars() {
     final counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
     for (var eval in _evaluations) {
@@ -764,7 +769,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
     );
   }
 
-  // ✅ Carte d'évaluation individuelle
   Widget _buildEvaluationCard(EvaluationModel eval) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -830,6 +834,30 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   ],
                 ),
               ),
+              // BOUTON MODIFIER
+              IconButton(
+                icon: Icon(Icons.edit, size: 18, color: AppColors.primary),
+                onPressed: () async {
+                  // Ouvrir ReviewPage en mode édition
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReviewPage(
+                        trip: widget.trip,
+                        existingEvaluation:
+                            eval, // Passer l'évaluation existante
+                      ),
+                    ),
+                  );
+
+                  // Recharger si modifié
+                  if (result == true) {
+                    _loadEvaluations();
+                  }
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ],
           ),
           if (eval.comment != null && eval.comment!.isNotEmpty) ...[
@@ -871,10 +899,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'phone_not_available'.tr(),
-            style: GoogleFonts.inter(),
-          ),
+          content: Text('phone_not_available'.tr(), style: GoogleFonts.inter()),
           backgroundColor: Colors.red,
         ),
       );
@@ -900,7 +925,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
 
   Future<void> _openChatWithDriver() async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔍 [DEBUG] Vérification chauffeur:');
+    debugPrint(' [DEBUG] Vérification chauffeur:');
     debugPrint('   Driver existe? ${widget.trip.driver != null}');
     debugPrint('   Driver ID: ${widget.trip.driver?.id}');
     debugPrint('   Driver User ID: ${widget.trip.driver?.userId}');
@@ -913,7 +938,10 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('driver_not_available'.tr(), style: GoogleFonts.inter()),
+          content: Text(
+            'driver_not_available'.tr(),
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: AppColors.error,
         ),
       );
@@ -924,7 +952,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
       final driverUserIdInt = int.parse(driverUserId);
 
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('💬 [TripTrackingPage] OUVERTURE DU CHAT');
+      debugPrint(' [TripTrackingPage] OUVERTURE DU CHAT');
       debugPrint('   User ID: $driverUserIdInt ← POUR MESSAGERIE');
       debugPrint('   Driver ID: ${widget.trip.driverId} ← RÉFÉRENCE');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -940,19 +968,19 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
             (conv) => conv.otherUserId == driverUserIdInt,
           );
           debugPrint(
-            '✅ Conversation existante trouvée: ${existingConversation.id}',
+            ' Conversation existante trouvée: ${existingConversation.id}',
           );
         } catch (e) {
-          debugPrint('🔍 Aucune conversation existante, création...');
+          debugPrint(' Aucune conversation existante, création...');
         }
       }
 
       if (existingConversation != null) {
         if (!mounted) return;
-        await Navigator.push(
-          context,
+        final nav = Navigator.of(context);
+        await nav.push(
           MaterialPageRoute(
-            builder: (context) => ChatPage(conversation: existingConversation!),
+            builder: (ctx) => ChatPage(conversation: existingConversation!),
           ),
         );
       } else {
@@ -970,10 +998,7 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   children: [
                     CircularProgressIndicator(color: AppColors.success),
                     const SizedBox(height: 16),
-                    Text(
-                      'loading'.tr(),
-                      style: GoogleFonts.inter(),
-                    ),
+                    Text('loading'.tr(), style: GoogleFonts.inter()),
                   ],
                 ),
               ),
@@ -1032,12 +1057,12 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatPage(conversation: conversation),
+                  builder: (ctx) => ChatPage(conversation: conversation),
                 ),
               );
               return;
             } catch (e) {
-              // Conversation pas encore dans la liste
+              //
             }
           } else if (state is ConversationError) {
             if (dialogContext.mounted) {
@@ -1055,15 +1080,12 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
         throw Exception('Timeout lors de la création de la conversation');
       }
     } catch (e) {
-      debugPrint('❌ Erreur ouverture chat: $e');
+      debugPrint(' Erreur ouverture chat: $e');
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'chat_error'.tr(),
-            style: GoogleFonts.inter(),
-          ),
+          content: Text('chat_error'.tr(), style: GoogleFonts.inter()),
           backgroundColor: AppColors.error,
         ),
       );

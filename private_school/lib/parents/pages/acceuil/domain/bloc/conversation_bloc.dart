@@ -11,8 +11,8 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   final MessagingRepository repository;
 
   ConversationBloc({MessagingRepository? repository})
-      : repository = repository ?? MessagingRepository(),
-        super(const ConversationInitial()) {
+    : repository = repository ?? MessagingRepository(),
+      super(const ConversationInitial()) {
     on<LoadConversationsEvent>(_onLoadConversations);
     on<RefreshConversationsEvent>(_onRefreshConversations);
     on<CreateDirectConversationEvent>(_onCreateDirectConversation);
@@ -24,6 +24,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     on<FilterConversationsEvent>(_onFilterConversations);
     on<ShowArchivedConversationsEvent>(_onShowArchivedConversations);
     on<ShowActiveConversationsEvent>(_onShowActiveConversations);
+    on<EnrichConversationsWithAvatarsEvent>(_onEnrichConversationsWithAvatars);
   }
 
   // ==================== LOAD CONVERSATIONS ====================
@@ -33,7 +34,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     Emitter<ConversationState> emit,
   ) async {
     debugPrint('🔄 ConversationBloc._onLoadConversations - START');
-    
+
     emit(const ConversationLoading());
 
     try {
@@ -56,11 +57,37 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors du chargement des conversations: $e');
       debugPrint('📋 StackTrace: $stackTrace');
-      emit(ConversationError(
-        message: 'Impossible de charger les conversations',
-        error: e,
-      ));
+      emit(
+        ConversationError(
+          message: 'Impossible de charger les conversations',
+          error: e,
+        ),
+      );
     }
+  }
+
+  void _onEnrichConversationsWithAvatars(
+    EnrichConversationsWithAvatarsEvent event,
+    Emitter<ConversationState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! ConversationLoaded) return;
+
+    final enriched = currentState.conversations.map((conv) {
+      if (conv.otherUserAvatar != null) return conv;
+
+      final driver = event.drivers.firstWhere(
+        (d) => d['id'] == conv.otherUserId,
+        orElse: () => {},
+      );
+
+      if (driver.isNotEmpty && driver['photo'] != null) {
+        return conv.copyWith(otherUserAvatar: driver['photo'] as String);
+      }
+      return conv;
+    }).toList();
+
+    emit(currentState.copyWith(conversations: enriched));
   }
 
   Future<void> _onRefreshConversations(
@@ -72,7 +99,11 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     // Garder les conversations actuelles pendant le refresh
     final currentState = state;
     if (currentState is ConversationLoaded) {
-      emit(ConversationRefreshing(currentConversations: currentState.conversations));
+      emit(
+        ConversationRefreshing(
+          currentConversations: currentState.conversations,
+        ),
+      );
     }
 
     try {
@@ -94,15 +125,17 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors du rafraîchissement: $e');
       debugPrint('📋 StackTrace: $stackTrace');
-      
+
       // Remettre l'état précédent en cas d'erreur
       if (currentState is ConversationLoaded) {
         emit(currentState);
       } else {
-        emit(ConversationError(
-          message: 'Impossible de rafraîchir les conversations',
-          error: e,
-        ));
+        emit(
+          ConversationError(
+            message: 'Impossible de rafraîchir les conversations',
+            error: e,
+          ),
+        );
       }
     }
   }
@@ -110,87 +143,86 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   // ==================== CREATE CONVERSATIONS ====================
 
   Future<void> _onCreateDirectConversation(
-  CreateDirectConversationEvent event,
-  Emitter<ConversationState> emit,
-) async {
-  debugPrint('🔄 ConversationBloc._onCreateDirectConversation - START');
-  debugPrint('👤 otherUserId: ${event.otherUserId}');
-  debugPrint('💬 initialMessage: ${event.initialMessage ?? "null"}');
+    CreateDirectConversationEvent event,
+    Emitter<ConversationState> emit,
+  ) async {
+    debugPrint('🔄 ConversationBloc._onCreateDirectConversation - START');
+    debugPrint('👤 otherUserId: ${event.otherUserId}');
+    debugPrint('💬 initialMessage: ${event.initialMessage ?? "null"}');
 
-  emit(const ConversationCreating());
+    emit(const ConversationCreating());
 
-  try {
-    var conversation = await repository.createOrGetDirectConversation(
-      otherUserId: event.otherUserId,
-      initialMessage: event.initialMessage,
-    );
-    debugPrint('✅ Conversation directe créée: ${conversation.displayName}');
+    try {
+      var conversation = await repository.createOrGetDirectConversation(
+        otherUserId: event.otherUserId,
+        initialMessage: event.initialMessage,
+      );
+      debugPrint('✅ Conversation directe créée: ${conversation.displayName}');
 
-   // ✅ Injecter la photo si l'API ne la renvoie pas
-if (conversation.otherUserAvatar == null && event.otherUserAvatar != null) {
-  conversation = conversation.copyWith(otherUserAvatar: event.otherUserAvatar);
-}
-emit(ConversationCreated(conversation: conversation));
+      // ✅ Injecter la photo si l'API ne la renvoie pas
+      if (conversation.otherUserAvatar == null &&
+          event.otherUserAvatar != null) {
+        conversation = conversation.copyWith(
+          otherUserAvatar: event.otherUserAvatar,
+        );
+      }
+      emit(ConversationCreated(conversation: conversation));
 
-    // Recharger toutes les conversations
-    add(const LoadConversationsEvent());
-  } catch (e, stackTrace) {
-    debugPrint('❌ Erreur lors de la création de la conversation: $e');
-    debugPrint('📋 StackTrace: $stackTrace');
-    
-    // Message d'erreur plus explicite selon le type d'erreur
-    String errorMessage = 'Impossible de créer la conversation';
-    if (e.toString().contains('Utilisateur introuvable')) {
-      errorMessage = 'Cet utilisateur n\'existe pas';
-    } else if (e.toString().contains('Erreur serveur')) {
-      errorMessage = 'Problème de connexion au serveur';
+      // Recharger toutes les conversations
+      add(const LoadConversationsEvent());
+    } catch (e, stackTrace) {
+      debugPrint('❌ Erreur lors de la création de la conversation: $e');
+      debugPrint('📋 StackTrace: $stackTrace');
+
+      // Message d'erreur plus explicite selon le type d'erreur
+      String errorMessage = 'Impossible de créer la conversation';
+      if (e.toString().contains('Utilisateur introuvable')) {
+        errorMessage = 'Cet utilisateur n\'existe pas';
+      } else if (e.toString().contains('Erreur serveur')) {
+        errorMessage = 'Problème de connexion au serveur';
+      }
+
+      emit(ConversationError(message: errorMessage, error: e));
     }
-    
-    emit(ConversationError(
-      message: errorMessage,
-      error: e,
-    ));
   }
-}
 
- Future<void> _onCreateGroupConversation(
-  CreateGroupConversationEvent event,
-  Emitter<ConversationState> emit,
-) async {
-  debugPrint('🔄 ConversationBloc._onCreateGroupConversation - START');
-  debugPrint('📛 Nom: ${event.name}, Membres: ${event.memberIds} (${event.memberIds.length} personnes)');
-
-  emit(const ConversationCreating());
-
-  try {
-    final conversation = await repository.createGroupConversation(
-      name: event.name,
-      memberIds: event.memberIds,
+  Future<void> _onCreateGroupConversation(
+    CreateGroupConversationEvent event,
+    Emitter<ConversationState> emit,
+  ) async {
+    debugPrint('🔄 ConversationBloc._onCreateGroupConversation - START');
+    debugPrint(
+      '📛 Nom: ${event.name}, Membres: ${event.memberIds} (${event.memberIds.length} personnes)',
     );
-    debugPrint('✅ Conversation de groupe créée: ${conversation.displayName}');
 
-    emit(ConversationCreated(conversation: conversation));
+    emit(const ConversationCreating());
 
-    // Recharger toutes les conversations
-    add(const LoadConversationsEvent());
-  } catch (e, stackTrace) {
-    debugPrint('❌ Erreur lors de la création du groupe: $e');
-    debugPrint('📋 StackTrace: $stackTrace');
-    
-    // ✅ Message d'erreur plus explicite
-    String errorMessage = 'Impossible de créer le groupe';
-    if (e.toString().contains('Au moins 2')) {
-      errorMessage = 'Sélectionnez au moins 2 membres pour créer un groupe';
-    } else if (e.toString().contains('Validation')) {
-      errorMessage = 'Données invalides. Vérifiez le nom et les membres';
+    try {
+      final conversation = await repository.createGroupConversation(
+        name: event.name,
+        memberIds: event.memberIds,
+      );
+      debugPrint('✅ Conversation de groupe créée: ${conversation.displayName}');
+
+      emit(ConversationCreated(conversation: conversation));
+
+      // Recharger toutes les conversations
+      add(const LoadConversationsEvent());
+    } catch (e, stackTrace) {
+      debugPrint('❌ Erreur lors de la création du groupe: $e');
+      debugPrint('📋 StackTrace: $stackTrace');
+
+      // ✅ Message d'erreur plus explicite
+      String errorMessage = 'Impossible de créer le groupe';
+      if (e.toString().contains('Au moins 2')) {
+        errorMessage = 'Sélectionnez au moins 2 membres pour créer un groupe';
+      } else if (e.toString().contains('Validation')) {
+        errorMessage = 'Données invalides. Vérifiez le nom et les membres';
+      }
+
+      emit(ConversationError(message: errorMessage, error: e));
     }
-    
-    emit(ConversationError(
-      message: errorMessage,
-      error: e,
-    ));
   }
-}
 
   // ==================== ARCHIVE CONVERSATIONS ====================
 
@@ -222,20 +254,24 @@ emit(ConversationCreated(conversation: conversation));
         (c) => c.id == event.conversationId,
       );
 
-      emit(ConversationUpdated(
-        conversation: updatedConversation,
-        action: 'archived',
-      ));
+      emit(
+        ConversationUpdated(
+          conversation: updatedConversation,
+          action: 'archived',
+        ),
+      );
 
       emit(currentState.copyWith(conversations: updatedConversations));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de l\'archivage: $e');
       debugPrint('📋 StackTrace: $stackTrace');
       emit(currentState);
-      emit(ConversationError(
-        message: 'Impossible d\'archiver la conversation',
-        error: e,
-      ));
+      emit(
+        ConversationError(
+          message: 'Impossible d\'archiver la conversation',
+          error: e,
+        ),
+      );
     }
   }
 
@@ -266,20 +302,24 @@ emit(ConversationCreated(conversation: conversation));
         (c) => c.id == event.conversationId,
       );
 
-      emit(ConversationUpdated(
-        conversation: updatedConversation,
-        action: 'unarchived',
-      ));
+      emit(
+        ConversationUpdated(
+          conversation: updatedConversation,
+          action: 'unarchived',
+        ),
+      );
 
       emit(currentState.copyWith(conversations: updatedConversations));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors du désarchivage: $e');
       debugPrint('📋 StackTrace: $stackTrace');
       emit(currentState);
-      emit(ConversationError(
-        message: 'Impossible de désarchiver la conversation',
-        error: e,
-      ));
+      emit(
+        ConversationError(
+          message: 'Impossible de désarchiver la conversation',
+          error: e,
+        ),
+      );
     }
   }
 
@@ -312,20 +352,21 @@ emit(ConversationCreated(conversation: conversation));
         (c) => c.id == event.conversationId,
       );
 
-      emit(ConversationUpdated(
-        conversation: updatedConversation,
-        action: 'muted',
-      ));
+      emit(
+        ConversationUpdated(conversation: updatedConversation, action: 'muted'),
+      );
 
       emit(currentState.copyWith(conversations: updatedConversations));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de la mise en sourdine: $e');
       debugPrint('📋 StackTrace: $stackTrace');
       emit(currentState);
-      emit(ConversationError(
-        message: 'Impossible de mettre en sourdine',
-        error: e,
-      ));
+      emit(
+        ConversationError(
+          message: 'Impossible de mettre en sourdine',
+          error: e,
+        ),
+      );
     }
   }
 
@@ -356,20 +397,24 @@ emit(ConversationCreated(conversation: conversation));
         (c) => c.id == event.conversationId,
       );
 
-      emit(ConversationUpdated(
-        conversation: updatedConversation,
-        action: 'unmuted',
-      ));
+      emit(
+        ConversationUpdated(
+          conversation: updatedConversation,
+          action: 'unmuted',
+        ),
+      );
 
       emit(currentState.copyWith(conversations: updatedConversations));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de la réactivation: $e');
       debugPrint('📋 StackTrace: $stackTrace');
       emit(currentState);
-      emit(ConversationError(
-        message: 'Impossible de réactiver les notifications',
-        error: e,
-      ));
+      emit(
+        ConversationError(
+          message: 'Impossible de réactiver les notifications',
+          error: e,
+        ),
+      );
     }
   }
 
@@ -386,10 +431,12 @@ emit(ConversationCreated(conversation: conversation));
     if (currentState is! ConversationLoaded) return;
 
     if (event.query.isEmpty) {
-      emit(currentState.copyWith(
-        searchQuery: '',
-        filteredConversations: currentState.conversations,
-      ));
+      emit(
+        currentState.copyWith(
+          searchQuery: '',
+          filteredConversations: currentState.conversations,
+        ),
+      );
       return;
     }
 
@@ -401,10 +448,12 @@ emit(ConversationCreated(conversation: conversation));
 
     debugPrint('✅ ${filtered.length} conversations filtrées');
 
-    emit(currentState.copyWith(
-      searchQuery: event.query,
-      filteredConversations: filtered,
-    ));
+    emit(
+      currentState.copyWith(
+        searchQuery: event.query,
+        filteredConversations: filtered,
+      ),
+    );
   }
 
   // ==================== SHOW ARCHIVED ====================

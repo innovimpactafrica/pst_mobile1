@@ -76,10 +76,7 @@ class ChildErrorState extends ChildState {
   final String error;
   final List<ChildModel> children;
 
-  const ChildErrorState({
-    required this.error,
-    this.children = const [],
-  });
+  const ChildErrorState({required this.error, this.children = const []});
 
   @override
   List<Object?> get props => [error, children];

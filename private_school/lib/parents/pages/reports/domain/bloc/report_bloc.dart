@@ -35,16 +35,18 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
       final totalPages = result['totalPages'] as int;
       final hasMore = result['hasMore'] as bool;
 
-      emit(ReportsLoaded(
-        reports: reports,
-        filteredReports: reports,
-        currentFilter: 'Tous',
-        searchQuery: '',
-        currentPage: page,
-        totalPages: totalPages,
-        total: total,
-        hasMore: hasMore,
-      ));
+      emit(
+        ReportsLoaded(
+          reports: reports,
+          filteredReports: reports,
+          currentFilter: 'Tous',
+          searchQuery: '',
+          currentPage: page,
+          totalPages: totalPages,
+          total: total,
+          hasMore: hasMore,
+        ),
+      );
     } catch (e) {
       emit(ReportError(e.toString()));
     }
@@ -70,23 +72,27 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
           currentState.searchQuery,
         );
 
-        emit(currentState.copyWith(
-          reports: reports,
-          filteredReports: filtered,
-          currentPage: page,
-          totalPages: totalPages,
-          total: total,
-          hasMore: hasMore,
-        ));
+        emit(
+          currentState.copyWith(
+            reports: reports,
+            filteredReports: filtered,
+            currentPage: page,
+            totalPages: totalPages,
+            total: total,
+            hasMore: hasMore,
+          ),
+        );
       } else {
-        emit(ReportsLoaded(
-          reports: reports,
-          filteredReports: reports,
-          currentPage: page,
-          totalPages: totalPages,
-          total: total,
-          hasMore: hasMore,
-        ));
+        emit(
+          ReportsLoaded(
+            reports: reports,
+            filteredReports: reports,
+            currentPage: page,
+            totalPages: totalPages,
+            total: total,
+            hasMore: hasMore,
+          ),
+        );
       }
     } catch (e) {
       emit(ReportError(e.toString()));
@@ -98,7 +104,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     Emitter<ReportState> emit,
   ) async {
     if (state is! ReportsLoaded) return;
-    
+
     final currentState = state as ReportsLoaded;
     if (!currentState.hasMore || currentState.isLoadingMore) return;
 
@@ -107,9 +113,11 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     try {
       final result = await _repository.getReports(
         page: currentState.currentPage + 1,
-        type: currentState.currentFilter != 'Tous' ? currentState.currentFilter : null,
+        type: currentState.currentFilter != 'Tous'
+            ? currentState.currentFilter
+            : null,
       );
-      
+
       final newReports = result['incidents'] as List<ReportModel>;
       final allReports = [...currentState.reports, ...newReports];
       final filtered = _applyFilters(
@@ -118,15 +126,17 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         currentState.searchQuery,
       );
 
-      emit(currentState.copyWith(
-        reports: allReports,
-        filteredReports: filtered,
-        currentPage: result['page'] as int,
-        totalPages: result['totalPages'] as int,
-        total: result['total'] as int,
-        hasMore: result['hasMore'] as bool,
-        isLoadingMore: false,
-      ));
+      emit(
+        currentState.copyWith(
+          reports: allReports,
+          filteredReports: filtered,
+          currentPage: result['page'] as int,
+          totalPages: result['totalPages'] as int,
+          total: result['total'] as int,
+          hasMore: result['hasMore'] as bool,
+          isLoadingMore: false,
+        ),
+      );
     } catch (e) {
       emit(currentState.copyWith(isLoadingMore: false));
       emit(ReportError(e.toString()));
@@ -138,16 +148,18 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     Emitter<ReportState> emit,
   ) async {
     if (state is! ReportsLoaded) return;
-    
+
     final currentState = state as ReportsLoaded;
     emit(currentState.copyWith(isLoadingMore: true));
 
     try {
       final result = await _repository.getReports(
         page: event.page,
-        type: currentState.currentFilter != 'Tous' ? currentState.currentFilter : null,
+        type: currentState.currentFilter != 'Tous'
+            ? currentState.currentFilter
+            : null,
       );
-      
+
       final reports = result['incidents'] as List<ReportModel>;
       final filtered = _applyFilters(
         reports,
@@ -155,25 +167,24 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         currentState.searchQuery,
       );
 
-      emit(currentState.copyWith(
-        reports: reports,
-        filteredReports: filtered,
-        currentPage: result['page'] as int,
-        totalPages: result['totalPages'] as int,
-        total: result['total'] as int,
-        hasMore: result['hasMore'] as bool,
-        isLoadingMore: false,
-      ));
+      emit(
+        currentState.copyWith(
+          reports: reports,
+          filteredReports: filtered,
+          currentPage: result['page'] as int,
+          totalPages: result['totalPages'] as int,
+          total: result['total'] as int,
+          hasMore: result['hasMore'] as bool,
+          isLoadingMore: false,
+        ),
+      );
     } catch (e) {
       emit(currentState.copyWith(isLoadingMore: false));
       emit(ReportError(e.toString()));
     }
   }
 
-  void _onFilterReports(
-    FilterReportsEvent event,
-    Emitter<ReportState> emit,
-  ) {
+  void _onFilterReports(FilterReportsEvent event, Emitter<ReportState> emit) {
     if (state is ReportsLoaded) {
       final currentState = state as ReportsLoaded;
       final filtered = _applyFilters(
@@ -182,17 +193,16 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         currentState.searchQuery,
       );
 
-      emit(currentState.copyWith(
-        filteredReports: filtered,
-        currentFilter: event.filter,
-      ));
+      emit(
+        currentState.copyWith(
+          filteredReports: filtered,
+          currentFilter: event.filter,
+        ),
+      );
     }
   }
 
-  void _onSearchReports(
-    SearchReportsEvent event,
-    Emitter<ReportState> emit,
-  ) {
+  void _onSearchReports(SearchReportsEvent event, Emitter<ReportState> emit) {
     if (state is ReportsLoaded) {
       final currentState = state as ReportsLoaded;
       final filtered = _applyFilters(
@@ -201,14 +211,16 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         event.query,
       );
 
-      emit(currentState.copyWith(
-        filteredReports: filtered,
-        searchQuery: event.query,
-      ));
+      emit(
+        currentState.copyWith(
+          filteredReports: filtered,
+          searchQuery: event.query,
+        ),
+      );
     }
   }
 
-  /// LOGIQUE DE FILTRAGE CORRIGÉE ✅
+  /// LOGIQUE DE FILTRAGE
   List<ReportModel> _applyFilters(
     List<ReportModel> reports,
     String filter,
@@ -220,7 +232,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     if (filter != 'Tous') {
       filtered = filtered.where((report) {
         final reportType = report.type.toLowerCase();
-        
+
         switch (filter) {
           case 'Incident':
             return reportType == 'incident';
@@ -241,10 +253,10 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         final category = report.category.toLowerCase();
         final description = report.description.toLowerCase();
         final status = report.status.toLowerCase();
-        
+
         return category.contains(query) ||
-               description.contains(query) ||
-               status.contains(query);
+            description.contains(query) ||
+            status.contains(query);
       }).toList();
     }
 
@@ -274,7 +286,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
-  /// MODIFICATION CORRIGÉE AVEC FICHIERS ✅
+  /// MODIFICATION
   Future<void> _onUpdateReport(
     UpdateReportEvent event,
     Emitter<ReportState> emit,
@@ -304,10 +316,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     Emitter<ReportState> emit,
   ) async {
     try {
-      await _repository.updateReportStatus(
-        id: event.id,
-        status: event.status,
-      );
+      await _repository.updateReportStatus(id: event.id, status: event.status);
 
       add(RefreshReportsEvent());
     } catch (e) {
@@ -315,7 +324,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
-  /// SUPPRESSION CORRIGÉE AVEC LOGS ✅
+  /// SUPPRESSION
   Future<void> _onDeleteReport(
     DeleteReportEvent event,
     Emitter<ReportState> emit,
@@ -324,23 +333,20 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
 
     try {
       debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('🔥 [BLOC] Suppression signalement');
-      debugPrint('📝 ID: ${event.id}');
-      debugPrint('👤 UserID: ${event.userId}');
+      debugPrint(' [BLOC] Suppression signalement');
+      debugPrint(' ID: ${event.id}');
+      debugPrint(' UserID: ${event.userId}');
       debugPrint('═══════════════════════════════════════════════════════');
-      
-      await _repository.deleteReport(
-        event.id,
-        event.userId,
-      );
 
-      debugPrint('✅ [BLOC] Suppression terminée avec succès');
+      await _repository.deleteReport(event.id, event.userId);
+
+      debugPrint(' [BLOC] Suppression terminée avec succès');
       emit(ReportDeleted());
 
       await Future.delayed(const Duration(milliseconds: 500));
       add(LoadReportsEvent());
     } catch (e) {
-      debugPrint('❌ [BLOC] Erreur: $e');
+      debugPrint(' [BLOC] Erreur: $e');
       emit(ReportError(e.toString()));
     }
   }

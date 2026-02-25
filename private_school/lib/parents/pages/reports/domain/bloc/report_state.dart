@@ -1,5 +1,3 @@
-
-
 import '../../data/models/report_model.dart';
 
 abstract class ReportState {}
@@ -64,7 +62,6 @@ class ReportCreated extends ReportState {
   ReportCreated(this.report);
 }
 
-
 class ReportUpdating extends ReportState {}
 
 class ReportUpdated extends ReportState {
@@ -72,7 +69,6 @@ class ReportUpdated extends ReportState {
 
   ReportUpdated(this.report);
 }
-
 
 class ReportDeleting extends ReportState {}
 

@@ -19,12 +19,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
   }
 
-  /// ✅ Handler : Inscription - AVEC password et homeAddress
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
     try {
-      debugPrint('🔄 BLoC: Starting registration...');
+      debugPrint(' BLoC: Starting registration...');
 
       final result = await _authRepository.register(
         firstName: event.firstName,
@@ -35,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         homeAddress: event.homeAddress,
       );
 
-      debugPrint('✅ BLoC: Registration result: $result');
+      debugPrint(' BLoC: Registration result: $result');
 
       if (result['token'] != null) {
         emit(
@@ -47,24 +46,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
     } catch (e) {
-      debugPrint('❌ BLoC: Registration error: $e');
+      debugPrint(' BLoC: Registration error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Connexion
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
     try {
-      debugPrint('🔄 BLoC: Starting login...');
+      debugPrint(' BLoC: Starting login...');
 
       final result = await _authRepository.login(
         email: event.email,
         password: event.password,
       );
 
-      debugPrint('✅ BLoC: Login result: $result');
+      debugPrint(' BLoC: Login result: $result');
 
       if (result['success'] == true && result['user'] != null) {
         await SecureStorage().saveUserRole('parent');
@@ -75,12 +73,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthError(message: 'Échec de la connexion'));
       }
     } catch (e) {
-      debugPrint('❌ BLoC: Login error: $e');
+      debugPrint(' BLoC: Login error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Vérifier OTP
   Future<void> _onVerifyOtp(
     VerifyOtpEvent event,
     Emitter<AuthState> emit,
@@ -88,14 +85,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      debugPrint('🔄 BLoC: Verifying OTP...');
+      debugPrint(' BLoC: Verifying OTP...');
 
       final result = await _authRepository.verifyOtp(
         email: event.email,
         otp: event.otp,
       );
 
-      debugPrint('✅ BLoC: OTP verified');
+      debugPrint(' BLoC: OTP verified');
 
       emit(
         OtpVerified(
@@ -104,12 +101,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
     } catch (e) {
-      debugPrint('❌ BLoC: OTP verification error: $e');
+      debugPrint(' BLoC: OTP verification error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Mot de passe oublié - CORRIGÉ
   Future<void> _onForgotPassword(
     ForgotPasswordEvent event,
     Emitter<AuthState> emit,
@@ -117,25 +113,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      debugPrint('🔄 BLoC: Requesting password reset...');
+      debugPrint('BLoC: Requesting password reset...');
 
       final result = await _authRepository.forgotPassword(
         contact: event.contact,
       );
 
-      debugPrint('✅ BLoC: Password reset requested: $result');
+      debugPrint(' BLoC: Password reset requested: $result');
 
-      // Récupérer userId depuis la réponse API
       final userId = result['user']?['id'] ?? result['userId'];
 
       emit(PasswordResetRequested(event.contact, userId: userId));
     } catch (e) {
-      debugPrint('❌ BLoC: Forgot password error: $e');
+      debugPrint(' BLoC: Forgot password error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Réinitialiser mot de passe
   Future<void> _onResetPassword(
     ResetPasswordEvent event,
     Emitter<AuthState> emit,
@@ -143,7 +137,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      debugPrint('🔄 BLoC: Resetting password...');
+      debugPrint(' BLoC: Resetting password...');
 
       await _authRepository.resetPassword(
         userId: event.userId,
@@ -151,7 +145,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         newPassword: event.newPassword,
       );
 
-      debugPrint('✅ BLoC: Password reset successful');
+      debugPrint(' BLoC: Password reset successful');
 
       emit(
         const PasswordResetSuccess(
@@ -159,71 +153,67 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
     } catch (e) {
-      debugPrint('❌ BLoC: Reset password error: $e');
+      debugPrint(' BLoC: Reset password error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-  /// ✅ Handler : Déconnexion
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
     try {
-      debugPrint('🔄 BLoC: Logging out...');
+      debugPrint(' BLoC: Logging out...');
 
       await _authRepository.logout();
 
-      debugPrint('✅ BLoC: Logout successful');
+      debugPrint(' BLoC: Logout successful');
 
       emit(const AuthUnauthenticated());
     } catch (e) {
-      debugPrint('❌ BLoC: Logout error: $e');
+      debugPrint(' BLoC: Logout error: $e');
       emit(AuthError(message: e.toString()));
     }
   }
 
-Future<void> _onLoadCurrentUser(
-  LoadCurrentUserEvent event,
-  Emitter<AuthState> emit,
-) async {
-  // ✅ PAS de AuthLoading ici pour ne pas rouvrir le dialog de connexion
+  Future<void> _onLoadCurrentUser(
+    LoadCurrentUserEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      debugPrint(' BLoC: Loading current user...');
+      final user = await _authRepository.getCurrentUser();
+      debugPrint(' BLoC: User loaded: ${user.fullName}');
+      emit(AuthAuthenticated(user: user));
+    } catch (e) {
+      debugPrint(' BLoC: Load current user error: $e');
 
-  try {
-    debugPrint('🔄 BLoC: Loading current user...');
-    final user = await _authRepository.getCurrentUser();
-    debugPrint('✅ BLoC: User loaded: ${user.fullName}');
-    emit(AuthAuthenticated(user: user));
-  } catch (e) {
-    debugPrint('❌ BLoC: Load current user error: $e');
-    // ✅ En cas d'erreur, on garde l'état actuel sans crasher
-    debugPrint('⚠️ Impossible de recharger le profil, état conservé');
+      debugPrint(' Impossible de recharger le profil, état conservé');
+    }
   }
-}
 
-  /// ✅ Handler : Vérifier le statut d'authentification
   Future<void> _onCheckAuthStatus(
     CheckAuthStatusEvent event,
     Emitter<AuthState> emit,
   ) async {
     try {
-      debugPrint('🔄 BLoC: Checking auth status...');
+      debugPrint(' BLoC: Checking auth status...');
 
       final isLoggedIn = await _authRepository.isLoggedIn();
 
       if (isLoggedIn) {
-        debugPrint('✅ BLoC: User is logged in, loading profile...');
+        debugPrint(' BLoC: User is logged in, loading profile...');
         try {
           final user = await _authRepository.getCurrentUser();
-          debugPrint('✅ BLoC: User profile loaded');
+          debugPrint(' BLoC: User profile loaded');
           emit(AuthAuthenticated(user: user));
         } catch (e) {
-          debugPrint('❌ BLoC: Failed to load user profile: $e');
+          debugPrint(' BLoC: Failed to load user profile: $e');
           emit(const AuthUnauthenticated());
         }
       } else {
-        debugPrint('ℹ️ BLoC: User is not logged in');
+        debugPrint(' BLoC: User is not logged in');
         emit(const AuthUnauthenticated());
       }
     } catch (e) {
-      debugPrint('❌ BLoC: Check auth status error: $e');
+      debugPrint(' BLoC: Check auth status error: $e');
       emit(const AuthUnauthenticated());
     }
   }

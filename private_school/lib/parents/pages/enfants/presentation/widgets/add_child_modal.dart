@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 import 'package:private_school/parents/pages/school/data/services/school_service.dart';
 import 'package:private_school/parents/widgets/address_picker_widget.dart';
-import 'package:private_school/shared/widgets/school_autocomplete_field.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/google_maps_config.dart';
@@ -13,7 +12,6 @@ import '../../data/models/child_model.dart';
 import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
 import '../../domain/bloc/child_state.dart';
-
 
 class AddChildModal extends StatefulWidget {
   const AddChildModal({super.key});
@@ -50,7 +48,7 @@ class _AddChildModalState extends State<AddChildModal> {
         _loadingSchools = false;
       });
     } catch (e) {
-      debugPrint('❌ Erreur chargement écoles: $e');
+      debugPrint(' Erreur chargement écoles: $e');
       setState(() => _loadingSchools = false);
     }
   }
@@ -93,7 +91,7 @@ class _AddChildModalState extends State<AddChildModal> {
       schoolId: schoolId,
     );
 
-    debugPrint('📤 Création enfant avec école ID: $schoolId');
+    debugPrint(' Création enfant avec école ID: $schoolId');
     debugPrint('   Name: ${child.name}');
     debugPrint('   Address: ${child.address}');
 
@@ -134,17 +132,17 @@ class _AddChildModalState extends State<AddChildModal> {
           ),
         ),
         child: Padding(
-  padding: EdgeInsets.only(
-    bottom: MediaQuery.of(context).viewInsets.bottom,
-  ),
-  child: SingleChildScrollView(
-    child: Padding(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        24,
-        24,
-        MediaQuery.of(context).padding.bottom + 24,
-      ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                MediaQuery.of(context).padding.bottom + 24,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -153,7 +151,7 @@ class _AddChildModalState extends State<AddChildModal> {
                   children: [
                     _buildHeader(),
                     const SizedBox(height: 24),
-                    
+
                     // ===== INFORMATIONS ENFANT =====
                     _buildSectionTitle('child_information'.tr()),
                     const SizedBox(height: 12),
@@ -176,59 +174,48 @@ class _AddChildModalState extends State<AddChildModal> {
                       googleApiKey: GoogleMapsConfig.apiKey,
                       label: 'child_address'.tr(),
                       hint: 'child_address_example'.tr(),
-                      onLocationSelected: (lat, lng) {
-                        // Coordonnées reçues mais non utilisées pour l'instant
-                      },
+                      onLocationSelected: (lat, lng) {},
                     ),
-                    
+
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 24),
-                    
+
                     _buildSectionTitle('school_information'.tr()),
                     const SizedBox(height: 12),
                     _loadingSchools
                         ? const Center(child: CircularProgressIndicator())
                         : _schools.isEmpty
-                            ? Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFF59E0B)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        'no_schools_available_message'.tr(),
-                                        style: const TextStyle(
-                                          color: Color(0xFFF59E0B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : SchoolAutocompleteField(
-                                label: 'school_name'.tr(),
-                                hint: 'school_name_example'.tr(),
-                                controller: _schoolNameController,
-                                schools: _schools,
-                                enabled: !_isLoading,
-                                onSchoolSelected: (school, schoolName) {
-                                  setState(() {
-                                    _selectedSchool = school;
-                                    if (school != null && school.address.isNotEmpty) {
-                                      _schoolAddressController.text = school.address;
-                                    }
-                                  });
-                                },
+                        ? Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFF59E0B),
                               ),
-                    
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Color(0xFFF59E0B),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'no_schools_available_message'.tr(),
+                                    style: const TextStyle(
+                                      color: Color(0xFFF59E0B),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _buildSchoolDropdown(),
+
                     if (_selectedSchool != null) ...[
                       const SizedBox(height: 16),
                       Container(
@@ -236,11 +223,17 @@ class _AddChildModalState extends State<AddChildModal> {
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            Icon(
+                              Icons.check_circle,
+                              color: AppColors.success,
+                              size: 20,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -269,7 +262,7 @@ class _AddChildModalState extends State<AddChildModal> {
                         ),
                       ),
                     ],
-                    
+
                     const SizedBox(height: 24),
                     _buildSubmitButton(),
                   ],
@@ -279,6 +272,87 @@ class _AddChildModalState extends State<AddChildModal> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSchoolDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'school_name'.tr(),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<SchoolModel>(
+          initialValue: _selectedSchool,
+          decoration: InputDecoration(
+            hintText: 'select_school'.tr(),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.grey.shade400,
+            ),
+            prefixIcon: Icon(
+              Icons.school,
+              color: AppColors.success.withValues(alpha: 0.7),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.success, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+          items: _schools.map((school) {
+            return DropdownMenuItem<SchoolModel>(
+              value: school,
+              child: Text(
+                school.name,
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList(),
+          onChanged: _isLoading
+              ? null
+              : (SchoolModel? school) {
+                  setState(() {
+                    _selectedSchool = school;
+                    if (school != null && school.address.isNotEmpty) {
+                      _schoolAddressController.text = school.address;
+                    }
+                  });
+                },
+          validator: (value) {
+            if (value == null) {
+              return 'select_school_required'.tr();
+            }
+            return null;
+          },
+          isExpanded: true,
+          icon: Icon(Icons.arrow_drop_down, color: AppColors.success),
+        ),
+      ],
     );
   }
 
@@ -349,17 +423,17 @@ class _AddChildModalState extends State<AddChildModal> {
         TextFormField(
           controller: controller,
           enabled: !_isLoading,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
               color: Colors.grey.shade400,
             ),
-            prefixIcon: Icon(icon, color: AppColors.success.withValues(alpha: 0.7)),
+            prefixIcon: Icon(
+              icon,
+              color: AppColors.success.withValues(alpha: 0.7),
+            ),
             filled: true,
             fillColor: Colors.grey.shade50,
             border: OutlineInputBorder(

@@ -19,10 +19,7 @@ import '../../../../../parents/pages/acceuil/presentation/widgets/message_bubble
 class DriverChatPage extends StatefulWidget {
   final ConversationModel conversation;
 
-  const DriverChatPage({
-    super.key,
-    required this.conversation,
-  });
+  const DriverChatPage({super.key, required this.conversation});
 
   @override
   State<DriverChatPage> createState() => _DriverChatPageState();
@@ -38,18 +35,18 @@ class _DriverChatPageState extends State<DriverChatPage> {
   bool _isLoading = true;
   MessageModel? _editingMessage;
   MessageLoaded? _lastLoadedState;
-  
+
   int get _conversationId => widget.conversation.id;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
-    
+
     context.read<MessageBloc>().add(
       LoadMessagesEvent(conversationId: _conversationId),
     );
-    
+
     _markMessagesAsRead();
   }
 
@@ -71,7 +68,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
         try {
           final decoded = jsonDecode(userDataRaw) as Map<String, dynamic>;
           final dynamic idValue = decoded['id'];
-          
+
           if (idValue is int) {
             extractedId = idValue;
           } else if (idValue is String) {
@@ -117,7 +114,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
     return null;
   }
 
-@override
+  @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
@@ -149,11 +146,14 @@ class _DriverChatPageState extends State<DriverChatPage> {
             icon: const Icon(Icons.arrow_back, color: AppColors.white),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Text(widget.conversation.displayName,
-              style: GoogleFonts.inter(color: AppColors.white)),
+          title: Text(
+            widget.conversation.displayName,
+            style: GoogleFonts.inter(color: AppColors.white),
+          ),
         ),
         body: const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       );
     }
 
@@ -164,13 +164,15 @@ class _DriverChatPageState extends State<DriverChatPage> {
       body: BlocConsumer<MessageBloc, MessageState>(
         listener: (context, state) {
           if (state is MessageError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
-         if (state is MessageSent) {
+          if (state is MessageSent) {
             _scrollToBottom();
             _markMessagesAsRead();
           }
@@ -182,7 +184,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
             UnreadMessagesBloc.notifyNewMessage(_conversationId);
           }
         },
-       builder: (context, state) {
+        builder: (context, state) {
           if (state is MessageLoaded) {
             _lastLoadedState = state;
             return _buildChatView(state);
@@ -191,7 +193,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
           if (state is MessageLoading) {
             if (_lastLoadedState == null) {
               return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primary));
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
             return _buildChatView(_lastLoadedState!);
           }
@@ -210,16 +213,25 @@ class _DriverChatPageState extends State<DriverChatPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    debugPrint('🖼️ [ChatPage] displayAvatar: ${widget.conversation.displayAvatar}');
-    debugPrint('🖼️ [ChatPage] otherUserId: ${widget.conversation.otherUserId}');
-    debugPrint('🖼️ [ChatPage] otherUserAvatar: ${widget.conversation.otherUserAvatar}');
-    
-    final photoUrl = widget.conversation.otherUserAvatar ?? 
-        widget.conversation.displayAvatar ?? 
-        (widget.conversation.otherUserId != null 
-            ? ImageUrlHelper.getFullImageUrl('uploads/users/${widget.conversation.otherUserId}/profile.jpg')
+    debugPrint(
+      '🖼️ [ChatPage] displayAvatar: ${widget.conversation.displayAvatar}',
+    );
+    debugPrint(
+      '🖼️ [ChatPage] otherUserId: ${widget.conversation.otherUserId}',
+    );
+    debugPrint(
+      '🖼️ [ChatPage] otherUserAvatar: ${widget.conversation.otherUserAvatar}',
+    );
+
+    final photoUrl =
+        widget.conversation.otherUserAvatar ??
+        widget.conversation.displayAvatar ??
+        (widget.conversation.otherUserId != null
+            ? ImageUrlHelper.getFullImageUrl(
+                'uploads/users/${widget.conversation.otherUserId}/profile.jpg',
+              )
             : null);
-    
+
     debugPrint('🖼️ [ChatPage] photoUrl finale: $photoUrl');
 
     return AppBar(
@@ -237,9 +249,13 @@ class _DriverChatPageState extends State<DriverChatPage> {
             backgroundImage: photoUrl != null && photoUrl.isNotEmpty
                 ? NetworkImage(photoUrl)
                 : null,
-            onBackgroundImageError: photoUrl != null ? (exception, stackTrace) {
-              debugPrint('❌ [ChatPage] Erreur chargement image: $exception');
-            } : null,
+            onBackgroundImageError: photoUrl != null
+                ? (exception, stackTrace) {
+                    debugPrint(
+                      '❌ [ChatPage] Erreur chargement image: $exception',
+                    );
+                  }
+                : null,
             child: photoUrl == null || photoUrl.isEmpty
                 ? Icon(
                     widget.conversation.type == 'group'
@@ -269,8 +285,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
                   widget.conversation.otherUserRole == 'parent'
                       ? 'Parent'
                       : widget.conversation.type == 'group'
-                          ? '${widget.conversation.memberCount ?? ''} membres'
-                          : 'Chauffeur',
+                      ? '${widget.conversation.memberCount ?? ''} membres'
+                      : 'Chauffeur',
                   style: GoogleFonts.inter(
                     color: AppColors.white.withValues(alpha: 0.8),
                     fontSize: AppConstants.fontSizeS,
@@ -286,71 +302,73 @@ class _DriverChatPageState extends State<DriverChatPage> {
           icon: const Icon(Icons.refresh, color: AppColors.white),
           onPressed: () {
             context.read<MessageBloc>().add(
-                  RefreshMessagesEvent(conversationId: _conversationId),
-                );
+              RefreshMessagesEvent(conversationId: _conversationId),
+            );
           },
         ),
       ],
     );
   }
 
- Widget _buildChatView(MessageLoaded state) {
-  final effectiveUserId = _resolveCurrentUserId(state.messages);
+  Widget _buildChatView(MessageLoaded state) {
+    final effectiveUserId = _resolveCurrentUserId(state.messages);
 
-  return SafeArea(
-    child: Column(
-      children: [
-        if (state.isReplying) _buildReplyPreview(state),
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.spacingM,
-              vertical: AppConstants.spacingS,
+    return SafeArea(
+      child: Column(
+        children: [
+          if (state.isReplying) _buildReplyPreview(state),
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.spacingM,
+                vertical: AppConstants.spacingS,
+              ),
+              itemCount: state.messages.length,
+              itemBuilder: (context, index) {
+                final message = state.messages[index];
+                final isMe =
+                    effectiveUserId != null &&
+                    message.senderId == effectiveUserId;
+
+                bool showDateSeparator = false;
+                if (index == 0) {
+                  showDateSeparator = true;
+                } else {
+                  final prevMessage = state.messages[index - 1];
+                  final prevDate = DateTime(
+                    prevMessage.createdAt.year,
+                    prevMessage.createdAt.month,
+                    prevMessage.createdAt.day,
+                  );
+                  final currentDate = DateTime(
+                    message.createdAt.year,
+                    message.createdAt.month,
+                    message.createdAt.day,
+                  );
+                  showDateSeparator = !prevDate.isAtSameMomentAs(currentDate);
+                }
+
+                return Column(
+                  children: [
+                    if (showDateSeparator)
+                      _buildDateSeparator(message.createdAt),
+                    MessageBubbleWidget(
+                      message: message,
+                      isMe: isMe,
+                      onLongPress: () => _showMessageOptions(message, isMe),
+                      onReply: () => _setReplyTo(message),
+                    ),
+                  ],
+                );
+              },
             ),
-            itemCount: state.messages.length,
-            itemBuilder: (context, index) {
-              final message = state.messages[index];
-              final isMe = effectiveUserId != null &&
-                  message.senderId == effectiveUserId;
-
-              bool showDateSeparator = false;
-              if (index == 0) {
-                showDateSeparator = true;
-              } else {
-                final prevMessage = state.messages[index - 1];
-                final prevDate = DateTime(
-                  prevMessage.createdAt.year,
-                  prevMessage.createdAt.month,
-                  prevMessage.createdAt.day,
-                );
-                final currentDate = DateTime(
-                  message.createdAt.year,
-                  message.createdAt.month,
-                  message.createdAt.day,
-                );
-                showDateSeparator = !prevDate.isAtSameMomentAs(currentDate);
-              }
-
-              return Column(
-                children: [
-                  if (showDateSeparator) _buildDateSeparator(message.createdAt),
-                  MessageBubbleWidget(
-                    message: message,
-                    isMe: isMe,
-                    onLongPress: () => _showMessageOptions(message, isMe),
-                    onReply: () => _setReplyTo(message),
-                  ),
-                ],
-              );
-            },
           ),
-        ),
-        _buildMessageInput(state),
-      ],
-    ),
-  );
-}
+          _buildMessageInput(state),
+        ],
+      ),
+    );
+  }
 
   Widget _buildReplyPreview(MessageLoaded state) {
     return Container(
@@ -362,12 +380,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border(
-          left: BorderSide(
-            color: AppColors.primary,
-            width: 3,
-          ),
-        ),
+        border: Border(left: BorderSide(color: AppColors.primary, width: 3)),
       ),
       child: Row(
         children: [
@@ -376,7 +389,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'reply_to'.tr() + ' ${state.replyToSenderName ?? "unknown".tr()}',
+                  '${'reply_to'.tr()} ${state.replyToSenderName ?? "unknown".tr()}',
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeS,
                     fontWeight: FontWeight.w600,
@@ -400,8 +413,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
             icon: const Icon(Icons.close, size: 20),
             onPressed: () {
               context.read<MessageBloc>().add(
-                    const CancelReplyToMessageEvent(),
-                  );
+                const CancelReplyToMessageEvent(),
+              );
             },
           ),
         ],
@@ -429,7 +442,9 @@ class _DriverChatPageState extends State<DriverChatPage> {
         children: [
           Expanded(child: Divider(color: AppColors.grey400)),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingM,
+            ),
             child: Text(
               dateText,
               style: GoogleFonts.inter(
@@ -451,7 +466,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
         left: AppConstants.spacingM,
         right: AppConstants.spacingM,
         top: AppConstants.spacingS,
-         bottom: AppConstants.spacingS,
+        bottom: AppConstants.spacingS,
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -520,22 +535,22 @@ class _DriverChatPageState extends State<DriverChatPage> {
 
     if (_editingMessage != null) {
       context.read<MessageBloc>().add(
-            UpdateMessageEvent(
-              conversationId: _conversationId,
-              messageId: _editingMessage!.id,
-              content: content,
-            ),
-          );
+        UpdateMessageEvent(
+          conversationId: _conversationId,
+          messageId: _editingMessage!.id,
+          content: content,
+        ),
+      );
       _cancelEdit();
     } else {
       context.read<MessageBloc>().add(
-            SendMessageEvent(
-              conversationId: _conversationId,
-              content: content,
-              replyToId: state.replyToId,
-              currentUserId: _currentUserId ?? 0, 
-            ),
-          );
+        SendMessageEvent(
+          conversationId: _conversationId,
+          content: content,
+          replyToId: state.replyToId,
+          currentUserId: _currentUserId ?? 0,
+        ),
+      );
     }
 
     _messageController.clear();
@@ -543,12 +558,12 @@ class _DriverChatPageState extends State<DriverChatPage> {
 
   void _setReplyTo(MessageModel message) {
     context.read<MessageBloc>().add(
-          SetReplyToMessageEvent(
-            messageId: message.id,
-            messageContent: message.content,
-            senderName: message.senderName,
-          ),
-        );
+      SetReplyToMessageEvent(
+        messageId: message.id,
+        messageContent: message.content,
+        senderName: message.senderName,
+      ),
+    );
   }
 
   void _cancelEdit() {
@@ -587,7 +602,10 @@ class _DriverChatPageState extends State<DriverChatPage> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: AppColors.error),
-                title: Text('delete'.tr(), style: const TextStyle(color: AppColors.error)),
+                title: Text(
+                  'delete'.tr(),
+                  style: const TextStyle(color: AppColors.error),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmDeleteMessage(message);
@@ -630,11 +648,11 @@ class _DriverChatPageState extends State<DriverChatPage> {
             onPressed: () {
               Navigator.pop(context);
               this.context.read<MessageBloc>().add(
-                    DeleteMessageEvent(
-                      conversationId: _conversationId,
-                      messageId: message.id,
-                    ),
-                  );
+                DeleteMessageEvent(
+                  conversationId: _conversationId,
+                  messageId: message.id,
+                ),
+              );
             },
             child: Text(
               'delete'.tr(),
@@ -650,48 +668,47 @@ class _DriverChatPageState extends State<DriverChatPage> {
   }
 
   Widget _buildEmptyWithInput() {
-  return SafeArea(
-    child: Column(
-      children: [
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline,
-                  size: 80,
-                  color: AppColors.grey400,
-                ),
-                const SizedBox(height: AppConstants.spacingL),
-                Text(
-                  'no_messages'.tr(),
-                  style: GoogleFonts.inter(
-                    fontSize: AppConstants.fontSizeXL,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+    return SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 80,
+                    color: AppColors.grey400,
                   ),
-                ),
-                const SizedBox(height: AppConstants.spacingS),
-                Text(
-                  'start_conversation'.tr(),
-                  style: GoogleFonts.inter(
-                    fontSize: AppConstants.fontSizeM,
-                    color: AppColors.grey600,
+                  const SizedBox(height: AppConstants.spacingL),
+                  Text(
+                    'no_messages'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeXL,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppConstants.spacingS),
+                  Text(
+                    'start_conversation'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: AppConstants.fontSizeM,
+                      color: AppColors.grey600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        _buildMessageInput(MessageLoaded(
-          conversationId: _conversationId,
-          messages: const [],
-        )),
-      ],
-    ),
-  );
-}
+          _buildMessageInput(
+            MessageLoaded(conversationId: _conversationId, messages: const []),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildErrorState(String message) {
     return Column(
@@ -730,8 +747,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
                   ElevatedButton.icon(
                     onPressed: () {
                       context.read<MessageBloc>().add(
-                            LoadMessagesEvent(conversationId: _conversationId),
-                          );
+                        LoadMessagesEvent(conversationId: _conversationId),
+                      );
                     },
                     icon: const Icon(Icons.refresh),
                     label: Text('retry'.tr()),

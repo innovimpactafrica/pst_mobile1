@@ -238,7 +238,6 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       return;
     }
 
- 
     if (!isEditMode && _selectedFiles.isEmpty) {
       _showErrorSnackBar('please_add_document'.tr());
       return;
@@ -255,26 +254,24 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       );
 
       if (isEditMode) {
-       
         context.read<ReportBloc>().add(
-              UpdateReportEvent(
-                id: widget.reportToEdit!.id,
-                type: problemConfig['api']!,
-                category: _selectedProblemType!,
-                description: _descriptionController.text.trim(),
-                files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
-              ),
-            );
+          UpdateReportEvent(
+            id: widget.reportToEdit!.id,
+            type: problemConfig['api']!,
+            category: _selectedProblemType!,
+            description: _descriptionController.text.trim(),
+            files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
+          ),
+        );
       } else {
-       
         context.read<ReportBloc>().add(
-              CreateReportEvent(
-                type: problemConfig['api']!,
-                category: _selectedProblemType!,
-                description: _descriptionController.text.trim(),
-                files: _selectedFiles,
-              ),
-            );
+          CreateReportEvent(
+            type: problemConfig['api']!,
+            category: _selectedProblemType!,
+            description: _descriptionController.text.trim(),
+            files: _selectedFiles,
+          ),
+        );
       }
     } catch (e) {
       _showErrorSnackBar('report_preparation_error'.tr());
@@ -332,7 +329,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 const SizedBox(height: 24),
                 _buildDescriptionField(),
                 const SizedBox(height: 24),
-                _buildDocumentsSection(), 
+                _buildDocumentsSection(),
                 const SizedBox(height: 32),
                 _buildSubmitButton(),
               ],
@@ -384,10 +381,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFD1D5DB),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFD1D5DB), width: 1),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -458,24 +452,15 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             fillColor: AppColors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
         ),
@@ -497,7 +482,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 color: AppColors.textPrimary,
               ),
             ),
-           
+
             if (isEditMode) ...[
               const SizedBox(width: 8),
               Text(
@@ -531,10 +516,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFD1D5DB), width: 1),
             ),
             child: Column(
               children: [

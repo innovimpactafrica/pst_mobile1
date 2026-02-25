@@ -1,12 +1,11 @@
-
 class VehicleModel {
   final String? id;
-  final String? brand;       
-  final String? color;       
-  final String? plate;      
-  final int? capacity;      
-  final String? photo;       
-  final String? type;        
+  final String? brand;
+  final String? color;
+  final String? plate;
+  final int? capacity;
+  final String? photo;
+  final String? type;
 
   VehicleModel({
     this.id,
@@ -18,19 +17,23 @@ class VehicleModel {
     this.type,
   });
 
-
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
       id: _parseToStringOrNull(json['_id'] ?? json['id']),
       brand: _parseToStringOrNull(json['brand'] ?? json['marque']),
       color: _parseToStringOrNull(json['color'] ?? json['couleur']),
-      plate: _parseToStringOrNull(json['plate'] ?? json['immatriculation'] ?? json['plateNumber']),
-      capacity: _parseToIntOrNull(json['capacity'] ?? json['nombrePlaces'] ?? json['seats']),
+      plate: _parseToStringOrNull(
+        json['plate'] ?? json['immatriculation'] ?? json['plateNumber'],
+      ),
+      capacity: _parseToIntOrNull(
+        json['capacity'] ?? json['nombrePlaces'] ?? json['seats'],
+      ),
       photo: _parseToStringOrNull(json['photo'] ?? json['image']),
-      type: _parseToStringOrNull(json['type'] ?? json['vehicleType'] ?? json['typeVehicule']),
+      type: _parseToStringOrNull(
+        json['type'] ?? json['vehicleType'] ?? json['typeVehicule'],
+      ),
     );
   }
-
 
   static String? _parseToStringOrNull(dynamic value) {
     if (value == null) return null;
@@ -46,7 +49,6 @@ class VehicleModel {
     return null;
   }
 
-  
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -58,7 +60,6 @@ class VehicleModel {
       if (type != null) 'type': type,
     };
   }
-
 
   VehicleModel copyWith({
     String? id,

@@ -8,10 +8,7 @@ import 'bottom_nav_bar.dart';
 class MainLayout extends StatefulWidget {
   final int initialIndex;
 
-  const MainLayout({
-    super.key,
-    this.initialIndex = 0,
-  });
+  const MainLayout({super.key, this.initialIndex = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();

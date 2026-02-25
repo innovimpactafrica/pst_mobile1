@@ -1,18 +1,13 @@
-
 import '../services/trip_service.dart';
 import '../models/trip_model.dart';
-
 
 class TripRepository {
   final TripService _tripService = TripService();
 
- 
   Future<List<TripModel>> getDriverTrips() async {
     try {
-      
       return await _tripService.getDriverTrips();
     } catch (e) {
-   
       rethrow;
     }
   }
@@ -32,8 +27,6 @@ class TripRepository {
     double? endLongitude,
   }) async {
     try {
-      
-      
       return await _tripService.createTrip(
         startPoint: startPoint,
         endPoint: endPoint,
@@ -48,29 +41,30 @@ class TripRepository {
         endLongitude: endLongitude,
       );
     } catch (e) {
-      
       rethrow;
     }
   }
 
   /// Start a trip
-  Future<Map<String, dynamic>> startTrip(String tripId, {String? direction}) async {
+  Future<Map<String, dynamic>> startTrip(
+    String tripId, {
+    String? direction,
+  }) async {
     try {
-      
       return await _tripService.startTrip(tripId, direction: direction);
     } catch (e) {
-      
       rethrow;
     }
   }
 
   /// Complete a trip
-  Future<Map<String, dynamic>> completeTrip(String tripId, {String? direction}) async {
+  Future<Map<String, dynamic>> completeTrip(
+    String tripId, {
+    String? direction,
+  }) async {
     try {
-   
       return await _tripService.completeTrip(tripId, direction: direction);
     } catch (e) {
-     
       rethrow;
     }
   }
@@ -78,10 +72,8 @@ class TripRepository {
   /// Cancel a trip
   Future<Map<String, dynamic>> cancelTrip(String tripId, String reason) async {
     try {
-    
       return await _tripService.cancelTrip(tripId, reason);
     } catch (e) {
-      
       rethrow;
     }
   }

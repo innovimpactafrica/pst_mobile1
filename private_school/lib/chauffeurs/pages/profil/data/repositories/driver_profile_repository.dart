@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import '../models/driver_profile_model.dart';
 import '../services/driver_profile_service.dart';
 
-
 class DriverProfileRepository {
   final DriverProfileService _service = DriverProfileService();
   Future<DriverProfileModel> getProfile() async {
@@ -23,12 +22,10 @@ class DriverProfileRepository {
     );
   }
 
-
   Future<DriverProfileModel> updateProfileWithPhoto(FormData formData) async {
     return await _service.updateProfileWithPhoto(formData);
   }
 
- 
   Future<DriverProfileModel> updateDriverById({
     required String driverId,
     required FormData formData,

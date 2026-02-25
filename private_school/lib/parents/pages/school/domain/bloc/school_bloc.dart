@@ -34,7 +34,7 @@ class SchoolBloc extends Bloc<SchoolEvent, SchoolState> {
       emit(SchoolLoadingState());
       final school = await _schoolService.createSchool(event.school);
       emit(SchoolCreatedState(school));
-      
+
       // Recharger la liste après création
       add(LoadSchoolsEvent());
     } catch (e) {
@@ -49,7 +49,7 @@ class SchoolBloc extends Bloc<SchoolEvent, SchoolState> {
     try {
       emit(SchoolLoadingState());
       await _schoolService.updateSchool(event.school);
-      
+
       // Recharger la liste après mise à jour
       add(LoadSchoolsEvent());
     } catch (e) {

@@ -1,5 +1,3 @@
-
-
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 
 abstract class SchoolState {}

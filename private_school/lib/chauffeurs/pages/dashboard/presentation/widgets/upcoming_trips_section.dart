@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:intl/intl.dart';
@@ -79,9 +77,9 @@ class UpcomingTripsSection extends StatelessWidget {
         trip = TripModel.fromJson(tripData);
       }
     } catch (e) {
-     //
+      //
     }
-    
+
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');
 
     return Container(

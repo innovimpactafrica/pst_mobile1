@@ -1,6 +1,3 @@
-// Page d'inscription parent - Version Simple FINALE
-// Path: lib/parents/authentification/presentation/pages/parent_inscription_simple.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,7 +21,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _homeAddressController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -42,7 +40,6 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   }
 
   void _register() {
-    // Validation des champs vides
     if (_nameController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
@@ -82,7 +79,8 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
     }
 
     // Vérifier correspondance mots de passe
-    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+    if (_passwordController.text.trim() !=
+        _confirmPasswordController.text.trim()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('passwords_do_not_match'.tr()),
@@ -107,17 +105,16 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       return;
     }
 
-    // ✅ Envoyer l'inscription AVEC le password, l'adresse et les coordonnées
     context.read<AuthBloc>().add(
-          RegisterEvent(
-            firstName: firstName,
-            lastName: lastName,
-            phone: _phoneController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-            homeAddress: _homeAddressController.text.trim(),
-          ),
-        );
+      RegisterEvent(
+        firstName: firstName,
+        lastName: lastName,
+        phone: _phoneController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        homeAddress: _homeAddressController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -136,7 +133,6 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
           // Fermer le loading
           if (Navigator.canPop(context)) Navigator.of(context).pop();
 
-          // ✅ Afficher le message de succès
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('registration_success_message'.tr()),
@@ -145,7 +141,6 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             ),
           );
 
-          
           final navigator = Navigator.of(context);
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
@@ -153,22 +148,22 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             }
           });
         } else if (state is AuthError) {
-          // Fermer le loading
           if (Navigator.canPop(context)) Navigator.of(context).pop();
-
-          // Nettoyer le message d'erreur (enlever "Exception:")
           String errorMessage = state.message;
           if (errorMessage.startsWith('Exception:')) {
             errorMessage = errorMessage.replaceFirst('Exception:', '').trim();
           }
           if (errorMessage.startsWith('Inscription échouée:')) {
-            errorMessage = errorMessage.replaceFirst('Inscription échouée:', '').trim();
+            errorMessage = errorMessage
+                .replaceFirst('Inscription échouée:', '')
+                .trim();
           }
           if (errorMessage.startsWith('Erreur lors de l\'inscription:')) {
-            errorMessage = errorMessage.replaceFirst('Erreur lors de l\'inscription:', '').trim();
+            errorMessage = errorMessage
+                .replaceFirst('Erreur lors de l\'inscription:', '')
+                .trim();
           }
 
-          // Afficher l'erreur propre
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -265,12 +260,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
   }
 
   Widget _buildLogo() {
-    return Center(
-      child: Image.asset(
-        'assets/images/2.jpg',
-        height: 70,
-      ),
-    );
+    return Center(child: Image.asset('assets/images/2.jpg', height: 70));
   }
 
   Widget _buildTitle() {
@@ -330,9 +320,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         AddressPickerWidget(
           controller: _homeAddressController,
           googleApiKey: GoogleMapsConfig.apiKey,
-          onLocationSelected: (lat, lng) {
-            // Coordonnées reçues mais non utilisées pour l'instant
-          },
+          onLocationSelected: (lat, lng) {},
         ),
         const SizedBox(height: 16),
         _buildPasswordField(
@@ -388,11 +376,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
               fontSize: 14,
               color: AppColors.textSecondary.withValues(alpha: 0.5),
             ),
-            prefixIcon: Icon(
-              icon,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
+            prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
             filled: true,
             fillColor: AppColors.white,
             contentPadding: const EdgeInsets.symmetric(
@@ -401,17 +385,11 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -471,17 +449,11 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -495,8 +467,6 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
       ],
     );
   }
-
-
 
   Widget _buildRegisterButton() {
     return SizedBox(
@@ -514,10 +484,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         ),
         child: Text(
           'sign_up'.tr(),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -530,10 +497,7 @@ class _ParentInscriptionSimpleState extends State<ParentInscription> {
         children: [
           Text(
             'already_have_account'.tr(),
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
           ),
           GestureDetector(
             onTap: () {

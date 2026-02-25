@@ -35,21 +35,15 @@ class _ConnexionState extends State<Connexion> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      // ✅ CORRECTION : listenWhen empêche le dialog de loading de se rouvrir
-      // quand LoadCurrentUserEvent est déclenché depuis la HomePage.
-      // Le dialog ne s'ouvre QUE si on vient de AuthInitial ou AuthError
-      // (= vraie tentative de connexion par l'utilisateur).
       listenWhen: (previous, current) {
         if (current is AuthLoading) {
-          // N'afficher le loading QUE si c'est une vraie connexion
           return previous is AuthInitial || previous is AuthError;
         }
-        // Pour tous les autres états (AuthAuthenticated, AuthError...) → toujours écouter
+
         return true;
       },
       listener: (context, state) {
         if (state is AuthLoading) {
-          // ✅ Dialog loading — s'affiche uniquement lors d'une vraie connexion
           showDialog(
             context: context,
             barrierDismissible: false,
@@ -58,9 +52,7 @@ class _ConnexionState extends State<Connexion> {
             ),
           );
         } else if (state is AuthAuthenticated) {
-          // ✅ Fermer le dialog loading s'il est ouvert
           if (Navigator.canPop(context)) Navigator.of(context).pop();
-          // ✅ Naviguer vers HomePage en supprimant tout l'historique
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const HomePage()),
@@ -73,7 +65,6 @@ class _ConnexionState extends State<Connexion> {
             ),
           );
         } else if (state is AuthError) {
-          // ✅ Fermer le dialog loading et afficher l'erreur
           if (Navigator.canPop(context)) Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -110,7 +101,9 @@ class _ConnexionState extends State<Connexion> {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -145,11 +138,7 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: AppConstants.spacingXXXL),
 
-                  Image.asset(
-                    AppConstants.logoPath,
-                    width: 120,
-                    height: 120,
-                  ),
+                  Image.asset(AppConstants.logoPath, width: 120, height: 120),
 
                   const SizedBox(height: AppConstants.spacingXXL),
 
@@ -206,7 +195,8 @@ class _ConnexionState extends State<Connexion> {
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const MdpOubliePage()),
+                          builder: (_) => const MdpOubliePage(),
+                        ),
                       ),
                       child: Text(
                         "forgot_password".tr(),
@@ -228,8 +218,9 @@ class _ConnexionState extends State<Connexion> {
                         backgroundColor: AppColors.success,
                         foregroundColor: AppColors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppConstants.radiusXXL),
+                          borderRadius: BorderRadius.circular(
+                            AppConstants.radiusXXL,
+                          ),
                         ),
                         elevation: 0,
                       ),
@@ -257,7 +248,8 @@ class _ConnexionState extends State<Connexion> {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const ParentInscription()),
+                            builder: (_) => const ParentInscription(),
+                          ),
                         ),
                         child: Text(
                           "sign_up_link".tr(),
@@ -313,8 +305,7 @@ class _ConnexionState extends State<Connexion> {
           : null,
       filled: true,
       fillColor: AppColors.white,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstants.radiusL),
         borderSide: const BorderSide(color: AppColors.border),
@@ -333,16 +324,16 @@ class _ConnexionState extends State<Connexion> {
   void _handleLogin() {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('please_fill_all_fields'.tr())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('please_fill_all_fields'.tr())));
       return;
     }
     context.read<AuthBloc>().add(
-          LoginEvent(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          ),
-        );
+      LoginEvent(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
   }
 }

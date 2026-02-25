@@ -45,12 +45,14 @@ class _HomePageState extends State<HomePage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => UnreadMessagesBloc(repository: MessagingRepository())
-            ..add(LoadUnreadCountEvent()),
+          create: (context) =>
+              UnreadMessagesBloc(repository: MessagingRepository())
+                ..add(LoadUnreadCountEvent()),
         ),
         BlocProvider(
-          create: (context) => UnreadNotificationsBloc(repository: NotificationRepository())
-            ..add(LoadUnreadNotificationsCountEvent()),
+          create: (context) =>
+              UnreadNotificationsBloc(repository: NotificationRepository())
+                ..add(LoadUnreadNotificationsCountEvent()),
         ),
       ],
       child: const _HomePageContent(),
@@ -65,31 +67,31 @@ class _HomePageContent extends StatefulWidget {
   State<_HomePageContent> createState() => _HomePageContentState();
 }
 
-class _HomePageContentState extends State<_HomePageContent> with WidgetsBindingObserver {
-  int _selectedIndex = 0;
+class _HomePageContentState extends State<_HomePageContent>
+    with WidgetsBindingObserver {
+  final int _selectedIndex = 0;
   LatLng? _homeLocation;
-  final UnifiedNotificationService _notificationService = UnifiedNotificationService();
+  final UnifiedNotificationService _notificationService =
+      UnifiedNotificationService();
   final TextEditingController _searchController = TextEditingController();
   TripFilters? _currentFilters;
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addObserver(this);
-  _loadHomeAddress();
-  
-  // ✅ Charger immédiatement sans attendre
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    context.read<AuthBloc>().add(const LoadCurrentUserEvent());
-    context.read<HomeBloc>().add(LoadDriversEvent()); // ← garde ici, c'est correct
-    
-    _notificationService.registerBlocs(
-      messagesBloc: context.read<UnreadMessagesBloc>(),
-      //notificationsBloc: context.read<UnreadNotificationsBloc>(),
-    );
-    _notificationService.startPolling();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadHomeAddress();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+      context.read<HomeBloc>().add(LoadDriversEvent());
+
+      _notificationService.registerBlocs(
+        messagesBloc: context.read<UnreadMessagesBloc>(),
+      );
+      _notificationService.startPolling();
+    });
+  }
 
   @override
   void dispose() {
@@ -100,57 +102,56 @@ void initState() {
   }
 
   @override
-void didChangeAppLifecycleState(AppLifecycleState state) {
-  super.didChangeAppLifecycleState(state);
-  
-  switch (state) {
-    case AppLifecycleState.resumed:
-      debugPrint('📱 [HomePage] App resumed');
-      // ✅ Refresh uniquement les messages (pas les notifications via Dio)
-      context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
-      break;
-    case AppLifecycleState.paused:
-    case AppLifecycleState.inactive:
-      debugPrint('📱 [HomePage] App paused/inactive');
-      break;
-    case AppLifecycleState.detached:
-      _notificationService.dispose();
-      break;
-    case AppLifecycleState.hidden:
-      break;
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        debugPrint(' [HomePage] App resumed');
+
+        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        debugPrint('[HomePage] App paused/inactive');
+        break;
+      case AppLifecycleState.detached:
+        _notificationService.dispose();
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
-}
 
   void _loadHomeAddress() async {
-  // ✅ Dakar par défaut IMMÉDIATEMENT
-  setState(() {
-    _homeLocation = const LatLng(14.6937, -17.4441);
-  });
+    setState(() {
+      _homeLocation = const LatLng(14.6937, -17.4441);
+    });
 
-  try {
-    final authState = context.read<AuthBloc>().state;
-    String? address;
+    try {
+      final authState = context.read<AuthBloc>().state;
+      String? address;
 
-    if (authState is AuthAuthenticated && authState.user != null) {
-      address = authState.user!.address;
-    }
-
-    debugPrint('📍 Adresse utilisateur: $address');
-
-    if (address != null && address.isNotEmpty) {
-      final coords = await _geocodeAddress(address);
-      if (coords != null && mounted) {
-        setState(() {
-          _homeLocation = coords;
-        });
-        debugPrint('✅ Carte mise à jour: $coords');
+      if (authState is AuthAuthenticated && authState.user != null) {
+        address = authState.user!.address;
       }
+
+      debugPrint(' Adresse utilisateur: $address');
+
+      if (address != null && address.isNotEmpty) {
+        final coords = await _geocodeAddress(address);
+        if (coords != null && mounted) {
+          setState(() {
+            _homeLocation = coords;
+          });
+          debugPrint(' Carte mise à jour: $coords');
+        }
+      }
+    } catch (e) {
+      debugPrint(' Erreur _loadHomeAddress: $e');
     }
-  } catch (e) {
-    debugPrint('⚠️ Erreur _loadHomeAddress: $e');
   }
-}
-  
+
   Future<LatLng?> _geocodeAddress(String address) async {
     try {
       final locations = await locationFromAddress(address);
@@ -158,7 +159,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
         return LatLng(locations.first.latitude, locations.first.longitude);
       }
     } catch (e) {
-      debugPrint('❌ Erreur géocodage: $e');
+      debugPrint(' Erreur géocodage: $e');
     }
     return null;
   }
@@ -191,72 +192,91 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
                         children: [
                           _buildSearchBar(),
                           const Spacer(),
-                      BlocBuilder<HomeBloc, HomeState>(
-  builder: (context, state) {
-    debugPrint('🏠 [HomePage] HomeBloc state: ${state.runtimeType}');
-    
-    if (state is HomeLoading) {
-      return const SizedBox.shrink();
-    } else if (state is HomeLoaded) {
-      if (state.filteredTrips.isEmpty) {
-        return SizedBox(
-          height: 280,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  state.searchQuery.isEmpty 
-                    ? Icons.directions_car_outlined
-                    : Icons.search_off, 
-                  size: 64, 
-                  color: Colors.grey.shade300,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  state.searchQuery.isEmpty
-                    ? 'no_available_trips_home'.tr()
-                    : '${'no_search_results'.tr()} "${state.searchQuery}"',
-                  style: const TextStyle(color: AppColors.textSecondary),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-      return _buildTripCardsSection(context, state.filteredTrips);
-    } else if (state is HomeError) {
-      return SizedBox(
-        height: 280,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                state.message,
-                style: const TextStyle(color: AppColors.error),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  context.read<HomeBloc>().add(LoadDriversEvent());
-                },
-                child: Text('retry_button'.tr()),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    
-    return const SizedBox.shrink();
-  },
-),
-                         SizedBox(height: MediaQuery.of(context).padding.bottom + 90),
+                          BlocBuilder<HomeBloc, HomeState>(
+                            builder: (context, state) {
+                              debugPrint(
+                                ' [HomePage] HomeBloc state: ${state.runtimeType}',
+                              );
+
+                              if (state is HomeLoading) {
+                                return const SizedBox.shrink();
+                              } else if (state is HomeLoaded) {
+                                if (state.filteredTrips.isEmpty) {
+                                  return SizedBox(
+                                    height: 280,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            state.searchQuery.isEmpty
+                                                ? Icons.directions_car_outlined
+                                                : Icons.search_off,
+                                            size: 64,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            state.searchQuery.isEmpty
+                                                ? 'no_available_trips_home'.tr()
+                                                : '${'no_search_results'.tr()} "${state.searchQuery}"',
+                                            style: const TextStyle(
+                                              color: AppColors.textSecondary,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return _buildTripCardsSection(
+                                  context,
+                                  state.filteredTrips,
+                                );
+                              } else if (state is HomeError) {
+                                return SizedBox(
+                                  height: 280,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          size: 64,
+                                          color: AppColors.error,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          state.message,
+                                          style: const TextStyle(
+                                            color: AppColors.error,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            context.read<HomeBloc>().add(
+                                              LoadDriversEvent(),
+                                            );
+                                          },
+                                          child: Text('retry_button'.tr()),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).padding.bottom + 90,
+                          ),
                         ],
                       ),
                     ],
@@ -273,34 +293,31 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
   }
 
   Widget _buildMapBackground(BuildContext context) {
-  final location = _homeLocation ?? const LatLng(14.6937, -17.4441);
+    final location = _homeLocation ?? const LatLng(14.6937, -17.4441);
 
-  return GoogleMap(
-    initialCameraPosition: CameraPosition(
-      target: location,
-      zoom: 14,
-    ),
-    onMapCreated: (controller) {},
-    markers: {
-      Marker(
-        markerId: const MarkerId('home'),
-        position: location,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueViolet,
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(target: location, zoom: 14),
+      onMapCreated: (controller) {},
+      markers: {
+        Marker(
+          markerId: const MarkerId('home'),
+          position: location,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueViolet,
+          ),
+          infoWindow: InfoWindow(title: 'my_home'.tr()),
         ),
-        infoWindow: InfoWindow(title: 'my_home'.tr()),
-      ),
-    },
-    myLocationEnabled: true,
-    myLocationButtonEnabled: false,
-    zoomControlsEnabled: false,
-    zoomGesturesEnabled: true,
-    scrollGesturesEnabled: true,
-    tiltGesturesEnabled: true,
-    rotateGesturesEnabled: true,
-    mapToolbarEnabled: false,
-  );
-}
+      },
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      tiltGesturesEnabled: true,
+      rotateGesturesEnabled: true,
+      mapToolbarEnabled: false,
+    );
+  }
 
   Widget _buildSearchBar() {
     return Padding(
@@ -448,53 +465,70 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
               children: [
                 BlocBuilder<UnreadMessagesBloc, UnreadMessagesState>(
                   builder: (context, state) {
-                    final count = state is UnreadMessagesLoaded ? state.count : 0;
-                    debugPrint('💬 [HomePage] Compteur messages: $count');
-                    return _buildNotifIconSvg('assets/icons/notif.svg', count, () async {
-                      debugPrint('🔄 [HomePage] Ouverture page discussions');
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const DiscussionsPage()),
-                      );
-                      // Rafraîchir le compteur au retour
-                      if (mounted) {
-                        debugPrint('🔄 [HomePage] Retour de discussions, refresh compteur');
-                        context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
-                        // Vérifier aussi avec le service
-                        _notificationService.checkNow();
-                      }
-                    });
+                    final count = state is UnreadMessagesLoaded
+                        ? state.count
+                        : 0;
+                    debugPrint(' [HomePage] Compteur messages: $count');
+                    return _buildNotifIconSvg(
+                      'assets/icons/notif.svg',
+                      count,
+                      () async {
+                        debugPrint(' [HomePage] Ouverture page discussions');
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DiscussionsPage(),
+                          ),
+                        );
+
+                        if (mounted) {
+                          debugPrint(
+                            ' [HomePage] Retour de discussions, refresh compteur',
+                          );
+                          context.read<UnreadMessagesBloc>().add(
+                            RefreshUnreadCountEvent(),
+                          );
+                          _notificationService.checkNow();
+                        }
+                      },
+                    );
                   },
                 ),
                 const SizedBox(width: AppConstants.spacingL),
-               BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
-  builder: (context, state) {
-    final count = state is UnreadNotificationsLoaded ? state.count : 0;
-    debugPrint('🔔 [HomePage] Compteur notifications: $count');
-    return _buildNotifIconSvg('assets/icons/Settings.svg', count, () async {
-      debugPrint('🔄 [HomePage] Ouverture page notifications');
-      
-      // ✅ Récupérer le bloc AVANT la navigation
-      final unreadNotifBloc = context.read<UnreadNotificationsBloc>();
-      
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BlocProvider.value(
-            value: unreadNotifBloc, // ✅ Passer le bloc récupéré
-            child: const NotificationsPage(),
-          ),
-        ),
-      );
-      
-      // ✅ Refresh au retour
-      if (mounted) {
-        unreadNotifBloc.add(RefreshUnreadNotificationsCountEvent());
-      }
-    });
-  },
-),
+                BlocBuilder<UnreadNotificationsBloc, UnreadNotificationsState>(
+                  builder: (context, state) {
+                    final count = state is UnreadNotificationsLoaded
+                        ? state.count
+                        : 0;
+                    debugPrint(' [HomePage] Compteur notifications: $count');
+                    return _buildNotifIconSvg(
+                      'assets/icons/Settings.svg',
+                      count,
+                      () async {
+                        debugPrint(' [HomePage] Ouverture page notifications');
+
+                        final unreadNotifBloc = context
+                            .read<UnreadNotificationsBloc>();
+
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: unreadNotifBloc,
+                              child: const NotificationsPage(),
+                            ),
+                          ),
+                        );
+
+                        if (mounted) {
+                          unreadNotifBloc.add(
+                            RefreshUnreadNotificationsCountEvent(),
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
               ],
             ),
           ],
@@ -503,9 +537,8 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
     );
   }
 
-  // ✅ VOTRE CODE DE PHOTO QUI FONCTIONNE
   Widget _buildProfileAvatar(String? photoUrl) {
-    debugPrint('🖼️ Photo URL affichée dans le Header: $photoUrl');
+    debugPrint(' Photo URL affichée dans le Header: $photoUrl');
 
     return GestureDetector(
       onTap: () async {
@@ -513,9 +546,9 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
           context,
           MaterialPageRoute(
             builder: (context) => BlocProvider(
-              create: (context) => ProfilBloc(
-                repository: UserRepository(),
-              )..add(LoadUserProfileEvent()),
+              create: (context) =>
+                  ProfilBloc(repository: UserRepository())
+                    ..add(LoadUserProfileEvent()),
               child: const PersonalInfoPage(),
             ),
           ),
@@ -529,20 +562,19 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
         backgroundColor: AppColors.white,
         child: ClipOval(
           child: (photoUrl == null || photoUrl.isEmpty)
-              ? const Icon(
-                  Icons.person,
-                  size: 35,
-                  color: AppColors.success,
-                )
+              ? const Icon(Icons.person, size: 35, color: AppColors.success)
               : Image.network(
                   photoUrl,
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    debugPrint('❌ Erreur affichage image: $error');
-                    return const Icon(Icons.person,
-                        size: 35, color: AppColors.success);
+                    debugPrint(' Erreur affichage image: $error');
+                    return const Icon(
+                      Icons.person,
+                      size: 35,
+                      color: AppColors.success,
+                    );
                   },
                 ),
         ),
@@ -551,8 +583,11 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
   }
 
   Widget _buildNotifIconSvg(
-      String svgPath, int notifCount, VoidCallback onTap) {
-    debugPrint('🔔 [HomePage] Badge notification: $notifCount');
+    String svgPath,
+    int notifCount,
+    VoidCallback onTap,
+  ) {
+    debugPrint(' [HomePage] Badge notification: $notifCount');
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -580,10 +615,7 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
               top: 2,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                constraints: const BoxConstraints(
-                  minWidth: 20,
-                  minHeight: 20,
-                ),
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                 decoration: const BoxDecoration(
                   color: AppColors.error,
                   shape: BoxShape.circle,
@@ -617,9 +649,8 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
       );
     }
 
-    // ✅ LOG pour vérifier les données
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📊 [HomePage] TRAJETS CHARGÉS: ${trips.length}');
+    debugPrint(' [HomePage] TRAJETS CHARGÉS: ${trips.length}');
     for (var trip in trips) {
       debugPrint('   Trajet ${trip.id}:');
       debugPrint('      Passagers: ${trip.passengers.length}');
@@ -672,54 +703,74 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
   }
 
   Widget _buildBottomNavigationBar() {
-  final bottomPadding = MediaQuery.of(context).padding.bottom;
-  
-  return Positioned(
-    left: 0,
-    right: 0,
-    bottom: 0,
-    child: Container(
-      padding: EdgeInsets.only(bottom: bottomPadding),
-      height: 70 + bottomPadding,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.blackOpacity10,
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        padding: EdgeInsets.only(bottom: bottomPadding),
+        height: 70 + bottomPadding,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.blackOpacity10,
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(
+              icon: Icons.home_rounded,
+              label: AppConstants.labelHome,
+              index: 0,
+            ),
+            _buildNavItem(
+              icon: Icons.people_rounded,
+              label: 'children'.tr(),
+              index: 1,
+            ),
+            _buildNavItem(
+              icon: Icons.route_rounded,
+              label: 'my_trips'.tr(),
+              index: 2,
+            ),
+            _buildNavItem(
+              icon: Icons.groups_rounded,
+              label: 'groups'.tr(),
+              index: 3,
+            ),
+            _buildNavItem(
+              icon: Icons.person_rounded,
+              label: AppConstants.labelProfile,
+              index: 4,
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(icon: Icons.home_rounded, label: AppConstants.labelHome, index: 0),
-          _buildNavItem(icon: Icons.people_rounded, label: 'children'.tr(), index: 1),
-          _buildNavItem(icon: Icons.route_rounded, label: 'my_trips'.tr(), index: 2),
-          _buildNavItem(icon: Icons.groups_rounded, label: 'groups'.tr(), index: 3),
-          _buildNavItem(icon: Icons.person_rounded, label: AppConstants.labelProfile, index: 4),
-        ],
-      ),
-    ),
-  );
-}
+    );
+  }
 
   void _onBottomNavTap(int index) {
+    if (index == _selectedIndex) return;
 
-  if (index == _selectedIndex) return; // Si déjà sur cette page, ne rien faire
-  
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(
-      builder: (_) => MainLayout(initialIndex: index),
-    ),
-    (route) => false,
-  );
-}
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => MainLayout(initialIndex: index)),
+      (route) => false,
+    );
+  }
 
-  Widget _buildNavItem(
-      {required IconData icon, required String label, required int index}) {
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
     final bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => _onBottomNavTap(index),
@@ -749,26 +800,26 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
     );
   }
 
- Widget _buildFloatingActionButton(BuildContext context) {
-  final bottomPadding = MediaQuery.of(context).padding.bottom;
-  
-  return Positioned(
-    right: AppConstants.spacingXL,
-    // ✅ 70 (navbar) + padding système + 16 marge
-    bottom: 70 + bottomPadding + 16,
-    child: FloatingActionButton(
-      onPressed: () => _openReportProblem(context),
-      backgroundColor: AppColors.success,
-      elevation: 4,
-      child: SvgPicture.asset(
-        'assets/icons/13.svg',
-        width: 28,
-        height: 28,
-        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+  Widget _buildFloatingActionButton(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Positioned(
+      right: AppConstants.spacingXL,
+
+      bottom: 70 + bottomPadding + 16,
+      child: FloatingActionButton(
+        onPressed: () => _openReportProblem(context),
+        backgroundColor: AppColors.success,
+        elevation: 4,
+        child: SvgPicture.asset(
+          'assets/icons/13.svg',
+          width: 28,
+          height: 28,
+          colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _openReportProblem(BuildContext context) {
     showModalBottomSheet(

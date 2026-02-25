@@ -7,7 +7,6 @@ class EvaluationService {
   final ApiClient _apiClient = ApiClient();
 
   /// Créer une nouvelle évaluation
-  /// POST /api/evaluations
   Future<EvaluationModel> createEvaluation({
     required int tripId,
     required int driverId,
@@ -16,11 +15,11 @@ class EvaluationService {
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟢 [EvaluationService] CREATE EVALUATION');
-      debugPrint('📤 Trip ID: $tripId');
-      debugPrint('📤 Driver ID: $driverId');
-      debugPrint('📤 Rating: $rating');
-      debugPrint('📤 Comment: $comment');
+      debugPrint(' [EvaluationService] CREATE EVALUATION');
+      debugPrint(' Trip ID: $tripId');
+      debugPrint(' Driver ID: $driverId');
+      debugPrint(' Rating: $rating');
+      debugPrint(' Comment: $comment');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final requestBody = {
@@ -35,26 +34,25 @@ class EvaluationService {
         data: requestBody,
       );
 
-      debugPrint('✅ Response Status: ${response.statusCode}');
+      debugPrint(' Response Status: ${response.statusCode}');
 
-      final evaluationData = response.data['evaluation'] ?? 
-                            response.data['data'] ?? 
-                            response.data;
+      final evaluationData =
+          response.data['evaluation'] ?? response.data['data'] ?? response.data;
 
       final evaluation = EvaluationModel.fromJson(evaluationData);
 
-      debugPrint('✅ Évaluation créée avec succès');
+      debugPrint(' Évaluation créée avec succès');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return evaluation;
     } catch (e) {
-      debugPrint('❌ [EvaluationService] ERREUR: $e\n');
+      debugPrint(' [EvaluationService] ERREUR: $e\n');
       rethrow;
     }
   }
 
   /// Récupérer les évaluations d'un chauffeur
-  /// GET /api/evaluations?driver_id={id}
+
   Future<List<EvaluationModel>> getDriverEvaluations({
     required int driverId,
     int? minRating,
@@ -62,7 +60,7 @@ class EvaluationService {
     int offset = 0,
   }) async {
     try {
-      debugPrint('🔍 [EvaluationService] GET DRIVER EVALUATIONS: $driverId');
+      debugPrint(' [EvaluationService] GET DRIVER EVALUATIONS: $driverId');
 
       final response = await _apiClient.get(
         ApiConstants.evaluations,
@@ -74,25 +72,33 @@ class EvaluationService {
         },
       );
 
-      final List<dynamic> evaluationsJson = response.data['evaluations'] ?? 
-                                           response.data['data'] ?? 
-                                           [];
+      List<dynamic> evaluationsJson = [];
+
+      if (response.data['data'] != null && response.data['data'] is List) {
+        evaluationsJson = response.data['data'] as List<dynamic>;
+      } else if (response.data['evaluations'] != null &&
+          response.data['evaluations'] is List) {
+        evaluationsJson = response.data['evaluations'] as List<dynamic>;
+      }
+
+      debugPrint(
+        ' [EvaluationService] ${evaluationsJson.length} évaluation(s) trouvée(s) dans la réponse',
+      );
 
       final evaluations = evaluationsJson
           .map((json) => EvaluationModel.fromJson(json))
           .toList();
 
-      debugPrint('✅ ${evaluations.length} évaluation(s) récupérée(s)\n');
+      debugPrint('${evaluations.length} évaluation(s) récupérée(s)\n');
 
       return evaluations;
     } catch (e) {
-      debugPrint('❌ Error: $e\n');
+      debugPrint(' Error: $e\n');
       rethrow;
     }
   }
 
   /// Modifier une évaluation
-  /// PUT /api/evaluations/{id}
   Future<EvaluationModel> updateEvaluation({
     required int id,
     int? rating,
@@ -100,8 +106,8 @@ class EvaluationService {
   }) async {
     try {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟡 [EvaluationService] UPDATE EVALUATION');
-      debugPrint('📤 ID: $id');
+      debugPrint(' [EvaluationService] UPDATE EVALUATION');
+      debugPrint(' ID: $id');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       final requestBody = <String, dynamic>{};
@@ -113,16 +119,15 @@ class EvaluationService {
         data: requestBody,
       );
 
-      final evaluationData = response.data['evaluation'] ?? 
-                            response.data['data'] ?? 
-                            response.data;
+      final evaluationData =
+          response.data['evaluation'] ?? response.data['data'] ?? response.data;
 
-      debugPrint('✅ Évaluation mise à jour');
+      debugPrint(' Évaluation mise à jour');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return EvaluationModel.fromJson(evaluationData);
     } catch (e) {
-      debugPrint('❌ Error: $e\n');
+      debugPrint(' Error: $e\n');
       rethrow;
     }
   }

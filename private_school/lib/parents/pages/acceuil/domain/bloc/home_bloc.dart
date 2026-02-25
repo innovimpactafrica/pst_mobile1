@@ -8,92 +8,97 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository repository;
   Set<String> _reservedTripIds = {};
 
-HomeBloc({required this.repository}) : super(HomeInitial()) {
+  HomeBloc({required this.repository}) : super(HomeInitial()) {
     on<LoadDriversEvent>(_onLoadDrivers);
     on<SearchTripsEvent>(_onSearchTrips);
     on<FilterTripsEvent>(_onFilterTrips);
     on<ClearHomeCache>(_onClearCache);
   }
 
- Future<void> _onLoadDrivers(
-  LoadDriversEvent event,
-  Emitter<HomeState> emit,
-) async {
-  emit(HomeLoading());
-  try {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🏠 [HomeBloc] LOAD ALL TRIPS FOR HOME PAGE');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    // 1️⃣ Charger TOUS les trajets disponibles AVEC TIMEOUT
-    final allTrips = await repository.getAvailableTrips()
-        .timeout(
-          const Duration(seconds: 30),
-          onTimeout: () {
-            debugPrint('⏱️ [HomeBloc] TIMEOUT après 30s');
-            throw Exception('Timeout: Impossible de charger les trajets');
-          },
-        );
-    
-    debugPrint('📊 Total trajets API: ${allTrips.length}');
-
-    // 2️⃣ Charger les réservations pour construire le cache
+  Future<void> _onLoadDrivers(
+    LoadDriversEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(HomeLoading());
     try {
-      final reservations = await repository.getMyReservations()
-          .timeout(const Duration(seconds: 10));
-      _reservedTripIds = reservations.map((trip) => trip.id).toSet();
-      
-      debugPrint('🔖 Trajets réservés: ${_reservedTripIds.length}');
-      if (_reservedTripIds.isNotEmpty) {
-        debugPrint('   IDs réservés: $_reservedTripIds');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(' [HomeBloc] LOAD ALL TRIPS FOR HOME PAGE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      //  Charger TOUS les trajets disponibles AVEC TIMEOUT
+      final allTrips = await repository.getAvailableTrips().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('⏱️ [HomeBloc] TIMEOUT après 30s');
+          throw Exception('Timeout: Impossible de charger les trajets');
+        },
+      );
+
+      debugPrint('Total trajets API: ${allTrips.length}');
+
+      //  Charger les réservations pour construire le cache
+      try {
+        final reservations = await repository.getMyReservations().timeout(
+          const Duration(seconds: 10),
+        );
+        _reservedTripIds = reservations.map((trip) => trip.id).toSet();
+
+        debugPrint(' Trajets réservés: ${_reservedTripIds.length}');
+        if (_reservedTripIds.isNotEmpty) {
+          debugPrint('   IDs réservés: $_reservedTripIds');
+        }
+      } catch (e) {
+        debugPrint(' Impossible de charger les réservations: $e');
+        _reservedTripIds = {};
       }
-    } catch (e) {
-      debugPrint('⚠️ Impossible de charger les réservations: $e');
-      _reservedTripIds = {};
+
+      // Trajets réservés EN PREMIER
+      allTrips.sort((a, b) {
+        final aReserved = _reservedTripIds.contains(a.id);
+        final bReserved = _reservedTripIds.contains(b.id);
+
+        if (aReserved && !bReserved) return -1;
+        if (!aReserved && bReserved) return 1;
+        return 0;
+      });
+
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(' RÉSULTAT TRI (HOME):');
+      debugPrint('   Total trajets: ${allTrips.length}');
+      debugPrint('   Réservés (en premier): ${_reservedTripIds.length}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      emit(HomeLoaded(trips: allTrips));
+    } catch (e, stackTrace) {
+      debugPrint('');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint(' [HomeBloc] ERROR LOADING TRIPS');
+      debugPrint('Error: $e');
+      debugPrint('Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      emit(
+        HomeError(
+          message:
+              'Impossible de charger les trajets.\nVérifiez votre connexion.',
+        ),
+      );
     }
-
-    // 3️⃣ ✅ TRIER : Trajets réservés EN PREMIER
-    allTrips.sort((a, b) {
-      final aReserved = _reservedTripIds.contains(a.id);
-      final bReserved = _reservedTripIds.contains(b.id);
-      
-      if (aReserved && !bReserved) return -1;
-      if (!aReserved && bReserved) return 1;
-      return 0;
-    });
-
-    debugPrint('');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('✅ RÉSULTAT TRI (HOME):');
-    debugPrint('   Total trajets: ${allTrips.length}');
-    debugPrint('   Réservés (en premier): ${_reservedTripIds.length}');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-    emit(HomeLoaded(trips: allTrips));
-  } catch (e, stackTrace) {
-    debugPrint('');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('❌ [HomeBloc] ERROR LOADING TRIPS');
-    debugPrint('Error: $e');
-    debugPrint('Stack: $stackTrace');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    
-    emit(HomeError(message: 'Impossible de charger les trajets.\nVérifiez votre connexion.'));
   }
-}
 
-  /// ✅ Vérifier si un trajet est réservé
+  ///  Vérifier si un trajet est réservé
   bool isTripReserved(String tripId) {
     final isReserved = _reservedTripIds.contains(tripId);
-    
-    debugPrint('🔍 [HomeBloc] Vérification réservation:');
+
+    debugPrint(' [HomeBloc] Vérification réservation:');
     debugPrint('   Trip ID: $tripId');
     debugPrint('   Est réservé: $isReserved');
-    
+
     return isReserved;
   }
 
-  /// ✅ Obtenir les IDs réservés (pour debug)
+  ///  Obtenir les IDs réservés (pour debug)
   Set<String> get reservedTripIds => _reservedTripIds;
 
   /// Vider le cache
@@ -108,7 +113,7 @@ HomeBloc({required this.repository}) : super(HomeInitial()) {
     if (currentState is! HomeLoaded) return;
 
     final query = event.query.toLowerCase().trim();
-    
+
     if (query.isEmpty) {
       emit(HomeLoaded(trips: currentState.trips));
       return;
@@ -116,15 +121,17 @@ HomeBloc({required this.repository}) : super(HomeInitial()) {
 
     final filtered = currentState.trips.where((trip) {
       return trip.destination.toLowerCase().contains(query) ||
-             trip.departure.toLowerCase().contains(query) ||
-             trip.driverName?.toLowerCase().contains(query) == true;
+          trip.departure.toLowerCase().contains(query) ||
+          trip.driverName?.toLowerCase().contains(query) == true;
     }).toList();
 
-    emit(HomeLoaded(
-      trips: currentState.trips,
-      filteredTrips: filtered,
-      searchQuery: query,
-    ));
+    emit(
+      HomeLoaded(
+        trips: currentState.trips,
+        filteredTrips: filtered,
+        searchQuery: query,
+      ),
+    );
   }
 
   void _onFilterTrips(FilterTripsEvent event, Emitter<HomeState> emit) {
@@ -139,23 +146,26 @@ HomeBloc({required this.repository}) : super(HomeInitial()) {
         final tripTime = _parseTime(trip.time);
         if (tripTime == null) return false;
         return tripTime.hour == event.filters.departureTime!.hour &&
-               tripTime.minute == event.filters.departureTime!.minute;
+            tripTime.minute == event.filters.departureTime!.minute;
       }).toList();
     }
 
     // Filtrer par destination
-    if (event.filters.destination != null && event.filters.destination!.isNotEmpty) {
+    if (event.filters.destination != null &&
+        event.filters.destination!.isNotEmpty) {
       final dest = event.filters.destination!.toLowerCase();
       filtered = filtered.where((trip) {
         return trip.destination.toLowerCase().contains(dest);
       }).toList();
     }
 
-    emit(HomeLoaded(
-      trips: currentState.trips,
-      filteredTrips: filtered,
-      searchQuery: currentState.searchQuery,
-    ));
+    emit(
+      HomeLoaded(
+        trips: currentState.trips,
+        filteredTrips: filtered,
+        searchQuery: currentState.searchQuery,
+      ),
+    );
   }
 
   TimeOfDay? _parseTime(String timeStr) {
@@ -168,7 +178,7 @@ HomeBloc({required this.repository}) : super(HomeInitial()) {
         );
       }
     } catch (e) {
-      debugPrint('❌ Erreur parsing time: $timeStr');
+      debugPrint(' Erreur parsing time: $timeStr');
     }
     return null;
   }

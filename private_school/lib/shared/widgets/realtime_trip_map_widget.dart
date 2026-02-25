@@ -86,13 +86,14 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
               }
             }
           } catch (e) {
-            debugPrint('❌ Erreur géocodage stop: $e');
+            debugPrint(' Erreur géocodage stop: $e');
           }
         }
       }
 
-      String waypointsParam =
-          waypoints.isNotEmpty ? '&waypoints=${waypoints.join('|')}' : '';
+      String waypointsParam = waypoints.isNotEmpty
+          ? '&waypoints=${waypoints.join('|')}'
+          : '';
 
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/directions/json?'
@@ -128,31 +129,28 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Erreur tracé itinéraire: $e');
+      debugPrint(' Erreur tracé itinéraire: $e');
     }
   }
 
   /// Ajuster la caméra pour voir tout le trajet
   Future<void> _fitBounds() async {
-    if (_startCoords == null || _endCoords == null || _mapController == null)
+    if (_startCoords == null || _endCoords == null || _mapController == null) {
       return;
+    }
 
-    final double minLat =
-        _startCoords!.latitude < _endCoords!.latitude
-            ? _startCoords!.latitude
-            : _endCoords!.latitude;
-    final double maxLat =
-        _startCoords!.latitude > _endCoords!.latitude
-            ? _startCoords!.latitude
-            : _endCoords!.latitude;
-    final double minLng =
-        _startCoords!.longitude < _endCoords!.longitude
-            ? _startCoords!.longitude
-            : _endCoords!.longitude;
-    final double maxLng =
-        _startCoords!.longitude > _endCoords!.longitude
-            ? _startCoords!.longitude
-            : _endCoords!.longitude;
+    final double minLat = _startCoords!.latitude < _endCoords!.latitude
+        ? _startCoords!.latitude
+        : _endCoords!.latitude;
+    final double maxLat = _startCoords!.latitude > _endCoords!.latitude
+        ? _startCoords!.latitude
+        : _endCoords!.latitude;
+    final double minLng = _startCoords!.longitude < _endCoords!.longitude
+        ? _startCoords!.longitude
+        : _endCoords!.longitude;
+    final double maxLng = _startCoords!.longitude > _endCoords!.longitude
+        ? _startCoords!.longitude
+        : _endCoords!.longitude;
 
     await _mapController!.animateCamera(
       CameraUpdate.newLatLngBounds(
@@ -209,10 +207,8 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
         final startResponse = await http.get(startUrl);
         if (startResponse.statusCode == 200) {
           final startData = json.decode(startResponse.body);
-          if (startData['results'] != null &&
-              startData['results'].isNotEmpty) {
-            final location =
-                startData['results'][0]['geometry']['location'];
+          if (startData['results'] != null && startData['results'].isNotEmpty) {
+            final location = startData['results'][0]['geometry']['location'];
             _startCoords = LatLng(location['lat'], location['lng']);
           }
         }
@@ -237,7 +233,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
 
       if (mounted) setState(() {});
     } catch (e) {
-      debugPrint('❌ Erreur géocodage: $e');
+      debugPrint(' Erreur géocodage: $e');
       setState(() {
         _startCoords = const LatLng(14.7167, -17.4677);
         _endCoords = const LatLng(14.6928, -17.4467);
@@ -252,7 +248,8 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
           markerId: const MarkerId('start'),
           position: _startCoords!,
           icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueGreen),
+            BitmapDescriptor.hueGreen,
+          ),
           infoWindow: InfoWindow(
             title: 'Départ',
             snippet: widget.startLocation,
@@ -266,12 +263,8 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
         Marker(
           markerId: const MarkerId('end'),
           position: _endCoords!,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          infoWindow: InfoWindow(
-            title: 'Arrivée',
-            snippet: widget.destination,
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          infoWindow: InfoWindow(title: 'Arrivée', snippet: widget.destination),
         ),
       );
     }
@@ -296,7 +289,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
             }
           }
         } catch (e) {
-          debugPrint('❌ Erreur géocodage école: $e');
+          debugPrint(' Erreur géocodage école: $e');
         }
       }
 
@@ -307,10 +300,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
           markerId: MarkerId('stop_$i'),
           position: position,
           icon: schoolIcon,
-          infoWindow: InfoWindow(
-            title: stop.name,
-            snippet: 'Arrêt ${i + 1}',
-          ),
+          infoWindow: InfoWindow(title: stop.name, snippet: 'Arrêt ${i + 1}'),
         ),
       );
     }
@@ -332,8 +322,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    canvas.drawCircle(
-        Offset(size.width / 2, size.height / 2), 18, borderPaint);
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 18, borderPaint);
 
     final schoolPaint = Paint()
       ..color = Colors.white
@@ -353,8 +342,10 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
     canvas.drawRect(const Rect.fromLTWH(21, 28, 6, 6), doorPaint);
 
     final picture = pictureRecorder.endRecording();
-    final image =
-        await picture.toImage(size.width.toInt(), size.height.toInt());
+    final image = await picture.toImage(
+      size.width.toInt(),
+      size.height.toInt(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
 
     return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
@@ -371,13 +362,17 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          const Rect.fromLTWH(10, 20, 40, 25), const Radius.circular(5)),
+        const Rect.fromLTWH(10, 20, 40, 25),
+        const Radius.circular(5),
+      ),
       paint,
     );
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-          const Rect.fromLTWH(15, 10, 30, 15), const Radius.circular(5)),
+        const Rect.fromLTWH(15, 10, 30, 15),
+        const Radius.circular(5),
+      ),
       paint,
     );
 
@@ -388,8 +383,10 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
     canvas.drawCircle(const Offset(40, 45), 5, wheelPaint);
 
     final picture = pictureRecorder.endRecording();
-    final image =
-        await picture.toImage(size.width.toInt(), size.height.toInt());
+    final image = await picture.toImage(
+      size.width.toInt(),
+      size.height.toInt(),
+    );
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
 
     return BitmapDescriptor.bytes(bytes!.buffer.asUint8List());
@@ -460,9 +457,11 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
       currentStep++;
       final progress = currentStep / steps;
 
-      final lat = oldPosition.latitude +
+      final lat =
+          oldPosition.latitude +
           (newPosition.latitude - oldPosition.latitude) * progress;
-      final lng = oldPosition.longitude +
+      final lng =
+          oldPosition.longitude +
           (newPosition.longitude - oldPosition.longitude) * progress;
 
       _markers.removeWhere((m) => m.markerId.value == 'driver');
@@ -489,30 +488,28 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
 
     return Stack(
       children: [
-        // ✅ FIX PRINCIPAL : RawGestureDetector pour intercepter tous les gestes
-        // et les donner en priorité à la carte Google Maps
         RawGestureDetector(
           gestures: {
             // Absorbe les gestes de scale (zoom 2 doigts)
             ScaleGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<ScaleGestureRecognizer>(
-              () => ScaleGestureRecognizer(),
-              (ScaleGestureRecognizer instance) {
-                instance.onStart = (_) {};
-                instance.onUpdate = (_) {};
-                instance.onEnd = (_) {};
-              },
-            ),
+                  () => ScaleGestureRecognizer(),
+                  (ScaleGestureRecognizer instance) {
+                    instance.onStart = (_) {};
+                    instance.onUpdate = (_) {};
+                    instance.onEnd = (_) {};
+                  },
+                ),
             // Absorbe les gestes de pan (déplacer la carte)
             PanGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
-              () => PanGestureRecognizer(),
-              (PanGestureRecognizer instance) {
-                instance.onStart = (_) {};
-                instance.onUpdate = (_) {};
-                instance.onEnd = (_) {};
-              },
-            ),
+                  () => PanGestureRecognizer(),
+                  (PanGestureRecognizer instance) {
+                    instance.onStart = (_) {};
+                    instance.onUpdate = (_) {};
+                    instance.onEnd = (_) {};
+                  },
+                ),
           },
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
@@ -528,10 +525,10 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
             },
             myLocationEnabled: false,
             myLocationButtonEnabled: false,
-            // ✅ Boutons de zoom visibles pour aider l'utilisateur
+
             zoomControlsEnabled: true,
             mapToolbarEnabled: false,
-            // ✅ Tous les gestes activés
+
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             tiltGesturesEnabled: true,
@@ -541,12 +538,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
 
         // Informations de suivi en temps réel
         if (widget.enableRealtime && _currentData != null)
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: _buildTrackingInfo(),
-          ),
+          Positioned(top: 16, left: 16, right: 16, child: _buildTrackingInfo()),
       ],
     );
   }
@@ -582,17 +574,13 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
           _buildInfoItem(
             icon: Icons.trending_up,
             label: 'Progression',
-            value:
-                '${tracking.progressPercentage.toStringAsFixed(0)}%',
+            value: '${tracking.progressPercentage.toStringAsFixed(0)}%',
           ),
           _buildInfoItem(
-            icon: tracking.isActive
-                ? Icons.play_circle
-                : Icons.pause_circle,
+            icon: tracking.isActive ? Icons.play_circle : Icons.pause_circle,
             label: 'Statut',
             value: tracking.isActive ? 'En cours' : 'Arrêté',
-            valueColor:
-                tracking.isActive ? AppColors.success : AppColors.error,
+            valueColor: tracking.isActive ? AppColors.success : AppColors.error,
           ),
         ],
       ),
@@ -612,8 +600,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-              fontSize: 10, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
         ),
         Text(
           value,

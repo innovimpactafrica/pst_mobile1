@@ -19,7 +19,7 @@ class TripModel {
   final DateTime? startedAt;
   final DateTime? completedAt;
   final String? cancelReason;
-  
+
   // Coordonnées GPS pour afficher l'itinéraire sur la carte
   final double? startLatitude;
   final double? startLongitude;
@@ -53,7 +53,8 @@ class TripModel {
     this.estimatedDuration,
   });
 
-  bool get isActive => status == 'active' || status == 'started' || status == 'in_progress';
+  bool get isActive =>
+      status == 'active' || status == 'started' || status == 'in_progress';
   bool get isCompleted => status == 'completed';
   bool get isCanceled => status == 'canceled';
   bool get isPending => status == 'pending';
@@ -83,40 +84,44 @@ class TripModel {
       }
     }
 
-   
-List<SchoolModel> parseSchools(Map<String, dynamic> json) {
- 
-  if (json['stops'] != null && json['stops'] is List && (json['stops'] as List).isNotEmpty) {
-    return (json['stops'] as List).map((stop) {
-      final s = stop as Map<String, dynamic>;
-      return SchoolModel(
-        id: s['school_id'] is int 
-            ? s['school_id'] 
-            : int.tryParse(s['school_id'].toString()),
-        name: (s['school_name'] ?? 'École').toString(),
-        address: (s['school_address'] ?? '').toString(),
-      );
-    }).toList();
-  }
+    List<SchoolModel> parseSchools(Map<String, dynamic> json) {
+      if (json['stops'] != null &&
+          json['stops'] is List &&
+          (json['stops'] as List).isNotEmpty) {
+        return (json['stops'] as List).map((stop) {
+          final s = stop as Map<String, dynamic>;
+          return SchoolModel(
+            id: s['school_id'] is int
+                ? s['school_id']
+                : int.tryParse(s['school_id'].toString()),
+            name: (s['school_name'] ?? 'École').toString(),
+            address: (s['school_address'] ?? '').toString(),
+          );
+        }).toList();
+      }
 
+      if (json['schools'] != null &&
+          json['schools'] is List &&
+          (json['schools'] as List).isNotEmpty) {
+        return (json['schools'] as List)
+            .map((s) => SchoolModel.fromJson(s))
+            .toList();
+      }
 
-  if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
-    return (json['schools'] as List).map((s) => SchoolModel.fromJson(s)).toList();
-  }
+      final schoolId = json['school_id'];
+      if (schoolId != null) {
+        return [
+          SchoolModel(
+            id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
+            name: (json['school_name'] ?? json['end_point'] ?? 'École')
+                .toString(),
+            address: (json['school_address'] ?? '').toString(),
+          ),
+        ];
+      }
 
-  final schoolId = json['school_id'];
-  if (schoolId != null) {
-    return [
-      SchoolModel(
-        id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
-        name: (json['school_name'] ?? json['end_point'] ?? 'École').toString(),
-        address: (json['school_address'] ?? '').toString(),
-      ),
-    ];
-  }
-
-  return [];
-}
+      return [];
+    }
 
     String? extractTime(dynamic departureTime) {
       if (departureTime == null) return null;
@@ -130,44 +135,46 @@ List<SchoolModel> parseSchools(Map<String, dynamic> json) {
 
     return TripModel(
       id: (json['id'] ?? json['_id'] ?? '').toString(),
-      
-      
+
       driverId: json['driver_id']?.toString() ?? json['driverId']?.toString(),
-      
-     
+
       destination: (json['end_point'] ?? json['destination'] ?? '').toString(),
-      startLocation: (json['start_point'] ?? json['lieuDepart'] ?? '').toString(),
-      
-     
+      startLocation: (json['start_point'] ?? json['lieuDepart'] ?? '')
+          .toString(),
+
       date: parseDate(json['departure_time'] ?? json['date']),
-      time: extractTime(json['departure_time']) ?? (json['time'] ?? '00:00').toString(),
+      time:
+          extractTime(json['departure_time']) ??
+          (json['time'] ?? '00:00').toString(),
       returnTime: extractTime(json['return_departure_time']),
       tripType: (json['trip_type'] ?? 'aller').toString(),
-      
-     
+
       totalSeats: safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0),
-      availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
-      
-      
+      availableSeats: safeInt(
+        json['placesDisponibles'] ?? json['capacity_max'] ?? 0,
+      ),
+
       price: safeDouble(json['price']),
-      
-     
+
       status: (json['status'] ?? 'pending').toString().toLowerCase(),
       returnStatus: json['return_status']?.toString().toLowerCase(),
-      
-      
+
       passengers: json['passengers'] != null
-          ? (json['passengers'] as List).map((p) => Passenger.fromJson(p)).toList()
+          ? (json['passengers'] as List)
+                .map((p) => Passenger.fromJson(p))
+                .toList()
           : [],
-      
-    
+
       schools: parseSchools(json),
-      
-     
-      startedAt: json['startedAt'] != null ? parseDate(json['startedAt']) : null,
-      completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
+
+      startedAt: json['startedAt'] != null
+          ? parseDate(json['startedAt'])
+          : null,
+      completedAt: json['completedAt'] != null
+          ? parseDate(json['completedAt'])
+          : null,
       cancelReason: json['cancelReason']?.toString(),
-      
+
       // Coordonnées GPS
       startLatitude: safeDouble(json['start_latitude']),
       startLongitude: safeDouble(json['start_longitude']),
@@ -267,34 +274,42 @@ class Passenger {
     this.avatarColor,
   });
 
- String get initials {
-  if (name.isEmpty) return '?';
-  
-  final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
-  
-  if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
-    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  String get initials {
+    if (name.isEmpty) return '?';
+
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+
+    if (parts.isNotEmpty && parts[0].isNotEmpty) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+
+    return '?';
   }
-  
-  if (parts.isNotEmpty && parts[0].isNotEmpty) {
-    return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
-  }
-  
-  return '?';
-}
 
   factory Passenger.fromJson(Map<String, dynamic> json) {
-   
-    String rawName = (json['child_name'] ?? json['name'] ?? json['nom'] ?? '').toString().trim();
-    
+    String rawName = (json['child_name'] ?? json['name'] ?? json['nom'] ?? '')
+        .toString()
+        .trim();
+
     return Passenger(
       id: (json['child_id'] ?? json['_id'] ?? json['id'] ?? '').toString(),
       name: rawName.isEmpty ? 'Enfant' : rawName,
-      phone: json['parent_phone']?.toString() ?? json['phone']?.toString() ?? json['telephone']?.toString(),
+      phone:
+          json['parent_phone']?.toString() ??
+          json['phone']?.toString() ??
+          json['telephone']?.toString(),
       isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
       photo: json['photo']?.toString() ?? json['image']?.toString(),
-      school: json['school_name']?.toString() ?? json['school']?.toString() ?? json['ecole']?.toString(),
-      avatarColor: json['avatarColor']?.toString() ?? json['couleur']?.toString(),
+      school:
+          json['school_name']?.toString() ??
+          json['school']?.toString() ??
+          json['ecole']?.toString(),
+      avatarColor:
+          json['avatarColor']?.toString() ?? json['couleur']?.toString(),
     );
   }
 

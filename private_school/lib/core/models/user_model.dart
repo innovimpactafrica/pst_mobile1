@@ -1,4 +1,3 @@
-
 class UserModel {
   final String id;
   final String firstName;
@@ -24,7 +23,6 @@ class UserModel {
     this.updatedAt,
   });
 
-  
   String get fullName => '$firstName $lastName';
 
   String get initials {
@@ -33,49 +31,51 @@ class UserModel {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-  final fullName = (json['name'] ?? '').toString().split(' ');
-  final dynamic rawId = json['id'] ?? json['_id'];
-  final String parsedId = rawId != null ? rawId.toString() : '';
+    final fullName = (json['name'] ?? '').toString().split(' ');
+    final dynamic rawId = json['id'] ?? json['_id'];
+    final String parsedId = rawId != null ? rawId.toString() : '';
 
-  // l'adresse serveur
-  const String baseUrl = "http://86.106.181.31:3000";
+    // l'adresse serveur
+    const String baseUrl = "http://86.106.181.31:3000";
 
-String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
+    String? rawPhoto =
+        json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
 
+    String? fullPhotoUrl;
+    if (rawPhoto != null && rawPhoto.isNotEmpty) {
+      fullPhotoUrl = rawPhoto.startsWith('http')
+          ? rawPhoto
+          : '$baseUrl$rawPhoto';
+    }
 
-  String? fullPhotoUrl;
-  if (rawPhoto != null && rawPhoto.isNotEmpty) {
-    fullPhotoUrl = rawPhoto.startsWith('http') 
-        ? rawPhoto 
-        : '$baseUrl$rawPhoto';
+    return UserModel(
+      id: parsedId,
+      firstName:
+          json['firstName'] ??
+          json['prenom'] ??
+          (fullName.isNotEmpty ? fullName.first : ''),
+      lastName:
+          json['lastName'] ??
+          json['nom'] ??
+          (fullName.length > 1 ? fullName.sublist(1).join(' ') : ''),
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? json['telephone'],
+      address:
+          json['home_address'] ??
+          json['address'] ??
+          json['adresse'] ??
+          json['homeAddress'],
+      photo: fullPhotoUrl,
+      role: json['role'],
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'])
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'])
+          : null,
+    );
   }
 
-  return UserModel(
-    id: parsedId,
-    firstName: json['firstName'] ??
-        json['prenom'] ??
-        (fullName.isNotEmpty ? fullName.first : ''),
-    lastName: json['lastName'] ??
-        json['nom'] ??
-        (fullName.length > 1 ? fullName.sublist(1).join(' ') : ''),
-    email: json['email'] ?? '',
-    phone: json['phone'] ?? json['telephone'],
-   address: json['home_address'] ??  
-         json['address'] ??       
-         json['adresse'] ??       
-         json['homeAddress'],     
-    photo: fullPhotoUrl, 
-    role: json['role'],
-    createdAt: json['createdAt'] != null
-        ? DateTime.tryParse(json['createdAt'])
-        : null,
-    updatedAt: json['updatedAt'] != null
-        ? DateTime.tryParse(json['updatedAt'])
-        : null,
-  );
-}
-
- 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -89,7 +89,6 @@ String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
     };
   }
 
- 
   UserModel copyWith({
     String? id,
     String? firstName,

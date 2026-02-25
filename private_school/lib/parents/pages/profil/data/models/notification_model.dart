@@ -21,7 +21,7 @@ class NotificationModel {
   final String? emetteurNom;
   final DateTime dateCreation;
   final String statut;
-  final bool isRead; // ✅ lu du backend, simple et direct
+  final bool isRead;
 
   NotificationModel({
     required this.id,
@@ -42,7 +42,8 @@ class NotificationModel {
       return NotificationType.tripStarted;
     }
     if (lowerType.contains('incident')) return NotificationType.incident;
-    if (lowerType.contains('subscription') || lowerType.contains('abonnement')) {
+    if (lowerType.contains('subscription') ||
+        lowerType.contains('abonnement')) {
       return NotificationType.subscription;
     }
     if (lowerType.contains('payment') || lowerType.contains('paiement')) {
@@ -74,11 +75,10 @@ class NotificationModel {
   }
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    // ✅ Lire directement "lu" du backend — c'est tout ce dont on a besoin
     final bool isRead = json['lu'] == true;
 
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔍 [NotificationModel] Parsing:');
+    debugPrint(' [NotificationModel] Parsing:');
     debugPrint('   ID: ${json['id']}');
     debugPrint('   Libelle: ${json['libelle']}');
     debugPrint('   lu (backend): ${json['lu']} → isRead: $isRead');
@@ -103,17 +103,17 @@ class NotificationModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'libelle': title,
-        'description': message,
-        'type': type,
-        'image_url': imageUrl,
-        'emetteur_id': emetteurId,
-        'emetteur_nom': emetteurNom,
-        'date_creation': dateCreation.toIso8601String(),
-        'statut': statut,
-        'lu': isRead,
-      };
+    'id': id,
+    'libelle': title,
+    'description': message,
+    'type': type,
+    'image_url': imageUrl,
+    'emetteur_id': emetteurId,
+    'emetteur_nom': emetteurNom,
+    'date_creation': dateCreation.toIso8601String(),
+    'statut': statut,
+    'lu': isRead,
+  };
 
   NotificationModel copyWith({
     String? id,

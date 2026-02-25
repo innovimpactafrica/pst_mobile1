@@ -4,19 +4,78 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:private_school/parents/pages/acceuil/data/services/messaging_service.dart';
 import 'package:private_school/parents/pages/acceuil/presentation/pages/chat.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
+import 'package:private_school/parents/pages/trajets/data/models/evaluation_model.dart';
+import 'package:private_school/parents/pages/trajets/data/repositories/evaluation_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import '../../../../../core/utils/app_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-class DriverDetailsModal extends StatelessWidget {
+class DriverDetailsModal extends StatefulWidget {
   final DriverModel driver;
+  final String? vehiclePhotoUrl;
 
-  const DriverDetailsModal({super.key, required this.driver});
+  const DriverDetailsModal({
+    super.key,
+    required this.driver,
+    this.vehiclePhotoUrl,
+  });
+
+  @override
+  State<DriverDetailsModal> createState() => _DriverDetailsModalState();
+}
+
+class _DriverDetailsModalState extends State<DriverDetailsModal> {
+  List<EvaluationModel> _evaluations = [];
+  bool _isLoading = true;
+  double _avgRating = 0.0;
+  int _totalTrips = 0;
+  double _successRate = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDriverStats();
+  }
+
+  Future<void> _loadDriverStats() async {
+    try {
+      final driverId = int.tryParse(widget.driver.id);
+      if (driverId == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final evaluations = await EvaluationRepository().getDriverEvaluations(
+        driverId: driverId,
+        limit: 50,
+      );
+
+      double avg = 0.0;
+      if (evaluations.isNotEmpty) {
+        avg =
+            evaluations.map((e) => e.rating).reduce((a, b) => a + b) /
+            evaluations.length;
+      }
+
+      setState(() {
+        _evaluations = evaluations;
+        _avgRating = avg;
+        _totalTrips = widget.driver.totalTrips;
+        _successRate = widget.driver.successRate;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('❌ Erreur chargement stats driver: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final photoToShow = widget.vehiclePhotoUrl ?? widget.driver.vehicle?.photo;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
@@ -28,7 +87,6 @@ class DriverDetailsModal extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // HEADER
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -62,15 +120,23 @@ class DriverDetailsModal extends StatelessWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.grey.shade200,
-                        backgroundImage: driver.photo != null && driver.photo!.isNotEmpty
-                            ? NetworkImage(driver.photo!)
+                        backgroundImage:
+                            widget.driver.photo != null &&
+                                widget.driver.photo!.isNotEmpty
+                            ? NetworkImage(widget.driver.photo!)
                             : null,
-                        onBackgroundImageError: driver.photo != null && driver.photo!.isNotEmpty
+                        onBackgroundImageError:
+                            widget.driver.photo != null &&
+                                widget.driver.photo!.isNotEmpty
                             ? (_, __) {
-                                debugPrint('! Erreur chargement photo chauffeur');
+                                debugPrint(
+                                  '! Erreur chargement photo chauffeur',
+                                );
                               }
                             : null,
-                        child: driver.photo == null || driver.photo!.isEmpty
+                        child:
+                            widget.driver.photo == null ||
+                                widget.driver.photo!.isEmpty
                             ? Icon(
                                 Icons.person,
                                 size: 60,
@@ -102,7 +168,7 @@ class DriverDetailsModal extends StatelessWidget {
 
                   // NOM
                   Text(
-                    driver.fullName,
+                    widget.driver.fullName,
                     style: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -114,7 +180,7 @@ class DriverDetailsModal extends StatelessWidget {
 
                   // MEMBRE DEPUIS
                   Text(
-                    driver.memberSince,
+                    widget.driver.memberSince,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -123,7 +189,7 @@ class DriverDetailsModal extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // STATISTIQUES (3 colonnes)
+                  // STATISTIQUES
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -137,10 +203,9 @@ class DriverDetailsModal extends StatelessWidget {
                             BlendMode.srcIn,
                           ),
                         ),
-                        value: driver.totalTrips.toString(),
+                        value: _isLoading ? '...' : _totalTrips.toString(),
                         label: 'successful_trips'.tr(),
                       ),
-
                       _buildStatColumn(
                         icon: Icon(
                           Icons.star,
@@ -148,10 +213,11 @@ class DriverDetailsModal extends StatelessWidget {
                           size: 24,
                         ),
                         iconColor: AppColors.success,
-                        value: driver.rating.toString(),
-                        label: '${driver.totalReviews} ${'reviews'.tr()}',
+                        value: _isLoading
+                            ? '...'
+                            : _avgRating.toStringAsFixed(1),
+                        label: '${_evaluations.length} ${'reviews'.tr()}',
                       ),
-
                       _buildStatColumn(
                         icon: Icon(
                           Icons.check_circle,
@@ -159,7 +225,9 @@ class DriverDetailsModal extends StatelessWidget {
                           size: 24,
                         ),
                         iconColor: AppColors.success,
-                        value: '${driver.successRate.toStringAsFixed(0)}%',
+                        value: _isLoading
+                            ? '...'
+                            : '${_successRate.toStringAsFixed(0)}%',
                         label: 'success_rate'.tr(),
                       ),
                     ],
@@ -168,7 +236,7 @@ class DriverDetailsModal extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // INFORMATIONS DU VÉHICULE
-                  if (driver.vehicle != null) ...[
+                  if (widget.driver.vehicle != null) ...[
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -183,7 +251,7 @@ class DriverDetailsModal extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // IMAGE DU BUS
+                    //  IMAGE DU VÉHICULE CORRIGÉE
                     Container(
                       width: double.infinity,
                       height: 180,
@@ -193,9 +261,9 @@ class DriverDetailsModal extends StatelessWidget {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: driver.vehicle!.photo != null && driver.vehicle!.photo!.isNotEmpty
+                        child: photoToShow != null && photoToShow.isNotEmpty
                             ? Image.network(
-                                driver.vehicle!.photo!,
+                                photoToShow,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Center(
@@ -229,13 +297,19 @@ class DriverDetailsModal extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          _buildVehicleInfoRow('model'.tr(), driver.vehicle!.model),
+                          _buildVehicleInfoRow(
+                            'model'.tr(),
+                            widget.driver.vehicle!.model,
+                          ),
                           const Divider(height: 24),
-                          _buildVehicleInfoRow('plate'.tr(), driver.vehicle!.plate),
+                          _buildVehicleInfoRow(
+                            'plate'.tr(),
+                            widget.driver.vehicle!.plate,
+                          ),
                           const Divider(height: 24),
                           _buildVehicleInfoRow(
                             'color'.tr(),
-                            driver.vehicle!.color,
+                            widget.driver.vehicle!.color,
                           ),
                         ],
                       ),
@@ -321,7 +395,6 @@ class DriverDetailsModal extends StatelessWidget {
           ),
           child: icon,
         ),
-
         const SizedBox(height: 8),
         Text(
           value,
@@ -362,8 +435,22 @@ class DriverDetailsModal extends StatelessWidget {
   }
 
   void _openChat(BuildContext context) async {
-    Navigator.pop(context);
+    final driverUserId = widget.driver.userId;
 
+    if (driverUserId == null || driverUserId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'driver_not_available'.tr(),
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    Navigator.pop(context);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -373,7 +460,7 @@ class DriverDetailsModal extends StatelessWidget {
     try {
       final messagingService = MessagingService();
       final conversation = await messagingService.createOrGetDirectConversation(
-        otherUserId: int.parse(driver.id),
+        otherUserId: int.parse(driverUserId),
       );
 
       if (!context.mounted) return;
@@ -391,7 +478,6 @@ class DriverDetailsModal extends StatelessWidget {
     } catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context);
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${'chat_error'.tr()}: $e', style: GoogleFonts.inter()),
@@ -402,7 +488,7 @@ class DriverDetailsModal extends StatelessWidget {
   }
 
   void _callDriver(BuildContext context) async {
-    final phone = driver.phone;
+    final phone = widget.driver.phone;
     if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -412,9 +498,7 @@ class DriverDetailsModal extends StatelessWidget {
       );
       return;
     }
-    
     Navigator.pop(context);
-    
     final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -422,7 +506,10 @@ class DriverDetailsModal extends StatelessWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('cannot_open_phone_app'.tr(), style: GoogleFonts.inter()),
+          content: Text(
+            'cannot_open_phone_app'.tr(),
+            style: GoogleFonts.inter(),
+          ),
           backgroundColor: Colors.red,
         ),
       );

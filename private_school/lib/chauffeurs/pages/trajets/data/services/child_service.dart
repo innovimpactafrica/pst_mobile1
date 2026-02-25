@@ -5,16 +5,16 @@ import '../../../../../parents/pages/enfants/data/models/child_model.dart';
 
 class ChildService {
   final ApiClient _apiClient = ApiClient();
-  
+
   Future<List<ChildModel>> getChildrenBySchool(int schoolId) async {
     try {
-      final response = await _apiClient.get(ApiConstants.childrenBySchool(schoolId));
+      final response = await _apiClient.get(
+        ApiConstants.childrenBySchool(schoolId),
+      );
       final List<dynamic> childrenJson;
 
       if (response.data is Map<String, dynamic>) {
-        childrenJson = response.data['children'] ?? 
-                      response.data['data'] ?? 
-                      [];
+        childrenJson = response.data['children'] ?? response.data['data'] ?? [];
       } else if (response.data is List) {
         childrenJson = response.data;
       } else {
@@ -24,7 +24,7 @@ class ChildService {
       final children = childrenJson
           .map((json) => ChildModel.fromJson(json))
           .toList();
-      
+
       if (children.isNotEmpty) {
         for (var child in children) {
           debugPrint('Enfant: ${child.firstName} ${child.lastName}');
@@ -45,9 +45,7 @@ class ChildService {
       final List<dynamic> childrenJson;
 
       if (response.data is Map<String, dynamic>) {
-        childrenJson = response.data['children'] ?? 
-                      response.data['data'] ?? 
-                      [];
+        childrenJson = response.data['children'] ?? response.data['data'] ?? [];
       } else if (response.data is List) {
         childrenJson = response.data;
       } else {

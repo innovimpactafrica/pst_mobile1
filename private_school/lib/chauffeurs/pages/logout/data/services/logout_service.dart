@@ -1,4 +1,3 @@
-
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/storage/secure_storage.dart';
 import '../../../../../core/utils/api_constants.dart';
@@ -12,7 +11,7 @@ class LogoutService {
       try {
         await _apiClient.post(ApiConstants.logout);
       } catch (e) {
-        // 
+        //
       }
       await _storage.clearAll();
     } catch (e) {

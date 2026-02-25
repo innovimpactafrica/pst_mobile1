@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,7 +16,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _contactController = TextEditingController();
-  bool _isPhoneMode = true; 
+  bool _isPhoneMode = true;
 
   @override
   void dispose() {
@@ -32,9 +30,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (contact.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isPhoneMode
-              ? 'enter_phone_number'.tr()
-              : 'enter_email_address'.tr()),
+          content: Text(
+            _isPhoneMode
+                ? 'enter_phone_number'.tr()
+                : 'enter_email_address'.tr(),
+          ),
           backgroundColor: AppColors.warning,
           duration: const Duration(seconds: 2),
         ),
@@ -71,55 +71,52 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     FocusScope.of(context).unfocus();
     context.read<DriverAuthBloc>().add(
-          DriverForgotPasswordEvent(contact: contact),
-        );
+      DriverForgotPasswordEvent(contact: contact),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<DriverAuthBloc, DriverAuthState>(
       listener: (context, state) {
-  if (state is DriverAuthLoading) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.primary,
-          ),
-        ),
-      ),
-    );
-  } else if (state is DriverPasswordResetRequested) {
-    // Close loading
-    if (Navigator.canPop(context)) {
-      Navigator.of(context).pop();
-    }
+        if (state is DriverAuthLoading) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => PopScope(
+              canPop: false,
+              child: const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
+            ),
+          );
+        } else if (state is DriverPasswordResetRequested) {
+          // Close loading
+          if (Navigator.canPop(context)) {
+            Navigator.of(context).pop();
+          }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('code_sent_successfully'.tr()),
-        backgroundColor: AppColors.success,
-        duration: Duration(seconds: 2),
-      ),
-    );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('code_sent_successfully'.tr()),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
 
-   
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<DriverAuthBloc>(),
-          child: VerifyOtpForgotPage(
-            contact: _contactController.text.trim(),
-            userId: state.userId,  
-          ),
-        ),
-      ),
-    );
-  } else if (state is DriverAuthError) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<DriverAuthBloc>(),
+                child: VerifyOtpForgotPage(
+                  contact: _contactController.text.trim(),
+                  userId: state.userId,
+                ),
+              ),
+            ),
+          );
+        } else if (state is DriverAuthError) {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
@@ -174,17 +171,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     setState(() {});
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.language, color: AppColors.primary, size: 20),
+                        const Icon(
+                          Icons.language,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 6),
                         Text(
-                          context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                          context.locale.languageCode == 'fr'
+                              ? 'Français'
+                              : 'English',
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontSize: 14,
@@ -224,7 +230,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 12),
 
-                 
                   Text(
                     'enter_phone_or_email'.tr(),
                     textAlign: TextAlign.center,
@@ -237,7 +242,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 30),
 
-                  
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -266,8 +270,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 boxShadow: _isPhoneMode
                                     ? [
                                         BoxShadow(
-                                          color: Colors.black
-                                              .withValues(alpha: 0.05),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -322,8 +327,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 boxShadow: !_isPhoneMode
                                     ? [
                                         BoxShadow(
-                                          color: Colors.black
-                                              .withValues(alpha: 0.05),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -364,7 +370,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 24),
 
-                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(

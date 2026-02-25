@@ -22,7 +22,8 @@ class SchoolAutocompleteField extends StatefulWidget {
   });
 
   @override
-  State<SchoolAutocompleteField> createState() => _SchoolAutocompleteFieldState();
+  State<SchoolAutocompleteField> createState() =>
+      _SchoolAutocompleteFieldState();
 }
 
 class _SchoolAutocompleteFieldState extends State<SchoolAutocompleteField> {
@@ -93,10 +94,15 @@ class _SchoolAutocompleteFieldState extends State<SchoolAutocompleteField> {
                       itemBuilder: (context, index) {
                         final school = _suggestions[index];
                         return ListTile(
-                          leading: const Icon(Icons.school, color: AppColors.success),
+                          leading: const Icon(
+                            Icons.school,
+                            color: AppColors.success,
+                          ),
                           title: Text(
                             school.name,
-                            style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           subtitle: school.address.isNotEmpty
                               ? Text(
@@ -125,12 +131,12 @@ class _SchoolAutocompleteFieldState extends State<SchoolAutocompleteField> {
     final query = value.toLowerCase();
     final matchingSchools = widget.schools.where((school) {
       return school.name.toLowerCase().contains(query) ||
-             school.address.toLowerCase().contains(query);
+          school.address.toLowerCase().contains(query);
     }).toList();
 
     setState(() => _suggestions = matchingSchools);
     _showOverlay();
-    
+
     if (_overlayEntry != null) {
       _overlayEntry!.markNeedsBuild();
     }
@@ -163,17 +169,17 @@ class _SchoolAutocompleteFieldState extends State<SchoolAutocompleteField> {
             controller: widget.controller,
             enabled: widget.enabled,
             onChanged: _onSearchChanged,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.black87,
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
             decoration: InputDecoration(
               hintText: widget.hint,
               hintStyle: GoogleFonts.inter(
                 fontSize: 14,
                 color: Colors.grey.shade400,
               ),
-              prefixIcon: Icon(Icons.school_outlined, color: AppColors.success.withValues(alpha: 0.7)),
+              prefixIcon: Icon(
+                Icons.school_outlined,
+                color: AppColors.success.withValues(alpha: 0.7),
+              ),
               suffixIcon: widget.controller.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 20),
@@ -196,7 +202,10 @@ class _SchoolAutocompleteFieldState extends State<SchoolAutocompleteField> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.success, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.success,
+                  width: 2,
+                ),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),

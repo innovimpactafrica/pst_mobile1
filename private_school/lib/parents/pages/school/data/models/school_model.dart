@@ -9,8 +9,7 @@ class SchoolModel {
   final String? createdAt;
   final double? latitude;
   final double? longitude;
-  
-  // ✅ CORRECTION: schedule est une liste, pas une string
+
   final List<Map<String, dynamic>>? schedule;
 
   SchoolModel({
@@ -28,7 +27,6 @@ class SchoolModel {
   });
 
   factory SchoolModel.fromJson(Map<String, dynamic> json) {
-    // ✅ Parse schedule comme une Liste
     List<Map<String, dynamic>>? parsedSchedule;
     if (json['schedule'] != null && json['schedule'] is List) {
       parsedSchedule = (json['schedule'] as List)

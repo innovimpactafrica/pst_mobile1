@@ -31,9 +31,11 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
     if (contact.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isPhoneMode
-              ? 'enter_phone_number'.tr()
-              : 'enter_email_address'.tr()),
+          content: Text(
+            _isPhoneMode
+                ? 'enter_phone_number'.tr()
+                : 'enter_email_address'.tr(),
+          ),
           backgroundColor: AppColors.warning,
         ),
       );
@@ -93,10 +95,8 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Verification(
-                contact: state.contact,
-                userId: state.userId,
-              ),
+              builder: (_) =>
+                  Verification(contact: state.contact, userId: state.userId),
             ),
           );
         } else if (state is AuthError) {
@@ -152,7 +152,10 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                           setState(() {});
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
@@ -166,7 +169,9 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                context.locale.languageCode == 'fr' ? 'Français' : 'English',
+                                context.locale.languageCode == 'fr'
+                                    ? 'Français'
+                                    : 'English',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primary,
@@ -374,22 +379,25 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                       filled: true,
                       fillColor: AppColors.backgroundLight,
                       border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.borderLight,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppConstants.radiusL),
+                        borderRadius: BorderRadius.circular(
+                          AppConstants.radiusL,
+                        ),
                         borderSide: const BorderSide(
                           color: AppColors.primary,
                           width: 2,
@@ -410,7 +418,7 @@ class _MdpOubliePageState extends State<MdpOubliePage> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isLoading
-                            ? AppColors.success.withValues(alpha:0.6)
+                            ? AppColors.success.withValues(alpha: 0.6)
                             : AppColors.success,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),

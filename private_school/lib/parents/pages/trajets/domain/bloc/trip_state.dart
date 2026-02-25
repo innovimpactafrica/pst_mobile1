@@ -14,21 +14,18 @@ class TripInitial extends TripState {}
 /// Chargement en cours
 class TripLoading extends TripState {}
 
-/// ✅ Liste de trajets chargée (disponibles OU réservations)
+///  Liste de trajets chargée (disponibles OU réservations)
 class TripLoaded extends TripState {
   final List<TripModel> trips;
   final int selectedTabIndex; // 0 = Disponibles, 1 = Mes réservations
 
-  const TripLoaded({
-    required this.trips,
-    this.selectedTabIndex = 0,
-  });
+  const TripLoaded({required this.trips, this.selectedTabIndex = 0});
 
   @override
   List<Object?> get props => [trips, selectedTabIndex];
 }
 
-/// ✅ Détails d'un trajet chargés
+///  Détails d'un trajet chargés
 class TripDetailsLoaded extends TripState {
   final TripModel trip;
 
@@ -38,7 +35,7 @@ class TripDetailsLoaded extends TripState {
   List<Object?> get props => [trip];
 }
 
-/// ✅ Suivi en temps réel actif
+///  Suivi en temps réel actif
 class TripRealtimeTracking extends TripState {
   final Map<String, dynamic> realtimeData;
 
@@ -48,10 +45,10 @@ class TripRealtimeTracking extends TripState {
   List<Object?> get props => [realtimeData];
 }
 
-/// ✅ Réservation en cours
+///  Réservation en cours
 class TripReserving extends TripState {}
 
-/// ✅ Réservation réussie
+///  Réservation réussie
 class TripReserved extends TripState {
   final String message;
 
@@ -61,10 +58,10 @@ class TripReserved extends TripState {
   List<Object?> get props => [message];
 }
 
-/// ✅ Annulation en cours
+///  Annulation en cours
 class TripCanceling extends TripState {}
 
-/// ✅ Annulation réussie
+///  Annulation réussie
 class TripCanceled extends TripState {
   final String message;
 

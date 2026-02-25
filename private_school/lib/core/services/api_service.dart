@@ -1,4 +1,3 @@
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../storage/secure_storage.dart';
@@ -10,7 +9,7 @@ class ApiService {
   ApiService._internal();
 
   final SecureStorage _storage = SecureStorage();
-  
+
   Future<Map<String, String>> _getHeaders() async {
     final token = await _storage.getToken();
     return {
@@ -30,12 +29,14 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
 
-  Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final headers = await _getHeaders();
       final response = await http.post(
@@ -46,12 +47,14 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
 
-  Future<Map<String, dynamic>> put(String endpoint, {Map<String, dynamic>? data}) async {
+  Future<Map<String, dynamic>> put(
+    String endpoint, {
+    Map<String, dynamic>? data,
+  }) async {
     try {
       final headers = await _getHeaders();
       final response = await http.put(
@@ -62,7 +65,6 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
@@ -77,7 +79,6 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
@@ -85,7 +86,7 @@ class ApiService {
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {
       final data = json.decode(response.body);
-      
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return data;
       } else {
@@ -95,10 +96,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de traitement des données',
-      };
+      return {'success': false, 'message': 'Erreur de traitement des données'};
     }
   }
 }

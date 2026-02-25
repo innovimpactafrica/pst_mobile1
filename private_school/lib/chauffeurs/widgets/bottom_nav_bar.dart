@@ -15,11 +15,7 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: 12,
-      ),
+      margin: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),

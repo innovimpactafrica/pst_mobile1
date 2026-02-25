@@ -7,35 +7,29 @@ abstract class TripEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// ✅ Charger les trajets DISPONIBLES (pas encore réservés)
+///  Charger les trajets DISPONIBLES (pas encore réservés)
 class LoadAvailableTripsEvent extends TripEvent {}
 
-/// ✅ Charger MES RÉSERVATIONS (trajets déjà réservés)
+///  Charger MES RÉSERVATIONS (trajets déjà réservés)
 class LoadMyReservationsEvent extends TripEvent {}
 
-/// ✅ NOUVEAU : Réserver un trajet pour un ou plusieurs enfants
+///  Réserver un trajet pour un ou plusieurs enfants
 class ReserveTripEvent extends TripEvent {
   final String tripId;
   final List<String> childIds;
 
-  const ReserveTripEvent({
-    required this.tripId,
-    required this.childIds,
-  });
+  const ReserveTripEvent({required this.tripId, required this.childIds});
 
   @override
   List<Object?> get props => [tripId, childIds];
 }
 
-/// ✅ Annuler une réservation
+///  Annuler une réservation
 class CancelReservationEvent extends TripEvent {
   final String tripId;
   final String childId;
 
-  const CancelReservationEvent({
-    required this.tripId,
-    required this.childId,
-  });
+  const CancelReservationEvent({required this.tripId, required this.childId});
 
   @override
   List<Object?> get props => [tripId, childId];
@@ -66,7 +60,12 @@ class SearchTripsEvent extends TripEvent {
   });
 
   @override
-  List<Object?> get props => [homeAddress, schoolAddress, departureTime, childId];
+  List<Object?> get props => [
+    homeAddress,
+    schoolAddress,
+    departureTime,
+    childId,
+  ];
 }
 
 /// Rafraîchir les trajets
@@ -97,10 +96,7 @@ class ContactDriverEvent extends TripEvent {
   final String tripId;
   final String message;
 
-  const ContactDriverEvent({
-    required this.tripId,
-    required this.message,
-  });
+  const ContactDriverEvent({required this.tripId, required this.message});
 
   @override
   List<Object?> get props => [tripId, message];

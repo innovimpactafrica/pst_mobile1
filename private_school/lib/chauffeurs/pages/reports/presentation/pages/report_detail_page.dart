@@ -13,10 +13,7 @@ import '../widgets/report_problem_modal.dart';
 class ReportDetailPage extends StatelessWidget {
   final ReportModel report;
 
-  const ReportDetailPage({
-    super.key,
-    required this.report,
-  });
+  const ReportDetailPage({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +122,7 @@ class ReportDetailPage extends StatelessWidget {
 
   Widget _buildStatusBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: _getStatusBackgroundColor(report.status),
         borderRadius: BorderRadius.circular(AppConstants.radiusL),
@@ -213,11 +207,7 @@ class ReportDetailPage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: AppColors.primary,
-        ),
+        Icon(icon, size: 20, color: AppColors.primary),
         const SizedBox(width: AppConstants.spacingM),
         Expanded(
           child: Column(
@@ -306,9 +296,7 @@ class ReportDetailPage extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => ReportProblemModal(
-                  reportToEdit: report,
-                ),
+                builder: (context) => ReportProblemModal(reportToEdit: report),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -395,13 +383,9 @@ class ReportDetailPage extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-       context.read<ReportBloc>().add(
-  DeleteReportEvent(
-    id: report.id,
-    userId: report.userId,
-  ),
-);
-
+              context.read<ReportBloc>().add(
+                DeleteReportEvent(id: report.id, userId: report.userId),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,

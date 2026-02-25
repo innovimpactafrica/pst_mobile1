@@ -1,5 +1,3 @@
-
-
 import '../../../../../core/network/api_client.dart';
 import '../models/transaction_model.dart';
 
@@ -15,7 +13,9 @@ class TransactionService {
           : response.data['data'] ?? response.data['transactions'] ?? [];
 
       return transactionsData
-          .map((json) => TransactionModel.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => TransactionModel.fromJson(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       throw Exception('Failed to load transactions: $e');

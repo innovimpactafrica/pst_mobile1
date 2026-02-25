@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-//import '../../data/models/incident_model.dart';
 import '../../data/services/incident_service.dart';
 import 'incident_event.dart';
 import 'incident_state.dart';

@@ -1,10 +1,7 @@
-
-
 import 'package:dio/dio.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/driver_profile_model.dart';
-
 
 class DriverProfileService {
   final ApiClient _apiClient = ApiClient();
@@ -33,7 +30,6 @@ class DriverProfileService {
     }
   }
 
-  
   Future<DriverProfileModel> updateProfileWithPhoto(FormData formData) async {
     try {
       final response = await _apiClient.put(
@@ -41,7 +37,7 @@ class DriverProfileService {
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
       );
-      
+
       if (response.data['success'] == true) {
         return await getProfile();
       } else {
@@ -50,44 +46,34 @@ class DriverProfileService {
         );
       }
     } on DioException catch (e) {
-      
       throw Exception(_handleError(e));
     } catch (e) {
-
       throw Exception('Failed to update profile: $e');
     }
   }
 
-
-Future<DriverProfileModel> updateDriverById({
-  required String driverId,
-  required FormData formData,
-}) async {
-  try {
-   
-    final response = await _apiClient.put(
-      ApiConstants.updateDriverById(driverId),
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    );
-    if (response.data != null && response.data['id'] != null) {
-     
-      return await getProfile();
-    } else {
-      throw Exception('Réponse invalide du serveur');
+  Future<DriverProfileModel> updateDriverById({
+    required String driverId,
+    required FormData formData,
+  }) async {
+    try {
+      final response = await _apiClient.put(
+        ApiConstants.updateDriverById(driverId),
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      if (response.data != null && response.data['id'] != null) {
+        return await getProfile();
+      } else {
+        throw Exception('Réponse invalide du serveur');
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {}
+      throw Exception(_handleError(e));
+    } catch (e) {
+      throw Exception('Failed to update driver: $e');
     }
-  } on DioException catch (e) {
-   
-    if (e.response != null) {
-     
-    }
-    throw Exception(_handleError(e));
-  } catch (e) {
-    
-    throw Exception('Failed to update driver: $e');
   }
-}
-
 
   Future<DriverProfileModel> updateProfile({
     required String firstName,
@@ -109,7 +95,6 @@ Future<DriverProfileModel> updateDriverById({
       );
 
       if (response.data['success'] == true) {
-      
         return await getProfile();
       } else {
         throw Exception(response.data['message'] ?? 'Erreur de mise à jour');

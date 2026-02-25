@@ -9,7 +9,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchMyGroups();
     } catch (e) {
-      debugPrint('❌ Repository: getMyGroups - $e');
+      debugPrint(' Repository: getMyGroups - $e');
       throw Exception('Impossible de charger les groupes: $e');
     }
   }
@@ -18,7 +18,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchAvailableGroups();
     } catch (e) {
-      debugPrint('❌ Repository: getAvailableGroups - $e');
+      debugPrint(' Repository: getAvailableGroups - $e');
       throw Exception('Impossible de charger les groupes disponibles: $e');
     }
   }
@@ -27,7 +27,7 @@ class GroupRepository {
     try {
       return await _groupService.fetchGroupById(groupId);
     } catch (e) {
-      debugPrint('❌ Repository: getGroupById $groupId - $e');
+      debugPrint(' Repository: getGroupById $groupId - $e');
       throw Exception('Impossible de charger le groupe: $e');
     }
   }
@@ -48,7 +48,7 @@ class GroupRepository {
         schoolId: schoolId,
       );
     } catch (e) {
-      debugPrint('❌ Repository: createGroup - $e');
+      debugPrint(' Repository: createGroup - $e');
       throw Exception('Impossible de créer le groupe: $e');
     }
   }
@@ -100,17 +100,15 @@ class GroupRepository {
     return await _groupService.fetchGroupMembers(groupId);
   }
 
-  /// ✅ GET /api/parents/carpool/invitations
   Future<List<GroupInvitation>> getInvitations() async {
     try {
       return await _groupService.fetchInvitationsTyped();
     } catch (e) {
-      debugPrint('❌ Repository: getInvitations - $e');
+      debugPrint(' Repository: getInvitations - $e');
       return [];
     }
   }
 
-  /// ✅ PUT /api/parents/carpool/invitations — accepter ou refuser
   Future<void> respondToInvitation({
     required String invitationId,
     required bool accept,
@@ -125,13 +123,12 @@ class GroupRepository {
     }
   }
 
-  /// ✅ "Rejoindre" = accepter l'invitation
   Future<void> joinGroup(String groupId) async {
     try {
-      debugPrint('🔵 [GroupRepository] joinGroup: $groupId');
+      debugPrint(' [GroupRepository] joinGroup: $groupId');
       await _groupService.joinGroup(groupId: groupId);
     } catch (e) {
-      debugPrint('❌ Repository: joinGroup - $e');
+      debugPrint(' Repository: joinGroup - $e');
       throw Exception('Impossible de rejoindre le groupe: $e');
     }
   }
@@ -145,29 +142,28 @@ class GroupRepository {
   }
 
   Future<List<Planning>> getGroupPlanning(String groupId) async {
-  try {
-    return await _groupService.fetchGroupCalendar(groupId);
-  } catch (e) {
-    throw Exception('Impossible de charger le planning: $e');
+    try {
+      return await _groupService.fetchGroupCalendar(groupId);
+    } catch (e) {
+      throw Exception('Impossible de charger le planning: $e');
+    }
   }
-}
 
- Future<void> createPlanning({
-  required String groupId,
-  required DateTime startDate,
-  required DateTime endDate,
-}) async {
-  try {
-    // ✅ BON ENDPOINT avec assignations automatiques
-    await _groupService.createGroupPlanning(
-      groupId: groupId,
-      startDate: startDate,
-      endDate: endDate,
-    );
-  } catch (e) {
-    throw Exception('Impossible de créer le planning: $e');
+  Future<void> createPlanning({
+    required String groupId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      await _groupService.createGroupPlanning(
+        groupId: groupId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+    } catch (e) {
+      throw Exception('Impossible de créer le planning: $e');
+    }
   }
-}
 
   Future<void> confirmPlanning({required String planningId}) async {
     try {
@@ -177,66 +173,65 @@ class GroupRepository {
     }
   }
 
-// ✅ Remplacez la méthode requestReplacement dans group_repository.dart
+  Future<void> requestReplacement({
+    required Planning planning,
+    required String reason,
+  }) async {
+    try {
+      debugPrint('🔄 [GroupRepository] requestReplacement');
+      debugPrint('   planningId: ${planning.id}');
+      debugPrint('   groupId: ${planning.groupId}');
+      debugPrint('   date: ${planning.date}');
+      debugPrint('   reason: $reason');
 
-Future<void> requestReplacement({
-  required Planning planning,  // ✅ CHANGÉ : Planning complet
-  required String reason,
-}) async {
-  try {
-    debugPrint('🔄 [GroupRepository] requestReplacement');
-    debugPrint('   planningId: ${planning.id}');
-    debugPrint('   groupId: ${planning.groupId}');
-    debugPrint('   date: ${planning.date}');
-    debugPrint('   reason: $reason');
-    
-    await _groupService.proposeExchange(
-      planning: planning,  // ✅ Passer l'objet complet
-      reason: reason,
-    );
-  } catch (e) {
-    debugPrint('❌ [GroupRepository] requestReplacement error: $e');
-    throw Exception('Impossible de demander un remplacement: $e');
+      await _groupService.proposeExchange(planning: planning, reason: reason);
+    } catch (e) {
+      debugPrint(' [GroupRepository] requestReplacement error: $e');
+      throw Exception('Impossible de demander un remplacement: $e');
+    }
   }
-}
 
   Future<void> respondToReplacement({
-  required String planningId,
-  required bool accept,
-}) async {
-  try {
-    debugPrint('🔄 [GroupRepository] respondToReplacement');
-    debugPrint('   planningId: $planningId');
-    debugPrint('   accept: $accept');
-    
-    await _groupService.respondToExchange(
-      proposalId: planningId,
-      accept: accept,
-    );
-    
-    debugPrint('✅ [GroupRepository] Réponse envoyée');
-  } catch (e) {
-    debugPrint('❌ [GroupRepository] respondToReplacement error: $e');
-    throw Exception('Impossible de répondre: $e');
-  }
-}
-
- Future<List<Map<String, dynamic>>> getReplacementRequests(String groupId) async {
+    required String planningId,
+    required bool accept,
+  }) async {
     try {
-      debugPrint('🔍 [GroupRepository] getReplacementRequests: $groupId');
+      debugPrint(' [GroupRepository] respondToReplacement');
+      debugPrint('   planningId: $planningId');
+      debugPrint('   accept: $accept');
+
+      await _groupService.respondToExchange(
+        proposalId: planningId,
+        accept: accept,
+      );
+
+      debugPrint(' [GroupRepository] Réponse envoyée');
+    } catch (e) {
+      debugPrint(' [GroupRepository] respondToReplacement error: $e');
+      throw Exception('Impossible de répondre: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getReplacementRequests(
+    String groupId,
+  ) async {
+    try {
+      debugPrint('[GroupRepository] getReplacementRequests: $groupId');
       return await _groupService.fetchReplacementRequests(groupId);
     } catch (e) {
-      debugPrint('❌ [GroupRepository] getReplacementRequests error: $e');
+      debugPrint(' [GroupRepository] getReplacementRequests error: $e');
       return [];
     }
   }
 
-  Future<List<Map<String, dynamic>>> getAllReplacementRequests(String groupId) async {
-  try {
-    return await _groupService.fetchAllReplacementRequests(groupId);
-  } catch (e) {
-    debugPrint('❌ [GroupRepository] getAllReplacementRequests error: $e');
-    return [];
+  Future<List<Map<String, dynamic>>> getAllReplacementRequests(
+    String groupId,
+  ) async {
+    try {
+      return await _groupService.fetchAllReplacementRequests(groupId);
+    } catch (e) {
+      debugPrint(' [GroupRepository] getAllReplacementRequests error: $e');
+      return [];
+    }
   }
-}
 }

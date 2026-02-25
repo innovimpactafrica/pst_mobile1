@@ -38,7 +38,6 @@ class UpdateChildEvent extends ChildEvent {
 class DeleteChildEvent extends ChildEvent {
   final String? childId;
 
-
   const DeleteChildEvent(this.childId);
 
   @override
@@ -58,7 +57,7 @@ class SearchChildrenEvent extends ChildEvent {
 /// Event to update child schedule
 class UpdateChildScheduleEvent extends ChildEvent {
   final String? childId;
-  final Map<String, DaySchedule > schedule;
+  final Map<String, DaySchedule> schedule;
 
   const UpdateChildScheduleEvent({
     required this.childId,
@@ -69,10 +68,9 @@ class UpdateChildScheduleEvent extends ChildEvent {
   List<Object?> get props => [childId, schedule];
 }
 
-// Dans child_event.dart (AJOUTEZ ce nouveau event)
 class ClearChildrenCacheEvent extends ChildEvent {
   const ClearChildrenCacheEvent();
-  
+
   @override
   List<Object?> get props => [];
 }

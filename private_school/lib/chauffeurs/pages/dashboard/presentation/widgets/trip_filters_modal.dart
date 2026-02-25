@@ -19,7 +19,12 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
   String? _selectedSchool;
   String _selectedStatus = 'Tous';
 
-  final List<String> _statusOptions = ['Tous', 'En attente', 'En cours', 'Terminé'];
+  final List<String> _statusOptions = [
+    'Tous',
+    'En attente',
+    'En cours',
+    'Terminé',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +109,13 @@ class _TripFiltersModalState extends State<TripFiltersModal> {
 
           // Buttons
           // Buttons
-Container(
-  padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
+          Container(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              20,
+              20,
+              20 + MediaQuery.of(context).padding.bottom,
+            ),
             decoration: BoxDecoration(
               color: AppColors.white,
               boxShadow: [
@@ -199,7 +209,11 @@ Container(
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+            const Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: AppColors.primary,
+            ),
             const SizedBox(width: 12),
             Text(
               _selectedDate != null
@@ -301,7 +315,11 @@ Container(
       onChanged: (value) => _selectedSchool = value,
       decoration: InputDecoration(
         hintText: 'school_name'.tr(),
-        prefixIcon: const Icon(Icons.school, size: 20, color: AppColors.primary),
+        prefixIcon: const Icon(
+          Icons.school,
+          size: 20,
+          color: AppColors.primary,
+        ),
         filled: true,
         fillColor: Colors.grey.shade100,
         border: OutlineInputBorder(

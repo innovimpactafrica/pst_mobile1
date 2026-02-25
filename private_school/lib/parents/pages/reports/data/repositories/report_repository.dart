@@ -5,17 +5,12 @@ import '../services/report_service.dart';
 class ReportRepository {
   final ReportService _service = ReportService();
 
-  /// Get all reports with pagination
   Future<Map<String, dynamic>> getReports({
     int page = 1,
     int limit = 5,
     String? type,
   }) async {
-    return await _service.fetchReports(
-      page: page,
-      limit: limit,
-      type: type,
-    );
+    return await _service.fetchReports(page: page, limit: limit, type: type);
   }
 
   /// Create a new report
@@ -33,7 +28,7 @@ class ReportRepository {
     );
   }
 
-  /// Update a report - MÉTHODE CORRIGÉE AVEC FICHIERS ✅
+  /// Update a report
   Future<ReportModel> updateReport({
     required int id,
     required String type,
@@ -55,13 +50,10 @@ class ReportRepository {
     required int id,
     required String status,
   }) async {
-    return await _service.updateReportStatus(
-      id: id,
-      status: status,
-    );
+    return await _service.updateReportStatus(id: id, status: status);
   }
 
-  /// Delete a report - MÉTHODE CORRIGÉE ✅
+  /// Delete a report
   Future<void> deleteReport(int id, int userId) async {
     return await _service.deleteReport(id, userId);
   }

@@ -8,11 +8,7 @@ class PaymentModal extends StatefulWidget {
   final SubscriptionPlan plan;
   final VoidCallback? onPaymentComplete;
 
-  const PaymentModal({
-    super.key,
-    required this.plan,
-    this.onPaymentComplete,
-  });
+  const PaymentModal({super.key, required this.plan, this.onPaymentComplete});
 
   @override
   State<PaymentModal> createState() => _PaymentModalState();
@@ -42,7 +38,7 @@ class _PaymentModalState extends State<PaymentModal> {
               const SizedBox(height: 20),
               _buildSubscriptionDetails(),
               const SizedBox(height: 24),
-              _buildSectionTitle('payment_info'.tr()), 
+              _buildSectionTitle('payment_info'.tr()),
               const SizedBox(height: 16),
               _buildPaymentMethodTabs(),
               const SizedBox(height: 24),
@@ -63,7 +59,7 @@ class _PaymentModalState extends State<PaymentModal> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'subscription_payment'.tr(), 
+          'subscription_payment'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -144,7 +140,7 @@ class _PaymentModalState extends State<PaymentModal> {
         Expanded(
           child: _buildPaymentTab(
             icon: Icons.credit_card,
-            label: 'bank_card'.tr(), 
+            label: 'bank_card'.tr(),
             isSelected: isCard,
             onTap: () => setState(() => isCard = true),
           ),
@@ -153,7 +149,7 @@ class _PaymentModalState extends State<PaymentModal> {
         Expanded(
           child: _buildPaymentTab(
             icon: Icons.phone_android_outlined,
-            label: 'mobile_money'.tr(), 
+            label: 'mobile_money'.tr(),
             isSelected: !isCard,
             onTap: () => setState(() => isCard = false),
           ),
@@ -198,8 +194,9 @@ class _PaymentModalState extends State<PaymentModal> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color:
-                      isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -215,13 +212,13 @@ class _PaymentModalState extends State<PaymentModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTextField(
-          label: 'cardholder_name'.tr(), 
+          label: 'cardholder_name'.tr(),
           hint: 'Lamine wade',
           icon: Icons.person_outline,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'card_number'.tr(), 
+          label: 'card_number'.tr(),
           hint: '1234 5678 9012 3456',
           icon: Icons.credit_card,
           keyboardType: TextInputType.number,
@@ -231,7 +228,7 @@ class _PaymentModalState extends State<PaymentModal> {
           children: [
             Expanded(
               child: _buildTextField(
-                label: 'expiry_date'.tr(), 
+                label: 'expiry_date'.tr(),
                 hint: 'MM/AA',
                 keyboardType: TextInputType.datetime,
               ),
@@ -325,10 +322,7 @@ class _PaymentModalState extends State<PaymentModal> {
       itemCount: providers.length,
       itemBuilder: (context, index) {
         final provider = providers[index];
-        return _buildPaymentProviderCard(
-          provider['image']!,
-          provider['name']!,
-        );
+        return _buildPaymentProviderCard(provider['image']!, provider['name']!);
       },
     );
   }
@@ -406,10 +400,7 @@ class _PaymentModalState extends State<PaymentModal> {
     return Text(
       'payment_terms'.tr(),
       textAlign: TextAlign.center,
-      style: GoogleFonts.inter(
-        fontSize: 12,
-        color: AppColors.textSecondary,
-      ),
+      style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
     );
   }
 
@@ -444,9 +435,7 @@ void showPaymentModal(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => PaymentModal(
-      plan: plan,
-      onPaymentComplete: onPaymentComplete,
-    ),
+    builder: (context) =>
+        PaymentModal(plan: plan, onPaymentComplete: onPaymentComplete),
   );
 }

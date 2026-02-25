@@ -5,7 +5,9 @@ import '../utils/api_constants.dart';
 class ChatService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<Map<String, dynamic>> getOrCreateConversation(String recipientId) async {
+  Future<Map<String, dynamic>> getOrCreateConversation(
+    String recipientId,
+  ) async {
     try {
       final response = await _apiClient.post(
         ApiConstants.conversations,
@@ -38,10 +40,7 @@ class ChatService {
     try {
       final response = await _apiClient.post(
         '${ApiConstants.conversations}/$conversationId/messages',
-        data: {
-          'content': content,
-          'message_type': messageType,
-        },
+        data: {'content': content, 'message_type': messageType},
       );
       return response.data;
     } catch (e) {

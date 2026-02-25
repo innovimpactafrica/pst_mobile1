@@ -10,7 +10,8 @@ class SchoolAndPlaceAutocompleteField extends StatefulWidget {
   final String hint;
   final TextEditingController controller;
   final List<SchoolModel> schools;
-  final Function(String address, double? lat, double? lng, int? schoolId) onPlaceSelected;
+  final Function(String address, double? lat, double? lng, int? schoolId)
+  onPlaceSelected;
 
   const SchoolAndPlaceAutocompleteField({
     super.key,
@@ -22,10 +23,12 @@ class SchoolAndPlaceAutocompleteField extends StatefulWidget {
   });
 
   @override
-  State<SchoolAndPlaceAutocompleteField> createState() => _SchoolAndPlaceAutocompleteFieldState();
+  State<SchoolAndPlaceAutocompleteField> createState() =>
+      _SchoolAndPlaceAutocompleteFieldState();
 }
 
-class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocompleteField> {
+class _SchoolAndPlaceAutocompleteFieldState
+    extends State<SchoolAndPlaceAutocompleteField> {
   final GooglePlacesService _placesService = GooglePlacesService();
   List<dynamic> _suggestions = [];
   bool _isSearching = false;
@@ -84,50 +87,60 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
                       ),
                     )
                   : _suggestions.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text(
-                            'Aucun résultat',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: _suggestions.length,
-                          itemBuilder: (context, index) {
-                            final suggestion = _suggestions[index];
-                            
-                            if (suggestion is SchoolModel) {
-                              return ListTile(
-                                leading: const Icon(Icons.school, color: AppColors.primary),
-                                title: Text(
-                                  suggestion.name,
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                subtitle: Text(
-                                  suggestion.address,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                onTap: () => _selectSchool(suggestion),
-                              );
-                            } else if (suggestion is PlacePrediction) {
-                              return ListTile(
-                                leading: const Icon(Icons.location_on, color: AppColors.textSecondary),
-                                title: Text(
-                                  suggestion.mainText,
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                                subtitle: Text(
-                                  suggestion.secondaryText,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                onTap: () => _selectPlace(suggestion),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
+                  ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'Aucun résultat',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: _suggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = _suggestions[index];
+
+                        if (suggestion is SchoolModel) {
+                          return ListTile(
+                            leading: const Icon(
+                              Icons.school,
+                              color: AppColors.primary,
+                            ),
+                            title: Text(
+                              suggestion.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              suggestion.address,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onTap: () => _selectSchool(suggestion),
+                          );
+                        } else if (suggestion is PlacePrediction) {
+                          return ListTile(
+                            leading: const Icon(
+                              Icons.location_on,
+                              color: AppColors.textSecondary,
+                            ),
+                            title: Text(
+                              suggestion.mainText,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              suggestion.secondaryText,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onTap: () => _selectPlace(suggestion),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
             ),
           ),
         ),
@@ -148,11 +161,11 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
     final query = value.toLowerCase();
     final matchingSchools = widget.schools.where((school) {
       return school.name.toLowerCase().contains(query) ||
-             school.address.toLowerCase().contains(query);
+          school.address.toLowerCase().contains(query);
     }).toList();
 
     final placePredictions = await _placesService.getPlacePredictions(value);
-    
+
     if (mounted) {
       setState(() {
         _suggestions = [...matchingSchools, ...placePredictions];
@@ -168,7 +181,7 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
     widget.controller.text = school.name;
     _removeOverlay();
     setState(() => _suggestions = []);
-    
+
     widget.onPlaceSelected(
       school.name,
       school.latitude,
@@ -225,13 +238,16 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
       }
 
       final position = await Geolocator.getCurrentPosition();
-      final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-      
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         final address = '${placemark.street}, ${placemark.locality}';
         widget.controller.text = address;
-        
+
         widget.onPlaceSelected(
           address,
           position.latitude,
@@ -271,19 +287,24 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
           child: TextField(
             controller: widget.controller,
             onChanged: _onSearchChanged,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
             decoration: InputDecoration(
               hintText: widget.hint,
               hintStyle: TextStyle(
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
                 fontSize: 14,
               ),
-              prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.my_location, color: AppColors.primary, size: 20),
+                icon: const Icon(
+                  Icons.my_location,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
                 onPressed: _getCurrentLocation,
                 tooltip: 'Ma position',
               ),
@@ -299,7 +320,10 @@ class _SchoolAndPlaceAutocompleteFieldState extends State<SchoolAndPlaceAutocomp
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 1.5,
+                ),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,

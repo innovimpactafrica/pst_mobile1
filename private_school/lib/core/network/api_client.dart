@@ -33,24 +33,17 @@ class ApiClient {
           final token = await _storage.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-           
-          } else {
-           
-          }
+          } else {}
           return handler.next(options);
         },
         onError: (error, handler) async {
-          
-          
           // Handle token expiration
           if (error.response?.statusCode == 401) {
-        
             await _storage.clearAll();
           }
           return handler.next(error);
         },
         onResponse: (response, handler) {
-          
           return handler.next(response);
         },
       ),
@@ -130,7 +123,7 @@ class ApiClient {
   }) async {
     try {
       Map<String, dynamic>? mergedQueryParams = queryParameters;
-      
+
       if (data != null && data is Map<String, dynamic>) {
         mergedQueryParams = {...?queryParameters, ...data};
       }
@@ -171,23 +164,24 @@ class ApiClient {
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return 'Délai de connexion dépassé';
-        
+
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final responseData = error.response?.data;
-        
+
         // Extract error message from response
         String message = 'Erreur serveur';
-        
+
         if (responseData is Map<String, dynamic>) {
-          message = responseData['error'] ?? 
-                    responseData['message'] ?? 
-                    responseData['msg'] ?? 
-                    'Erreur serveur';
+          message =
+              responseData['error'] ??
+              responseData['message'] ??
+              responseData['msg'] ??
+              'Erreur serveur';
         } else if (responseData is String) {
           message = responseData;
         }
-        
+
         switch (statusCode) {
           case 400:
             return 'Requête invalide: $message';
@@ -206,16 +200,16 @@ class ApiClient {
           default:
             return message;
         }
-        
+
       case DioExceptionType.cancel:
         return 'Requête annulée';
-        
+
       case DioExceptionType.unknown:
         if (error.message?.contains('SocketException') ?? false) {
           return 'Pas de connexion internet';
         }
         return 'Erreur inconnue: ${error.message}';
-        
+
       default:
         return 'Erreur: ${error.message}';
     }

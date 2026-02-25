@@ -8,7 +8,6 @@ import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/not
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
-
 class NotificationListTile extends StatelessWidget {
   const NotificationListTile({super.key});
 
@@ -80,18 +79,13 @@ class NotificationListTile extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(width: 8),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppColors.textSecondary,
-                ),
+                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
               ],
             ),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const NotificationsPage(),
-                ),
+                MaterialPageRoute(builder: (_) => const NotificationsPage()),
               );
             },
           ),

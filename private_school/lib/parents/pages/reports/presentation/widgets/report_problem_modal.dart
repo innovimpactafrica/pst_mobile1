@@ -1,6 +1,3 @@
-// Modal for reporting problems - CORRECTED VERSION WITH EDIT SUPPORT
-// Path: lib/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -241,7 +238,6 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       return;
     }
 
-    // Les fichiers sont obligatoires UNIQUEMENT en mode création
     if (!isEditMode && _selectedFiles.isEmpty) {
       _showErrorSnackBar('please_add_document'.tr());
       return;
@@ -258,26 +254,26 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       );
 
       if (isEditMode) {
-        // Mode modification - avec fichiers optionnels
+        // Mode modification
         context.read<ReportBloc>().add(
-              UpdateReportEvent(
-                id: widget.reportToEdit!.id,
-                type: problemConfig['api']!,
-                category: _selectedProblemType!,
-                description: _descriptionController.text.trim(),
-                files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
-              ),
-            );
+          UpdateReportEvent(
+            id: widget.reportToEdit!.id,
+            type: problemConfig['api']!,
+            category: _selectedProblemType!,
+            description: _descriptionController.text.trim(),
+            files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
+          ),
+        );
       } else {
         // Mode création
         context.read<ReportBloc>().add(
-              CreateReportEvent(
-                type: problemConfig['api']!,
-                category: _selectedProblemType!,
-                description: _descriptionController.text.trim(),
-                files: _selectedFiles,
-              ),
-            );
+          CreateReportEvent(
+            type: problemConfig['api']!,
+            category: _selectedProblemType!,
+            description: _descriptionController.text.trim(),
+            files: _selectedFiles,
+          ),
+        );
       }
     } catch (e) {
       _showErrorSnackBar('report_preparation_error'.tr());
@@ -335,7 +331,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 const SizedBox(height: 24),
                 _buildDescriptionField(),
                 const SizedBox(height: 24),
-                _buildDocumentsSection(), // ✅ TOUJOURS afficher, pas seulement en mode création
+                _buildDocumentsSection(),
                 const SizedBox(height: 32),
                 _buildSubmitButton(),
               ],
@@ -387,10 +383,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFD1D5DB),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFD1D5DB), width: 1),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -461,24 +454,15 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             fillColor: AppColors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
         ),
@@ -500,7 +484,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 color: AppColors.textPrimary,
               ),
             ),
-            // ✅ AIDE en mode édition
+
             if (isEditMode) ...[
               const SizedBox(width: 8),
               Text(
@@ -534,10 +518,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFD1D5DB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFD1D5DB), width: 1),
             ),
             child: Column(
               children: [

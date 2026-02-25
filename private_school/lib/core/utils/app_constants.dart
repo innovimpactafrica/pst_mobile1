@@ -1,4 +1,3 @@
-
 class AppConstants {
   AppConstants._();
 
@@ -71,7 +70,12 @@ class AppConstants {
 
   // File Upload
   static const int maxFileSizeKB = 10240; // 10 MB
-  static const List<String> allowedDocumentExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+  static const List<String> allowedDocumentExtensions = [
+    'pdf',
+    'jpg',
+    'jpeg',
+    'png',
+  ];
 
   // Labels - General
   static const String labelRetry = "Réessayer";
@@ -91,7 +95,8 @@ class AppConstants {
   static const String labelChangeFile = 'Changer le fichier';
   static const String labelReplaceFile = 'Remplacer le fichier';
   static const String labelFormats = 'Formats: JPEG, PNG, PDF jusqu\'à 10 Mo';
-  static const String labelInfoMessage = 'Vous pouvez mettre à jour vos documents existants';
+  static const String labelInfoMessage =
+      'Vous pouvez mettre à jour vos documents existants';
 
   // Labels - Vehicle
   static const String labelVehicle = 'Mon Véhicule';
@@ -170,7 +175,8 @@ class AppConstants {
   static const String successUpload = 'Documents mis à jour avec succès';
 
   // Success messages - Vehicle
-  static const String successVehicleUpdate = 'Véhicule mis à jour avec succès !';
+  static const String successVehicleUpdate =
+      'Véhicule mis à jour avec succès !';
 
   // Success messages - Trips
   static const String successTripAccepted = "Trajet accepté avec succès";
@@ -179,9 +185,11 @@ class AppConstants {
   static const String successTripCanceled = "Trajet annulé";
 
   // Error messages - Documents
-  static const String errorFileTooBig = 'Le fichier est trop volumineux. Maximum 10 Mo.';
+  static const String errorFileTooBig =
+      'Le fichier est trop volumineux. Maximum 10 Mo.';
   static const String errorPickFile = 'Erreur lors de la sélection du fichier';
-  static const String errorNoFile = 'Veuillez sélectionner au moins un document à mettre à jour';
+  static const String errorNoFile =
+      'Veuillez sélectionner au moins un document à mettre à jour';
   static const String errorUpload = 'Erreur lors de l\'upload';
   static const String errorNoDriverId = 'Erreur: ID du chauffeur introuvable';
 
@@ -201,5 +209,6 @@ class AppConstants {
   // Welcome
   static const String welcomeTitle1 = "Bienvenue sur Private";
   static const String welcomeTitle2 = "School Transport";
-  static const String welcomeDescription = "Votre partenaire de confiance pour le confort et la ponctualité au service des élèves.";
+  static const String welcomeDescription =
+      "Votre partenaire de confiance pour le confort et la ponctualité au service des élèves.";
 }

@@ -16,7 +16,9 @@ class SearchGroupsEvent extends GroupEvent {
 }
 
 class LoadMyGroupsEvent extends GroupEvent {}
+
 class LoadAvailableGroupsEvent extends GroupEvent {}
+
 class LoadInvitationsEvent extends GroupEvent {}
 
 class LoadGroupDetailsEvent extends GroupEvent {
@@ -31,7 +33,12 @@ class CreateGroupEvent extends GroupEvent {
   final List<String> memberEmails;
   final String? description;
   final String? schoolId;
-  CreateGroupEvent({required this.name, required this.memberEmails, this.description, this.schoolId});
+  CreateGroupEvent({
+    required this.name,
+    required this.memberEmails,
+    this.description,
+    this.schoolId,
+  });
   @override
   List<Object?> get props => [name, memberEmails, description, schoolId];
 }
@@ -49,14 +56,17 @@ class CreatePlanningEvent extends GroupEvent {
   final String groupId;
   final DateTime startDate;
   final DateTime endDate;
-  CreatePlanningEvent({required this.groupId, required this.startDate, required this.endDate});
+  CreatePlanningEvent({
+    required this.groupId,
+    required this.startDate,
+    required this.endDate,
+  });
   @override
   List<Object?> get props => [groupId, startDate, endDate];
 }
 
-
 class RequestReplacementEvent extends GroupEvent {
-  final Planning planning;  
+  final Planning planning;
   final String reason;
   RequestReplacementEvent({required this.planning, required this.reason});
   @override

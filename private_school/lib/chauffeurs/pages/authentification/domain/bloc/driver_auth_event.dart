@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 
 abstract class DriverAuthEvent {}
@@ -8,10 +6,7 @@ class DriverLoginEvent extends DriverAuthEvent {
   final String phone;
   final String password;
 
-  DriverLoginEvent({
-    required this.phone,
-    required this.password,
-  });
+  DriverLoginEvent({required this.phone, required this.password});
 }
 
 class DriverRegisterEvent extends DriverAuthEvent {
@@ -48,23 +43,18 @@ class DriverVerifyOTPEvent extends DriverAuthEvent {
   final String phone;
   final String otp;
 
-  DriverVerifyOTPEvent({
-    required this.phone,
-    required this.otp,
-  });
+  DriverVerifyOTPEvent({required this.phone, required this.otp});
 }
 
-
 class DriverForgotPasswordEvent extends DriverAuthEvent {
-  final String contact; 
+  final String contact;
 
   DriverForgotPasswordEvent({required this.contact});
 }
 
-
 class DriverResetPasswordEvent extends DriverAuthEvent {
-  final int userId;         
-  final String code;        
+  final int userId;
+  final String code;
   final String newPassword;
 
   DriverResetPasswordEvent({

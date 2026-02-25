@@ -297,7 +297,8 @@ class _TripFilterModalState extends State<TripFilterModal> {
   Future<void> _selectTime(bool isDeparture) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: (isDeparture ? _departureTime : _returnTime) ?? TimeOfDay.now(),
+      initialTime:
+          (isDeparture ? _departureTime : _returnTime) ?? TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -348,11 +349,7 @@ class TripFilters {
   final TimeOfDay? returnTime;
   final String? destination;
 
-  TripFilters({
-    this.departureTime,
-    this.returnTime,
-    this.destination,
-  });
+  TripFilters({this.departureTime, this.returnTime, this.destination});
 
   bool get hasFilters =>
       departureTime != null || returnTime != null || destination != null;

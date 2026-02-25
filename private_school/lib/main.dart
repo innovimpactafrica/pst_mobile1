@@ -14,9 +14,9 @@ import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
 import 'package:private_school/chauffeurs/widgets/main_layout.dart';
 import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
-import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart' as driver_trip;
+import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart'
+    as driver_trip;
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
-//import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_event.dart';
 import 'package:private_school/core/network/api_client.dart';
 import 'package:private_school/pages/role_selection_page.dart';
 
@@ -33,8 +33,10 @@ import 'package:private_school/parents/pages/enfants/domain/bloc/child_bloc.dart
 import 'package:private_school/parents/pages/authentification/domain/bloc/auth_bloc.dart';
 
 // Driver imports
-import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/connexion.dart' as driver_auth;
-import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/inscription.dart' as driver_auth;
+import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/connexion.dart'
+    as driver_auth;
+import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/inscription.dart'
+    as driver_auth;
 
 import 'package:private_school/chauffeurs/pages/abonnement/domain/bloc/subscription_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/repositories/subscription_repository.dart';
@@ -47,18 +49,21 @@ import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
 import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
 
 // Report BLoCs
-import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart' as driver_reports;
-import 'package:private_school/parents/pages/reports/domain/bloc/report_bloc.dart' as parent_reports;
+import 'package:private_school/chauffeurs/pages/reports/domain/bloc/report_bloc.dart'
+    as driver_reports;
+import 'package:private_school/parents/pages/reports/domain/bloc/report_bloc.dart'
+    as parent_reports;
 
 // MESSAGING BLOCS - PARENT
 import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
 
-// ✅ HOME BLOC - PARENT (AJOUTÉ)
+//  HOME BLOC - PARENT (AJOUTÉ)
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 //import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
-import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart' as parent_trip;
+import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart'
+    as parent_trip;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,28 +90,22 @@ void main() async {
         providers: [
           // ==================== PARENT BLOCS ====================
           BlocProvider<ChildBloc>(create: (context) => ChildBloc()),
-          BlocProvider<AuthBloc>(
-            create: (context) => AuthBloc(),
-          ),
+          BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
           BlocProvider(create: (_) => parent_reports.ReportBloc()),
           BlocProvider(create: (context) => SchoolBloc()),
 
           BlocProvider<HomeBloc>(
-            create: (context) => HomeBloc(
-              repository: parent_trip.TripRepository(),
-            ),
+            create: (context) =>
+                HomeBloc(repository: parent_trip.TripRepository()),
           ),
 
-          // ✅ MESSAGING BLOCS - PARENT
+          //  MESSAGING BLOCS - PARENT
           BlocProvider<ConversationBloc>(
-            create: (context) => ConversationBloc(
-              repository: MessagingRepository(),
-            ),
+            create: (context) =>
+                ConversationBloc(repository: MessagingRepository()),
           ),
           BlocProvider<MessageBloc>(
-            create: (context) => MessageBloc(
-              repository: MessagingRepository(),
-            ),
+            create: (context) => MessageBloc(repository: MessagingRepository()),
           ),
 
           // ==================== DRIVER BLOCS ====================
@@ -128,14 +127,14 @@ void main() async {
                 TripBloc(repository: driver_trip.TripRepository()),
           ),
           BlocProvider<DriverProfileBloc>(
-            create: (context) => DriverProfileBloc(
-              repository: DriverProfileRepository(),
-            )..add(LoadDriverProfileEvent()),
+            create: (context) =>
+                DriverProfileBloc(repository: DriverProfileRepository())
+                  ..add(LoadDriverProfileEvent()),
           ),
           BlocProvider(
-            create: (_) => NotificationBloc(
-              repository: NotificationRepository(),
-            )..add(const LoadNotificationsEvent()),
+            create: (_) =>
+                NotificationBloc(repository: NotificationRepository())
+                  ..add(const LoadNotificationsEvent()),
           ),
           BlocProvider(create: (_) => driver_reports.ReportBloc()),
         ],
@@ -190,7 +189,6 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => const HomePage(),
       },
 
-   
       builder: (context, child) => child!,
     );
   }

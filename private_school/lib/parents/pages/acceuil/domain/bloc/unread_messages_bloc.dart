@@ -31,19 +31,20 @@ class UnreadMessagesLoaded extends UnreadMessagesState {
 }
 
 // BLoC
-class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> {
+class UnreadMessagesBloc
+    extends Bloc<UnreadMessagesEvent, UnreadMessagesState> {
   final MessagingRepository repository;
   Timer? _refreshTimer;
   static UnreadMessagesBloc? _instance;
 
   UnreadMessagesBloc({MessagingRepository? repository})
-      : repository = repository ?? MessagingRepository(),
-        super(UnreadMessagesInitial()) {
+    : repository = repository ?? MessagingRepository(),
+      super(UnreadMessagesInitial()) {
     on<LoadUnreadCountEvent>(_onLoadUnreadCount);
     on<RefreshUnreadCountEvent>(_onRefreshUnreadCount);
     on<MessageReadEvent>(_onMessageRead);
     on<NewMessageReceivedEvent>(_onNewMessageReceived);
-    
+
     _instance = this;
     // Auto-refresh toutes les 30 secondes
     _startAutoRefresh();
@@ -69,16 +70,18 @@ class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> 
     Emitter<UnreadMessagesState> emit,
   ) async {
     try {
-      debugPrint('🔄 [UnreadMessagesBloc] Chargement compteur...');
+      debugPrint(' [UnreadMessagesBloc] Chargement compteur...');
       final conversations = await repository.getConversations();
       final totalUnread = conversations.fold<int>(
         0,
         (sum, conv) => sum + conv.unreadCount,
       );
-      debugPrint('✅ [UnreadMessagesBloc] Compteur: $totalUnread messages non lus');
+      debugPrint(
+        ' [UnreadMessagesBloc] Compteur: $totalUnread messages non lus',
+      );
       emit(UnreadMessagesLoaded(totalUnread));
     } catch (e) {
-      debugPrint('❌ Erreur chargement compteur: $e');
+      debugPrint(' Erreur chargement compteur: $e');
       emit(UnreadMessagesLoaded(0));
     }
   }
@@ -93,10 +96,10 @@ class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> 
         0,
         (sum, conv) => sum + conv.unreadCount,
       );
-      debugPrint('🔄 [UnreadMessagesBloc] Refresh compteur: $totalUnread');
+      debugPrint(' [UnreadMessagesBloc] Refresh compteur: $totalUnread');
       emit(UnreadMessagesLoaded(totalUnread));
     } catch (e) {
-      debugPrint('❌ Erreur refresh compteur: $e');
+      debugPrint(' Erreur refresh compteur: $e');
       // En cas d'erreur, garder l'état actuel
       if (state is UnreadMessagesLoaded) {
         emit(UnreadMessagesLoaded((state as UnreadMessagesLoaded).count));
@@ -104,44 +107,46 @@ class UnreadMessagesBloc extends Bloc<UnreadMessagesEvent, UnreadMessagesState> 
     }
   }
 
- Future<void> _onMessageRead(
-  MessageReadEvent event,
-  Emitter<UnreadMessagesState> emit,
-) async {
-  debugPrint('📖 [UnreadMessagesBloc] Messages lus dans conversation ${event.conversationId}');
-  
-  // ✅ Décrémenter IMMÉDIATEMENT
-  if (state is UnreadMessagesLoaded) {
-    final currentCount = (state as UnreadMessagesLoaded).count;
-    if (currentCount > 0) {
-      emit(UnreadMessagesLoaded(currentCount - 1 < 0 ? 0 : currentCount - 1));
+  Future<void> _onMessageRead(
+    MessageReadEvent event,
+    Emitter<UnreadMessagesState> emit,
+  ) async {
+    debugPrint(
+      ' [UnreadMessagesBloc] Messages lus dans conversation ${event.conversationId}',
+    );
+
+    //  Décrémenter IMMÉDIATEMENT
+    if (state is UnreadMessagesLoaded) {
+      final currentCount = (state as UnreadMessagesLoaded).count;
+      if (currentCount > 0) {
+        emit(UnreadMessagesLoaded(currentCount - 1 < 0 ? 0 : currentCount - 1));
+      }
+    }
+
+    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final conversations = await repository.getConversations();
+      final totalUnread = conversations.fold<int>(
+        0,
+        (sum, conv) => sum + conv.unreadCount,
+      );
+      debugPrint(' [UnreadMessagesBloc] Après lecture: $totalUnread non lus');
+      emit(UnreadMessagesLoaded(totalUnread));
+    } catch (e) {
+      debugPrint(' Erreur refresh après lecture: $e');
     }
   }
-
-  // ✅ Attendre que le backend traite le PATCH avant de rafraîchir
-  await Future.delayed(const Duration(seconds: 2)); // ← augmenté à 2s
-  try {
-    final conversations = await repository.getConversations();
-    final totalUnread = conversations.fold<int>(
-      0,
-      (sum, conv) => sum + conv.unreadCount,
-    );
-    debugPrint('🔄 [UnreadMessagesBloc] Après lecture: $totalUnread non lus');
-    emit(UnreadMessagesLoaded(totalUnread));
-  } catch (e) {
-    debugPrint('❌ Erreur refresh après lecture: $e');
-  }
-}
 
   Future<void> _onNewMessageReceived(
     NewMessageReceivedEvent event,
     Emitter<UnreadMessagesState> emit,
   ) async {
-    debugPrint('📨 [UnreadMessagesBloc] Nouveau message dans conversation ${event.conversationId}');
+    debugPrint(
+      ' [UnreadMessagesBloc] Nouveau message dans conversation ${event.conversationId}',
+    );
     add(RefreshUnreadCountEvent());
   }
 
-  // Méthode statique pour notifier depuis n'importe où
   static void notifyMessageRead(int conversationId) {
     _instance?.add(MessageReadEvent(conversationId));
   }

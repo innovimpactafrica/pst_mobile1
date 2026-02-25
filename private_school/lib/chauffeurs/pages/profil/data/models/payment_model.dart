@@ -20,7 +20,9 @@ class PaymentModel {
       id: json['_id'] ?? json['id'] ?? '',
       amount: (json['amount'] ?? json['montant'] ?? 0).toDouble(),
       currency: json['currency'] ?? json['devise'] ?? 'FCFA',
-      date: DateTime.parse(json['date'] ?? json['createdAt'] ?? DateTime.now().toIso8601String()),
+      date: DateTime.parse(
+        json['date'] ?? json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       status: _parsePaymentStatus(json['status'] ?? json['statut']),
       tripId: json['tripId'] ?? json['trajetId'],
     );
@@ -58,15 +60,21 @@ class PaymentModel {
 
   String get formattedDate {
     final months = [
-      'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
-      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
+      'janv.',
+      'févr.',
+      'mars',
+      'avr.',
+      'mai',
+      'juin',
+      'juil.',
+      'août',
+      'sept.',
+      'oct.',
+      'nov.',
+      'déc.',
     ];
     return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]}, ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
 
-enum PaymentStatus {
-  completed,
-  pending,
-  failed,
-}
+enum PaymentStatus { completed, pending, failed }

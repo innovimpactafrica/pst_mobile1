@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -12,30 +10,24 @@ class DriverAuthService {
   final ApiClient _apiClient = ApiClient();
   final SecureStorage _storage = SecureStorage();
 
-
   Future<Map<String, dynamic>> login({
     required String phone,
     required String password,
   }) async {
     final response = await _apiClient.post(
       '/api/auth/login/driver',
-      data: {
-        'email': phone, 
-        'password': password,
-      },
+      data: {'email': phone, 'password': password},
     );
 
     final responseData = response.data is Map
         ? response.data
         : {'data': response.data};
 
-    
     final accessToken = responseData['accessToken'] ?? responseData['token'];
     final refreshToken = responseData['refreshToken'];
     final userData =
         responseData['driver'] ?? responseData['user'] ?? responseData['data'];
 
-   
     if (accessToken != null) {
       await _storage.saveAccessToken(accessToken);
     }
@@ -44,12 +36,10 @@ class DriverAuthService {
       await _storage.saveRefreshToken(refreshToken);
     }
 
-    
     if (userData != null) {
       await _storage.saveUserData(jsonEncode(userData));
     }
 
-   
     final driver = DriverModel.fromJson(userData as Map<String, dynamic>);
 
     return {'token': accessToken, 'driver': driver};
@@ -77,22 +67,20 @@ class DriverAuthService {
         'email': email,
         'password': password,
       };
-      
-     
+
       if (licenseNumber != null && licenseNumber.isNotEmpty) {
-        dataMap['vehicle_plate'] = licenseNumber; 
+        dataMap['vehicle_plate'] = licenseNumber;
       }
       if (vehicleType != null && vehicleType.isNotEmpty) {
-        dataMap['vehicle_brand'] = vehicleType; 
+        dataMap['vehicle_brand'] = vehicleType;
       }
       if (vehicleColor != null && vehicleColor.isNotEmpty) {
-        dataMap['vehicle_color'] = vehicleColor; 
+        dataMap['vehicle_color'] = vehicleColor;
       }
       if (capacity != null) {
-        dataMap['capacity'] = capacity; 
+        dataMap['capacity'] = capacity;
       }
 
-     
       if (licenseFile != null) {
         dataMap['license_document'] = await MultipartFile.fromFile(
           licenseFile.path,
@@ -145,37 +133,32 @@ class DriverAuthService {
   }
 
   Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
-  final response = await _apiClient.post(
-    '/api/auth/forgot-password',
-    data: {'contact': contact},
-  );
+    final response = await _apiClient.post(
+      '/api/auth/forgot-password',
+      data: {'contact': contact},
+    );
 
-  final responseData = response.data is Map
-      ? response.data
-      : {'data': response.data}; 
-  final userData = responseData['user'];
-  final userId = userData?['id'] as int?;
-  
-  return {
-    'message': responseData['message'],
-    'userId': userId,  
-    'user': userData,
-  };
-}
+    final responseData = response.data is Map
+        ? response.data
+        : {'data': response.data};
+    final userData = responseData['user'];
+    final userId = userData?['id'] as int?;
 
+    return {
+      'message': responseData['message'],
+      'userId': userId,
+      'user': userData,
+    };
+  }
 
   Future<void> resetPassword({
-    required int userId,      
-    required String code,     
+    required int userId,
+    required String code,
     required String newPassword,
   }) async {
     await _apiClient.post(
       '/api/auth/reset-password',
-      data: {
-        'userId': userId,         
-        'code': code,             
-        'newPassword': newPassword,
-      },
+      data: {'userId': userId, 'code': code, 'newPassword': newPassword},
     );
   }
 
@@ -183,7 +166,6 @@ class DriverAuthService {
     try {
       await _apiClient.post('/api/auth/logout');
     } catch (_) {
-      
     } finally {
       await _storage.clearAll();
     }

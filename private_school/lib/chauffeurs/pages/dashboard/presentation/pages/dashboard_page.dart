@@ -20,10 +20,9 @@ import '../../data/services/unified_notification_service.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/trip_filters_modal.dart';
 import '../../../trajets/presentation/pages/trip_page.dart';
-import '../../../trajets/presentation/widgets/trip_detail_modal.dart'; 
+import '../../../trajets/presentation/widgets/trip_detail_modal.dart';
 import '../../../trajets/data/models/trip_model.dart';
 import '../../../trajets/presentation/widgets/trip_card_widget.dart';
-
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -32,23 +31,26 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> with WidgetsBindingObserver {
-
+class _DashboardPageState extends State<DashboardPage>
+    with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => UnreadMessagesBloc(repository: MessagingRepository())
-            ..add(LoadUnreadCountEvent()),
+          create: (context) =>
+              UnreadMessagesBloc(repository: MessagingRepository())
+                ..add(LoadUnreadCountEvent()),
         ),
         BlocProvider(
-          create: (context) => UnreadNotificationsBloc(repository: NotificationsRepository())
-            ..add(LoadUnreadNotificationsCountEvent()),
+          create: (context) =>
+              UnreadNotificationsBloc(repository: NotificationsRepository())
+                ..add(LoadUnreadNotificationsCountEvent()),
         ),
         BlocProvider(
-          create: (context) => DashboardBloc(repository: DashboardRepository())
-            ..add(LoadDashboardEvent()),
+          create: (context) =>
+              DashboardBloc(repository: DashboardRepository())
+                ..add(LoadDashboardEvent()),
         ),
       ],
       child: const _DashboardPageContent(),
@@ -63,10 +65,12 @@ class _DashboardPageContent extends StatefulWidget {
   State<_DashboardPageContent> createState() => _DashboardPageContentState();
 }
 
-class _DashboardPageContentState extends State<_DashboardPageContent> with WidgetsBindingObserver {
+class _DashboardPageContentState extends State<_DashboardPageContent>
+    with WidgetsBindingObserver {
   DriverProfileModel? _profile;
   bool _isLoadingProfile = true;
-  final UnifiedNotificationService _notificationService = UnifiedNotificationService();
+  final UnifiedNotificationService _notificationService =
+      UnifiedNotificationService();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   Map<String, dynamic> _filters = {};
@@ -76,17 +80,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadData();
-    
-    // Initialisation du service de  notification 
+
+    // Initialisation du service de  notification
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _notificationService.registerBlocs(
         messagesBloc: context.read<UnreadMessagesBloc>(),
         notificationsBloc: context.read<UnreadNotificationsBloc>(),
       );
     });
-    
+
     _notificationService.startPolling();
-   
   }
 
   @override
@@ -100,12 +103,14 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     switch (state) {
       case AppLifecycleState.resumed:
         _notificationService.startPolling();
         context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
-        context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
+        context.read<UnreadNotificationsBloc>().add(
+          RefreshUnreadNotificationsCountEvent(),
+        );
         _notificationService.checkNow();
         break;
       case AppLifecycleState.paused:
@@ -155,55 +160,60 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                ),
                 child: DashboardHeader(
                   profile: _profile,
                   isLoading: _isLoadingProfile,
                 ),
               ),
             ),
-              SliverToBoxAdapter(
-                child: _buildSearchBar(),
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
-                    ),
-                  ),
-                  child: BlocBuilder<DashboardBloc, DashboardState>(
-                    builder: (context, state) {
-                      if (state is DashboardLoading) {
-                        return _buildLoadingState();
-                      }
-
-                      if (state is DashboardError) {
-                        return _buildErrorState(state.message);
-                      }
-
-                      if (state is DashboardLoaded) {
-                        return _buildDashboardContent(state);
-                      }
-
-                      return const SizedBox.shrink();
-                    },
+            SliverToBoxAdapter(child: _buildSearchBar()),
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.only(top: 8),
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
                   ),
                 ),
+                child: BlocBuilder<DashboardBloc, DashboardState>(
+                  builder: (context, state) {
+                    if (state is DashboardLoading) {
+                      return _buildLoadingState();
+                    }
+
+                    if (state is DashboardError) {
+                      return _buildErrorState(state.message);
+                    }
+
+                    if (state is DashboardLoaded) {
+                      return _buildDashboardContent(state);
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
       floatingActionButton: _buildFloatingButton(),
     );
   }
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppConstants.paddingL, 0, AppConstants.paddingL, AppConstants.spacingM),
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.paddingL,
+        0,
+        AppConstants.paddingL,
+        AppConstants.spacingM,
+      ),
       child: Row(
         children: [
           Expanded(
@@ -238,7 +248,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.close, size: AppConstants.iconSizeM),
+                          icon: const Icon(
+                            Icons.close,
+                            size: AppConstants.iconSizeM,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -299,11 +312,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
   Widget _buildLoadingState() {
     return const Padding(
       padding: EdgeInsets.all(80),
-      child: Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primary,
-        ),
-      ),
+      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
     );
   }
 
@@ -366,20 +375,28 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     final upcomingTripsList = state.dashboard.upcomingTripsList;
     final filteredTrips = upcomingTripsList.where((tripData) {
       try {
-        final trip = tripData is TripModel ? tripData : TripModel.fromJson(tripData);
-        
+        final trip = tripData is TripModel
+            ? tripData
+            : TripModel.fromJson(tripData);
+
         // Recherche par texte
         if (_searchQuery.isNotEmpty) {
           final query = _searchQuery.toLowerCase();
-          final matchesDestination = trip.destination.toLowerCase().contains(query);
-          final matchesStart = (trip.startLocation ?? '').toLowerCase().contains(query);
-          final matchesSchool = trip.schools.any((s) => s.name.toLowerCase().contains(query));
-          
+          final matchesDestination = trip.destination.toLowerCase().contains(
+            query,
+          );
+          final matchesStart = (trip.startLocation ?? '')
+              .toLowerCase()
+              .contains(query);
+          final matchesSchool = trip.schools.any(
+            (s) => s.name.toLowerCase().contains(query),
+          );
+
           if (!matchesDestination && !matchesStart && !matchesSchool) {
             return false;
           }
         }
-        
+
         // Filtre par date
         if (_filters['date'] != null) {
           final filterDate = _filters['date'] as DateTime;
@@ -389,7 +406,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             return false;
           }
         }
-        
+
         // Filtre par heure
         if (_filters['time'] != null) {
           final filterTime = _filters['time'] as TimeOfDay;
@@ -401,15 +418,18 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             }
           }
         }
-        
+
         // Filtre par école
-        if (_filters['school'] != null && (_filters['school'] as String).isNotEmpty) {
+        if (_filters['school'] != null &&
+            (_filters['school'] as String).isNotEmpty) {
           final schoolQuery = (_filters['school'] as String).toLowerCase();
-          if (!trip.schools.any((s) => s.name.toLowerCase().contains(schoolQuery))) {
+          if (!trip.schools.any(
+            (s) => s.name.toLowerCase().contains(schoolQuery),
+          )) {
             return false;
           }
         }
-        
+
         // Filtre par statut
         if (_filters['status'] != null && _filters['status'] != 'Tous') {
           final statusFilter = _filters['status'] as String;
@@ -422,18 +442,23 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             return false;
           }
         }
-        
+
         if (trip.status == 'canceled') return false;
-        
+
         // Trajet ALLER SIMPLE terminé = ne pas afficher
-        if (trip.tripType == 'aller' && trip.status == 'completed') return false;
-        
+        if (trip.tripType == 'aller' && trip.status == 'completed')
+          return false;
+
         // Trajet RETOUR SIMPLE terminé = ne pas afficher
-        if (trip.tripType == 'retour' && trip.status == 'completed') return false;
-        
+        if (trip.tripType == 'retour' && trip.status == 'completed')
+          return false;
+
         // Trajet ALLER-RETOUR complètement terminé = ne pas afficher
-        if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return false;
-        
+        if (trip.tripType == 'aller_retour' &&
+            trip.status == 'completed' &&
+            trip.returnStatus == 'completed')
+          return false;
+
         // Tous les autres cas = afficher
         return true;
       } catch (e) {
@@ -445,7 +470,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingL,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -461,9 +488,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const TripPage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const TripPage()),
                   );
                 },
                 child: Text(
@@ -496,7 +521,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           )
         else
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.paddingL,
+            ),
             child: Column(
               children: filteredTrips.map((tripData) {
                 return Padding(
@@ -510,24 +537,20 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     );
   }
 
-Widget _buildTripCard(dynamic tripData) {
-  try {
-    if (tripData is Map<String, dynamic>) {
-      
-      final enriched = Map<String, dynamic>.from(tripData);
-      if ((enriched['school_name'] != null) &&
-          enriched['school_id'] == null &&
-          (enriched['stops'] == null || (enriched['stops'] as List?)?.isEmpty == true)) {
-        
-        enriched['school_id'] = enriched['school_name']; 
+  Widget _buildTripCard(dynamic tripData) {
+    try {
+      if (tripData is Map<String, dynamic>) {
+        final enriched = Map<String, dynamic>.from(tripData);
+        if ((enriched['school_name'] != null) &&
+            enriched['school_id'] == null &&
+            (enriched['stops'] == null ||
+                (enriched['stops'] as List?)?.isEmpty == true)) {
+          enriched['school_id'] = enriched['school_name'];
+        }
+        final trip = TripModel.fromJson(enriched);
+        return TripCardWidget(trip: trip, onTap: () => _showTripDetail(trip));
       }
-      final trip = TripModel.fromJson(enriched);
-        return TripCardWidget(
-          trip: trip,
-          onTap: () => _showTripDetail(trip),
-        );
-      }
-      
+
       if (tripData is TripModel) {
         return TripCardWidget(
           trip: tripData,
@@ -536,9 +559,7 @@ Widget _buildTripCard(dynamic tripData) {
       }
 
       return const SizedBox.shrink();
-      
     } catch (e) {
-      
       return const SizedBox.shrink();
     }
   }
@@ -557,13 +578,17 @@ Widget _buildTripCard(dynamic tripData) {
 
   Widget _buildNotificationsSection(DashboardLoaded state) {
     final notifications = state.dashboard.notifications;
-    final List<dynamic> notificationsList = (notifications as List).take(2).toList();
+    final List<dynamic> notificationsList = (notifications as List)
+        .take(2)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingL,
+          ),
           child: Text(
             'recent_notifications'.tr(),
             style: const TextStyle(
@@ -591,7 +616,9 @@ Widget _buildTripCard(dynamic tripData) {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.paddingL,
+            ),
             itemCount: notificationsList.length,
             itemBuilder: (context, index) {
               return _buildNotificationItem(notificationsList[index]);
@@ -657,10 +684,7 @@ Widget _buildTripCard(dynamic tripData) {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppConstants.radiusL),
-        border: Border.all(
-          color: AppColors.notificationBorder,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.notificationBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: AppColors.blackOpacity05,
@@ -678,11 +702,7 @@ Widget _buildTripCard(dynamic tripData) {
               color: backgroundColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: AppConstants.iconSizeM,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: AppConstants.iconSizeM, color: iconColor),
           ),
           const SizedBox(width: AppConstants.spacingL),
           Expanded(

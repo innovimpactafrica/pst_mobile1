@@ -4,12 +4,12 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../data/models/trip_model.dart';
+import '../../data/repositories/evaluation_repository.dart';
 
-/// ✅ TRIP CARD - Design avec 2 photos circulaires côte à côte
-class TripCardWidget extends StatelessWidget {
+class TripCardWidget extends StatefulWidget {
   final TripModel trip;
   final VoidCallback? onTap;
-  final bool isReserved; // Pour navigation uniquement (pas affiché)
+  final bool isReserved;
 
   const TripCardWidget({
     super.key,
@@ -19,9 +19,64 @@ class TripCardWidget extends StatelessWidget {
   });
 
   @override
+  State<TripCardWidget> createState() => _TripCardWidgetState();
+}
+
+class _TripCardWidgetState extends State<TripCardWidget> {
+  double? _realRating;
+  bool _isLoadingRating = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRealRating();
+  }
+
+  Future<void> _loadRealRating() async {
+    if (widget.trip.driverId == null) {
+      setState(() => _isLoadingRating = false);
+      return;
+    }
+
+    try {
+      final driverId = int.tryParse(widget.trip.driverId!);
+      if (driverId == null) {
+        setState(() => _isLoadingRating = false);
+        return;
+      }
+
+      final evaluations = await EvaluationRepository().getDriverEvaluations(
+        driverId: driverId,
+        limit: 100,
+      );
+
+      if (evaluations.isNotEmpty) {
+        final avg =
+            evaluations.map((e) => e.rating).reduce((a, b) => a + b) /
+            evaluations.length;
+        if (mounted) {
+          setState(() {
+            _realRating = avg;
+            _isLoadingRating = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoadingRating = false);
+        }
+      }
+    } catch (e) {
+      debugPrint(' Erreur chargement rating: $e');
+      if (mounted) {
+        setState(() => _isLoadingRating = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: AppConstants.spacingXL),
         padding: const EdgeInsets.all(AppConstants.spacingXL),
@@ -39,14 +94,14 @@ class TripCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ HEADER : Photo chauffeur + véhicule + infos + badge statut
+            //  Photo chauffeur + véhicule + infos + badge statut
             _buildDriverHeader(),
-            
+
             const SizedBox(height: AppConstants.spacingXL),
 
             // Route section
             _buildRouteSection(),
-            
+
             const SizedBox(height: AppConstants.spacingL),
 
             // Info section
@@ -57,13 +112,15 @@ class TripCardWidget extends StatelessWidget {
     );
   }
 
-  /// ✅ HEADER : Photo chauffeur + véhicule (superposées) + infos
+  ///  Photo chauffeur + véhicule (superposées) + infos
   Widget _buildDriverHeader() {
+    final displayRating = _realRating ?? widget.trip.driverRatingValue;
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.spacingXL),
       child: Row(
         children: [
-          // ✅ STACK : Photo chauffeur + véhicule superposées
+          //  Photo chauffeur + véhicule superposées
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -71,21 +128,25 @@ class TripCardWidget extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.grey200,
-                backgroundImage: trip.hasDriverPhoto
-                    ? NetworkImage(trip.driverPhotoUrl)
+                backgroundImage: widget.trip.hasDriverPhoto
+                    ? NetworkImage(widget.trip.driverPhotoUrl)
                     : null,
-                onBackgroundImageError: trip.hasDriverPhoto 
+                onBackgroundImageError: widget.trip.hasDriverPhoto
                     ? (exception, stackTrace) {
                         debugPrint('! Erreur chargement photo chauffeur');
                       }
                     : null,
-                child: !trip.hasDriverPhoto
-                    ? const Icon(Icons.person, color: AppColors.grey600, size: 24)
+                child: !widget.trip.hasDriverPhoto
+                    ? const Icon(
+                        Icons.person,
+                        color: AppColors.grey600,
+                        size: 24,
+                      )
                     : null,
               ),
-              
-              // ✅ Photo véhicule (petit cercle en bas à droite)
-              if (trip.hasVehiclePhoto)
+
+              // Photo véhicule (petit cercle en bas à droite)
+              if (widget.trip.hasVehiclePhoto)
                 Positioned(
                   right: -4,
                   bottom: -4,
@@ -98,7 +159,7 @@ class TripCardWidget extends StatelessWidget {
                     ),
                     child: ClipOval(
                       child: Image.network(
-                        trip.vehiclePhotoUrl,
+                        widget.trip.vehiclePhotoUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           debugPrint('! Erreur chargement photo véhicule');
@@ -117,9 +178,9 @@ class TripCardWidget extends StatelessWidget {
                 ),
             ],
           ),
-          
+
           const SizedBox(width: AppConstants.spacingL),
-          
+
           // Infos chauffeur
           Expanded(
             child: Column(
@@ -127,7 +188,7 @@ class TripCardWidget extends StatelessWidget {
               children: [
                 // Nom du chauffeur
                 Text(
-                  trip.driverNameDisplay,
+                  widget.trip.driverNameDisplay,
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
                     fontSize: AppConstants.fontSizeL - 1,
@@ -136,32 +197,31 @@ class TripCardWidget extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 const SizedBox(height: 4),
-                
+
                 // Plaque + Rating
                 Row(
                   children: [
-                  // Plaque
-if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
-  Flexible(
-    child: Text(
-      trip.vehiclePlate!,
-      style: GoogleFonts.inter(
-        fontSize: AppConstants.fontSizeS,
-        color: AppColors.textSecondary,
-        fontWeight: FontWeight.w500,
-      ),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
-    ),
-  ),
-                    
+                    // Plaque
+                    if (widget.trip.vehiclePlate != null &&
+                        widget.trip.vehiclePlate!.isNotEmpty)
+                      Flexible(
+                        child: Text(
+                          widget.trip.vehiclePlate!,
+                          style: GoogleFonts.inter(
+                            fontSize: AppConstants.fontSizeS,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+
                     // Séparateur
-                    if (trip.vehiclePlate != null && 
-                        trip.vehiclePlate!.isNotEmpty && 
-                        trip.driverRating != null && 
-                        trip.driverRating! > 0)
+                    if (widget.trip.vehiclePlate != null &&
+                        widget.trip.vehiclePlate!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Container(
@@ -173,41 +233,51 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
                           ),
                         ),
                       ),
-                    
-                    // Rating
-                    if (trip.driverRating != null && trip.driverRating! > 0)
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: AppColors.warning,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            trip.driverRating!.toStringAsFixed(1),
-                            style: GoogleFonts.inter(
-                              fontSize: AppConstants.fontSizeS,
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+
+                    // Rating (toujours visible avec vraie évaluation)
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: AppColors.warning,
+                        ),
+                        const SizedBox(width: 4),
+                        _isLoadingRating
+                            ? SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.textSecondary,
+                                ),
+                              )
+                            : Text(
+                                displayRating > 0
+                                    ? displayRating.toStringAsFixed(1)
+                                    : 'N/A',
+                                style: GoogleFonts.inter(
+                                  fontSize: AppConstants.fontSizeS,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ],
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-          
-          // ✅ BADGE STATUT (pending/active/completed) - PAS "Réservé"
-          _buildStatusBadge(trip.status),
+
+          //  BADGE STATUT (pending/active/completed) - PAS "Réservé"
+          _buildStatusBadge(widget.trip.status),
         ],
       ),
     );
   }
 
-  /// ✅ SECTION ROUTE
+  ///  SECTION ROUTE
   Widget _buildRouteSection() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,16 +298,12 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
               ),
               child: CustomPaint(painter: DashedLinePainter()),
             ),
-            const Icon(
-              Icons.location_on,
-              color: AppColors.success,
-              size: 18,
-            ),
+            const Icon(Icons.location_on, color: AppColors.success, size: 18),
           ],
         ),
-        
+
         const SizedBox(width: AppConstants.spacingL),
-        
+
         // Textes
         Expanded(
           child: Column(
@@ -248,7 +314,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
                 children: [
                   Expanded(
                     child: Text(
-                      trip.startLocation ?? 'departure_point'.tr(),
+                      widget.trip.startLocation ?? 'departure_point'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeS + 1,
                         color: AppColors.textPrimary,
@@ -259,7 +325,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
                     ),
                   ),
                   Text(
-                    trip.time,
+                    widget.trip.time,
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeS + 1,
                       fontWeight: FontWeight.w600,
@@ -268,16 +334,16 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 28),
-              
+
               // Arrivée
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      trip.destination,
+                      widget.trip.destination,
                       style: GoogleFonts.inter(
                         fontSize: AppConstants.fontSizeS + 1,
                         color: AppColors.textPrimary,
@@ -288,7 +354,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
                     ),
                   ),
                   Text(
-                    _calculateArrivalTime(trip.time),
+                    _calculateArrivalTime(widget.trip.time),
                     style: GoogleFonts.inter(
                       fontSize: AppConstants.fontSizeS + 1,
                       fontWeight: FontWeight.w600,
@@ -304,12 +370,12 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
     );
   }
 
-  /// ✅ SECTION INFO (écoles + "X enfants inscrits / Y places")
+  /// SECTION INFO (écoles + "X enfants inscrits / Y places")
   Widget _buildInfoSection() {
-    final registeredCount = trip.passengers.length;
-    final totalPlaces = trip.totalSeats;
-    final schoolCount = trip.schoolCount ?? 0;
-    
+    final registeredCount = widget.trip.passengers.length;
+    final totalPlaces = widget.trip.totalSeats;
+    final schoolCount = widget.trip.schoolCount ?? 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -317,11 +383,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
         Flexible(
           child: Row(
             children: [
-              const Icon(
-                Icons.school,
-                size: 16,
-                color: AppColors.success,
-              ),
+              const Icon(Icons.school, size: 16, color: AppColors.success),
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
@@ -339,17 +401,13 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
             ],
           ),
         ),
-        
+
         const SizedBox(width: 8),
-        
-        // ✅ "X enfants inscrits / Y places"
+
+        //  "X enfants inscrits / Y places"
         Row(
           children: [
-            const Icon(
-              Icons.people,
-              size: 16,
-              color: AppColors.textSecondary,
-            ),
+            const Icon(Icons.people, size: 16, color: AppColors.textSecondary),
             const SizedBox(width: 4),
             Text(
               '$registeredCount/$totalPlaces',
@@ -365,7 +423,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
     );
   }
 
-  /// ✅ BADGE STATUT DE LA BASE (pending/active/in_progress/completed/canceled)
+  ///  BADGE STATUT DE LA BASE (pending/active/in_progress/completed/canceled)
   Widget _buildStatusBadge(String status) {
     Color badgeColor;
     String badgeText;
@@ -392,10 +450,7 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppConstants.radiusXL - 8),
@@ -432,16 +487,16 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
       if (parts.length >= 2) {
         int hours = int.parse(parts[0]);
         int minutes = int.parse(parts[1]);
-        
+
         minutes += 30;
         if (minutes >= 60) {
           hours += 1;
           minutes -= 60;
         }
         hours += 1;
-        
+
         if (hours >= 24) hours -= 24;
-        
+
         return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
       }
     } catch (e) {
@@ -451,7 +506,6 @@ if (trip.vehiclePlate != null && trip.vehiclePlate!.isNotEmpty)
   }
 }
 
-/// Custom painter for dashed line
 class DashedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

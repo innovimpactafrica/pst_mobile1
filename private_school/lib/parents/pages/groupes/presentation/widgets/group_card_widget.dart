@@ -6,7 +6,7 @@ import 'package:private_school/core/utils/app_colors.dart';
 class GroupCardWidget extends StatelessWidget {
   final GroupModel group;
   final VoidCallback? onTap;
-  final bool isAvailable; // true si c'est un groupe à rejoindre
+  final bool isAvailable;
 
   const GroupCardWidget({
     super.key,

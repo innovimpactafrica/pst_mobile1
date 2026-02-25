@@ -8,7 +8,7 @@ class LoadMoreReportsEvent extends ReportEvent {}
 
 class LoadPageEvent extends ReportEvent {
   final int page;
-  
+
   LoadPageEvent(this.page);
 }
 
@@ -16,13 +16,13 @@ class RefreshReportsEvent extends ReportEvent {}
 
 class FilterReportsEvent extends ReportEvent {
   final String filter; // 'Tous', 'Incident', 'Litiges', 'Sécurité'
-  
+
   FilterReportsEvent(this.filter);
 }
 
 class SearchReportsEvent extends ReportEvent {
   final String query;
-  
+
   SearchReportsEvent(this.query);
 }
 
@@ -31,7 +31,7 @@ class CreateReportEvent extends ReportEvent {
   final String category;
   final String description;
   final List<File>? files;
-  
+
   CreateReportEvent({
     required this.type,
     required this.category,
@@ -43,10 +43,10 @@ class CreateReportEvent extends ReportEvent {
 class UpdateReportEvent extends ReportEvent {
   final int id;
   final String type;
-  final String category; // 🆕 Ajout de category pour la modification
+  final String category;
   final String description;
-  final List<File>? files; // 🆕 Support des fichiers en modification (optionnel)
-  
+  final List<File>? files;
+
   UpdateReportEvent({
     required this.id,
     required this.type,
@@ -59,19 +59,13 @@ class UpdateReportEvent extends ReportEvent {
 class UpdateReportStatusEvent extends ReportEvent {
   final int id;
   final String status;
-  
-  UpdateReportStatusEvent({
-    required this.id,
-    required this.status,
-  });
+
+  UpdateReportStatusEvent({required this.id, required this.status});
 }
 
 class DeleteReportEvent extends ReportEvent {
   final int id;
   final int userId;
 
-  DeleteReportEvent({
-    required this.id,
-    required this.userId,
-  });
+  DeleteReportEvent({required this.id, required this.userId});
 }

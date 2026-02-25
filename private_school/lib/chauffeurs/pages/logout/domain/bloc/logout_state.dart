@@ -1,5 +1,3 @@
-
-
 abstract class LogoutState {}
 
 /// État initial

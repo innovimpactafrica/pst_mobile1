@@ -4,8 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../domain/bloc/group_bloc.dart';
 import '../../domain/bloc/group_event.dart';
 
-
-/// Widget de bannière pour confirmer sa disponibilité
 class ConfirmPlanningBanner extends StatelessWidget {
   final String planningId;
   final String groupId;
@@ -48,11 +46,12 @@ class ConfirmPlanningBanner extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.close, color: Colors.orange.shade700, size: 20),
-                onPressed: () {
-                  // Ne rien faire - juste fermer visuellement
-                  // L'utilisateur doit confirmer pour que ça disparaisse vraiment
-                },
+                icon: Icon(
+                  Icons.close,
+                  color: Colors.orange.shade700,
+                  size: 20,
+                ),
+                onPressed: () {},
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -72,12 +71,11 @@ class ConfirmPlanningBanner extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                debugPrint(' [ConfirmPlanningBanner] Confirming planning: $planningId');
-                
-                // Envoyer l'événement de confirmation au BLoC
-                context.read<GroupBloc>().add(
-                  ConfirmPlanningEvent(planningId),
+                debugPrint(
+                  ' [ConfirmPlanningBanner] Confirming planning: $planningId',
                 );
+
+                context.read<GroupBloc>().add(ConfirmPlanningEvent(planningId));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange.shade700,

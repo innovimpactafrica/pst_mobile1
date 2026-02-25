@@ -1,5 +1,3 @@
-
-
 class TransactionModel {
   final String id;
   final String driverId;

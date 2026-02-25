@@ -15,7 +15,6 @@ class GroupMember {
     this.phone,
   });
 
-  // Calcul des initiales à partir du nom
   String get displayInitials {
     final parts = name.trim().split(' ');
     if (parts.isEmpty) return 'NA';

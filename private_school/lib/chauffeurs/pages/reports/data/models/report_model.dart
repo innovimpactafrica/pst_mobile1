@@ -1,9 +1,8 @@
-
 class ReportModel {
   final int id;
   final int userId;
-  final String type; 
-  final String category; 
+  final String type;
+  final String category;
   final String description;
   final String status;
   final DateTime createdAt;
@@ -26,7 +25,6 @@ class ReportModel {
     this.vehiclePlate,
   });
 
- 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
     List<dynamic> docs = json['documents'] ?? [];
     String? firstImageUrl;
@@ -39,7 +37,7 @@ class ReportModel {
       userId: json['user_id'] ?? 0,
       type: json['type_de_problem'] ?? json['type'] ?? 'incident',
       category: json['category'] ?? json['type_de_problem'] ?? 'Signalement',
-      
+
       description: json['description'] ?? '',
       status: json['status'] ?? 'En cours',
       createdAt: json['created_at'] != null
@@ -58,7 +56,7 @@ class ReportModel {
     return {
       'id': id,
       'user_id': userId,
-      'type_de_problem': type, 
+      'type_de_problem': type,
       'category': category,
       'description': description,
       'status': status,

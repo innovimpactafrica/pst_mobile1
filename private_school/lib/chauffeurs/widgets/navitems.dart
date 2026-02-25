@@ -5,7 +5,6 @@ import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/parents/pages/profil/presentation/pages/profil_page.dart';
 import 'package:private_school/parents/pages/trajets/presentation/pages/trajets_page.dart';
 
-
 class MainScreen extends StatefulWidget {
   final bool off;
   final int initialIndex;
@@ -97,12 +96,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(
-              0,
-              Icons.dashboard_outlined,
-              Icons.dashboard,
-              'home',
-            ),
+            _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard, 'home'),
             _buildNavItem(
               1,
               Icons.directions_car_outlined,

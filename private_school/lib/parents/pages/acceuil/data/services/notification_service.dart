@@ -1,6 +1,3 @@
-// Service de notification pour les messages
-// Path: parents/pages/acceuil/data/services/notification_service.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../repositories/messaging_repository.dart';
@@ -15,13 +12,12 @@ class NotificationService {
   Timer? _pollTimer;
   int _lastUnreadCount = 0;
 
-  // Démarrer le polling pour les nouveaux messages
   void startPolling() {
-    debugPrint('🔄 [NotificationService] Démarrage du polling...');
-    
+    debugPrint(' [NotificationService] Démarrage du polling...');
+
     // Arrêter le timer existant s'il y en a un
     _pollTimer?.cancel();
-    
+
     // Polling toutes les 15 secondes
     _pollTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _checkForNewMessages();
@@ -30,7 +26,7 @@ class NotificationService {
 
   // Arrêter le polling
   void stopPolling() {
-    debugPrint('⏹️ [NotificationService] Arrêt du polling');
+    debugPrint(' [NotificationService] Arrêt du polling');
     _pollTimer?.cancel();
     _pollTimer = null;
   }
@@ -44,48 +40,45 @@ class NotificationService {
         (sum, conv) => sum + conv.unreadCount,
       );
 
-      // Si le nombre de messages non lus a changé
       if (currentUnreadCount != _lastUnreadCount) {
-        debugPrint('📊 [NotificationService] Changement détecté: $_lastUnreadCount → $currentUnreadCount');
-        
+        debugPrint(
+          ' [NotificationService] Changement détecté: $_lastUnreadCount → $currentUnreadCount',
+        );
+
         // Mettre à jour le compteur
         UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
-        
+
         // Si il y a plus de messages qu'avant, c'est un nouveau message
         if (currentUnreadCount > _lastUnreadCount) {
-          debugPrint('📨 [NotificationService] Nouveau(x) message(s) détecté(s)');
+          debugPrint(' [NotificationService] Nouveau(x) message(s) détecté(s)');
           _showNewMessageNotification(currentUnreadCount - _lastUnreadCount);
         }
-        
+
         _lastUnreadCount = currentUnreadCount;
       }
     } catch (e) {
-      debugPrint('❌ [NotificationService] Erreur polling: $e');
+      debugPrint(' [NotificationService] Erreur polling: $e');
     }
   }
 
   // Afficher une notification pour les nouveaux messages
   void _showNewMessageNotification(int newMessageCount) {
-    // Ici vous pourriez ajouter une notification locale
-    // Pour l'instant, on se contente d'un log
-    debugPrint('🔔 [NotificationService] $newMessageCount nouveau(x) message(s)');
+    debugPrint(' [NotificationService] $newMessageCount nouveau(x) message(s)');
   }
 
-  // Forcer une vérification immédiate
   Future<void> checkNow() async {
-    debugPrint('⚡ [NotificationService] Vérification forcée');
+    debugPrint(' [NotificationService] Vérification forcée');
     await _checkForNewMessages();
   }
 
-  // Réinitialiser le compteur (utile lors de la connexion)
   void resetCounter() {
-    debugPrint('🔄 [NotificationService] Reset compteur');
+    debugPrint(' [NotificationService] Reset compteur');
     _lastUnreadCount = 0;
   }
 
   // Nettoyer les ressources
   void dispose() {
-    debugPrint('🧹 [NotificationService] Nettoyage');
+    debugPrint(' [NotificationService] Nettoyage');
     stopPolling();
   }
 }

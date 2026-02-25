@@ -4,8 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
-/// Reports page for drivers
-/// Displays and filters driver reports
 class ReportsPage extends StatefulWidget {
   const ReportsPage({super.key});
 
@@ -18,7 +16,6 @@ class _ReportsPageState extends State<ReportsPage> {
   int _currentPage = 1;
   final int _itemsPerPage = 5;
 
-  // Mock data - should come from BLoC/Repository
   final List<Map<String, dynamic>> _allReports = [
     {
       'title': 'Signalement A',
@@ -118,7 +115,6 @@ class _ReportsPageState extends State<ReportsPage> {
           _buildTabs(),
           const SizedBox(height: AppConstants.spacingXL),
 
-          // ✅ Pagination EN HAUT - visible, jamais cachée par la navbar
           if (_totalPages > 1) _buildPaginationBar(),
 
           _buildReportsList(),
@@ -128,7 +124,6 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // ✅ Pagination style notifications_page - boutons numérotés en haut
   Widget _buildPaginationBar() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -147,13 +142,15 @@ class _ReportsPageState extends State<ReportsPage> {
         children: [
           // Bouton précédent
           IconButton(
-            onPressed:
-                _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
             icon: Icon(
               Icons.arrow_back_ios,
               size: 18,
-              color:
-                  _currentPage > 1 ? AppColors.success : Colors.grey.shade300,
+              color: _currentPage > 1
+                  ? AppColors.success
+                  : Colors.grey.shade300,
             ),
           ),
 

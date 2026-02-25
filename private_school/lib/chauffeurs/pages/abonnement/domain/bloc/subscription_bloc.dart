@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 import '../../data/repositories/subscription_repository.dart';
@@ -20,31 +19,29 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<LoadCurrentSubscriptionEvent>(_onLoadCurrentSubscription);
   }
 
-
   Future<void> _onLoadCurrentSubscription(
-  LoadCurrentSubscriptionEvent event,
-  Emitter<SubscriptionState> emit,
-) async {
-  try {
-    final subscription = await repository.getCurrentSubscription();
-    emit(CurrentSubscriptionLoaded(subscription)); 
-  } catch (e) {
-    emit(CurrentSubscriptionLoaded(null));
+    LoadCurrentSubscriptionEvent event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    try {
+      final subscription = await repository.getCurrentSubscription();
+      emit(CurrentSubscriptionLoaded(subscription));
+    } catch (e) {
+      emit(CurrentSubscriptionLoaded(null));
+    }
   }
-}
-  
+
   Future<void> _onLoadPlans(
-  LoadSubscriptionPlansEvent event,
-  Emitter<SubscriptionState> emit,
-) async {
- 
-  try {
-    final plans = await repository.getPlans();
-    emit(SubscriptionPlansLoaded(plans));
-  } catch (e) {
-    emit(SubscriptionError(e.toString()));
+    LoadSubscriptionPlansEvent event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    try {
+      final plans = await repository.getPlans();
+      emit(SubscriptionPlansLoaded(plans));
+    } catch (e) {
+      emit(SubscriptionError(e.toString()));
+    }
   }
-}
 
   Future<void> _onSubscribe(
     SubscribeEvent event,
@@ -52,7 +49,10 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     emit(SubscriptionLoading());
     try {
-      final subscription = await repository.subscribe(event.planId, event.paymentMethodId);
+      final subscription = await repository.subscribe(
+        event.planId,
+        event.paymentMethodId,
+      );
       emit(SubscriptionActive(subscription));
     } catch (e) {
       emit(SubscriptionError(e.toString()));
@@ -98,23 +98,22 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   Future<void> _onAddPaymentMethod(
-  AddPaymentMethodEvent event,
-  Emitter<SubscriptionState> emit,
-) async {
-  try { 
-    await repository.addPaymentMethod(
-      type: event.type,
-      cardNumber: event.cardNumber,
-      phoneNumber: event.phoneNumber,
-    );
-    
-    emit(PaymentMethodAdded(PaymentMethod(id: '', type: event.type))); 
-    add(LoadPaymentMethodsEvent());
+    AddPaymentMethodEvent event,
+    Emitter<SubscriptionState> emit,
+  ) async {
+    try {
+      await repository.addPaymentMethod(
+        type: event.type,
+        cardNumber: event.cardNumber,
+        phoneNumber: event.phoneNumber,
+      );
 
-  } catch (e) {
-    emit(SubscriptionError(e.toString()));
+      emit(PaymentMethodAdded(PaymentMethod(id: '', type: event.type)));
+      add(LoadPaymentMethodsEvent());
+    } catch (e) {
+      emit(SubscriptionError(e.toString()));
+    }
   }
-}
 
   Future<void> _onSetDefault(
     SetDefaultPaymentMethodEvent event,

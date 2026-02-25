@@ -27,8 +27,23 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   @override
   void initState() {
     super.initState();
-    // Charger les conversations au démarrage
     context.read<ConversationBloc>().add(const LoadConversationsEvent());
+    _enrichConversationsWithAvatars();
+  }
+
+  Future<void> _enrichConversationsWithAvatars() async {
+    try {
+      final extractor = DriverUserIdExtractor();
+      final drivers = await extractor.getAllDriversWithUserId();
+
+      if (mounted) {
+        context.read<ConversationBloc>().add(
+          EnrichConversationsWithAvatarsEvent(drivers: drivers),
+        );
+      }
+    } catch (e) {
+      debugPrint(' Impossible d\'enrichir les avatars: $e');
+    }
   }
 
   @override
@@ -72,7 +87,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                 message = 'notifications_enabled'.tr();
                 break;
             }
-            
+
             if (message.isNotEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -88,9 +103,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         builder: (context, state) {
           if (state is ConversationLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
+              child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
@@ -112,10 +125,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _showNewConversationDialog,
         backgroundColor: AppColors.success,
-        child: const Icon(
-          Icons.add_comment,
-          color: AppColors.white,
-        ),
+        child: const Icon(Icons.add_comment, color: AppColors.white),
       ),
     );
   }
@@ -153,11 +163,10 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             switch (value) {
               case 'refresh':
                 context.read<ConversationBloc>().add(
-                      const RefreshConversationsEvent(),
-                    );
+                  const RefreshConversationsEvent(),
+                );
                 break;
               case 'settings':
-                // TODO: Implémenter les paramètres
                 break;
             }
           },
@@ -205,8 +214,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         controller: _searchController,
         onChanged: (query) {
           context.read<ConversationBloc>().add(
-                FilterConversationsEvent(query: query),
-              );
+            FilterConversationsEvent(query: query),
+          );
         },
         style: GoogleFonts.inter(color: AppColors.white),
         decoration: InputDecoration(
@@ -214,18 +223,15 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
           hintStyle: GoogleFonts.inter(
             color: AppColors.white.withValues(alpha: 0.7),
           ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: AppColors.white,
-          ),
+          prefixIcon: const Icon(Icons.search, color: AppColors.white),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, color: AppColors.white),
                   onPressed: () {
                     _searchController.clear();
                     context.read<ConversationBloc>().add(
-                          const FilterConversationsEvent(query: ''),
-                        );
+                      const FilterConversationsEvent(query: ''),
+                    );
                   },
                 )
               : null,
@@ -253,9 +259,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<ConversationBloc>().add(
-              const RefreshConversationsEvent(),
-            );
+        context.read<ConversationBloc>().add(const RefreshConversationsEvent());
         await Future.delayed(const Duration(seconds: 1));
       },
       color: AppColors.primary,
@@ -273,40 +277,40 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
     );
   }
 
- void _openChat(ConversationModel conversation) async {
-  // ✅ Si la photo est manquante, essayer de la récupérer depuis les trajets
-  ConversationModel enrichedConversation = conversation;
-  
-  if (conversation.otherUserAvatar == null && conversation.otherUserId != null) {
-    try {
-      final extractor = DriverUserIdExtractor();
-      final drivers = await extractor.getAllDriversWithUserId();
-      final driver = drivers.firstWhere(
-        (d) => d['id'] == conversation.otherUserId,
-        orElse: () => {},
-      );
-      if (driver.isNotEmpty && driver['photo'] != null) {
-        enrichedConversation = conversation.copyWith(
-          otherUserAvatar: driver['photo'] as String,
+  void _openChat(ConversationModel conversation) async {
+    ConversationModel enrichedConversation = conversation;
+
+    if (conversation.otherUserAvatar == null &&
+        conversation.otherUserId != null) {
+      try {
+        final extractor = DriverUserIdExtractor();
+        final drivers = await extractor.getAllDriversWithUserId();
+        final driver = drivers.firstWhere(
+          (d) => d['id'] == conversation.otherUserId,
+          orElse: () => {},
         );
+        if (driver.isNotEmpty && driver['photo'] != null) {
+          enrichedConversation = conversation.copyWith(
+            otherUserAvatar: driver['photo'] as String,
+          );
+        }
+      } catch (e) {
+        debugPrint(' Impossible de récupérer la photo: $e');
       }
-    } catch (e) {
-      debugPrint('⚠️ Impossible de récupérer la photo: $e');
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(conversation: enrichedConversation),
+      ),
+    );
+
+    if (mounted) {
+      context.read<ConversationBloc>().add(const RefreshConversationsEvent());
+      UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
     }
   }
-
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ChatPage(conversation: enrichedConversation),
-    ),
-  );
-  
-  if (mounted) {
-    context.read<ConversationBloc>().add(const RefreshConversationsEvent());
-    UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
-  }
-}
 
   void _showConversationOptions(ConversationModel conversation) {
     showModalBottomSheet(
@@ -324,12 +328,12 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                 Navigator.pop(context);
                 if (conversation.isMuted) {
                   this.context.read<ConversationBloc>().add(
-                        UnmuteConversationEvent(conversationId: conversation.id),
-                      );
+                    UnmuteConversationEvent(conversationId: conversation.id),
+                  );
                 } else {
                   this.context.read<ConversationBloc>().add(
-                        MuteConversationEvent(conversationId: conversation.id),
-                      );
+                    MuteConversationEvent(conversationId: conversation.id),
+                  );
                 }
               },
             ),
@@ -337,17 +341,19 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
               leading: Icon(
                 conversation.isArchived ? Icons.unarchive : Icons.archive,
               ),
-              title: Text(conversation.isArchived ? 'unarchive'.tr() : 'archive'.tr()),
+              title: Text(
+                conversation.isArchived ? 'unarchive'.tr() : 'archive'.tr(),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 if (conversation.isArchived) {
                   this.context.read<ConversationBloc>().add(
-                        UnarchiveConversationEvent(conversationId: conversation.id),
-                      );
+                    UnarchiveConversationEvent(conversationId: conversation.id),
+                  );
                 } else {
                   this.context.read<ConversationBloc>().add(
-                        ArchiveConversationEvent(conversationId: conversation.id),
-                      );
+                    ArchiveConversationEvent(conversationId: conversation.id),
+                  );
                 }
               },
             ),
@@ -369,9 +375,13 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
     });
 
     if (_showArchived) {
-      context.read<ConversationBloc>().add(const ShowArchivedConversationsEvent());
+      context.read<ConversationBloc>().add(
+        const ShowArchivedConversationsEvent(),
+      );
     } else {
-      context.read<ConversationBloc>().add(const ShowActiveConversationsEvent());
+      context.read<ConversationBloc>().add(
+        const ShowActiveConversationsEvent(),
+      );
     }
   }
 
@@ -394,9 +404,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
               Container(
                 padding: const EdgeInsets.all(AppConstants.spacingM),
                 decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.grey300),
-                  ),
+                  border: Border(bottom: BorderSide(color: AppColors.grey300)),
                 ),
                 child: Row(
                   children: [
@@ -424,8 +432,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
                   onConversationCreated: () {
                     Navigator.pop(context);
                     this.context.read<ConversationBloc>().add(
-                          const RefreshConversationsEvent(),
-                        );
+                      const RefreshConversationsEvent(),
+                    );
                     // Rafraîchir aussi le compteur
                     UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
                   },
@@ -446,7 +454,9 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _showArchived ? Icons.archive_outlined : Icons.chat_bubble_outline,
+              _showArchived
+                  ? Icons.archive_outlined
+                  : Icons.chat_bubble_outline,
               size: 80,
               color: AppColors.grey400,
             ),
@@ -486,11 +496,7 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 80,
-              color: AppColors.error,
-            ),
+            const Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: AppConstants.spacingL),
             Text(
               'error'.tr(),
@@ -513,8 +519,8 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
             ElevatedButton.icon(
               onPressed: () {
                 context.read<ConversationBloc>().add(
-                      const LoadConversationsEvent(),
-                    );
+                  const LoadConversationsEvent(),
+                );
               },
               icon: const Icon(Icons.refresh),
               label: Text('retry'.tr()),
@@ -534,10 +540,6 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
   }
 }
 
-
-// Widget pour créer une nouvelle conversation - VERSION FINALE
-// À remplacer dans votre discussions.dart
-
 class _NewConversationContent extends StatefulWidget {
   final ScrollController scrollController;
   final VoidCallback onConversationCreated;
@@ -548,7 +550,8 @@ class _NewConversationContent extends StatefulWidget {
   });
 
   @override
-  State<_NewConversationContent> createState() => _NewConversationContentState();
+  State<_NewConversationContent> createState() =>
+      _NewConversationContentState();
 }
 
 class _NewConversationContentState extends State<_NewConversationContent> {
@@ -568,7 +571,6 @@ class _NewConversationContentState extends State<_NewConversationContent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toggle entre conversation directe et groupe
         Padding(
           padding: const EdgeInsets.all(AppConstants.spacingM),
           child: Row(
@@ -603,10 +605,11 @@ class _NewConversationContentState extends State<_NewConversationContent> {
           ),
         ),
 
-        // Nom du groupe (si mode groupe)
         if (_isGroupMode)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.spacingM,
+            ),
             child: TextField(
               controller: _groupNameController,
               decoration: InputDecoration(
@@ -654,7 +657,11 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.error,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'loading_error'.tr(),
@@ -668,7 +675,9 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                         const SizedBox(height: 8),
                         Text(
                           '${snapshot.error}',
-                          style: GoogleFonts.inter(color: AppColors.textSecondary),
+                          style: GoogleFonts.inter(
+                            color: AppColors.textSecondary,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -691,7 +700,11 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.people_outline, size: 64, color: AppColors.grey400),
+                      Icon(
+                        Icons.people_outline,
+                        size: 64,
+                        color: AppColors.grey400,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         _searchController.text.isEmpty
@@ -732,7 +745,9 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                       children: [
                         CircleAvatar(
                           radius: 24,
-                          backgroundColor: AppColors.success.withValues(alpha: 0.2),
+                          backgroundColor: AppColors.success.withValues(
+                            alpha: 0.2,
+                          ),
                           backgroundImage: driver['photo'] != null
                               ? NetworkImage(driver['photo'])
                               : null,
@@ -753,7 +768,10 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                             decoration: BoxDecoration(
                               color: AppColors.success,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.white, width: 2),
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 2,
+                              ),
                             ),
                             child: Icon(
                               Icons.drive_eta,
@@ -802,7 +820,8 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                           ),
                         ],
                         // Rating si disponible
-                        if (driver['rating'] != null && driver['rating'] > 0) ...[
+                        if (driver['rating'] != null &&
+                            driver['rating'] > 0) ...[
                           const SizedBox(width: 8),
                           Icon(Icons.star, size: 12, color: AppColors.warning),
                           const SizedBox(width: 2),
@@ -846,7 +865,10 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                           }
                         });
                       } else {
-                       _createDirectConversation(driverId, driver['photo'] as String?);
+                        _createDirectConversation(
+                          driverId,
+                          driver['photo'] as String?,
+                        );
                       }
                     },
                   );
@@ -856,7 +878,6 @@ class _NewConversationContentState extends State<_NewConversationContent> {
           ),
         ),
 
-        // Bouton de création (si mode groupe)
         if (_isGroupMode && _selectedMembers.isNotEmpty)
           Container(
             padding: const EdgeInsets.all(AppConstants.spacingM),
@@ -882,7 +903,14 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                   ),
                 ),
                 child: Text(
-                  'create_group_with_members'.tr(namedArgs: {'count': _selectedMembers.length.toString(), 'label': _selectedMembers.length > 1 ? 'members'.tr() : 'member'.tr()}),
+                  'create_group_with_members'.tr(
+                    namedArgs: {
+                      'count': _selectedMembers.length.toString(),
+                      'label': _selectedMembers.length > 1
+                          ? 'members'.tr()
+                          : 'member'.tr(),
+                    },
+                  ),
                   style: GoogleFonts.inter(
                     fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.bold,
@@ -895,34 +923,32 @@ class _NewConversationContentState extends State<_NewConversationContent> {
     );
   }
 
-  /// 🎯 FONCTION PRINCIPALE : Récupère TOUS les chauffeurs depuis les trip cards
-Future<List<Map<String, dynamic>>> _getAllDrivers() async {
-  try {
-    final extractor = DriverUserIdExtractor();
-    return await extractor.getAllDriversWithUserId();
-  } catch (e, stackTrace) {
-    debugPrint('❌ Erreur _getAllDrivers: $e');
-    debugPrint('Stack: $stackTrace');
-    rethrow;
+  Future<List<Map<String, dynamic>>> _getAllDrivers() async {
+    try {
+      final extractor = DriverUserIdExtractor();
+      return await extractor.getAllDriversWithUserId();
+    } catch (e, stackTrace) {
+      debugPrint(' Erreur _getAllDrivers: $e');
+      debugPrint('Stack: $stackTrace');
+      rethrow;
+    }
   }
-}
 
   void _createDirectConversation(int driverId, String? driverPhoto) {
-  context.read<ConversationBloc>().add(
-    CreateDirectConversationEvent(
-      otherUserId: driverId,
-      otherUserAvatar: driverPhoto, // ✅ transmettre la photo
-    ),
-  );
-  widget.onConversationCreated();
-}
+    context.read<ConversationBloc>().add(
+      CreateDirectConversationEvent(
+        otherUserId: driverId,
+        otherUserAvatar: driverPhoto,
+      ),
+    );
+    widget.onConversationCreated();
+  }
 
   void _createGroupConversation() {
     final groupName = _groupNameController.text.trim();
-    
-   
+
     if (groupName.isEmpty) {
-      debugPrint('❌ Nom du groupe vide');
+      debugPrint(' Nom du groupe vide');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -936,9 +962,8 @@ Future<List<Map<String, dynamic>>> _getAllDrivers() async {
       return;
     }
 
-    // ✅ VALIDATION 2 : Minimum 2 membres
     if (_selectedMembers.length < 2) {
-      debugPrint('❌ Pas assez de membres: ${_selectedMembers.length}');
+      debugPrint(' Pas assez de membres: ${_selectedMembers.length}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -957,24 +982,20 @@ Future<List<Map<String, dynamic>>> _getAllDrivers() async {
       return;
     }
 
-    // ✅ TOUT EST BON : Créer le groupe
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🎯 Création du groupe "$groupName"');
-    debugPrint('👥 Membres sélectionnés: $_selectedMembers');
-    debugPrint('📊 Nombre de membres: ${_selectedMembers.length}');
+    debugPrint(' Création du groupe "$groupName"');
+    debugPrint(' Membres sélectionnés: $_selectedMembers');
+    debugPrint(' Nombre de membres: ${_selectedMembers.length}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    // ✅ DISPATCH L'EVENT
     context.read<ConversationBloc>().add(
       CreateGroupConversationEvent(
         name: groupName,
         memberIds: _selectedMembers.toList(),
       ),
     );
-    
-    // ✅ FERMER LA BOTTOM SHEET
-    debugPrint('✅ Event dispatché, fermeture du bottom sheet');
+
+    debugPrint(' Event dispatché, fermeture du bottom sheet');
     widget.onConversationCreated();
   }
 }
-

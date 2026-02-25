@@ -1,6 +1,3 @@
-// Payment Service - API calls only
-//
-// Path: lib/parents/profil/data/services/payment_service.dart
 import 'package:private_school/core/network/api_client.dart';
 
 import 'package:flutter/foundation.dart';
@@ -11,11 +8,11 @@ class PaymentService {
 
   Future<List<PaymentModel>> fetchPaymentHistory() async {
     try {
-      debugPrint('🔍 Fetching payment history...');
+      debugPrint(' Fetching payment history...');
 
       final response = await _apiClient.get('/api/payments/history');
 
-      debugPrint('✅ Payment history received: ${response.statusCode}');
+      debugPrint(' Payment history received: ${response.statusCode}');
 
       final List<dynamic> paymentsData = response.data is List
           ? response.data
@@ -25,14 +22,14 @@ class PaymentService {
           .map((json) => PaymentModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error fetching payment history: $e');
+      debugPrint(' Error fetching payment history: $e');
       throw Exception('Failed to load payment history: $e');
     }
   }
 
   Future<PaymentModel> fetchPaymentDetails(String paymentId) async {
     try {
-      debugPrint('🔍 Fetching payment details for: $paymentId');
+      debugPrint(' Fetching payment details for: $paymentId');
 
       final response = await _apiClient.get('/api/payments/$paymentId');
 

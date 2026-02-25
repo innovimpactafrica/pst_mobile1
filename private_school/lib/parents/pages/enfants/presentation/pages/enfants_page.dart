@@ -11,7 +11,6 @@ import '../../data/models/child_model.dart';
 import '../widgets/child_card_widget.dart';
 import '../widgets/add_child_modal.dart';
 
-
 class EnfantsPage extends StatefulWidget {
   const EnfantsPage({super.key});
 
@@ -23,17 +22,16 @@ class _EnfantsPageState extends State<EnfantsPage>
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    final bloc = context.read<ChildBloc>();
-    if (bloc.state is! ChildLoadedState) {
-      bloc.add(const LoadChildrenEvent());
-    }
-  });
-}
-
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bloc = context.read<ChildBloc>();
+      if (bloc.state is! ChildLoadedState) {
+        bloc.add(const LoadChildrenEvent());
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -44,8 +42,6 @@ void initState() {
   void _onSearchChanged(String query) {
     context.read<ChildBloc>().add(SearchChildrenEvent(query));
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -139,19 +135,19 @@ void initState() {
 
                           if (state is ChildActionSuccessState) {
                             if (state.children.isEmpty) {
-                             return Center(
-                             child: Text(
-                              'no_child'.tr(),
-                             style: GoogleFonts.inter(
-                            fontSize: 16,
-                          color: AppColors.grey300,
-                        ),
-                      ),
-                     );
-                    }
+                              return Center(
+                                child: Text(
+                                  'no_child'.tr(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    color: AppColors.grey300,
+                                  ),
+                                ),
+                              );
+                            }
 
-                     return _buildChildrenList(state.children);
-                       }
+                            return _buildChildrenList(state.children);
+                          }
                           if (state is ChildLoadedState) {
                             if (state.filteredChildren.isEmpty) {
                               return Center(
@@ -193,15 +189,15 @@ void initState() {
         ),
       ),
       floatingActionButton: Padding(
-  padding: const EdgeInsets.only(bottom: 70), // hauteur de ta navbar
-  child: FloatingActionButton(
-    onPressed: _showAddChildModal,
-    backgroundColor: AppColors.success,
-    elevation: 8,
-    child: const Icon(Icons.add, color: Colors.white, size: 28),
-  ),
-),
-floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        padding: const EdgeInsets.only(bottom: 70),
+        child: FloatingActionButton(
+          onPressed: _showAddChildModal,
+          backgroundColor: AppColors.success,
+          elevation: 8,
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

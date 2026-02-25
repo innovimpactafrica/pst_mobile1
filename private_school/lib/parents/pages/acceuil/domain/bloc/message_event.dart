@@ -1,6 +1,3 @@
-// Message Events
-// Path: parents/pages/acceuil/domain/bloc/message_event.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class MessageEvent extends Equatable {
@@ -42,12 +39,12 @@ class SendMessageEvent extends MessageEvent {
   final int conversationId;
   final String content;
   final int? replyToId;
-  final int currentUserId; // ✅ ajout
+  final int currentUserId;
   const SendMessageEvent({
     required this.conversationId,
     required this.content,
     this.replyToId,
-    this.currentUserId = 0, // ✅ valeur par défaut
+    this.currentUserId = 0,
   });
 
   @override

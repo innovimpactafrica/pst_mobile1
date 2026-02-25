@@ -11,6 +11,7 @@ import '../../domain/bloc/trip_event.dart';
 import '../../domain/bloc/trip_state.dart';
 import '../../data/services/child_service.dart';
 import '../../../../../shared/widgets/place_autocomplete_field.dart';
+
 class CreateTripModal extends StatefulWidget {
   const CreateTripModal({super.key});
 
@@ -33,13 +34,13 @@ class _CreateTripModalState extends State<CreateTripModal> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   TimeOfDay? _selectedReturnTime;
-  
+
   List<SchoolModel> _schools = [];
   bool _loadingSchools = true;
-  
+
   // Liste des arrêts (écoles sélectionnées)
-  List<SchoolStop> _stops = [SchoolStop()];
-  
+  final List<SchoolStop> _stops = [SchoolStop()];
+
   double? _startLatitude;
   double? _startLongitude;
   double? _endLatitude;
@@ -53,22 +54,22 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
   Future<void> _loadSchools() async {
     try {
-     
-      
+      debugPrint('🏫 [CreateTrip] Chargement des écoles...');
+
       final schools = await _schoolService.fetchSchools();
-      
+
+      debugPrint('✅ [CreateTrip] ${schools.length} écoles chargées');
+
       setState(() {
         _schools = schools;
         _loadingSchools = false;
       });
-      
-  
+
       for (var school in schools) {
-        
+        debugPrint('   - École: ${school.name} (ID: ${school.id})');
       }
-     
     } catch (e) {
-      
+      debugPrint('❌ [CreateTrip] Erreur chargement écoles: $e');
       setState(() => _loadingSchools = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,14 +95,14 @@ class _CreateTripModalState extends State<CreateTripModal> {
     setState(() => stop.loadingChildrenCount = true);
 
     try {
-      final children = await _childService.getChildrenBySchool(stop.selectedSchoolId!);
+      final children = await _childService.getChildrenBySchool(
+        stop.selectedSchoolId!,
+      );
       setState(() {
         stop.childrenCount = children.length;
         stop.loadingChildrenCount = false;
       });
-      
     } catch (e) {
-    
       setState(() => stop.loadingChildrenCount = false);
     }
   }
@@ -204,9 +205,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       ..._buildStopsSection(),
-                      
+
                       const SizedBox(height: 16),
                       _buildTimeField(
                         label: 'departure_time'.tr(),
@@ -244,7 +245,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
                       ),
                       const SizedBox(height: 24),
                       _buildSubmitButton(),
-                      SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+                      SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 20,
+                      ),
                     ],
                   ),
                 ),
@@ -272,12 +275,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFE5E5E5),
-            width: 1,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFE5E5E5), width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -308,14 +306,14 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
   List<Widget> _buildStopsSection() {
     List<Widget> widgets = [];
-    
+
     for (int i = 0; i < _stops.length; i++) {
       widgets.add(_buildStopDropdown(i));
       if (i < _stops.length - 1) {
         widgets.add(const SizedBox(height: 16));
       }
     }
-    
+
     //  ajouter un autre arrêt
     widgets.add(const SizedBox(height: 12));
     widgets.add(
@@ -333,13 +331,13 @@ class _CreateTripModalState extends State<CreateTripModal> {
         ),
       ),
     );
-    
+
     return widgets;
   }
 
   Widget _buildStopDropdown(int index) {
     final stop = _stops[index];
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,7 +362,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
           ],
         ),
         const SizedBox(height: 8),
-        
+
         _loadingSchools
             ? Container(
                 padding: const EdgeInsets.all(16),
@@ -396,7 +394,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
             : DropdownButtonFormField<SchoolModel>(
                 value: stop.selectedSchool,
                 menuMaxHeight: 300,
-                itemHeight: 56, 
+                itemHeight: 56,
                 decoration: InputDecoration(
                   hintText: 'select_school'.tr(),
                   hintStyle: TextStyle(
@@ -430,41 +428,40 @@ class _CreateTripModalState extends State<CreateTripModal> {
                     vertical: 14,
                   ),
                 ),
-              items: _schools.reversed.map((school) {
-  return DropdownMenuItem<SchoolModel>(
-    value: school,
-    child: SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            school.name,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-          if (school.address.isNotEmpty)
-            Text(
-              school.address,
-              style: TextStyle(
-                fontSize: 11, // réduit de 12 à 11
-                color: AppColors.textSecondary.withValues(alpha: 0.7),
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-        ],
-      ),
-    ),
-  );
-}).toList(),
+                items: _schools.map((school) {
+                  return DropdownMenuItem<SchoolModel>(
+                    value: school,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          school.name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                        if (school.address.isNotEmpty)
+                          Text(
+                            school.address,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
                 onChanged: (SchoolModel? school) {
                   setState(() {
                     stop.selectedSchool = school;
@@ -479,7 +476,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
                   return null;
                 },
               ),
-        
+
         if (stop.selectedSchoolId != null) ...[
           const SizedBox(height: 12),
           if (stop.loadingChildrenCount)
@@ -507,13 +504,13 @@ class _CreateTripModalState extends State<CreateTripModal> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: stop.childrenCount > 0 
-                    ? AppColors.successBackground 
+                color: stop.childrenCount > 0
+                    ? AppColors.successBackground
                     : const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: stop.childrenCount > 0 
-                      ? AppColors.success 
+                  color: stop.childrenCount > 0
+                      ? AppColors.success
                       : const Color(0xFFF59E0B),
                 ),
               ),
@@ -522,8 +519,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
                   Icon(
                     stop.childrenCount > 0 ? Icons.people : Icons.warning_amber,
                     size: 16,
-                    color: stop.childrenCount > 0 
-                        ? AppColors.success 
+                    color: stop.childrenCount > 0
+                        ? AppColors.success
                         : const Color(0xFFF59E0B),
                   ),
                   const SizedBox(width: 8),
@@ -534,8 +531,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
                           : 'no_children_enrolled'.tr(),
                       style: TextStyle(
                         fontSize: 12,
-                        color: stop.childrenCount > 0 
-                            ? AppColors.success 
+                        color: stop.childrenCount > 0
+                            ? AppColors.success
                             : const Color(0xFFF59E0B),
                         fontWeight: FontWeight.w500,
                       ),
@@ -589,10 +586,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
           readOnly: readOnly,
           onTap: onTap,
           keyboardType: keyboardType,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
@@ -600,11 +594,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
               fontSize: 14,
             ),
             suffixIcon: suffixIcon != null
-                ? Icon(
-                    suffixIcon,
-                    color: AppColors.textSecondary,
-                    size: 20,
-                  )
+                ? Icon(suffixIcon, color: AppColors.textSecondary, size: 20)
                 : null,
             filled: true,
             fillColor: const Color(0xFFF5F5F5),
@@ -618,7 +608,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -682,10 +675,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
           controller: controller,
           readOnly: true,
           onTap: onTap,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
@@ -718,7 +708,10 @@ class _CreateTripModalState extends State<CreateTripModal> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -754,7 +747,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
                     width: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.white,
+                      ),
                     ),
                   )
                 : Text(
@@ -869,7 +864,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
   }
 
   void _submitForm() {
-    
     if (_startPointController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -889,10 +883,8 @@ class _CreateTripModalState extends State<CreateTripModal> {
       );
       return;
     }
-    
-    if (_formKey.currentState!.validate()) {
-    
 
+    if (_formKey.currentState!.validate()) {
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -924,7 +916,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
         );
 
         if (departureTime.isBefore(DateTime.now())) {
-          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('departure_time_must_be_future'.tr()),
@@ -947,7 +938,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
         );
 
         if (returnTime.isBefore(DateTime.now())) {
-         
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('return_time_must_be_future'.tr()),
@@ -962,7 +952,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
       final capacity = int.tryParse(_passengersController.text) ?? 0;
 
       if (capacity <= 0) {
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('passengers_must_be_positive'.tr()),
@@ -979,7 +968,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
           .toList();
 
       if (schoolIds.isEmpty) {
-        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('please_select_at_least_one_school'.tr()),
@@ -989,25 +977,22 @@ class _CreateTripModalState extends State<CreateTripModal> {
         return;
       }
 
-
       context.read<TripBloc>().add(
-            CreateTripEvent(
-              startPoint: _startPointController.text.trim(),
-              endPoint: _endPointController.text.trim(),
-              departureTime: departureTime,
-              returnTime: returnTime,
-              capacityMax: capacity,
-              schoolIds: schoolIds,
-              isRecurring: false,
-              startLatitude: _startLatitude,
-              startLongitude: _startLongitude,
-              endLatitude: _endLatitude,
-              endLongitude: _endLongitude,
-            ),
-          );
-    } else {
-     
-    }
+        CreateTripEvent(
+          startPoint: _startPointController.text.trim(),
+          endPoint: _endPointController.text.trim(),
+          departureTime: departureTime,
+          returnTime: returnTime,
+          capacityMax: capacity,
+          schoolIds: schoolIds,
+          isRecurring: false,
+          startLatitude: _startLatitude,
+          startLongitude: _startLongitude,
+          endLatitude: _endLatitude,
+          endLongitude: _endLongitude,
+        ),
+      );
+    } else {}
   }
 }
 

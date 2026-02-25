@@ -1,6 +1,3 @@
-// Message States
-// Path: parents/pages/acceuil/domain/bloc/message_state.dart
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/message_model.dart';
 
@@ -74,13 +71,13 @@ class MessageLoaded extends MessageState {
 
   @override
   List<Object?> get props => [
-        conversationId,
-        messages,
-        replyToId,
-        replyToContent,
-        replyToSenderName,
-        isTyping,
-      ];
+    conversationId,
+    messages,
+    replyToId,
+    replyToContent,
+    replyToSenderName,
+    isTyping,
+  ];
 
   MessageLoaded copyWith({
     int? conversationId,
@@ -95,8 +92,12 @@ class MessageLoaded extends MessageState {
       conversationId: conversationId ?? this.conversationId,
       messages: messages ?? this.messages,
       replyToId: clearReply ? null : (replyToId ?? this.replyToId),
-      replyToContent: clearReply ? null : (replyToContent ?? this.replyToContent),
-      replyToSenderName: clearReply ? null : (replyToSenderName ?? this.replyToSenderName),
+      replyToContent: clearReply
+          ? null
+          : (replyToContent ?? this.replyToContent),
+      replyToSenderName: clearReply
+          ? null
+          : (replyToSenderName ?? this.replyToSenderName),
       isTyping: isTyping ?? this.isTyping,
     );
   }
@@ -192,10 +193,7 @@ class MessageDeleted extends MessageState {
   final int conversationId;
   final int messageId;
 
-  const MessageDeleted({
-    required this.conversationId,
-    required this.messageId,
-  });
+  const MessageDeleted({required this.conversationId, required this.messageId});
 
   @override
   List<Object?> get props => [conversationId, messageId];
@@ -212,11 +210,7 @@ class MessageError extends MessageState {
   final String? errorCode;
   final dynamic error;
 
-  const MessageError({
-    required this.message,
-    this.errorCode,
-    this.error,
-  });
+  const MessageError({required this.message, this.errorCode, this.error});
 
   @override
   List<Object?> get props => [message, errorCode, error];

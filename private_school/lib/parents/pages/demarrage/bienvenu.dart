@@ -12,7 +12,6 @@ class WelcomePage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // ✅ Image de fond
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -22,7 +21,6 @@ class WelcomePage extends StatelessWidget {
             ),
           ),
 
-          // ✅ Dégradé corrigé
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -38,21 +36,21 @@ class WelcomePage extends StatelessWidget {
             ),
           ),
 
-          // ✅ Contenu principal
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 30,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- Bloc titre avec trait vertical vert ---
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Trait vertical vert
                         Container(
                           width: 4,
                           height: 55,
@@ -63,7 +61,6 @@ class WelcomePage extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
 
-                        // Texte titre
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +89,6 @@ class WelcomePage extends StatelessWidget {
 
                     const SizedBox(height: 15),
 
-                    // Texte descriptif
                     Text(
                       "welcome_description".tr(),
                       style: TextStyle(
@@ -105,7 +101,6 @@ class WelcomePage extends StatelessWidget {
 
                     const SizedBox(height: 40),
 
-                    // ✅ Bouton vert plein
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -117,13 +112,12 @@ class WelcomePage extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          // ✅ APRÈS
-                         Navigator.push(
-                         context,
-                          MaterialPageRoute(
-                          builder: (_) => const RoleSelectionPage(),
-                          ),
-                            );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RoleSelectionPage(),
+                            ),
+                          );
                         },
                         child: Text(
                           "get_started".tr(),

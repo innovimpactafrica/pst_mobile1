@@ -1,6 +1,3 @@
-// Events d'authentification - MODIFIÉ pour inclure password
-// Chemin: lib/parents/authentification/domain/bloc/auth_event.dart
-
 import 'package:equatable/equatable.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -10,7 +7,6 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// ✅ Event : Inscription d'un parent - AVEC password et homeAddress
 class RegisterEvent extends AuthEvent {
   final String firstName;
   final String lastName;
@@ -29,43 +25,40 @@ class RegisterEvent extends AuthEvent {
   });
 
   @override
-  List<Object?> get props => [firstName, lastName, phone, email, password, homeAddress];
+  List<Object?> get props => [
+    firstName,
+    lastName,
+    phone,
+    email,
+    password,
+    homeAddress,
+  ];
 }
 
-/// ✅ Event : Connexion d'un parent
 class LoginEvent extends AuthEvent {
   final String email;
   final String password;
 
-  const LoginEvent({
-    required this.email,
-    required this.password,
-  });
+  const LoginEvent({required this.email, required this.password});
 
   @override
   List<Object?> get props => [email, password];
 }
 
-/// ✅ Event : Vérifier le code OTP
 class VerifyOtpEvent extends AuthEvent {
   final String email;
   final String otp;
 
-  const VerifyOtpEvent({
-    required this.email,
-    required this.otp,
-  });
+  const VerifyOtpEvent({required this.email, required this.otp});
 
   @override
   List<Object?> get props => [email, otp];
 }
 
-/// ✅ Event : Déconnexion
 class LogoutEvent extends AuthEvent {
   const LogoutEvent();
 }
 
-/// ✅ Event : Charger l'utilisateur actuel
 class LoadCurrentUserEvent extends AuthEvent {
   const LoadCurrentUserEvent();
 }
@@ -94,7 +87,6 @@ class ResetPasswordEvent extends AuthEvent {
   List<Object?> get props => [userId, code, newPassword];
 }
 
-/// ✅ Event : Vérifier si l'utilisateur est connecté
 class CheckAuthStatusEvent extends AuthEvent {
   const CheckAuthStatusEvent();
 }

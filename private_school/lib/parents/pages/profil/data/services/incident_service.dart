@@ -1,6 +1,3 @@
-// Incident Service - API calls only
-// Path: lib/parents/profil/data/services/incident_service.dart
-
 import 'package:private_school/core/network/api_client.dart';
 import 'package:private_school/core/utils/api_constants.dart';
 import 'package:flutter/foundation.dart';
@@ -12,11 +9,11 @@ class IncidentService {
 
   Future<List<IncidentModel>> fetchIncidents() async {
     try {
-      debugPrint('🔍 Fetching incidents...');
+      debugPrint(' Fetching incidents...');
 
       final response = await _apiClient.get(ApiConstants.incidents);
 
-      debugPrint('✅ Incidents received: ${response.statusCode}');
+      debugPrint(' Incidents received: ${response.statusCode}');
 
       final List<dynamic> incidentsData = response.data is List
           ? response.data
@@ -26,7 +23,7 @@ class IncidentService {
           .map((json) => IncidentModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint('❌ Error fetching incidents: $e');
+      debugPrint(' Error fetching incidents: $e');
       throw Exception('Failed to load incidents: $e');
     }
   }
@@ -38,7 +35,7 @@ class IncidentService {
     String? imageUrl,
   }) async {
     try {
-      debugPrint('📤 Creating new incident...');
+      debugPrint(' Creating new incident...');
 
       final response = await _apiClient.post(
         ApiConstants.incidents,
@@ -50,7 +47,7 @@ class IncidentService {
         },
       );
 
-      debugPrint('✅ Incident created');
+      debugPrint(' Incident created');
 
       final incidentData = response.data is Map
           ? (response.data['data'] ?? response.data)
@@ -58,7 +55,7 @@ class IncidentService {
 
       return IncidentModel.fromJson(incidentData as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Error creating incident: $e');
+      debugPrint(' Error creating incident: $e');
       throw Exception('Failed to create incident: $e');
     }
   }
@@ -68,7 +65,7 @@ class IncidentService {
     Map<String, dynamic> updates,
   ) async {
     try {
-      debugPrint('📝 Updating incident: $incidentId');
+      debugPrint(' Updating incident: $incidentId');
 
       final response = await _apiClient.put(
         '${ApiConstants.incidents}/$incidentId',
@@ -81,7 +78,7 @@ class IncidentService {
 
       return IncidentModel.fromJson(incidentData as Map<String, dynamic>);
     } catch (e) {
-      debugPrint('❌ Error updating incident: $e');
+      debugPrint(' Error updating incident: $e');
       throw Exception('Failed to update incident: $e');
     }
   }
@@ -89,9 +86,9 @@ class IncidentService {
   Future<void> deleteIncident(String incidentId) async {
     try {
       await _apiClient.delete('${ApiConstants.incidents}/$incidentId');
-      debugPrint('✅ Incident deleted');
+      debugPrint(' Incident deleted');
     } catch (e) {
-      debugPrint('❌ Error deleting incident: $e');
+      debugPrint(' Error deleting incident: $e');
       throw Exception('Failed to delete incident: $e');
     }
   }

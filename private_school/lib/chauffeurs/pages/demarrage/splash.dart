@@ -6,7 +6,6 @@ import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/dri
 import 'package:private_school/core/storage/secure_storage.dart';
 import 'bienvenu.dart';
 
-
 class Splash extends StatefulWidget {
   const Splash({super.key});
 
@@ -26,7 +25,7 @@ class _SplashState extends State<Splash> {
     if (!mounted) return;
 
     final isLoggedIn = await SecureStorage().isLoggedIn();
-    
+
     if (isLoggedIn) {
       context.read<DriverAuthBloc>().add(CheckDriverAuthStatusEvent());
     } else {
@@ -53,7 +52,7 @@ class _SplashState extends State<Splash> {
               top: -40,
               left: -60,
               child: Transform.rotate(
-                angle: -0.35, 
+                angle: -0.35,
                 child: SvgPicture.asset(
                   'assets/icons/2.svg',
                   width: 150,
@@ -74,12 +73,11 @@ class _SplashState extends State<Splash> {
               ),
             ),
 
-           
             Positioned(
               bottom: -40,
               right: -60,
               child: Transform.rotate(
-                angle: -0.35, 
+                angle: -0.35,
                 child: SvgPicture.asset(
                   'assets/icons/2.svg',
                   width: 150,
@@ -100,7 +98,6 @@ class _SplashState extends State<Splash> {
               ),
             ),
 
-           
             Center(
               child: Image.asset(
                 'assets/images/2.jpg',

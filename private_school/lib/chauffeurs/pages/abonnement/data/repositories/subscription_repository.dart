@@ -14,9 +14,12 @@ class SubscriptionRepository {
     return await _service.getCurrentSubscription();
   }
 
-  Future<SubscriptionModel> subscribe(String planId, String paymentMethodId) async {
+  Future<SubscriptionModel> subscribe(
+    String planId,
+    String paymentMethodId,
+  ) async {
     return await _service.subscribe(
-      planId: planId, 
+      planId: planId,
       paymentMethodId: paymentMethodId,
     );
   }
@@ -29,8 +32,6 @@ class SubscriptionRepository {
     return await _service.renewSubscription();
   }
 
-
-
   Future<List<PaymentMethod>> getPaymentMethods() async {
     return await _service.fetchPaymentMethods();
   }
@@ -40,7 +41,6 @@ class SubscriptionRepository {
     String? cardNumber,
     String? phoneNumber,
   }) async {
-   
     return await _service.addPaymentMethod(
       type: type,
       cardNumber: cardNumber,

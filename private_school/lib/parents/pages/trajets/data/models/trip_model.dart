@@ -20,16 +20,15 @@ class TripModel {
   final DateTime? completedAt;
   final String? cancelReason;
   final DriverModel? driver;
-  
-  // ===== Mobile enriched fields =====
+
   final String? driverName;
   final String? driverPhone;
   final int? driverRating;
   final String? driverPhoto;
   final String? vehiclePlate;
   final String? vehiclePhoto;
-  final int? schoolCount; // ✅ Nombre d'écoles desservies
-  
+  final int? schoolCount;
+
   // GPS coordinates
   final double? currentLatitude;
   final double? currentLongitude;
@@ -63,15 +62,16 @@ class TripModel {
   });
 
   // ========== GETTERS ==========
-  
-  bool get isActive => status == 'active' || status == 'started' || status == 'in_progress';
+
+  bool get isActive =>
+      status == 'active' || status == 'started' || status == 'in_progress';
   bool get isCompleted => status == 'completed';
   bool get isCanceled => status == 'canceled';
   bool get isPending => status == 'pending';
 
   String get departure => startLocation ?? 'Point de départ';
   String get arrival => destination;
-  
+
   String get departureTime => time;
   String get arrivalTime {
     try {
@@ -83,37 +83,42 @@ class TripModel {
         return '${arrivalHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
-      // Ignore
+      //
     }
     return time;
   }
-  
+
   String get duration => '1h 00min';
-  String get driverNameDisplay => driver?.fullName ?? driverName ?? 'Chauffeur non assigné';
+  String get driverNameDisplay =>
+      driver?.fullName ?? driverName ?? 'Chauffeur non assigné';
   String get driverImg => driver?.photo ?? driverPhoto ?? '';
-  
-  // ✅ Rating réel du chauffeur
-  double get driverRatingValue => driver?.rating ?? driverRating?.toDouble() ?? 0.0;
-  String get driverRatingDisplay => driverRatingValue > 0 ? driverRatingValue.toStringAsFixed(1) : 'N/A';
-  
-  String get formattedDate => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  
-  bool get hasDriverPhoto => (driver?.photo != null && driver!.photo!.isNotEmpty) || 
-                             (driverPhoto != null && driverPhoto!.isNotEmpty);
+
+  //  Rating réel du chauffeur
+  double get driverRatingValue =>
+      driver?.rating ?? driverRating?.toDouble() ?? 0.0;
+  String get driverRatingDisplay =>
+      driverRatingValue > 0 ? driverRatingValue.toStringAsFixed(1) : 'N/A';
+
+  String get formattedDate =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+
+  bool get hasDriverPhoto =>
+      (driver?.photo != null && driver!.photo!.isNotEmpty) ||
+      (driverPhoto != null && driverPhoto!.isNotEmpty);
   String get driverPhotoUrl => driver?.photo ?? driverPhoto ?? '';
-  
-  bool get hasVehiclePhoto => (driver?.vehicle?.photo != null && driver!.vehicle!.photo!.isNotEmpty) ||
-                              (vehiclePhoto != null && vehiclePhoto!.isNotEmpty);
+
+  bool get hasVehiclePhoto =>
+      (driver?.vehicle?.photo != null && driver!.vehicle!.photo!.isNotEmpty) ||
+      (vehiclePhoto != null && vehiclePhoto!.isNotEmpty);
   String get vehiclePhotoUrl => driver?.vehicle?.photo ?? vehiclePhoto ?? '';
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔍 [TripModel] JSON REÇU DE L\'API:');
+    debugPrint(' [TripModel] JSON REÇU DE L\'API:');
     debugPrint(json.toString());
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    
-    // 🔍 LOGS DÉTAILLÉS DES CHAMPS ÉCOLES
-    debugPrint('🏫 [TripModel] CHAMPS ÉCOLES DANS LE JSON:');
+
+    debugPrint('[TripModel] CHAMPS ÉCOLES DANS LE JSON:');
     debugPrint('   stops: ${json['stops']}');
     debugPrint('   stops type: ${json['stops'].runtimeType}');
     if (json['stops'] is List) {
@@ -145,68 +150,71 @@ class TripModel {
     }
 
     final departureDateTime = parseDate(json['departure_time'] ?? json['date']);
-    final timeStr = '${departureDateTime.hour.toString().padLeft(2, '0')}:${departureDateTime.minute.toString().padLeft(2, '0')}';
+    final timeStr =
+        '${departureDateTime.hour.toString().padLeft(2, '0')}:${departureDateTime.minute.toString().padLeft(2, '0')}';
 
-    debugPrint('📊 [TripModel] CAPACITÉ:');
+    debugPrint(' [TripModel] CAPACITÉ:');
     debugPrint('   capacity_max brut: ${json['capacity_max']}');
     debugPrint('   totalSeats brut: ${json['totalSeats']}');
     debugPrint('   Type capacity_max: ${json['capacity_max'].runtimeType}');
 
-    final capacityMax = safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0);
-    debugPrint('   ✅ Capacité finale: $capacityMax');
+    final capacityMax = safeInt(
+      json['capacity_max'] ?? json['totalSeats'] ?? 0,
+    );
+    debugPrint('    Capacité finale: $capacityMax');
 
-    debugPrint('👥 [TripModel] PASSAGERS:');
+    debugPrint(' [TripModel] PASSAGERS:');
     debugPrint('   passengers brut: ${json['passengers']}');
     debugPrint('   Type passengers: ${json['passengers'].runtimeType}');
-    
+
     List<PassengerModel> parsedPassengers = [];
     if (json['passengers'] != null && json['passengers'] is List) {
       parsedPassengers = (json['passengers'] as List)
           .map((p) => PassengerModel.fromJson(p as Map<String, dynamic>))
           .toList();
-      debugPrint('   ✅ Nombre de passagers parsés: ${parsedPassengers.length}');
+      debugPrint('    Nombre de passagers parsés: ${parsedPassengers.length}');
     } else if (json['passengers'] != null && json['passengers'] is int) {
-      debugPrint('   ⚠️ passengers est un nombre: ${json['passengers']}');
+      debugPrint('    passengers est un nombre: ${json['passengers']}');
     } else {
-      debugPrint('   ⚠️ passengers est null ou type inconnu');
+      debugPrint('    passengers est null ou type inconnu');
     }
 
     DriverModel? parsedDriver;
     String? extractedUserId;
     if (json['driver'] != null && json['driver'] is Map) {
       try {
-        parsedDriver = DriverModel.fromJson(json['driver'] as Map<String, dynamic>);
+        parsedDriver = DriverModel.fromJson(
+          json['driver'] as Map<String, dynamic>,
+        );
 
         extractedUserId = json['driver']['user_id']?.toString();
-        debugPrint('✅ user_id extrait du driver: $extractedUserId');
+        debugPrint(' user_id extrait du driver: $extractedUserId');
       } catch (e) {
-        debugPrint('❌ Erreur parsing driver: $e');
+        debugPrint(' Erreur parsing driver: $e');
       }
     }
 
-    // ===== MOBILE DRIVER FIELDS (avec URL complètes) =====
     const String baseUrl = "http://86.106.181.31:3000";
-    
-    // ✅ Si on a un objet driver, utiliser ses données
+
     String? mobileDriverName;
     String? mobileDriverPhone;
     int? mobileDriverRating;
     String? mobileDriverPhoto;
     String? mobileVehiclePlate;
     String? mobileVehiclePhoto;
-    
+
     if (parsedDriver != null) {
-      // Utiliser les données du DriverModel parsé
       mobileDriverName = parsedDriver.fullName;
       mobileDriverPhone = parsedDriver.phone;
       mobileDriverRating = parsedDriver.rating.toInt();
-      mobileDriverPhoto = parsedDriver.photo; // Déjà avec URL complète
+      mobileDriverPhoto = parsedDriver.photo;
       mobileVehiclePlate = parsedDriver.vehicle?.plate;
-      mobileVehiclePhoto = parsedDriver.vehicle?.photo; // Déjà avec URL complète
-      
-      // ✅ Récupérer vehicle_photo depuis documents si disponible
-      if (json['driver']['documents'] != null && json['driver']['documents']['vehicle_photo'] != null) {
-        String? docVehiclePhoto = json['driver']['documents']['vehicle_photo']?.toString();
+      mobileVehiclePhoto = parsedDriver.vehicle?.photo;
+
+      if (json['driver']['documents'] != null &&
+          json['driver']['documents']['vehicle_photo'] != null) {
+        String? docVehiclePhoto = json['driver']['documents']['vehicle_photo']
+            ?.toString();
         if (docVehiclePhoto != null && docVehiclePhoto.isNotEmpty) {
           if (!docVehiclePhoto.startsWith('http')) {
             mobileVehiclePhoto = '$baseUrl$docVehiclePhoto';
@@ -216,26 +224,23 @@ class TripModel {
         }
       }
     } else {
-      // Fallback : utiliser les champs mobiles directs
       mobileDriverName = json['driver_name']?.toString();
       mobileDriverPhone = json['driver_phone']?.toString();
       mobileDriverRating = json['driver_rating'] is int
           ? json['driver_rating']
           : (json['driver_rating'] is String
-              ? int.tryParse(json['driver_rating'])
-              : null);
-      
-      // ✅ PHOTO CHAUFFEUR avec URL complète
+                ? int.tryParse(json['driver_rating'])
+                : null);
+
       mobileDriverPhoto = json['driver_photo']?.toString();
       if (mobileDriverPhoto != null && mobileDriverPhoto.isNotEmpty) {
         if (!mobileDriverPhoto.startsWith('http')) {
           mobileDriverPhoto = '$baseUrl$mobileDriverPhoto';
         }
       }
-      
+
       mobileVehiclePlate = json['vehicle_plate']?.toString();
-      
-      // ✅ PHOTO VÉHICULE avec URL complète
+
       mobileVehiclePhoto = json['vehicle_photo']?.toString();
       if (mobileVehiclePhoto != null && mobileVehiclePhoto.isNotEmpty) {
         if (!mobileVehiclePhoto.startsWith('http')) {
@@ -244,7 +249,6 @@ class TripModel {
       }
     }
 
-    // Si pas d'objet driver mais infos mobiles disponibles → créer un driver
     if (parsedDriver == null && mobileDriverName != null) {
       final nameParts = mobileDriverName.split(RegExp(r'\s+'));
       parsedDriver = DriverModel(
@@ -257,17 +261,17 @@ class TripModel {
       );
     }
 
-    // ✅ PARSING DES ÉCOLES (logique identique au côté chauffeur)
     List<SchoolModel> parsedSchools = [];
     int schoolCountValue = 0;
-    
-    // Priorité 1 : liste "stops" (format avec school_name et school_address)
-    if (json['stops'] != null && json['stops'] is List && (json['stops'] as List).isNotEmpty) {
+
+    if (json['stops'] != null &&
+        json['stops'] is List &&
+        (json['stops'] as List).isNotEmpty) {
       parsedSchools = (json['stops'] as List).map((stop) {
         final s = stop as Map<String, dynamic>;
         return SchoolModel(
-          id: s['school_id'] is int 
-              ? s['school_id'] 
+          id: s['school_id'] is int
+              ? s['school_id']
               : int.tryParse(s['school_id'].toString()),
           name: (s['school_name'] ?? 'École').toString(),
           address: (s['school_address'] ?? '').toString(),
@@ -278,30 +282,27 @@ class TripModel {
       for (var school in parsedSchools) {
         debugPrint('   🏫 ${school.name} (ID: ${school.id})');
       }
-    }
-    // Priorité 2 : liste "schools" directe
-    else if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
+    } else if (json['schools'] != null &&
+        json['schools'] is List &&
+        (json['schools'] as List).isNotEmpty) {
       parsedSchools = (json['schools'] as List)
           .map((s) => SchoolModel.fromJson(s as Map<String, dynamic>))
           .toList();
       schoolCountValue = parsedSchools.length;
-      debugPrint('✅ ${parsedSchools.length} école(s) parsée(s) depuis schools');
-    }
-    // Priorité 3 : school_id unique (fallback)
-    else if (json['school_id'] != null) {
+      debugPrint(' ${parsedSchools.length} école(s) parsée(s) depuis schools');
+    } else if (json['school_id'] != null) {
       final schoolId = json['school_id'];
       parsedSchools = [
         SchoolModel(
           id: schoolId is int ? schoolId : int.tryParse(schoolId.toString()),
-          name: (json['school_name'] ?? json['end_point'] ?? 'École').toString(),
+          name: (json['school_name'] ?? json['end_point'] ?? 'École')
+              .toString(),
           address: (json['school_address'] ?? '').toString(),
         ),
       ];
       schoolCountValue = 1;
       debugPrint('✅ 1 école parsée depuis school_id unique');
-    }
-    // Priorité 4: Extraire les écoles depuis les passagers (dernier recours)
-    else if (parsedPassengers.isNotEmpty) {
+    } else if (parsedPassengers.isNotEmpty) {
       final schoolIds = <int>{};
       for (var passenger in parsedPassengers) {
         if (passenger.schoolId != null) {
@@ -310,26 +311,28 @@ class TripModel {
       }
       if (schoolIds.isNotEmpty) {
         schoolCountValue = schoolIds.length;
-        debugPrint('⚠️ ${schoolIds.length} école(s) extraite(s) des passagers (noms non disponibles): $schoolIds');
+        debugPrint(
+          ' ${schoolIds.length} école(s) extraite(s) des passagers (noms non disponibles): $schoolIds',
+        );
         for (var schoolId in schoolIds) {
-          parsedSchools.add(SchoolModel(
-            id: schoolId,
-            name: 'École #$schoolId',
-            address: '',
-          ));
+          parsedSchools.add(
+            SchoolModel(id: schoolId, name: 'École #$schoolId', address: ''),
+          );
         }
       }
     }
 
     debugPrint('');
-    debugPrint('✅ [TripModel] RÉSUMÉ PARSING:');
+    debugPrint(' [TripModel] RÉSUMÉ PARSING:');
     debugPrint('   ID: ${json['id']?.toString() ?? json['_id']?.toString()}');
     debugPrint('   Destination: ${json['end_point'] ?? json['destination']}');
     debugPrint('   Total Seats: $capacityMax');
     debugPrint('   Passagers: ${parsedPassengers.length}');
-    debugPrint('   🏫 Écoles parsées: ${parsedSchools.length}');
+    debugPrint('    Écoles parsées: ${parsedSchools.length}');
     for (var i = 0; i < parsedSchools.length; i++) {
-      debugPrint('      [$i] ${parsedSchools[i].name} (ID: ${parsedSchools[i].id})');
+      debugPrint(
+        '      [$i] ${parsedSchools[i].name} (ID: ${parsedSchools[i].id})',
+      );
     }
     debugPrint('   School Count: $schoolCountValue');
     debugPrint('   Status: ${json['status']}');
@@ -340,18 +343,28 @@ class TripModel {
     return TripModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       driverId: json['driver_id']?.toString() ?? json['driverId']?.toString(),
-      destination: json['end_point']?.toString() ?? json['destination']?.toString() ?? '',
-      startLocation: json['start_point']?.toString() ?? json['lieuDepart']?.toString(),
+      destination:
+          json['end_point']?.toString() ??
+          json['destination']?.toString() ??
+          '',
+      startLocation:
+          json['start_point']?.toString() ?? json['lieuDepart']?.toString(),
       date: departureDateTime,
       time: timeStr,
       totalSeats: capacityMax,
-      availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
+      availableSeats: safeInt(
+        json['placesDisponibles'] ?? json['capacity_max'] ?? 0,
+      ),
       price: json['price'] != null ? (json['price'] as num).toDouble() : null,
       status: json['status']?.toString().toLowerCase() ?? 'pending',
       passengers: parsedPassengers,
       schools: parsedSchools,
-      startedAt: json['startedAt'] != null ? parseDate(json['startedAt']) : null,
-      completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
+      startedAt: json['startedAt'] != null
+          ? parseDate(json['startedAt'])
+          : null,
+      completedAt: json['completedAt'] != null
+          ? parseDate(json['completedAt'])
+          : null,
       cancelReason: json['cancelReason']?.toString(),
       driver: parsedDriver,
       driverName: mobileDriverName,
@@ -361,8 +374,12 @@ class TripModel {
       vehiclePlate: mobileVehiclePlate,
       vehiclePhoto: mobileVehiclePhoto,
       schoolCount: schoolCountValue,
-      currentLatitude: json['current_latitude'] != null ? (json['current_latitude'] as num).toDouble() : null,
-      currentLongitude: json['current_longitude'] != null ? (json['current_longitude'] as num).toDouble() : null,
+      currentLatitude: json['current_latitude'] != null
+          ? (json['current_latitude'] as num).toDouble()
+          : null,
+      currentLongitude: json['current_longitude'] != null
+          ? (json['current_longitude'] as num).toDouble()
+          : null,
     );
   }
 

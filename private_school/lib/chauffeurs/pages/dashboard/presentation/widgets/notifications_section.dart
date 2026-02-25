@@ -26,7 +26,9 @@ class NotificationsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingL,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -42,7 +44,9 @@ class NotificationsSection extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationsPage(),
+                    ),
                   );
                 },
                 child: const Text(
@@ -60,9 +64,12 @@ class NotificationsSection extends StatelessWidget {
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingL,
+          ),
           itemCount: displayNotifications.length,
-          separatorBuilder: (_, __) => const SizedBox(height: AppConstants.spacingL),
+          separatorBuilder: (_, __) =>
+              const SizedBox(height: AppConstants.spacingL),
           itemBuilder: (context, index) {
             return _buildNotificationCard(displayNotifications[index]);
           },
@@ -130,7 +137,10 @@ class NotificationsSection extends StatelessWidget {
             Container(
               width: AppConstants.notificationBadgeSize,
               height: AppConstants.notificationBadgeSize,
-              margin: const EdgeInsets.only(left: AppConstants.paddingS, top: AppConstants.spacingXS),
+              margin: const EdgeInsets.only(
+                left: AppConstants.paddingS,
+                top: AppConstants.spacingXS,
+              ),
               decoration: const BoxDecoration(
                 color: AppColors.primary,
                 shape: BoxShape.circle,

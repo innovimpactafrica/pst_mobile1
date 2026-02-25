@@ -14,14 +14,10 @@ import '../../domain/bloc/child_bloc.dart';
 import '../../domain/bloc/child_event.dart';
 import '../../domain/bloc/child_state.dart';
 
-
 class EditChildModal extends StatefulWidget {
   final ChildModel child;
 
-  const EditChildModal({
-    super.key,
-    required this.child,
-  });
+  const EditChildModal({super.key, required this.child});
 
   @override
   State<EditChildModal> createState() => _EditChildModalState();
@@ -44,22 +40,21 @@ class _EditChildModalState extends State<EditChildModal> {
   @override
   void initState() {
     super.initState();
-    
-    // Séparer le nom complet en prénom et nom
+
     final nameParts = widget.child.name.split(' ');
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-    
+
     _firstNameController = TextEditingController(text: firstName);
     _lastNameController = TextEditingController(text: lastName);
     _addressController = TextEditingController(text: widget.child.address);
     _schoolNameController = TextEditingController(
-      text: widget.child.schoolName ?? ''
+      text: widget.child.schoolName ?? '',
     );
     _schoolAddressController = TextEditingController(
-      text: widget.child.schoolAddress ?? ''
+      text: widget.child.schoolAddress ?? '',
     );
-    
+
     _loadSchools();
   }
 
@@ -69,8 +64,7 @@ class _EditChildModalState extends State<EditChildModal> {
       setState(() {
         _schools = schools;
         _loadingSchools = false;
-        
-        // Pré-sélectionner l'école actuelle
+
         _selectedSchool = schools.firstWhere(
           (s) => s.id == widget.child.schoolId,
           orElse: () => schools.firstWhere(
@@ -112,7 +106,7 @@ class _EditChildModalState extends State<EditChildModal> {
       }
 
       setState(() => _isLoading = true);
-      
+
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
       final fullName = '$firstName $lastName';
@@ -179,7 +173,7 @@ class _EditChildModalState extends State<EditChildModal> {
                   children: [
                     _buildHeader(),
                     const SizedBox(height: 24),
-                    
+
                     // ===== INFORMATIONS ENFANT =====
                     _buildSectionTitle('child_information'.tr()),
                     const SizedBox(height: 12),
@@ -202,59 +196,64 @@ class _EditChildModalState extends State<EditChildModal> {
                       googleApiKey: GoogleMapsConfig.apiKey,
                       label: 'child_address'.tr(),
                       hint: 'child_address_example'.tr(),
-                      onLocationSelected: (lat, lng) {
-                        // Coordonnées reçues mais non utilisées pour l'instant
-                      },
+                      onLocationSelected: (lat, lng) {},
                     ),
-                    
+
                     const SizedBox(height: 24),
                     const Divider(),
                     const SizedBox(height: 24),
-                    
+
                     _buildSectionTitle('school_information'.tr()),
                     const SizedBox(height: 12),
                     _loadingSchools
                         ? const Center(child: CircularProgressIndicator())
                         : _schools.isEmpty
-                            ? Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFF59E0B)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.warning_amber, color: Color(0xFFF59E0B)),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        'no_schools_available_message'.tr(),
-                                        style: const TextStyle(
-                                          color: Color(0xFFF59E0B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : SchoolAutocompleteField(
-                                label: 'school_name'.tr(),
-                                hint: 'school_name_example'.tr(),
-                                controller: _schoolNameController,
-                                schools: _schools,
-                                enabled: !_isLoading,
-                                onSchoolSelected: (school, schoolName) {
-                                  setState(() {
-                                    _selectedSchool = school;
-                                    if (school != null && school.address.isNotEmpty) {
-                                      _schoolAddressController.text = school.address;
-                                    }
-                                  });
-                                },
+                        ? Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFF59E0B),
                               ),
-                    
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.warning_amber,
+                                  color: Color(0xFFF59E0B),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'no_schools_available_message'.tr(),
+                                    style: const TextStyle(
+                                      color: Color(0xFFF59E0B),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : SchoolAutocompleteField(
+                            label: 'school_name'.tr(),
+                            hint: 'school_name_example'.tr(),
+                            controller: _schoolNameController,
+                            schools: _schools,
+                            enabled: !_isLoading,
+                            onSchoolSelected: (school, schoolName) {
+                              setState(() {
+                                _selectedSchool = school;
+                                if (school != null &&
+                                    school.address.isNotEmpty) {
+                                  _schoolAddressController.text =
+                                      school.address;
+                                }
+                              });
+                            },
+                          ),
+
                     if (_selectedSchool != null) ...[
                       const SizedBox(height: 16),
                       Container(
@@ -262,11 +261,17 @@ class _EditChildModalState extends State<EditChildModal> {
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            Icon(
+                              Icons.check_circle,
+                              color: AppColors.success,
+                              size: 20,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -295,7 +300,7 @@ class _EditChildModalState extends State<EditChildModal> {
                         ),
                       ),
                     ],
-                    
+
                     const SizedBox(height: 32),
                     _buildSubmitButton(),
                     const SizedBox(height: 80),
@@ -376,17 +381,17 @@ class _EditChildModalState extends State<EditChildModal> {
         TextFormField(
           controller: controller,
           enabled: !_isLoading,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.inter(
               fontSize: 14,
               color: Colors.grey.shade400,
             ),
-            prefixIcon: Icon(icon, color: AppColors.success.withValues(alpha: 0.7)),
+            prefixIcon: Icon(
+              icon,
+              color: AppColors.success.withValues(alpha: 0.7),
+            ),
             filled: true,
             fillColor: Colors.grey.shade50,
             border: OutlineInputBorder(

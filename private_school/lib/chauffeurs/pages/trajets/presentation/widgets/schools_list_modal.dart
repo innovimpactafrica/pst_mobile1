@@ -5,7 +5,6 @@ import 'package:private_school/parents/pages/school/data/models/school_model.dar
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
-
 class SchoolsListModal extends StatelessWidget {
   final List<SchoolModel> schools;
 

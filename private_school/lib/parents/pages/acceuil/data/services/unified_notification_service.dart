@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../repositories/messaging_repository.dart';
 import '../../domain/bloc/unread_messages_bloc.dart';
 
-
 class UnifiedNotificationService {
-  static final UnifiedNotificationService _instance = UnifiedNotificationService._internal();
+  static final UnifiedNotificationService _instance =
+      UnifiedNotificationService._internal();
   factory UnifiedNotificationService() => _instance;
   UnifiedNotificationService._internal();
 
@@ -14,11 +14,9 @@ class UnifiedNotificationService {
   int _lastUnreadMessagesCount = 0;
 
   UnreadMessagesBloc? _messagesBloc;
-  void registerBlocs({
-    UnreadMessagesBloc? messagesBloc,
-  }) {
+  void registerBlocs({UnreadMessagesBloc? messagesBloc}) {
     _messagesBloc = messagesBloc;
-    debugPrint('📋 [UnifiedNotificationService] Blocs enregistrés');
+    debugPrint(' [UnifiedNotificationService] Blocs enregistrés');
   }
 
   void startPolling() {
@@ -37,15 +35,18 @@ class UnifiedNotificationService {
     try {
       final conversations = await _messagingRepository.getConversations();
       final currentUnreadCount = conversations.fold<int>(
-        0, (sum, conv) => sum + conv.unreadCount,
+        0,
+        (sum, conv) => sum + conv.unreadCount,
       );
       if (currentUnreadCount != _lastUnreadMessagesCount) {
-        debugPrint('📊 Messages: $_lastUnreadMessagesCount → $currentUnreadCount');
+        debugPrint(
+          ' Messages: $_lastUnreadMessagesCount → $currentUnreadCount',
+        );
         _messagesBloc?.add(RefreshUnreadCountEvent());
         _lastUnreadMessagesCount = currentUnreadCount;
       }
     } catch (e) {
-      debugPrint('❌ [UnifiedNotificationService] Erreur: $e');
+      debugPrint(' [UnifiedNotificationService] Erreur: $e');
     }
   }
 
@@ -60,6 +61,5 @@ class UnifiedNotificationService {
   void dispose() {
     stopPolling();
     _messagesBloc = null;
-    
   }
 }

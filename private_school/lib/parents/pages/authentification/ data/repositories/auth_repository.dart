@@ -1,14 +1,9 @@
-// Repository d'authentification - MODIFIÉ pour accepter password
-// Chemin: lib/parents/authentification/data/repositories/auth_repository.dart
-
 import 'package:flutter/foundation.dart';
 import 'package:private_school/core/models/user_model.dart';
 import '../services/auth_service.dart';
 
 class AuthRepository {
   final AuthService _authService = AuthService();
-
-  /// ✅ Inscription - AVEC password et homeAddress
   Future<Map<String, dynamic>> register({
     required String firstName,
     required String lastName,
@@ -27,12 +22,12 @@ class AuthRepository {
         homeAddress: homeAddress,
       );
     } catch (e) {
-      debugPrint('❌ Repository: Register failed - $e');
+      debugPrint(' Repository: Register failed - $e');
       throw Exception('Inscription échouée: $e');
     }
   }
 
-  /// ✅ Connexion
+  ///  Connexion
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -40,12 +35,12 @@ class AuthRepository {
     try {
       return await _authService.loginParent(email: email, password: password);
     } catch (e) {
-      debugPrint('❌ Repository: Login failed - $e');
+      debugPrint(' Repository: Login failed - $e');
       throw Exception('Connexion échouée: $e');
     }
   }
 
-  /// ✅ Vérifier OTP
+  ///  Vérifier OTP
   Future<Map<String, dynamic>> verifyOtp({
     required String email,
     required String otp,
@@ -53,17 +48,17 @@ class AuthRepository {
     try {
       return await _authService.verifyOtp(email: email, otp: otp);
     } catch (e) {
-      debugPrint('❌ Repository: OTP verification failed - $e');
+      debugPrint(' Repository: OTP verification failed - $e');
       throw Exception('Vérification échouée: $e');
     }
   }
 
-  /// ✅ Mot de passe oublié
+  ///  Mot de passe oublié
   Future<Map<String, dynamic>> forgotPassword({required String contact}) async {
     return await _authService.forgotPassword(contact: contact);
   }
 
-  /// ✅ Réinitialiser mot de passe
+  ///  Réinitialiser mot de passe
   Future<void> resetPassword({
     required int userId,
     required String code,
@@ -76,32 +71,32 @@ class AuthRepository {
         newPassword: newPassword,
       );
     } catch (e) {
-      debugPrint('❌ Repository: Reset password failed - $e');
+      debugPrint(' Repository: Reset password failed - $e');
       throw Exception('Réinitialisation échouée: $e');
     }
   }
 
-  /// ✅ Déconnexion
+  ///  Déconnexion
   Future<void> logout() async {
     try {
       await _authService.logout();
     } catch (e) {
-      debugPrint('❌ Repository: Logout failed - $e');
+      debugPrint(' Repository: Logout failed - $e');
       throw Exception('Déconnexion échouée: $e');
     }
   }
 
-  /// ✅ Récupérer l'utilisateur actuel
+  ///  Récupérer l'utilisateur actuel
   Future<UserModel> getCurrentUser() async {
     try {
       return await _authService.getCurrentUser();
     } catch (e) {
-      debugPrint('❌ Repository: Get user failed - $e');
+      debugPrint(' Repository: Get user failed - $e');
       throw Exception('Impossible de récupérer l\'utilisateur: $e');
     }
   }
 
-  /// ✅ Vérifier si connecté
+  ///  Vérifier si connecté
   Future<bool> isLoggedIn() async {
     return await _authService.isLoggedIn();
   }

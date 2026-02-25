@@ -1,5 +1,3 @@
-
-
 abstract class SubscriptionEvent {}
 
 class LoadCurrentSubscriptionEvent extends SubscriptionEvent {}
@@ -14,6 +12,7 @@ class SubscribeEvent extends SubscriptionEvent {
 }
 
 class RenewSubscriptionEvent extends SubscriptionEvent {}
+
 class CancelSubscriptionEvent extends SubscriptionEvent {
   final String subscriptionId;
 
@@ -21,6 +20,7 @@ class CancelSubscriptionEvent extends SubscriptionEvent {
 }
 
 class LoadPaymentMethodsEvent extends SubscriptionEvent {}
+
 class AddPaymentMethodEvent extends SubscriptionEvent {
   final String type;
   final String? cardNumber;
@@ -28,6 +28,7 @@ class AddPaymentMethodEvent extends SubscriptionEvent {
 
   AddPaymentMethodEvent(this.type, {this.cardNumber, this.phoneNumber});
 }
+
 class SetDefaultPaymentMethodEvent extends SubscriptionEvent {
   final String methodId;
 

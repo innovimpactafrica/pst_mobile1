@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 
@@ -26,10 +24,7 @@ class StatsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -42,13 +37,9 @@ class StatsCard extends StatelessWidget {
               color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+            child: Icon(icon, color: color, size: 20),
           ),
-          
+
           // Value and title - Fixed overflow
           Expanded(
             child: Column(

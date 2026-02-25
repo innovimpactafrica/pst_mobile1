@@ -1,7 +1,7 @@
 class DriverModel {
   final String id;
   final String? userId;
-  final String firstName;  
+  final String firstName;
   final String lastName;
   final String phone;
   final String email;
@@ -10,7 +10,7 @@ class DriverModel {
   final String role;
   final String? licenseNumber;
   final String? vehicleType;
-  final String? vehicleColor; 
+  final String? vehicleColor;
   final bool isActive;
   final int totalTrips;
   final double rating;
@@ -18,11 +18,11 @@ class DriverModel {
   final double successRate;
   final String memberSince;
   final VehicleModel? vehicle;
-  final String? status; 
+  final String? status;
 
   DriverModel({
     required this.id,
-     this.userId, 
+    this.userId,
     required this.firstName,
     required this.lastName,
     required this.phone,
@@ -52,10 +52,9 @@ class DriverModel {
   }
 
   factory DriverModel.fromJson(Map<String, dynamic> json) {
-    
     String firstName = '';
     String lastName = '';
-    
+
     if (json.containsKey('name') && json['name'] != null) {
       final nameValue = json['name'].toString().trim();
       if (nameValue.isNotEmpty) {
@@ -73,7 +72,9 @@ class DriverModel {
     }
 
     // Fallback email si le nom est vide
-    if (firstName.isEmpty && json.containsKey('email') && json['email'] != null) {
+    if (firstName.isEmpty &&
+        json.containsKey('email') &&
+        json['email'] != null) {
       final email = json['email'].toString();
       final emailParts = email.split('@');
       if (emailParts.isNotEmpty) {
@@ -81,18 +82,17 @@ class DriverModel {
       }
     }
 
-   
     const String baseUrl = "http://86.106.181.31:3000";
-    String? rawPhoto = json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
+    String? rawPhoto =
+        json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
     String? fullPhotoUrl;
-    
+
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      fullPhotoUrl = rawPhoto.startsWith('http') 
-          ? rawPhoto 
+      fullPhotoUrl = rawPhoto.startsWith('http')
+          ? rawPhoto
           : '$baseUrl$rawPhoto';
     }
 
-    
     final vehicleData = json['vehicle'] as Map<String, dynamic>?;
 
     final userId = json['user_id']?.toString();
@@ -105,30 +105,37 @@ class DriverModel {
       phone: (json['phone'] ?? json['telephone'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       address: json['address']?.toString() ?? json['adresse']?.toString(),
-      photo: fullPhotoUrl, 
+      photo: fullPhotoUrl,
       role: (json['role'] ?? 'driver').toString(),
       isActive: json['isActive'] ?? json['actif'] ?? true,
-      status: json['status']?.toString(), 
-      
-      licenseNumber: vehicleData?['plate']?.toString() ?? 
-                     vehicleData?['licenseNumber']?.toString() ?? 
-                     json['licenseNumber']?.toString() ?? 
-                     json['numeroPermis']?.toString(),
-      
-      vehicleType: vehicleData?['brand']?.toString() ?? 
-                   vehicleData?['model']?.toString() ?? 
-                   json['vehicleType']?.toString() ?? 
-                   json['typeVehicule']?.toString(),
-      
-      vehicleColor: vehicleData?['color']?.toString() ?? 
-                    json['vehicleColor']?.toString() ??
-                    json['couleur']?.toString(),
-      
+      status: json['status']?.toString(),
+
+      licenseNumber:
+          vehicleData?['plate']?.toString() ??
+          vehicleData?['licenseNumber']?.toString() ??
+          json['licenseNumber']?.toString() ??
+          json['numeroPermis']?.toString(),
+
+      vehicleType:
+          vehicleData?['brand']?.toString() ??
+          vehicleData?['model']?.toString() ??
+          json['vehicleType']?.toString() ??
+          json['typeVehicule']?.toString(),
+
+      vehicleColor:
+          vehicleData?['color']?.toString() ??
+          json['vehicleColor']?.toString() ??
+          json['couleur']?.toString(),
+
       totalTrips: json['totalTrips'] ?? json['nombreTrajets'] ?? 0,
       rating: (json['rating'] ?? json['note'] ?? 0.0).toDouble(),
       totalReviews: json['totalReviews'] ?? json['nombreAvis'] ?? 0,
-      successRate: (json['successRate'] ?? json['tauxReussite'] ?? 0.0).toDouble(),
-      memberSince: json['memberSince']?.toString() ?? json['membreDepuis']?.toString() ?? '',
+      successRate: (json['successRate'] ?? json['tauxReussite'] ?? 0.0)
+          .toDouble(),
+      memberSince:
+          json['memberSince']?.toString() ??
+          json['membreDepuis']?.toString() ??
+          '',
       vehicle: vehicleData != null ? VehicleModel.fromJson(vehicleData) : null,
     );
   }
@@ -218,13 +225,11 @@ class VehicleModel {
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
-    
     const String baseUrl = "http://86.106.181.31:3000";
     String? rawPhoto = json['photo']?.toString();
     String? fullPhotoUrl;
-    
+
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      
       if (rawPhoto.startsWith('http')) {
         fullPhotoUrl = rawPhoto;
       } else {
@@ -236,7 +241,7 @@ class VehicleModel {
       model: (json['model'] ?? json['brand'] ?? '').toString(),
       plate: (json['plate'] ?? json['licenseNumber'] ?? '').toString(),
       color: (json['color'] ?? '').toString(),
-      photo: fullPhotoUrl, 
+      photo: fullPhotoUrl,
       capacity: json['capacity'] ?? json['capacite'] ?? 0,
     );
   }

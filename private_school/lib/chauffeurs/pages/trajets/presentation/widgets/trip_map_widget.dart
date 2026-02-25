@@ -27,17 +27,17 @@ class TripMapWidget extends StatefulWidget {
 
 class _TripMapWidgetState extends State<TripMapWidget> {
   final Completer<GoogleMapController> _controller = Completer();
-  
+
   static const String _googleApiKey = 'AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A';
-  
+
   // Coordonnées par défaut (Dakar, Sénégal)
   static const LatLng _defaultCenter = LatLng(14.6928, -17.4467);
-  
+
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
   LatLng? _startLatLng;
   LatLng? _destinationLatLng;
-  
+
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -49,31 +49,24 @@ class _TripMapWidgetState extends State<TripMapWidget> {
 
   Future<void> _initializeMap() async {
     try {
-      
-
       // Géocoder les adresses avec Google Geocoding API
       _startLatLng = await _geocodeAddressWithGoogle(widget.startLocation);
       _destinationLatLng = await _geocodeAddressWithGoogle(widget.destination);
 
       if (_startLatLng != null && _destinationLatLng != null) {
-        
         // Créer les markers
         _createMarkers();
-        
+
         // Tracer le trajet
         await _drawRoute();
       } else {
         _errorMessage = 'unable_locate_addresses'.tr();
-       
       }
 
       setState(() {
         _isLoading = false;
       });
-      
-      
     } catch (e) {
-      
       setState(() {
         _isLoading = false;
         _errorMessage = 'error_loading_map'.tr();
@@ -88,7 +81,8 @@ class _TripMapWidgetState extends State<TripMapWidget> {
       debugPrint('🔍 Géocodage de: "$address"');
 
       //  Ajout ", Sénégal" pour améliorer la précision
-      final searchQuery = address.contains('Sénégal') || address.contains('Senegal')
+      final searchQuery =
+          address.contains('Sénégal') || address.contains('Senegal')
           ? address
           : '$address, Sénégal';
 
@@ -100,8 +94,6 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         '&key=$_googleApiKey',
       );
 
-    
-
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -111,31 +103,22 @@ class _TripMapWidgetState extends State<TripMapWidget> {
           final location = data['results'][0]['geometry']['location'];
           final lat = location['lat'];
           final lng = location['lng'];
-          final formattedAddress = data['results'][0]['formatted_address'];
-
-        
 
           return LatLng(lat, lng);
         } else {
-          
-          
           // Fallback sur coordonnées connues
           return _getFallbackCoordinates(address);
         }
       } else {
-        
         return _getFallbackCoordinates(address);
       }
     } catch (e) {
-     
       return _getFallbackCoordinates(address);
     }
   }
 
   ///  Fallback: Coordonnées connues pour les lieux communs
   LatLng? _getFallbackCoordinates(String address) {
-    
-
     final Map<String, LatLng> commonLocations = {
       // ========== DAKAR - QUARTIERS ==========
       'plateau': LatLng(14.6708, -17.4369),
@@ -159,7 +142,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
       'bel air': LatLng(14.7033, -17.4494),
       'point e': LatLng(14.7089, -17.4511),
       'grand yoff': LatLng(14.7553, -17.4764),
-      
+
       // ========== BANLIEUE DAKAR ==========
       'pikine': LatLng(14.7549, -17.3959),
       'guediawaye': LatLng(14.7722, -17.4078),
@@ -172,7 +155,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
       'camberene': LatLng(14.7808, -17.4614),
       'keur massar': LatLng(14.7875, -17.3175),
       'malika': LatLng(14.7914, -17.3961),
-      
+
       // ========== RÉGIONS DU SÉNÉGAL ==========
       'thiès': LatLng(14.7886, -16.9262),
       'thies': LatLng(14.7886, -16.9262),
@@ -191,7 +174,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
       'kedougou': LatLng(12.5608, -12.1842),
       'sédhiou': LatLng(12.7083, -15.5567),
       'sedhiou': LatLng(12.7083, -15.5567),
-      
+
       // ========== ÉCOLES CONNUES ==========
       'saint gabriel': LatLng(14.6928, -17.4467),
       'saint-gabriel': LatLng(14.6928, -17.4467),
@@ -203,17 +186,16 @@ class _TripMapWidgetState extends State<TripMapWidget> {
 
     // Normaliser l'adresse
     final normalized = address.toLowerCase().trim();
-    
+
     // Chercher dans les lieux communs
     for (var entry in commonLocations.entries) {
       if (normalized.contains(entry.key)) {
-        
         return entry.value;
       }
     }
 
     // Si rien trouvé, retourner le centre de Dakar
-    
+
     return _defaultCenter;
   }
 
@@ -245,14 +227,17 @@ class _TripMapWidgetState extends State<TripMapWidget> {
   Future<void> _drawRoute() async {
     try {
       debugPrint('🛣️ Tracé du trajet...');
-      
+
       final polylinePoints = PolylinePoints();
-      
+
       PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
         googleApiKey: _googleApiKey,
         request: PolylineRequest(
           origin: PointLatLng(_startLatLng!.latitude, _startLatLng!.longitude),
-          destination: PointLatLng(_destinationLatLng!.latitude, _destinationLatLng!.longitude),
+          destination: PointLatLng(
+            _destinationLatLng!.latitude,
+            _destinationLatLng!.longitude,
+          ),
           mode: TravelMode.driving,
         ),
       );
@@ -274,17 +259,13 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         // Calculer distance et durée
         final distance = _calculateDistance(_startLatLng!, _destinationLatLng!);
         final duration = _estimateDuration(distance);
-        
-       
-        
+
         if (widget.onRouteCalculated != null) {
           widget.onRouteCalculated!(distance, duration);
         }
 
         _fitBounds();
-      } else {
-       
-      }
+      } else {}
     } catch (e) {
       //
     }
@@ -292,18 +273,19 @@ class _TripMapWidgetState extends State<TripMapWidget> {
 
   double _calculateDistance(LatLng start, LatLng end) {
     const double earthRadius = 6371;
-    
+
     final dLat = _toRadians(end.latitude - start.latitude);
     final dLon = _toRadians(end.longitude - start.longitude);
-    
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(_toRadians(start.latitude)) *
             math.cos(_toRadians(end.latitude)) *
             math.sin(dLon / 2) *
             math.sin(dLon / 2);
-    
+
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    
+
     return earthRadius * c;
   }
 
@@ -321,11 +303,23 @@ class _TripMapWidgetState extends State<TripMapWidget> {
     if (_startLatLng == null || _destinationLatLng == null) return;
 
     final GoogleMapController controller = await _controller.future;
-    
-    final double minLat = math.min(_startLatLng!.latitude, _destinationLatLng!.latitude);
-    final double maxLat = math.max(_startLatLng!.latitude, _destinationLatLng!.latitude);
-    final double minLng = math.min(_startLatLng!.longitude, _destinationLatLng!.longitude);
-    final double maxLng = math.max(_startLatLng!.longitude, _destinationLatLng!.longitude);
+
+    final double minLat = math.min(
+      _startLatLng!.latitude,
+      _destinationLatLng!.latitude,
+    );
+    final double maxLat = math.max(
+      _startLatLng!.latitude,
+      _destinationLatLng!.latitude,
+    );
+    final double minLng = math.min(
+      _startLatLng!.longitude,
+      _destinationLatLng!.longitude,
+    );
+    final double maxLng = math.max(
+      _startLatLng!.longitude,
+      _destinationLatLng!.longitude,
+    );
 
     final LatLngBounds bounds = LatLngBounds(
       southwest: LatLng(minLat, minLng),

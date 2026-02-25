@@ -5,7 +5,7 @@ class PassengerModel {
   final bool isConfirmed;
   final String? photo;
   final String? school;
-  final int? schoolId; // ✅ AJOUTÉ
+  final int? schoolId;
   final String? avatarColor;
 
   PassengerModel({
@@ -15,7 +15,7 @@ class PassengerModel {
     this.isConfirmed = false,
     this.photo,
     this.school,
-    this.schoolId, // ✅ AJOUTÉ
+    this.schoolId,
     this.avatarColor,
   });
 
@@ -30,13 +30,25 @@ class PassengerModel {
   factory PassengerModel.fromJson(Map<String, dynamic> json) {
     return PassengerModel(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
-      name: (json['name'] ?? json['nom'] ?? json['child_name'] ?? '').toString(),
-      phone: json['phone']?.toString() ?? json['telephone']?.toString() ?? json['parent_phone']?.toString(),
+      name: (json['name'] ?? json['nom'] ?? json['child_name'] ?? '')
+          .toString(),
+      phone:
+          json['phone']?.toString() ??
+          json['telephone']?.toString() ??
+          json['parent_phone']?.toString(),
       isConfirmed: json['isConfirmed'] ?? json['confirme'] ?? false,
       photo: json['photo']?.toString() ?? json['image']?.toString(),
-      school: json['school_name']?.toString() ?? json['school']?.toString() ?? json['ecole']?.toString(),
-      schoolId: json['school_id'] is int ? json['school_id'] : (json['school_id'] != null ? int.tryParse(json['school_id'].toString()) : null), // ✅ AJOUTÉ
-      avatarColor: json['avatarColor']?.toString() ?? json['couleur']?.toString(),
+      school:
+          json['school_name']?.toString() ??
+          json['school']?.toString() ??
+          json['ecole']?.toString(),
+      schoolId: json['school_id'] is int
+          ? json['school_id']
+          : (json['school_id'] != null
+                ? int.tryParse(json['school_id'].toString())
+                : null),
+      avatarColor:
+          json['avatarColor']?.toString() ?? json['couleur']?.toString(),
     );
   }
 
@@ -48,7 +60,7 @@ class PassengerModel {
       'isConfirmed': isConfirmed,
       'photo': photo,
       'school': school,
-      'schoolId': schoolId, // ✅ AJOUTÉ
+      'schoolId': schoolId,
       'avatarColor': avatarColor,
     };
   }

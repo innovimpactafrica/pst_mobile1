@@ -101,9 +101,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: () {
-                            context
-                                .read<TransactionBloc>()
-                                .add(LoadTransactionsEvent());
+                            context.read<TransactionBloc>().add(
+                              LoadTransactionsEvent(),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -131,7 +131,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           Icon(
                             Icons.receipt_long_outlined,
                             size: 64,
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -148,9 +150,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
                   return RefreshIndicator(
                     onRefresh: () async {
-                      context
-                          .read<TransactionBloc>()
-                          .add(RefreshTransactionsEvent());
+                      context.read<TransactionBloc>().add(
+                        RefreshTransactionsEvent(),
+                      );
                     },
                     color: AppColors.primary,
                     child: ListView.builder(
@@ -201,9 +203,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
         setState(() {
           _selectedFilter = selected ? type : null;
         });
-        context
-            .read<TransactionBloc>()
-            .add(FilterTransactionsByTypeEvent(type: type));
+        context.read<TransactionBloc>().add(
+          FilterTransactionsByTypeEvent(type: type),
+        );
       },
       backgroundColor: AppColors.background,
       selectedColor: AppColors.primary.withValues(alpha: 0.2),
@@ -217,15 +219,16 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   Widget _buildTransactionCard(TransactionModel transaction) {
     final isIncome = transaction.isIncome;
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm', context.locale.toString());
+    final dateFormat = DateFormat(
+      'dd MMM yyyy, HH:mm',
+      context.locale.toString(),
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: AppColors.surface,
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

@@ -10,7 +10,7 @@ class RealtimeTripData {
   final CurrentLocation? currentLocation;
   final TrackingInfo tracking;
   final CurrentLeg? currentLeg;
-  
+
   RealtimeTripData({
     required this.tripId,
     required this.tripType,
@@ -19,7 +19,7 @@ class RealtimeTripData {
     required this.tracking,
     this.currentLeg,
   });
-  
+
   factory RealtimeTripData.fromJson(Map<String, dynamic> json) {
     return RealtimeTripData(
       tripId: json['trip_id'],
@@ -44,7 +44,7 @@ class CurrentLocation {
   final double? accuracy;
   final double? heading;
   final DateTime timestamp;
-  
+
   CurrentLocation({
     required this.latitude,
     required this.longitude,
@@ -54,15 +54,19 @@ class CurrentLocation {
     this.heading,
     required this.timestamp,
   });
-  
+
   factory CurrentLocation.fromJson(Map<String, dynamic> json) {
     return CurrentLocation(
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       direction: json['direction'] ?? 'aller',
       speed: json['speed'] != null ? (json['speed'] as num).toDouble() : null,
-      accuracy: json['accuracy'] != null ? (json['accuracy'] as num).toDouble() : null,
-      heading: json['heading'] != null ? (json['heading'] as num).toDouble() : null,
+      accuracy: json['accuracy'] != null
+          ? (json['accuracy'] as num).toDouble()
+          : null,
+      heading: json['heading'] != null
+          ? (json['heading'] as num).toDouble()
+          : null,
       timestamp: DateTime.parse(json['timestamp']),
     );
   }
@@ -74,7 +78,7 @@ class TrackingInfo {
   final int? minutesSinceStart;
   final String? estimatedArrival;
   final double progressPercentage;
-  
+
   TrackingInfo({
     required this.isActive,
     required this.activeDirection,
@@ -82,7 +86,7 @@ class TrackingInfo {
     this.estimatedArrival,
     required this.progressPercentage,
   });
-  
+
   factory TrackingInfo.fromJson(Map<String, dynamic> json) {
     return TrackingInfo(
       isActive: json['is_active'] ?? false,
@@ -100,7 +104,7 @@ class CurrentLeg {
   final String endPoint;
   final Coordinates startCoordinates;
   final Coordinates endCoordinates;
-  
+
   CurrentLeg({
     required this.direction,
     required this.startPoint,
@@ -108,7 +112,7 @@ class CurrentLeg {
     required this.startCoordinates,
     required this.endCoordinates,
   });
-  
+
   factory CurrentLeg.fromJson(Map<String, dynamic> json) {
     return CurrentLeg(
       direction: json['direction'] ?? 'aller',
@@ -123,9 +127,9 @@ class CurrentLeg {
 class Coordinates {
   final double latitude;
   final double longitude;
-  
+
   Coordinates({required this.latitude, required this.longitude});
-  
+
   factory Coordinates.fromJson(Map<String, dynamic> json) {
     return Coordinates(
       latitude: (json['latitude'] as num).toDouble(),
@@ -139,27 +143,29 @@ class RealtimeTrackingService {
   final ApiClient _apiClient = ApiClient();
   Timer? _pollingTimer;
   final _trackingController = StreamController<RealtimeTripData>.broadcast();
-  
+
   Stream<RealtimeTripData> get trackingStream => _trackingController.stream;
-  
+
   /// Récupérer les données de suivi en temps réel
   Future<RealtimeTripData> getRealtimeData(String tripId) async {
     try {
-      final response = await _apiClient.get('/api/parents/trips/$tripId/realtime');
-      
+      final response = await _apiClient.get(
+        '/api/parents/trips/$tripId/realtime',
+      );
+
       if (response.data['success'] == true) {
         final data = RealtimeTripData.fromJson(response.data['data']);
         _trackingController.add(data);
         return data;
       }
-      
+
       throw Exception('Erreur récupération données');
     } catch (e) {
       debugPrint('❌ Erreur récupération suivi: $e');
       rethrow;
     }
   }
-  
+
   /// Démarrer le polling automatique (toutes les 5 secondes)
   void startPolling(String tripId) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -167,24 +173,24 @@ class RealtimeTrackingService {
     debugPrint('   Trip ID: $tripId');
     debugPrint('   Intervalle: 5 secondes');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    
+
     // Récupérer immédiatement
     getRealtimeData(tripId);
-    
+
     // Puis toutes les 5 secondes
     _pollingTimer = Timer.periodic(
       const Duration(seconds: 5),
       (_) => getRealtimeData(tripId),
     );
   }
-  
+
   /// Arrêter le polling
   void stopPolling() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
     debugPrint('🛑 Polling arrêté\n');
   }
-  
+
   void dispose() {
     stopPolling();
     _trackingController.close();

@@ -1,4 +1,5 @@
 import 'vehicle_model.dart';
+
 class DriverProfileModel {
   final PersonalInfo personal;
   final DriverInfo driver;
@@ -18,22 +19,19 @@ class DriverProfileModel {
   String get email => personal.email;
   String? get address => personal.address;
   String? get photo => personal.photoProfile;
-  String? get licenseNumber => null; 
-  bool get isActive => true; 
+  String? get licenseNumber => null;
+  bool get isActive => true;
 
- 
   String get vehicleModel => vehicle?.brand ?? 'Non renseigné';
   String get vehicleColor => vehicle?.color ?? 'Non renseigné';
   String get vehiclePlate => vehicle?.plate ?? 'Non renseigné';
   int get vehicleSeats => vehicle?.capacity ?? 0;
-
 
   String get initials {
     String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
     String lastInitial = lastName.isNotEmpty ? lastName[0] : '';
     return (firstInitial + lastInitial).toUpperCase();
   }
-
 
   factory DriverProfileModel.fromJson(Map<String, dynamic> json) {
     return DriverProfileModel(
@@ -53,7 +51,6 @@ class DriverProfileModel {
     };
   }
 
-  
   DriverProfileModel copyWith({
     PersonalInfo? personal,
     DriverInfo? driver,
@@ -66,7 +63,6 @@ class DriverProfileModel {
     );
   }
 }
-
 
 class PersonalInfo {
   final int id;
@@ -162,9 +158,9 @@ class DriverInfo {
   final int id;
   final String status;
   final String? photoProfile;
-  final String? licenseDocument;  
-  final String? idDocument;      
-  final String? vehiclePhoto;     
+  final String? licenseDocument;
+  final String? idDocument;
+  final String? vehiclePhoto;
 
   DriverInfo({
     required this.id,
@@ -180,7 +176,9 @@ class DriverInfo {
       id: PersonalInfo._parseToInt(json['id']),
       status: PersonalInfo._parseToString(json['status']),
       photoProfile: PersonalInfo._parseToStringOrNull(json['photo_profil']),
-      licenseDocument: PersonalInfo._parseToStringOrNull(json['license_document']),
+      licenseDocument: PersonalInfo._parseToStringOrNull(
+        json['license_document'],
+      ),
       idDocument: PersonalInfo._parseToStringOrNull(json['id_document']),
       vehiclePhoto: PersonalInfo._parseToStringOrNull(json['vehicle_photo']),
     );

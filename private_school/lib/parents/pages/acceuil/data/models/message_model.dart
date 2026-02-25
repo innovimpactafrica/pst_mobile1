@@ -1,6 +1,3 @@
-// Message Model - CORRECTED
-// Path: parents/pages/acceuil/data/models/message_model.dart
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -10,17 +7,16 @@ class MessageModel extends Equatable {
   final int senderId;
   final String senderName;
   final String? senderAvatar;
-  final String senderRole; // 'parent' ou 'driver'
+  final String senderRole;
   final String content;
-  final String? type; // 'text', 'image', 'file', etc.
+  final String? type;
   final bool isRead;
   final bool isEdited;
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
-  
-  // Pour les réponses/citations
+
   final int? replyToId;
   final String? replyToContent;
   final String? replyToSenderName;
@@ -46,21 +42,21 @@ class MessageModel extends Equatable {
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('📥 MessageModel.fromJson: $json');
-    
+    debugPrint(' MessageModel.fromJson: $json');
+
     try {
-      // ✅ Helper pour parser les dates
+      //  Helper pour parser les dates
       DateTime parseDate(dynamic value) {
         if (value == null) return DateTime.now();
         try {
           return DateTime.parse(value.toString());
         } catch (e) {
-          debugPrint('⚠️ Erreur parsing date: $value');
+          debugPrint(' Erreur parsing date: $value');
           return DateTime.now();
         }
       }
 
-      // ✅ Helper pour parser les int (gère null et String)
+      // Helper pour parser les int (gère null et String)
       int? safeInt(dynamic value) {
         if (value == null) return null;
         if (value is int) return value;
@@ -69,42 +65,42 @@ class MessageModel extends Equatable {
 
       return MessageModel(
         id: json['id'] as int,
-        
-        // ✅ FIX: conversation_id peut ne pas être dans la réponse
+
         conversationId: safeInt(json['conversation_id']) ?? 0,
-        
+
         senderId: json['sender_id'] as int,
         senderName: json['sender_name'] as String? ?? 'Inconnu',
         senderAvatar: json['sender_avatar'] as String?,
         senderRole: json['sender_role'] as String? ?? 'parent',
         content: json['content'] as String? ?? '',
-        
-        // ✅ FIX: Mapper message_type vers type
-        type: json['message_type'] as String? ?? 
-              json['type'] as String? ?? 
-              'text',
-        
-        // ✅ FIX: Mapper is_read_by_me vers isRead
-        isRead: json['is_read_by_me'] as bool? ?? 
-                json['is_read'] as bool? ?? 
-                false,
-        
+
+        type:
+            json['message_type'] as String? ??
+            json['type'] as String? ??
+            'text',
+
+        isRead:
+            json['is_read_by_me'] as bool? ?? json['is_read'] as bool? ?? false,
+
         isEdited: json['is_edited'] as bool? ?? false,
         isDeleted: json['is_deleted'] as bool? ?? false,
-        
+
         createdAt: parseDate(json['created_at']),
-        updatedAt: json['updated_at'] != null ? parseDate(json['updated_at']) : null,
-        deletedAt: json['deleted_at'] != null ? parseDate(json['deleted_at']) : null,
-        
-        // ✅ FIX: Mapper parent_message_id vers replyToId
-        replyToId: safeInt(json['parent_message_id']) ?? 
-                   safeInt(json['reply_to_id']),
+        updatedAt: json['updated_at'] != null
+            ? parseDate(json['updated_at'])
+            : null,
+        deletedAt: json['deleted_at'] != null
+            ? parseDate(json['deleted_at'])
+            : null,
+
+        replyToId:
+            safeInt(json['parent_message_id']) ?? safeInt(json['reply_to_id']),
         replyToContent: json['reply_to_content'] as String?,
         replyToSenderName: json['reply_to_sender_name'] as String?,
       );
     } catch (e, stackTrace) {
-      debugPrint('❌ Erreur lors du parsing de MessageModel: $e');
-      debugPrint('📋 StackTrace: $stackTrace');
+      debugPrint(' Erreur lors du parsing de MessageModel: $e');
+      debugPrint(' StackTrace: $stackTrace');
       rethrow;
     }
   }
@@ -140,8 +136,12 @@ class MessageModel extends Equatable {
   String get formattedDate {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(createdAt.year, createdAt.month, createdAt.day);
-    
+    final messageDate = DateTime(
+      createdAt.year,
+      createdAt.month,
+      createdAt.day,
+    );
+
     if (messageDate == today) {
       return 'Aujourd\'hui';
     } else if (messageDate == today.subtract(const Duration(days: 1))) {
@@ -199,24 +199,24 @@ class MessageModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        conversationId,
-        senderId,
-        senderName,
-        senderAvatar,
-        senderRole,
-        content,
-        type,
-        isRead,
-        isEdited,
-        isDeleted,
-        createdAt,
-        updatedAt,
-        deletedAt,
-        replyToId,
-        replyToContent,
-        replyToSenderName,
-      ];
+    id,
+    conversationId,
+    senderId,
+    senderName,
+    senderAvatar,
+    senderRole,
+    content,
+    type,
+    isRead,
+    isEdited,
+    isDeleted,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    replyToId,
+    replyToContent,
+    replyToSenderName,
+  ];
 
   @override
   String toString() {

@@ -18,8 +18,9 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => NotificationBloc(repository: NotificationRepository())
-        ..add(const LoadNotificationsEvent()),
+      create: (_) =>
+          NotificationBloc(repository: NotificationRepository())
+            ..add(const LoadNotificationsEvent()),
       child: const _NotificationsPageContent(),
     );
   }
@@ -53,7 +54,9 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
     super.dispose();
   }
 
-  List<NotificationModel> _filterNotifications(List<NotificationModel> notifications) {
+  List<NotificationModel> _filterNotifications(
+    List<NotificationModel> notifications,
+  ) {
     if (_searchQuery.isEmpty) return notifications;
     return notifications.where((n) {
       return n.title.toLowerCase().contains(_searchQuery) ||
@@ -92,18 +95,19 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                     if (state is NotificationLoaded) {
                       try {
                         context.read<UnreadNotificationsBloc>().add(
-                              UpdateUnreadCountEvent(state.unreadCount),
-                            );
-                        
+                          UpdateUnreadCountEvent(state.unreadCount),
+                        );
                       } catch (_) {
-                        // 
+                        //
                       }
                     }
                   },
                   builder: (context, state) {
                     if (state is NotificationLoading) {
                       return const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
                       );
                     }
                     if (state is NotificationError) {
@@ -152,12 +156,18 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
     );
   }
 
-  Widget _buildContent(BuildContext context, List<NotificationModel> notifications) {
+  Widget _buildContent(
+    BuildContext context,
+    List<NotificationModel> notifications,
+  ) {
     if (notifications.isEmpty) return _buildEmptyState();
 
     final totalPages = (notifications.length / _itemsPerPage).ceil();
     final startIndex = (_currentPage - 1) * _itemsPerPage;
-    final endIndex = (startIndex + _itemsPerPage).clamp(0, notifications.length);
+    final endIndex = (startIndex + _itemsPerPage).clamp(
+      0,
+      notifications.length,
+    );
     final pageNotifications = notifications.sublist(startIndex, endIndex);
 
     final today = <NotificationModel>[];
@@ -177,13 +187,15 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
     }
 
     return Column(
-      children: [     
+      children: [
         if (totalPages > 1) _buildPaginationBar(totalPages),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
               setState(() => _currentPage = 1);
-              context.read<NotificationBloc>().add(const RefreshNotificationsEvent());
+              context.read<NotificationBloc>().add(
+                const RefreshNotificationsEvent(),
+              );
             },
             color: AppColors.primary,
             child: ListView(
@@ -229,7 +241,10 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
         ),
         suffixIcon: _searchQuery.isNotEmpty
             ? IconButton(
-                icon: Icon(Icons.clear, color: AppColors.textSecondary.withValues(alpha: 0.6)),
+                icon: Icon(
+                  Icons.clear,
+                  color: AppColors.textSecondary.withValues(alpha: 0.6),
+                ),
                 onPressed: () => _searchController.clear(),
               )
             : null,
@@ -269,7 +284,10 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
     );
   }
 
-  Widget _buildNotificationCard(BuildContext context, NotificationModel notification) {
+  Widget _buildNotificationCard(
+    BuildContext context,
+    NotificationModel notification,
+  ) {
     final icon = _getIconForType(notification.type);
     final iconColor = _getColorForType(notification.type);
 
@@ -288,8 +306,8 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       ),
       onDismissed: (direction) {
         context.read<NotificationBloc>().add(
-              DeleteNotificationEvent(notification.id),
-            );
+          DeleteNotificationEvent(notification.id),
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('notification_deleted'.tr()),
@@ -302,13 +320,13 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
         onTap: () {
           if (!notification.isRead) {
             context.read<NotificationBloc>().add(
-                  MarkNotificationAsReadEvent(notification.id),
-                );
+              MarkNotificationAsReadEvent(notification.id),
+            );
 
             try {
               context.read<UnreadNotificationsBloc>().add(
-                    MarkNotificationAsReadLocalEvent(notification.id),
-                  );
+                MarkNotificationAsReadLocalEvent(notification.id),
+              );
             } catch (_) {}
           }
         },
@@ -343,7 +361,11 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                   color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.radiusM),
                 ),
-                child: Icon(icon, color: iconColor, size: AppConstants.iconSizeM),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: AppConstants.iconSizeM,
+                ),
               ),
               const SizedBox(width: AppConstants.spacingL),
               Expanded(
@@ -419,7 +441,9 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
           ),
           const SizedBox(height: AppConstants.spacingXXL),
           Text(
-            _searchQuery.isEmpty ? 'no_notifications'.tr() : 'no_result_found'.tr(),
+            _searchQuery.isEmpty
+                ? 'no_notifications'.tr()
+                : 'no_result_found'.tr(),
             style: const TextStyle(
               fontSize: AppConstants.fontSizeL,
               color: AppColors.textSecondary,
@@ -448,9 +472,9 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
           ),
           const SizedBox(height: AppConstants.spacingXXL),
           ElevatedButton(
-            onPressed: () => context
-                .read<NotificationBloc>()
-                .add(const LoadNotificationsEvent()),
+            onPressed: () => context.read<NotificationBloc>().add(
+              const LoadNotificationsEvent(),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -471,21 +495,31 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
 
   IconData _getIconForType(String type) {
     switch (type) {
-      case 'subscription_activated': return Icons.card_membership;
-      case 'trip_started': return Icons.play_circle_outline;
-      case 'trip_completed': return Icons.check_circle_outline;
-      case 'weather_alert': return Icons.warning_amber;
-      default: return Icons.notifications;
+      case 'subscription_activated':
+        return Icons.card_membership;
+      case 'trip_started':
+        return Icons.play_circle_outline;
+      case 'trip_completed':
+        return Icons.check_circle_outline;
+      case 'weather_alert':
+        return Icons.warning_amber;
+      default:
+        return Icons.notifications;
     }
   }
 
   Color _getColorForType(String type) {
     switch (type) {
-      case 'subscription_activated': return const Color(0xFF3B82F6);
-      case 'trip_started': return AppColors.primary;
-      case 'trip_completed': return AppColors.success;
-      case 'weather_alert': return AppColors.warning;
-      default: return AppColors.textSecondary;
+      case 'subscription_activated':
+        return const Color(0xFF3B82F6);
+      case 'trip_started':
+        return AppColors.primary;
+      case 'trip_completed':
+        return AppColors.success;
+      case 'weather_alert':
+        return AppColors.warning;
+      default:
+        return AppColors.textSecondary;
     }
   }
 
@@ -502,6 +536,7 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       return DateFormat('dd/MM').format(dateTime);
     }
   }
+
   Widget _buildPaginationBar(int totalPages) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -518,17 +553,19 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-         
           IconButton(
-            onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
             icon: Icon(
               Icons.arrow_back_ios,
               size: 18,
-              color: _currentPage > 1 ? AppColors.primary : Colors.grey.shade300,
+              color: _currentPage > 1
+                  ? AppColors.primary
+                  : Colors.grey.shade300,
             ),
           ),
 
-          
           Row(
             children: List.generate(totalPages, (index) {
               final page = index + 1;
@@ -543,7 +580,9 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                     color: isSelected ? AppColors.primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade300,
                     ),
                   ),
                   child: Center(
@@ -552,7 +591,9 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? AppColors.white : Colors.grey.shade600,
+                        color: isSelected
+                            ? AppColors.white
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ),
@@ -561,13 +602,16 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
             }),
           ),
 
-         
           IconButton(
-            onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+            onPressed: _currentPage < totalPages
+                ? () => setState(() => _currentPage++)
+                : null,
             icon: Icon(
               Icons.arrow_forward_ios,
               size: 18,
-              color: _currentPage < totalPages ? AppColors.primary : Colors.grey.shade300,
+              color: _currentPage < totalPages
+                  ? AppColors.primary
+                  : Colors.grey.shade300,
             ),
           ),
         ],

@@ -43,9 +43,8 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     Emitter<ConversationState> emit,
   ) async {
     try {
-      final conversation = await _messagingService.createOrGetDirectConversation(
-        otherUserId: event.parentId,
-      );
+      final conversation = await _messagingService
+          .createOrGetDirectConversation(otherUserId: event.parentId);
       if (conversation != null) {
         emit(ConversationCreated(conversation));
         add(LoadConversationsEvent());
@@ -63,7 +62,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   ) async {
     try {
       await _messagingService.markConversationAsRead(event.conversationId);
-      
+
       add(RefreshConversationsEvent());
     } catch (e) {
       //

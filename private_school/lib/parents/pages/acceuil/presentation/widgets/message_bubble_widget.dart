@@ -1,6 +1,3 @@
-// Message Bubble Widget
-// Path: parents/pages/acceuil/presentation/widgets/message_bubble_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -21,7 +18,7 @@ class MessageBubbleWidget extends StatelessWidget {
     required this.isMe,
     this.onLongPress,
     this.onReply,
-    this.conversationAvatar, 
+    this.conversationAvatar,
   });
 
   @override
@@ -34,37 +31,37 @@ class MessageBubbleWidget extends StatelessWidget {
           vertical: 4,
         ),
         child: Row(
-          mainAxisAlignment:
-              isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isMe
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // Avatar (pour les autres utilisateurs)
             if (!isMe) ...[
-  CircleAvatar(
-    radius: 16,
-    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-    child: (() {
-      final avatarUrl = message.senderAvatar ?? conversationAvatar;
-      if (avatarUrl != null && avatarUrl.isNotEmpty) {
-        return ClipOval(
-          child: Image.network(
-            avatarUrl,
-            width: 32,
-            height: 32,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.person,
-              color: AppColors.primary,
-              size: 18,
-            ),
-          ),
-        );
-      }
-      return Icon(Icons.person, color: AppColors.primary, size: 18);
-    })(),
-  ),
-  const SizedBox(width: 8),
-],
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                child: (() {
+                  final avatarUrl = message.senderAvatar ?? conversationAvatar;
+                  if (avatarUrl != null && avatarUrl.isNotEmpty) {
+                    return ClipOval(
+                      child: Image.network(
+                        avatarUrl,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.person,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                      ),
+                    );
+                  }
+                  return Icon(Icons.person, color: AppColors.primary, size: 18);
+                })(),
+              ),
+              const SizedBox(width: 8),
+            ],
 
             // Message bubble
             Flexible(
@@ -73,7 +70,6 @@ class MessageBubbleWidget extends StatelessWidget {
                     ? CrossAxisAlignment.end
                     : CrossAxisAlignment.start,
                 children: [
-                  // Sender name (pour les messages de groupe)
                   if (!isMe)
                     Padding(
                       padding: const EdgeInsets.only(left: 12, bottom: 2),
@@ -87,7 +83,6 @@ class MessageBubbleWidget extends StatelessWidget {
                       ),
                     ),
 
-                  // Reply preview (si le message est une réponse)
                   if (message.replyToContent != null) _buildReplyPreview(),
 
                   // Message content
@@ -97,9 +92,7 @@ class MessageBubbleWidget extends StatelessWidget {
                       vertical: AppConstants.spacingS,
                     ),
                     decoration: BoxDecoration(
-                      color: isMe
-                          ? AppColors.success
-                          : Colors.grey.shade200,
+                      color: isMe ? AppColors.success : Colors.grey.shade200,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
@@ -149,9 +142,7 @@ class MessageBubbleWidget extends StatelessWidget {
                             if (isMe) ...[
                               const SizedBox(width: 4),
                               Icon(
-                                message.isRead
-                                    ? Icons.done_all
-                                    : Icons.done,
+                                message.isRead ? Icons.done_all : Icons.done,
                                 size: 14,
                                 color: message.isRead
                                     ? AppColors.info
@@ -224,7 +215,6 @@ class MessageBubbleWidget extends StatelessWidget {
   }
 
   Color _getSenderColor() {
-    // Générer une couleur basée sur le nom de l'expéditeur
     final colors = [
       AppColors.primary,
       AppColors.success,
@@ -234,7 +224,7 @@ class MessageBubbleWidget extends StatelessWidget {
       Colors.pink,
       Colors.teal,
     ];
-    
+
     final hash = message.senderName.hashCode;
     return colors[hash.abs() % colors.length];
   }

@@ -1,6 +1,3 @@
-// Conversation States
-// Path: parents/pages/acceuil/domain/bloc/conversation_state.dart
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/conversation_model.dart';
 
@@ -38,7 +35,8 @@ class ConversationRefreshing extends ConversationState {
   List<Object?> get props => [currentConversations];
 
   @override
-  String toString() => 'ConversationRefreshing(${currentConversations.length} conversations)';
+  String toString() =>
+      'ConversationRefreshing(${currentConversations.length} conversations)';
 }
 
 // ==================== LOADED STATE ====================
@@ -77,11 +75,11 @@ class ConversationLoaded extends ConversationState {
 
   @override
   List<Object?> get props => [
-        conversations,
-        filteredConversations,
-        showArchived,
-        searchQuery,
-      ];
+    conversations,
+    filteredConversations,
+    showArchived,
+    searchQuery,
+  ];
 
   ConversationLoaded copyWith({
     List<ConversationModel>? conversations,
@@ -91,7 +89,8 @@ class ConversationLoaded extends ConversationState {
   }) {
     return ConversationLoaded(
       conversations: conversations ?? this.conversations,
-      filteredConversations: filteredConversations ?? this.filteredConversations,
+      filteredConversations:
+          filteredConversations ?? this.filteredConversations,
       showArchived: showArchived ?? this.showArchived,
       searchQuery: searchQuery ?? this.searchQuery,
     );
@@ -137,18 +136,16 @@ class ConversationUpdating extends ConversationState {
 
 class ConversationUpdated extends ConversationState {
   final ConversationModel conversation;
-  final String action; // 'archived', 'unarchived', 'muted', 'unmuted'
+  final String action;
 
-  const ConversationUpdated({
-    required this.conversation,
-    required this.action,
-  });
+  const ConversationUpdated({required this.conversation, required this.action});
 
   @override
   List<Object?> get props => [conversation, action];
 
   @override
-  String toString() => 'ConversationUpdated(${conversation.displayName}, action: $action)';
+  String toString() =>
+      'ConversationUpdated(${conversation.displayName}, action: $action)';
 }
 
 // ==================== ERROR STATE ====================
@@ -158,11 +155,7 @@ class ConversationError extends ConversationState {
   final String? errorCode;
   final dynamic error;
 
-  const ConversationError({
-    required this.message,
-    this.errorCode,
-    this.error,
-  });
+  const ConversationError({required this.message, this.errorCode, this.error});
 
   @override
   List<Object?> get props => [message, errorCode, error];

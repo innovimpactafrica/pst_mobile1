@@ -37,7 +37,10 @@ class ChildRepository {
   }
 
   /// Mettre à jour les horaires d'un enfant
-  Future<void> updateChildSchedule(String childId, Map<String, DaySchedule> schedule) async {
+  Future<void> updateChildSchedule(
+    String childId,
+    Map<String, DaySchedule> schedule,
+  ) async {
     return await _childService.updateChildSchedule(childId, schedule);
   }
 }

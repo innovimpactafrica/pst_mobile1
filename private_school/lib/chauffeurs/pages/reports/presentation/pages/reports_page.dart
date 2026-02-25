@@ -23,12 +23,7 @@ class _ReportsPageState extends State<ReportsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Tous';
 
-  final List<String> _filters = [
-    'all',
-    'incident',
-    'disputes',
-    'security',
-  ];
+  final List<String> _filters = ['all', 'incident', 'disputes', 'security'];
 
   @override
   void initState() {
@@ -148,8 +143,7 @@ class _ReportsPageState extends State<ReportsPage> {
     return SizedBox(
       height: 50,
       child: ListView.builder(
-        padding:
-            const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
+        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingXL),
         scrollDirection: Axis.horizontal,
         itemCount: _filters.length,
         itemBuilder: (context, index) {
@@ -165,8 +159,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 style: GoogleFonts.inter(
                   fontSize: AppConstants.fontSizeM,
                   fontWeight: FontWeight.w600,
-                  color:
-                      isSelected ? AppColors.white : AppColors.textPrimary,
+                  color: isSelected ? AppColors.white : AppColors.textPrimary,
                 ),
               ),
               selected: isSelected,
@@ -232,7 +225,7 @@ class _ReportsPageState extends State<ReportsPage> {
             }
 
             return Column(
-              children: [   
+              children: [
                 if (state.totalPages > 1) _buildPaginationBar(state),
                 Expanded(
                   child: RefreshIndicator(
@@ -292,12 +285,11 @@ class _ReportsPageState extends State<ReportsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-     
           IconButton(
             onPressed: state.currentPage > 1 && !state.isLoadingMore
-                ? () => context
-                    .read<ReportBloc>()
-                    .add(LoadPageEvent(state.currentPage - 1))
+                ? () => context.read<ReportBloc>().add(
+                    LoadPageEvent(state.currentPage - 1),
+                  )
                 : null,
             icon: Icon(
               Icons.arrow_back_ios,
@@ -308,7 +300,6 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
 
-         
           Row(
             children: List.generate(state.totalPages, (index) {
               final page = index + 1;
@@ -316,9 +307,7 @@ class _ReportsPageState extends State<ReportsPage> {
               return GestureDetector(
                 onTap: isSelected || state.isLoadingMore
                     ? null
-                    : () => context
-                        .read<ReportBloc>()
-                        .add(LoadPageEvent(page)),
+                    : () => context.read<ReportBloc>().add(LoadPageEvent(page)),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
@@ -358,12 +347,12 @@ class _ReportsPageState extends State<ReportsPage> {
             }),
           ),
 
-       
           IconButton(
-            onPressed: state.currentPage < state.totalPages && !state.isLoadingMore
-                ? () => context
-                    .read<ReportBloc>()
-                    .add(LoadPageEvent(state.currentPage + 1))
+            onPressed:
+                state.currentPage < state.totalPages && !state.isLoadingMore
+                ? () => context.read<ReportBloc>().add(
+                    LoadPageEvent(state.currentPage + 1),
+                  )
                 : null,
             icon: Icon(
               Icons.arrow_forward_ios,
@@ -415,11 +404,7 @@ class _ReportsPageState extends State<ReportsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.error,
-          ),
+          const Icon(Icons.error_outline, size: 64, color: AppColors.error),
           const SizedBox(height: AppConstants.spacingL),
           Text(
             'loading_error'.tr(),
@@ -479,8 +464,7 @@ class _ReportsPageState extends State<ReportsPage> {
       backgroundColor: AppColors.primary,
       child: SvgPicture.asset(
         'assets/icons/13.svg',
-        colorFilter:
-            const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
+        colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
         width: 28,
         height: 28,
       ),

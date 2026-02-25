@@ -1,11 +1,7 @@
-// Events pour le profil utilisateur
-// Chemin: lib/parents/profil/domain/bloc/profil_event.dart
-
 import 'dart:io';
 import 'package:private_school/core/models/user_model.dart';
 import '../../../enfants/domain/bloc/child_bloc.dart';
 import '../../../acceuil/domain/bloc/home_bloc.dart';
-
 
 abstract class ProfilEvent {}
 
@@ -57,6 +53,6 @@ class DeleteProfilePhotoEvent extends ProfilEvent {}
 class LogoutEvent extends ProfilEvent {
   final ChildBloc? childBloc;
   final HomeBloc? homeBloc;
-  
+
   LogoutEvent({this.childBloc, this.homeBloc});
 }

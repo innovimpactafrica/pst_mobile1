@@ -95,7 +95,6 @@ class PassengersListModal extends StatelessWidget {
   }
 
   Widget _buildPassengerItem(PassengerModel passenger) {
-    // Convertir la couleur hex en Color
     Color avatarColor = _parseColor(passenger.avatarColor ?? '#4CAF50');
 
     return Padding(
@@ -181,9 +180,9 @@ class PassengersListModal extends StatelessWidget {
       if (hex.length == 6) {
         return Color(int.parse('FF$hex', radix: 16));
       }
-      return const Color(0xFF4CAF50); // Fallback
+      return const Color(0xFF4CAF50);
     } catch (e) {
-      return const Color(0xFF4CAF50); // Fallback
+      return const Color(0xFF4CAF50);
     }
   }
 }

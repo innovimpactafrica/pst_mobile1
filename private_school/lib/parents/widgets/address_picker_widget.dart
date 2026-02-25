@@ -66,17 +66,11 @@ class AddressPickerWidget extends StatelessWidget {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: AppColors.grey300,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: AppColors.grey300, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -93,7 +87,7 @@ class AddressPickerWidget extends StatelessWidget {
             controller.text = prediction.description ?? '';
             final lat = double.tryParse(prediction.lat ?? '');
             final lng = double.tryParse(prediction.lng ?? '');
-            
+
             if (lat != null && lng != null) {
               onLocationSelected(lat, lng);
             }
@@ -117,16 +111,16 @@ class AddressPickerWidget extends StatelessWidget {
       }
 
       Position position = await Geolocator.getCurrentPosition();
-      
+
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
-      
+
       if (placemarks.isNotEmpty && context.mounted) {
         final place = placemarks.first;
         final address = '${place.street}, ${place.locality}, ${place.country}';
-        
+
         controller.text = address;
         onLocationSelected(position.latitude, position.longitude);
       }

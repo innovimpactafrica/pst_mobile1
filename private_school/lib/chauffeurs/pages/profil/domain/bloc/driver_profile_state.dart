@@ -1,5 +1,3 @@
-
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/driver_profile_model.dart';
 
