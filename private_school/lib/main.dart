@@ -1,6 +1,3 @@
-// Main App Entry Point - WITH MESSAGING BLOCS
-// Path: lib/main.dart
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +6,6 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/services/subscription_service.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/repositories/driver_auth_repository.dart';
 import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_bloc.dart';
-import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_state.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/forgot_password_page.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/reset_password_page.dart';
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/verify_otp_page.dart';
@@ -26,7 +22,6 @@ import 'package:private_school/pages/role_selection_page.dart';
 
 // Parent imports
 import 'package:private_school/parents/pages/acceuil/presentation/pages/home.dart';
-import 'package:private_school/parents/pages/authentification/domain/bloc/auth_state.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/connexion.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/creer_mdp.dart';
 import 'package:private_school/parents/pages/authentification/presentation/pages/mdp_oublie.dart';

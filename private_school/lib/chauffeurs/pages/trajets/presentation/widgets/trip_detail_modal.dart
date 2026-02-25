@@ -30,23 +30,14 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   void _logTripPassengers() {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📋 [TripDetailModal] Trajet ID: ${widget.trip.id}');
-    debugPrint('👥 Passagers inscrits: ${widget.trip.passengers.length}');
-    debugPrint('🎯 Capacité totale: ${widget.trip.totalSeats}');
-    for (var passenger in widget.trip.passengers) {
-      debugPrint(
-          '   👤 ${passenger.name} (${passenger.school ?? "Aucune école"})');
-    }
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    debugPrint('Nombre de passagers: ${widget.trip.passengers.length}');
   }
 
   void _onRouteCalculated(double distance, int duration) {
     setState(() {
       _durationMinutes = duration;
     });
-    debugPrint('✅ Distance: ${distance.toStringAsFixed(1)} km');
-    debugPrint('✅ Durée: $duration minutes');
+    
   }
 
   @override
@@ -70,7 +61,7 @@ class _TripDetailModalState extends State<TripDetailModal> {
                   SliverToBoxAdapter(
                       child: _buildPassengersSection(context)),
                   SliverToBoxAdapter(child: _buildSchoolsSection(context)),
-                  // Espace en bas pour ne pas être caché par les boutons
+                 
                   const SliverToBoxAdapter(
                       child: SizedBox(height: AppConstants.spacingXXXL)),
                 ],
@@ -888,7 +879,7 @@ Widget _buildMap() {
         return '${arrivalHour.toString().padLeft(2, '0')}:${arrivalMinute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
-      debugPrint('Error calculating arrival time: $e');
+     //
     }
     return '--:--';
   }

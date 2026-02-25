@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:private_school/core/storage/secure_storage.dart';
 import 'package:private_school/core/utils/base_url.dart';
@@ -30,7 +29,6 @@ class MessagingService {
       }
       return [];
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur conversations: $e');
       return [];
     }
   }
@@ -68,7 +66,6 @@ class MessagingService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur création: $e');
       return null;
     }
   }
@@ -94,7 +91,6 @@ class MessagingService {
       }
       return [];
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur messages: $e');
       return [];
     }
   }
@@ -130,7 +126,6 @@ class MessagingService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur envoi: $e');
       return null;
     }
   }
@@ -161,7 +156,6 @@ class MessagingService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur modification: $e');
       return null;
     }
   }
@@ -183,7 +177,8 @@ class MessagingService {
         },
       );
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur suppression: $e');
+    
+    //
     }
   }
 
@@ -192,7 +187,7 @@ class MessagingService {
     final token = await _storage.getAccessToken();
     final url = Uri.parse('${BaseUrl.current}/api/conversations/$conversationId/read');
     
-    await http.patch( // ← était POST, maintenant PATCH
+    await http.patch( 
       url,
       headers: {
         'Authorization': 'Bearer $token',
@@ -200,9 +195,9 @@ class MessagingService {
         'Accept': 'application/json',
       },
     );
-    debugPrint('✅ [MessagingService Chauffeur] Messages marqués comme lus');
+    
   } catch (e) {
-    debugPrint('⚠️ [MessagingService Chauffeur] Erreur marquage: $e');
+    //
   }
 }
 
@@ -221,7 +216,7 @@ class MessagingService {
         body: json.encode({'archived': archive}),
       );
     } catch (e) {
-      debugPrint('❌ [MessagingService] Erreur archivage: $e');
+      //
     }
   }
 }

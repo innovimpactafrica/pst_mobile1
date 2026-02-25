@@ -10,7 +10,6 @@ import '../../domain/bloc/logout_bloc.dart';
 import '../../domain/bloc/logout_event.dart';
 import '../../domain/bloc/logout_state.dart';
 
-/// Affiche le modal de déconnexion depuis le bas de l'écran
 void showLogoutBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -98,7 +97,7 @@ class LogoutBottomSheet extends StatelessWidget {
                 builder: (context, state) {
                   final isLoading = state is LogoutLoading;
 
-                  return IntrinsicHeight( // Nécessaire pour que le VerticalDivider prenne toute la hauteur
+                  return IntrinsicHeight( 
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -118,22 +117,22 @@ class LogoutBottomSheet extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: AppConstants.fontSizeL,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary, // Couleur sombre pour l'annulation
+                                color: AppColors.textPrimary, 
                               ),
                             ),
                           ),
                         ),
 
-                        // Trait de séparation vertical entre les boutons
+                        
                         const VerticalDivider(
-                          color: AppColors.divider, // Utilisation de la couleur centralisée
+                          color: AppColors.divider, 
                           thickness: 1,
                           width: 1,
-                          indent: 8, // Petit espace en haut
-                          endIndent: 8, // Petit espace en bas
+                          indent: 8, 
+                          endIndent: 8, 
                         ),
 
-                        // Bouton "Se déconnecter"
+                        
                         Expanded(
                           child: TextButton(
                             onPressed: isLoading

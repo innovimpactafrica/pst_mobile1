@@ -1,9 +1,4 @@
-// Dashboard header with navigation
-// Path: lib/chauffeurs/pages/dashboard/presentation/widgets/dashboard_header.dart
-// Follows Innov & Impact Africa Flutter Coding Guidelines:
-// - Uses BLoC for state management
-// - No direct data passing via props
-// - Proper separation of concerns
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -139,7 +134,7 @@ class DashboardHeader extends StatelessWidget {
                 image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
                 onError: (exception, stackTrace) {
-                  // Silently handle error - will show initials
+                  
                 },
               )
             : null,

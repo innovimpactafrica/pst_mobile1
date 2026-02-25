@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
 import '../../../../../parents/pages/acceuil/domain/bloc/message_bloc.dart';
 import '../../../../../parents/pages/acceuil/domain/bloc/message_event.dart';
@@ -36,6 +37,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
   int? _currentUserId;
   bool _isLoading = true;
   MessageModel? _editingMessage;
+  MessageLoaded? _lastLoadedState;
   
   int get _conversationId => widget.conversation.id;
 
@@ -55,9 +57,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
     try {
       await _repository.markConversationAsRead(_conversationId);
       UnreadMessagesBloc.notifyMessageRead(_conversationId);
-      debugPrint('✅ [DriverChatPage] Messages marqués comme lus');
     } catch (e) {
-      debugPrint('⚠️ Erreur marquage messages lus: $e');
+      //
     }
   }
 
@@ -116,9 +117,8 @@ class _DriverChatPageState extends State<DriverChatPage> {
     return null;
   }
 
-  @override
+@override
   void dispose() {
-    _markMessagesAsRead();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -170,21 +170,37 @@ class _DriverChatPageState extends State<DriverChatPage> {
               behavior: SnackBarBehavior.floating,
             ));
           }
-          if (state is MessageSent || state is MessageLoaded) {
+         if (state is MessageSent) {
             _scrollToBottom();
             _markMessagesAsRead();
+          }
+          if (state is MessageLoaded) {
+            _scrollToBottom();
           }
           if (state is MessageSent && _editingMessage != null) {
             setState(() => _editingMessage = null);
             UnreadMessagesBloc.notifyNewMessage(_conversationId);
           }
         },
-        builder: (context, state) {
-          if (state is MessageLoading) {
-            return const Center(
-                child: CircularProgressIndicator(color: AppColors.primary));
+       builder: (context, state) {
+          if (state is MessageLoaded) {
+            _lastLoadedState = state;
+            return _buildChatView(state);
           }
-          if (state is MessageLoaded) return _buildChatView(state);
+
+          if (state is MessageLoading) {
+            if (_lastLoadedState == null) {
+              return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary));
+            }
+            return _buildChatView(_lastLoadedState!);
+          }
+
+          // ✅ Tous les états transitoires gardent le dernier affichage
+          if (_lastLoadedState != null) {
+            return _buildChatView(_lastLoadedState!);
+          }
+
           if (state is MessageEmpty) return _buildEmptyWithInput();
           if (state is MessageError) return _buildErrorState(state.message);
           return _buildEmptyWithInput();
@@ -194,6 +210,18 @@ class _DriverChatPageState extends State<DriverChatPage> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    debugPrint('🖼️ [ChatPage] displayAvatar: ${widget.conversation.displayAvatar}');
+    debugPrint('🖼️ [ChatPage] otherUserId: ${widget.conversation.otherUserId}');
+    debugPrint('🖼️ [ChatPage] otherUserAvatar: ${widget.conversation.otherUserAvatar}');
+    
+    final photoUrl = widget.conversation.otherUserAvatar ?? 
+        widget.conversation.displayAvatar ?? 
+        (widget.conversation.otherUserId != null 
+            ? ImageUrlHelper.getFullImageUrl('uploads/users/${widget.conversation.otherUserId}/profile.jpg')
+            : null);
+    
+    debugPrint('🖼️ [ChatPage] photoUrl finale: $photoUrl');
+
     return AppBar(
       backgroundColor: AppColors.primary,
       elevation: 0,
@@ -206,10 +234,13 @@ class _DriverChatPageState extends State<DriverChatPage> {
           CircleAvatar(
             radius: 20,
             backgroundColor: AppColors.white.withValues(alpha: 0.2),
-            backgroundImage: widget.conversation.displayAvatar != null
-                ? NetworkImage(widget.conversation.displayAvatar!)
+            backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                ? NetworkImage(photoUrl)
                 : null,
-            child: widget.conversation.displayAvatar == null
+            onBackgroundImageError: photoUrl != null ? (exception, stackTrace) {
+              debugPrint('❌ [ChatPage] Erreur chargement image: $exception');
+            } : null,
+            child: photoUrl == null || photoUrl.isEmpty
                 ? Icon(
                     widget.conversation.type == 'group'
                         ? Icons.group
@@ -420,7 +451,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
         left: AppConstants.spacingM,
         right: AppConstants.spacingM,
         top: AppConstants.spacingS,
-         bottom: AppConstants.spacingS, // ← plus de viewInsets.bottom
+         bottom: AppConstants.spacingS,
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -502,6 +533,7 @@ class _DriverChatPageState extends State<DriverChatPage> {
               conversationId: _conversationId,
               content: content,
               replyToId: state.replyToId,
+              currentUserId: _currentUserId ?? 0, 
             ),
           );
     }

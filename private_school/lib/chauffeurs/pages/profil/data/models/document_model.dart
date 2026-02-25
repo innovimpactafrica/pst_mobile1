@@ -1,12 +1,11 @@
-/// Driver information section from API
-/// UPDATED to include document fields
+
 class DriverInfo {
   final int id;
   final String status;
   final String? photoProfile;
-  final String? licenseDocument;  // NEW: Permis de conduire
-  final String? idDocument;       // NEW: CNI/Passeport
-  final String? vehiclePhoto;     // NEW: Photo du véhicule
+  final String? licenseDocument;  
+  final String? idDocument;       
+  final String? vehiclePhoto;     
 
   DriverInfo({
     required this.id,

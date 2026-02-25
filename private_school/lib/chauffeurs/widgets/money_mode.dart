@@ -4,8 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../core/utils/app_colors.dart';
 import '../../chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 
-/// Payment modal for subscription matching Figma design
-/// Location: lib/chauffeurs/widgets/money_mode.dart
 class PaymentModal extends StatefulWidget {
   final SubscriptionPlan plan;
   final VoidCallback? onPaymentComplete;
@@ -44,7 +42,7 @@ class _PaymentModalState extends State<PaymentModal> {
               const SizedBox(height: 20),
               _buildSubscriptionDetails(),
               const SizedBox(height: 24),
-              _buildSectionTitle('payment_info'.tr()), // "Informations de paiement"
+              _buildSectionTitle('payment_info'.tr()), 
               const SizedBox(height: 16),
               _buildPaymentMethodTabs(),
               const SizedBox(height: 24),
@@ -65,7 +63,7 @@ class _PaymentModalState extends State<PaymentModal> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'subscription_payment'.tr(), // "Paiement de l'abonnement"
+          'subscription_payment'.tr(), 
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -146,7 +144,7 @@ class _PaymentModalState extends State<PaymentModal> {
         Expanded(
           child: _buildPaymentTab(
             icon: Icons.credit_card,
-            label: 'bank_card'.tr(), // "Carte bancaire"
+            label: 'bank_card'.tr(), 
             isSelected: isCard,
             onTap: () => setState(() => isCard = true),
           ),
@@ -155,7 +153,7 @@ class _PaymentModalState extends State<PaymentModal> {
         Expanded(
           child: _buildPaymentTab(
             icon: Icons.phone_android_outlined,
-            label: 'mobile_money'.tr(), // "Mobile money"
+            label: 'mobile_money'.tr(), 
             isSelected: !isCard,
             onTap: () => setState(() => isCard = false),
           ),
@@ -217,13 +215,13 @@ class _PaymentModalState extends State<PaymentModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildTextField(
-          label: 'cardholder_name'.tr(), // "Nom sur la carte"
+          label: 'cardholder_name'.tr(), 
           hint: 'Lamine wade',
           icon: Icons.person_outline,
         ),
         const SizedBox(height: 16),
         _buildTextField(
-          label: 'card_number'.tr(), // "Numéro de carte"
+          label: 'card_number'.tr(), 
           hint: '1234 5678 9012 3456',
           icon: Icons.credit_card,
           keyboardType: TextInputType.number,
@@ -233,7 +231,7 @@ class _PaymentModalState extends State<PaymentModal> {
           children: [
             Expanded(
               child: _buildTextField(
-                label: 'expiry_date'.tr(), // "Date d'expiration"
+                label: 'expiry_date'.tr(), 
                 hint: 'MM/AA',
                 keyboardType: TextInputType.datetime,
               ),

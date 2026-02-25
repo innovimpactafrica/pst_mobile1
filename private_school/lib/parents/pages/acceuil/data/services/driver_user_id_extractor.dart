@@ -1,6 +1,3 @@
-// Service temporaire pour extraire user_id depuis le JSON brut des trajets
-// Path: parents/pages/acceuil/data/services/driver_user_id_extractor.dart
-
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:private_school/core/storage/secure_storage.dart';

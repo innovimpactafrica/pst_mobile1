@@ -9,8 +9,6 @@ import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
-/// Widget pour afficher une carte Google Maps avec le trajet
-/// ✅ AMÉLIORÉ: Utilise Google Geocoding API pour toutes les adresses du Sénégal
 class TripMapWidget extends StatefulWidget {
   final String startLocation;
   final String destination;
@@ -30,7 +28,6 @@ class TripMapWidget extends StatefulWidget {
 class _TripMapWidgetState extends State<TripMapWidget> {
   final Completer<GoogleMapController> _controller = Completer();
   
-  // ✅ Clé API Google (la même que dans votre code)
   static const String _googleApiKey = 'AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A';
   
   // Coordonnées par défaut (Dakar, Sénégal)
@@ -52,20 +49,13 @@ class _TripMapWidgetState extends State<TripMapWidget> {
 
   Future<void> _initializeMap() async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🗺️ [TripMapWidget] Initialisation de la carte');
-      debugPrint('📍 Départ: ${widget.startLocation}');
-      debugPrint('📍 Destination: ${widget.destination}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
 
-      // ✅ Géocoder les adresses avec Google Geocoding API
+      // Géocoder les adresses avec Google Geocoding API
       _startLatLng = await _geocodeAddressWithGoogle(widget.startLocation);
       _destinationLatLng = await _geocodeAddressWithGoogle(widget.destination);
 
       if (_startLatLng != null && _destinationLatLng != null) {
-        debugPrint('✅ Coordonnées trouvées:');
-        debugPrint('   Départ: ${_startLatLng!.latitude}, ${_startLatLng!.longitude}');
-        debugPrint('   Arrivée: ${_destinationLatLng!.latitude}, ${_destinationLatLng!.longitude}');
         
         // Créer les markers
         _createMarkers();
@@ -74,16 +64,16 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         await _drawRoute();
       } else {
         _errorMessage = 'unable_locate_addresses'.tr();
-        debugPrint('❌ Échec du géocodage');
+       
       }
 
       setState(() {
         _isLoading = false;
       });
       
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
     } catch (e) {
-      debugPrint('❌ [TripMapWidget] Erreur initialisation: $e');
+      
       setState(() {
         _isLoading = false;
         _errorMessage = 'error_loading_map'.tr();
@@ -91,26 +81,26 @@ class _TripMapWidgetState extends State<TripMapWidget> {
     }
   }
 
-  /// ✅ NOUVEAU: Géocoder une adresse avec Google Geocoding API
+  /// Géocoder une adresse avec Google Geocoding API
   /// Permet de trouver TOUTES les adresses du Sénégal (quartiers Dakar + régions)
   Future<LatLng?> _geocodeAddressWithGoogle(String address) async {
     try {
       debugPrint('🔍 Géocodage de: "$address"');
 
-      // ✅ Ajouter ", Sénégal" pour améliorer la précision
+      //  Ajout ", Sénégal" pour améliorer la précision
       final searchQuery = address.contains('Sénégal') || address.contains('Senegal')
           ? address
           : '$address, Sénégal';
 
-      // ✅ Appel à Google Geocoding API
+      //  Appel à Google Geocoding API
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json'
         '?address=${Uri.encodeComponent(searchQuery)}'
-        '&region=sn' // ✅ Priorité au Sénégal
+        '&region=sn' //  Priorité au Sénégal
         '&key=$_googleApiKey',
       );
 
-      debugPrint('📡 Requête Geocoding: $url');
+    
 
       final response = await http.get(url);
 
@@ -123,31 +113,28 @@ class _TripMapWidgetState extends State<TripMapWidget> {
           final lng = location['lng'];
           final formattedAddress = data['results'][0]['formatted_address'];
 
-          debugPrint('✅ Géocodage réussi:');
-          debugPrint('   Adresse trouvée: $formattedAddress');
-          debugPrint('   Coordonnées: $lat, $lng');
+        
 
           return LatLng(lat, lng);
         } else {
-          debugPrint('⚠️ Aucun résultat pour "$address"');
-          debugPrint('   Status: ${data['status']}');
           
-          // ✅ Fallback sur coordonnées connues
+          
+          // Fallback sur coordonnées connues
           return _getFallbackCoordinates(address);
         }
       } else {
-        debugPrint('❌ Erreur API Geocoding: ${response.statusCode}');
+        
         return _getFallbackCoordinates(address);
       }
     } catch (e) {
-      debugPrint('❌ Exception géocodage: $e');
+     
       return _getFallbackCoordinates(address);
     }
   }
 
-  /// ✅ Fallback: Coordonnées connues pour les lieux communs
+  ///  Fallback: Coordonnées connues pour les lieux communs
   LatLng? _getFallbackCoordinates(String address) {
-    debugPrint('🔄 Utilisation du fallback pour: "$address"');
+    
 
     final Map<String, LatLng> commonLocations = {
       // ========== DAKAR - QUARTIERS ==========
@@ -220,13 +207,13 @@ class _TripMapWidgetState extends State<TripMapWidget> {
     // Chercher dans les lieux communs
     for (var entry in commonLocations.entries) {
       if (normalized.contains(entry.key)) {
-        debugPrint('✅ Fallback trouvé: ${entry.key}');
+        
         return entry.value;
       }
     }
 
     // Si rien trouvé, retourner le centre de Dakar
-    debugPrint('⚠️ Aucun fallback trouvé, utilisation du centre de Dakar');
+    
     return _defaultCenter;
   }
 
@@ -288,8 +275,7 @@ class _TripMapWidgetState extends State<TripMapWidget> {
         final distance = _calculateDistance(_startLatLng!, _destinationLatLng!);
         final duration = _estimateDuration(distance);
         
-        debugPrint('📏 Distance: ${distance.toStringAsFixed(2)} km');
-        debugPrint('⏱️ Durée estimée: $duration min');
+       
         
         if (widget.onRouteCalculated != null) {
           widget.onRouteCalculated!(distance, duration);
@@ -297,10 +283,10 @@ class _TripMapWidgetState extends State<TripMapWidget> {
 
         _fitBounds();
       } else {
-        debugPrint('❌ Aucun point de trajet trouvé');
+       
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors du tracé du trajet: $e');
+      //
     }
   }
 

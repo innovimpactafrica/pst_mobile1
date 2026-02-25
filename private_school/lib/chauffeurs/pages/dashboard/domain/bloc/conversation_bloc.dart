@@ -63,10 +63,10 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   ) async {
     try {
       await _messagingService.markConversationAsRead(event.conversationId);
-      // Recharger pour mettre à jour les compteurs
+      
       add(RefreshConversationsEvent());
     } catch (e) {
-      // Ignorer l'erreur silencieusement
+      //
     }
   }
 }

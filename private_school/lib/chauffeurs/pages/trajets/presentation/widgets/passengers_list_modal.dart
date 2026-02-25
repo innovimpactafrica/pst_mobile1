@@ -4,8 +4,6 @@ import 'package:private_school/chauffeurs/pages/trajets/data/models/trip_model.d
 import 'package:private_school/core/utils/app_constants.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 
-/// Passengers list modal widget
-/// Shows the complete list of passengers for a trip
 class PassengersListModal extends StatelessWidget {
   final List<Passenger> passengers;
 

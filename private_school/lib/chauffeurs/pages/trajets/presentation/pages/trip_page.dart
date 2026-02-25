@@ -127,7 +127,7 @@ class _TripPageState extends State<TripPage>
       ),
       child: BlocBuilder<TripBloc, TripState>(
         builder: (context, state) {
-          debugPrint('🔍 [TripPage] Current state: ${state.runtimeType}');
+         
 
           if (state is TripLoading) {
             return const Center(
@@ -136,16 +136,16 @@ class _TripPageState extends State<TripPage>
           }
 
           if (state is TripError) {
-            debugPrint('❌ [TripPage] Error: ${state.message}');
+           
             return _buildErrorState(state.message);
           }
 
           if (state is TripsLoaded) {
-            debugPrint('✅ [TripPage] Trips loaded: ${state.trips.length}');
+           
             
-            // ✅ DEBUG: Afficher tous les statuts
+            //  Afficher tous les statuts
             for (var trip in state.trips) {
-              debugPrint('🚗 [TripPage] Trip ${trip.id}: status="${trip.status}"');
+              
             }
             
             return _buildTabBarViewContent(state.trips);
@@ -173,25 +173,22 @@ class _TripPageState extends State<TripPage>
   Widget _buildUpcomingTrips(List<TripModel> trips) {
     final upcomingTrips = trips
         .where((trip) {
-          // Trajet annulé = historique
+         
           if (trip.status == 'canceled') return false;
           
-          // Trajet ALLER SIMPLE terminé = historique
+          
           if (trip.tripType == 'aller' && trip.status == 'completed') return false;
           
-          // Trajet RETOUR SIMPLE terminé = historique
+         
           if (trip.tripType == 'retour' && trip.status == 'completed') return false;
           
-          // Trajet ALLER-RETOUR complètement terminé = historique
+        
           if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return false;
           
-          // Tous les autres cas = à venir
+         
           return true;
         })
         .toList();
-
-    debugPrint('📊 [TripPage] Upcoming trips: ${upcomingTrips.length}');
-    debugPrint('📊 [TripPage] Upcoming statuses: ${upcomingTrips.map((t) => '${t.status}/${t.returnStatus}').toList()}');
 
     if (upcomingTrips.isEmpty) {
       return _buildEmptyState('no_upcoming_trips'.tr());
@@ -218,25 +215,22 @@ class _TripPageState extends State<TripPage>
   Widget _buildHistoryTrips(List<TripModel> trips) {
     final historyTrips = trips
         .where((trip) {
-          // Trajet annulé = historique
+      
           if (trip.status == 'canceled') return true;
           
-          // Trajet ALLER SIMPLE terminé = historique
+       
           if (trip.tripType == 'aller' && trip.status == 'completed') return true;
           
-          // Trajet RETOUR SIMPLE terminé = historique
+          
           if (trip.tripType == 'retour' && trip.status == 'completed') return true;
           
-          // Trajet ALLER-RETOUR complètement terminé = historique
+          
           if (trip.tripType == 'aller_retour' && trip.status == 'completed' && trip.returnStatus == 'completed') return true;
           
-          // Tous les autres = à venir
+          
           return false;
         })
         .toList();
-
-    debugPrint('📊 [TripPage] History trips: ${historyTrips.length}');
-
     if (historyTrips.isEmpty) {
       return _buildEmptyState('no_history'.tr());
     }

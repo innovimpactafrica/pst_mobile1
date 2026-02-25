@@ -13,6 +13,7 @@ class MessageBubbleWidget extends StatelessWidget {
   final bool isMe;
   final VoidCallback? onLongPress;
   final VoidCallback? onReply;
+  final String? conversationAvatar;
 
   const MessageBubbleWidget({
     super.key,
@@ -20,6 +21,7 @@ class MessageBubbleWidget extends StatelessWidget {
     required this.isMe,
     this.onLongPress,
     this.onReply,
+    this.conversationAvatar, 
   });
 
   @override
@@ -38,22 +40,31 @@ class MessageBubbleWidget extends StatelessWidget {
           children: [
             // Avatar (pour les autres utilisateurs)
             if (!isMe) ...[
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                backgroundImage: message.senderAvatar != null
-                    ? NetworkImage(message.senderAvatar!)
-                    : null,
-                child: message.senderAvatar == null
-                    ? Icon(
-                        Icons.person,
-                        color: AppColors.primary,
-                        size: 18,
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 8),
-            ],
+  CircleAvatar(
+    radius: 16,
+    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+    child: (() {
+      final avatarUrl = message.senderAvatar ?? conversationAvatar;
+      if (avatarUrl != null && avatarUrl.isNotEmpty) {
+        return ClipOval(
+          child: Image.network(
+            avatarUrl,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.person,
+              color: AppColors.primary,
+              size: 18,
+            ),
+          ),
+        );
+      }
+      return Icon(Icons.person, color: AppColors.primary, size: 18);
+    })(),
+  ),
+  const SizedBox(width: 8),
+],
 
             // Message bubble
             Flexible(

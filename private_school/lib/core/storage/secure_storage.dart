@@ -1,5 +1,3 @@
-// Secure storage service for tokens and user data
-// Path: lib/core/storage/secure_storage.dart
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 

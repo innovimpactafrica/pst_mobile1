@@ -1,16 +1,12 @@
-// Dashboard model with FULL trip data compatibility
-// Path: lib/chauffeurs/pages/dashboard/data/models/dashboard_model.dart
-
-import 'package:flutter/material.dart';
 
 class DashboardModel {
   final DriverInfo driver;
   final DashboardStats stats;
-  final List<dynamic> upcomingTripsList;  // ✅ CHANGÉ: dynamic pour accepter TripModel
-  final List<dynamic> todayTrips;         // ✅ CHANGÉ
+  final List<dynamic> upcomingTripsList;  
+  final List<dynamic> todayTrips;        
   final List<NotificationItem> notifications;
   final int unreadNotificationsCount;
-  final List<dynamic> recentBookings;     // ✅ CHANGÉ
+  final List<dynamic> recentBookings;    
   final SubscriptionStatus? subscription;
 
   DashboardModel({
@@ -24,7 +20,7 @@ class DashboardModel {
     this.subscription,
   });
 
-  // Convenience getters for backward compatibility
+  
   int get totalTrips => stats.completedTrips + stats.upcomingTrips;
   int get completedTrips => stats.completedTrips;
   int get canceledTrips => stats.canceledTrips;
@@ -36,14 +32,9 @@ class DashboardModel {
   List<dynamic> get recentTrips => [...upcomingTripsList, ...todayTrips, ...recentBookings];
 
   factory DashboardModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📊 [DashboardModel] Parsing dashboard data');
-    
     return DashboardModel(
       driver: DriverInfo.fromJson(json['driver'] ?? {}),
       stats: DashboardStats.fromJson(json['stats'] ?? {}),
-      
-      // ✅ CORRECTION: Garder les Maps bruts pour conversion ultérieure en TripModel
       upcomingTripsList: json['upcomingTrips'] != null
           ? (json['upcomingTrips'] as List).map((trip) => trip).toList()
           : [],

@@ -21,7 +21,7 @@ class AbonnementPage extends StatefulWidget {
 class _AbonnementPageState extends State<AbonnementPage> {
   SubscriptionModel? _currentSubscription;
   List<SubscriptionPlan> _plans = [];
-  bool _isAnnual = false; // 🆕 Toggle state
+  bool _isAnnual = false; 
 
   @override
   void initState() {
@@ -128,7 +128,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
               const SizedBox(height: 24),
               _buildChooseYourPlanSection(),
               const SizedBox(height: 16),
-              _buildToggle(), // 🆕 Toggle Mensuel/Annuel
+              _buildToggle(), 
               const SizedBox(height: 20),
               _buildAvailablePlansSection(),
             ],
@@ -196,7 +196,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '● ${'active'.tr()}', // "● Actif"
+                          '● ${'active'.tr()}', 
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -227,7 +227,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
 
   Widget _buildChooseYourPlanSection() {
     return Text(
-      'choose_your_plan'.tr(), // "Choisissez votre plan"
+      'choose_your_plan'.tr(), 
       style: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -236,13 +236,12 @@ class _AbonnementPageState extends State<AbonnementPage> {
     );
   }
 
-  // 🆕 Toggle Mensuel/Annuel avec couleurs exactes Figma
   Widget _buildToggle() {
     return Row(
       children: [
         Expanded(
           child: _buildToggleButton(
-            label: 'monthly'.tr(), // "Mensuel"
+            label: 'monthly'.tr(), 
             isSelected: !_isAnnual,
             onTap: () => setState(() => _isAnnual = false),
           ),
@@ -250,7 +249,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildToggleButton(
-            label: 'annual'.tr(), // "Annuel"
+            label: 'annual'.tr(),
             isSelected: _isAnnual,
             onTap: () => setState(() => _isAnnual = true),
           ),
@@ -304,7 +303,6 @@ class _AbonnementPageState extends State<AbonnementPage> {
       );
     }
 
-    // Filtrer les plans selon le toggle
     final filteredPlans = _plans.where((plan) {
       final isMonthly = plan.durationDays <= 31;
       return _isAnnual ? !isMonthly : isMonthly;
@@ -353,7 +351,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🆕 Badge "Recommandé" pour l'annuel
+         
           if (isAnnual)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -362,7 +360,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'recommended'.tr(), // "Recommandé"
+                'recommended'.tr(), 
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -414,7 +412,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
             ),
           ),
 
-          // Features avec checkmarks violets
+         
           if (plan.features.isNotEmpty) ...[
             const SizedBox(height: 16),
             ...plan.features.take(3).map(
@@ -458,7 +456,7 @@ class _AbonnementPageState extends State<AbonnementPage> {
                 elevation: 0,
               ),
               child: Text(
-                'select'.tr(), // 🆕 "Sélectionner"
+                'select'.tr(), 
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

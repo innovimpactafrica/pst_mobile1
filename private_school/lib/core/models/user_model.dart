@@ -24,10 +24,9 @@ class UserModel {
     this.updatedAt,
   });
 
-  /// Full name getter
+  
   String get fullName => '$firstName $lastName';
 
-  /// Initials getter (first letter of first and last name)
   String get initials {
     if (firstName.isEmpty || lastName.isEmpty) return '??';
     return '${firstName[0]}${lastName[0]}'.toUpperCase();
@@ -38,12 +37,12 @@ class UserModel {
   final dynamic rawId = json['id'] ?? json['_id'];
   final String parsedId = rawId != null ? rawId.toString() : '';
 
-  // 1. Définir l'adresse de base de ton serveur
+  // l'adresse serveur
   const String baseUrl = "http://86.106.181.31:3000";
 
 String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
 
-  // 3. Si la photo existe et est un chemin relatif, on ajoute le domaine
+
   String? fullPhotoUrl;
   if (rawPhoto != null && rawPhoto.isNotEmpty) {
     fullPhotoUrl = rawPhoto.startsWith('http') 
@@ -76,7 +75,7 @@ String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
   );
 }
 
-  /// Convert to JSON (for sending to API)
+ 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -90,7 +89,7 @@ String? rawPhoto = json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
     };
   }
 
-  /// Create a copy with modified fields
+ 
   UserModel copyWith({
     String? id,
     String? firstName,

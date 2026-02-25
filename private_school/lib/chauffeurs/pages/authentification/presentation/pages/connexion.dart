@@ -1,5 +1,4 @@
-// Driver login page - Redirects to MainLayout after successful login
-// Path: lib/chauffeurs/pages/authentification/connexion.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +9,7 @@ import '../../domain/bloc/driver_auth_event.dart';
 import '../../domain/bloc/driver_auth_state.dart';
 import '../../../../widgets/main_layout.dart';
 import 'inscription.dart';
-import 'forgot_password_page.dart'; // Nouveau système mot de passe oublié
+import 'forgot_password_page.dart'; 
 
 
 class Connexion extends StatefulWidget {
@@ -36,7 +35,6 @@ class _ConnexionState extends State<Connexion> {
   Widget build(BuildContext context) {
     return BlocConsumer<DriverAuthBloc, DriverAuthState>(
       listener: (context, state) {
-        // Clean all previous messages and dialogs
         if (state is DriverAuthLoading) {
           ScaffoldMessenger.of(context).clearSnackBars();
           
@@ -54,14 +52,14 @@ class _ConnexionState extends State<Connexion> {
           );
         } 
         else if (state is DriverAuthenticated) {
-          // Close loading dialog
+       
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
           
           ScaffoldMessenger.of(context).clearSnackBars();
           
-          // Show success message
+         
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('login_success'.tr()),
@@ -70,7 +68,7 @@ class _ConnexionState extends State<Connexion> {
             ),
           );
           
-          // Navigate to MainLayout (with bottom navigation)
+         
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -79,14 +77,14 @@ class _ConnexionState extends State<Connexion> {
           );
         } 
         else if (state is DriverAuthError) {
-          // Close loading dialog if open
+        
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop();
           }
           
           ScaffoldMessenger.of(context).clearSnackBars();
           
-          // Clean error message
+         
           String errorMessage = state.message;
           
           if (errorMessage.contains('User not found')) {
@@ -102,7 +100,7 @@ class _ConnexionState extends State<Connexion> {
             errorMessage = parts.last.trim();
           }
           
-          // Show error
+         
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -121,7 +119,7 @@ class _ConnexionState extends State<Connexion> {
         }
       },
       builder: (context, state) {
-        // Disable button during loading
+      
         final isLoading = state is DriverAuthLoading;
         
         return Scaffold(
@@ -184,12 +182,12 @@ class _ConnexionState extends State<Connexion> {
                 children: [
                   const SizedBox(height: 20),
 
-                  // Logo
+                 
                   Image.asset('assets/images/2.jpg', height: 100),
 
                   const SizedBox(height: 30),
 
-                  // Title
+                  
                   Text(
                     'login'.tr(),
                     style: TextStyle(
@@ -201,7 +199,7 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 12),
 
-                  // Subtitle
+                  
                   Text(
                     'connection_description'.tr(),
                     textAlign: TextAlign.center,
@@ -214,7 +212,7 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 40),
 
-                  // Email Field
+                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -250,8 +248,6 @@ class _ConnexionState extends State<Connexion> {
                   ),
 
                   const SizedBox(height: 20),
-
-                  // Password Field
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -301,7 +297,7 @@ class _ConnexionState extends State<Connexion> {
 
                   const SizedBox(height: 40),
 
-                  // Login Button
+                
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -329,7 +325,6 @@ class _ConnexionState extends State<Connexion> {
                           return;
                         }
 
-                        // Email format validation
                         final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                         if (!emailRegex.hasMatch(_phoneController.text.trim())) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -380,7 +375,7 @@ class _ConnexionState extends State<Connexion> {
                      onTap: isLoading ? null : () {
                     Navigator.push(
                    context,
-                   MaterialPageRoute(builder: (_) => const ForgotPasswordPage()), // ← CHANGÉ
+                   MaterialPageRoute(builder: (_) => const ForgotPasswordPage()), 
                                );
                                 },
                        child: Text(

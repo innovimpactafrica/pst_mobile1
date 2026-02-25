@@ -52,7 +52,7 @@ class DriverModel {
   }
 
   factory DriverModel.fromJson(Map<String, dynamic> json) {
-    // 1. Logique pour le nom et le prénom
+    
     String firstName = '';
     String lastName = '';
     
@@ -81,7 +81,7 @@ class DriverModel {
       }
     }
 
-    // ✅ 2. CORRECTION PHOTO CHAUFFEUR (comme UserModel)
+   
     const String baseUrl = "http://86.106.181.31:3000";
     String? rawPhoto = json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
     String? fullPhotoUrl;
@@ -92,7 +92,7 @@ class DriverModel {
           : '$baseUrl$rawPhoto';
     }
 
-    // 3. Extraction des données du véhicule 
+    
     final vehicleData = json['vehicle'] as Map<String, dynamic>?;
 
     final userId = json['user_id']?.toString();
@@ -105,10 +105,10 @@ class DriverModel {
       phone: (json['phone'] ?? json['telephone'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       address: json['address']?.toString() ?? json['adresse']?.toString(),
-      photo: fullPhotoUrl, // ✅ URL COMPLÈTE
+      photo: fullPhotoUrl, 
       role: (json['role'] ?? 'driver').toString(),
       isActive: json['isActive'] ?? json['actif'] ?? true,
-      status: json['status']?.toString(), // ✅ AJOUTÉ
+      status: json['status']?.toString(), 
       
       licenseNumber: vehicleData?['plate']?.toString() ?? 
                      vehicleData?['licenseNumber']?.toString() ?? 
@@ -218,13 +218,13 @@ class VehicleModel {
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
-    // ✅ CORRECTION PHOTO VÉHICULE
+    
     const String baseUrl = "http://86.106.181.31:3000";
     String? rawPhoto = json['photo']?.toString();
     String? fullPhotoUrl;
     
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      // ⚠️ Si c'est un lien Google Drive, le garder tel quel (on ne peut pas l'afficher directement)
+      
       if (rawPhoto.startsWith('http')) {
         fullPhotoUrl = rawPhoto;
       } else {
@@ -236,7 +236,7 @@ class VehicleModel {
       model: (json['model'] ?? json['brand'] ?? '').toString(),
       plate: (json['plate'] ?? json['licenseNumber'] ?? '').toString(),
       color: (json['color'] ?? '').toString(),
-      photo: fullPhotoUrl, // ✅ URL COMPLÈTE
+      photo: fullPhotoUrl, 
       capacity: json['capacity'] ?? json['capacite'] ?? 0,
     );
   }

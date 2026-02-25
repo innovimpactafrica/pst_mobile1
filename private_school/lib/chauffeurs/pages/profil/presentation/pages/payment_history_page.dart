@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 
 class PaymentHistoryPage extends StatelessWidget {
   const PaymentHistoryPage({super.key});
@@ -12,29 +14,29 @@ class PaymentHistoryPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF2E3192),
+      backgroundColor: AppColors.primary,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(AppConstants.spacingM),
               child: Row(
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(
                       Icons.arrow_back_ios,
-                      color: Colors.white,
-                      size: 20,
+                      color: AppColors.white,
+                      size: AppConstants.iconSizeM,
                     ),
                   ),
                   Text(
                     'payment_history'.tr(),
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: AppConstants.fontSizeXL,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ],
@@ -44,41 +46,41 @@ class PaymentHistoryPage extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF9FAFB),
+                  color: AppColors.backgroundLight,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(AppConstants.radiusXL),
+                    topRight: Radius.circular(AppConstants.radiusXL),
                   ),
                 ),
                 child: Column(
                   children: [
                     // Search Bar
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(AppConstants.spacingM),
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'search'.tr(),
                           hintStyle: TextStyle(
-                            color: Colors.grey[400],
-                            fontSize: 14,
+                            color: AppColors.textSecondary.withValues(alpha: 0.6),
+                            fontSize: AppConstants.fontSizeM,
                           ),
                           prefixIcon: Icon(
                             Icons.search,
-                            color: Colors.grey[400],
+                            color: AppColors.textSecondary.withValues(alpha: 0.6),
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.white,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: AppConstants.spacingM,
+                            vertical: AppConstants.spacingL,
                           ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                            borderSide: const BorderSide(color: AppColors.borderLight),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(AppConstants.radiusL),
+                            borderSide: const BorderSide(color: AppColors.borderLight),
                           ),
                         ),
                       ),
@@ -86,7 +88,7 @@ class PaymentHistoryPage extends StatelessWidget {
                     // Payment List
                     Expanded(
                       child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
                         itemCount: payments.length,
                         itemBuilder: (context, index) {
                           final payment = payments[index];
@@ -106,12 +108,12 @@ class PaymentHistoryPage extends StatelessWidget {
 
   Widget _buildPaymentCard(Map<String, dynamic> payment) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: AppConstants.spacingL),
+      padding: const EdgeInsets.all(AppConstants.spacingM),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Row(
         children: [
@@ -120,16 +122,16 @@ class PaymentHistoryPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppConstants.radiusM),
             ),
             child: const Icon(
               Icons.receipt_outlined,
-              color: Color(0xFF10B981),
-              size: 20,
+              color: AppColors.success,
+              size: AppConstants.iconSizeM,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppConstants.spacingL),
           // Payment Info
           Expanded(
             child: Column(
@@ -138,17 +140,17 @@ class PaymentHistoryPage extends StatelessWidget {
                 Text(
                   'payment'.tr(),
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: AppConstants.fontSizeL,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppConstants.spacingXS),
                 Text(
                   payment['date'],
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
+                    fontSize: AppConstants.fontSizeM,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -158,9 +160,9 @@ class PaymentHistoryPage extends StatelessWidget {
           Text(
             '${payment['amount']} ${payment['currency']}',
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF10B981),
+              color: AppColors.success,
             ),
           ),
         ],

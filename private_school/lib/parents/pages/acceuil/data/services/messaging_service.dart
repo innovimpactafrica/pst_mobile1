@@ -391,13 +391,30 @@ class MessagingService {
     debugPrint('📊 Status Code: ${response.statusCode}');
 debugPrint('📦 Response Body UPDATE: ${response.body}'); // ← Ajouter cette ligne
       
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final messageJson = data['data'] ?? data['message'] ?? data;
-        
-        debugPrint('✅ Message modifié avec succès');
-        return MessageModel.fromJson(messageJson);
-      } else {
+     if (response.statusCode == 200) {
+  final data = json.decode(response.body);
+
+  // Si le serveur renvoie l'objet complet dans 'data'
+  if (data['data'] != null && data['data'] is Map) {
+    debugPrint('✅ Message modifié avec succès (via data)');
+    return MessageModel.fromJson(data['data'] as Map<String, dynamic>);
+  }
+
+  // Sinon le serveur renvoie juste {"success":true,"message":"Message modifié"}
+  // On reconstruit un MessageModel minimal depuis les paramètres qu'on connaît déjà
+  debugPrint('✅ Message modifié avec succès (réponse simple)');
+  return MessageModel(
+    id: messageId,
+    conversationId: conversationId,
+    senderId: 0,
+    senderName: '',
+    senderRole: '',
+    content: content,
+    isEdited: true,
+    isDeleted: false,
+    createdAt: DateTime.now(),
+  );
+} else {
         debugPrint('❌ Erreur HTTP: ${response.statusCode}');
         throw Exception('Erreur lors de la modification: ${response.statusCode}');
       }

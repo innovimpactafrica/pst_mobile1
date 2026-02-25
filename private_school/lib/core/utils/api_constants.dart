@@ -1,5 +1,4 @@
-/// API constants for all endpoints
-/// Location: lib/core/utils/api_constants.dart
+
 class ApiConstants {
   ApiConstants._();
 
@@ -32,6 +31,7 @@ class ApiConstants {
       '/api/parents/children/$childId/location';
   static const String childrenTrips = '/api/parents/children-trips';
   static const String childrenSchedules = '/api/parents/children/schedules';
+  static String childrenBySchool(int schoolId) => '/api/schools/$schoolId/children';
   
   // Dashboard
   static const String parentDashboard = '/api/parents/dashboard';

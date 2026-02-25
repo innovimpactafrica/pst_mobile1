@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../storage/secure_storage.dart';
@@ -30,7 +30,7 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ [ApiService] GET Error: $e');
+     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
@@ -46,7 +46,7 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ [ApiService] POST Error: $e');
+      
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
@@ -62,7 +62,7 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ [ApiService] PUT Error: $e');
+     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }
@@ -77,7 +77,7 @@ class ApiService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ [ApiService] DELETE Error: $e');
+     
       return {'success': false, 'message': 'Erreur de connexion'};
     }
   }

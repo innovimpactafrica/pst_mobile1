@@ -15,7 +15,7 @@ class LoadPageEvent extends ReportEvent {
 class RefreshReportsEvent extends ReportEvent {}
 
 class FilterReportsEvent extends ReportEvent {
-  final String filter; // 'Tous', 'Incident', 'Litiges', 'Sécurité'
+  final String filter; 
   
   FilterReportsEvent(this.filter);
 }

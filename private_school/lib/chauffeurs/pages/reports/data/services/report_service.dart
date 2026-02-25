@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
 import '../models/report_model.dart';
@@ -15,11 +14,7 @@ class ReportService {
     String? type,
   }) async {
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('📥 [FETCH] Récupération des signalements');
-      debugPrint('   Page: $page, Limit: $limit, Type: ${type ?? "Tous"}');
-      debugPrint('═══════════════════════════════════════════════════════');
-      
+     
       final queryParams = {
         'page': page,
         'limit': limit,
@@ -36,10 +31,7 @@ class ReportService {
         final int total = response.data['total'] ?? incidentsList.length;
         final int currentPage = response.data['page'] ?? page;
         final int totalPages = response.data['totalPages'] ?? 1;
-        
-        debugPrint('✅ [FETCH] ${incidentsList.length} signalements récupérés');
-        debugPrint('   Total: $total, Page: $currentPage/$totalPages');
-        
+       
         return {
           'incidents': incidentsList.map((json) => ReportModel.fromJson(json)).toList(),
           'total': total,
@@ -51,7 +43,7 @@ class ReportService {
       
       throw Exception('Format de réponse inconnu');
     } catch (e) {
-      debugPrint('❌ [FETCH] Erreur: $e');
+      
       throw Exception('Erreur lors de la récupération des rapports: $e');
     }
   }
@@ -64,14 +56,7 @@ class ReportService {
     List<File>? files,
   }) async {
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('📤 [CREATE] Création d\'un signalement');
-      debugPrint('📝 Type: $type');
-      debugPrint('📝 Catégorie: $category');
-      debugPrint('📝 Description: $description');
-      debugPrint('📎 Fichiers: ${files?.length ?? 0}');
-      debugPrint('═══════════════════════════════════════════════════════');
-      
+     
       FormData formData = FormData.fromMap({
         'type_de_problem': type,
         'category': category,
@@ -103,7 +88,7 @@ class ReportService {
         ),
       );
 
-      debugPrint('✅ [CREATE] Signalement créé avec succès');
+   
 
       if (response.data != null) {
         if (response.data['success'] == true && response.data['data'] != null) {
@@ -117,12 +102,12 @@ class ReportService {
 
       throw Exception('Réponse invalide du serveur');
     } catch (e) {
-      debugPrint('❌ [CREATE] Erreur: $e');
+     
       throw Exception('Erreur lors de la création du signalement: $e');
     }
   }
 
-  /// Update report - MÉTHODE CORRIGÉE AVEC MULTIPART ✅
+  /// Update report 
   Future<ReportModel> updateReport({
     required int id,
     required String type,
@@ -131,24 +116,14 @@ class ReportService {
     List<File>? files,
   }) async {
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('📝 [UPDATE] Modification du signalement #$id');
-      debugPrint('📝 Type: $type');
-      debugPrint('📝 Catégorie: $category');
-      debugPrint('📝 Description: $description');
-      debugPrint('📎 Nouveaux fichiers: ${files?.length ?? 0}');
-      debugPrint('═══════════════════════════════════════════════════════');
-
-      // Préparer FormData pour multipart upload
       FormData formData = FormData.fromMap({
         'type_de_problem': type,
         'category': category,
         'description': description,
       });
 
-      // ✅ Si des fichiers sont fournis, indiquer au backend de remplacer
       if (files != null && files.isNotEmpty) {
-        // Ajouter un flag pour indiquer qu'on veut REMPLACER les documents
+       
         formData.fields.add(const MapEntry('replace_documents', 'true'));
         
         for (int i = 0; i < files.length; i++) {
@@ -163,7 +138,7 @@ class ReportService {
             ),
           );
         }
-        debugPrint('📎 ${files.length} fichier(s) ajouté(s) - Mode REMPLACEMENT');
+        
       }
 
       final response = await _apiClient.put(
@@ -176,7 +151,7 @@ class ReportService {
         ),
       );
 
-      debugPrint('✅ [UPDATE] Modification réussie');
+   
 
       if (response.data != null) {
         if (response.data['success'] == true && response.data['data'] != null) {
@@ -190,7 +165,7 @@ class ReportService {
 
       throw Exception('Réponse invalide du serveur');
     } catch (e) {
-      debugPrint('❌ [UPDATE] Erreur: $e');
+      
       throw Exception('Erreur lors de la modification: $e');
     }
   }
@@ -212,22 +187,15 @@ class ReportService {
 
       throw Exception('Failed to update report');
     } catch (e) {
-      debugPrint('❌ Erreur mise à jour statut: $e');
+      
       throw Exception('Error updating report: $e');
     }
   }
 
-  /// Delete report - MÉTHODE CORRIGÉE AVEC LOGS DÉTAILLÉS ✅
+  /// Delete report 
   Future<void> deleteReport(int id, int userId) async {
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('🗑️ [DELETE] Début de la suppression');
-      debugPrint('📝 ID du signalement: $id');
-      debugPrint('👤 ID de l\'utilisateur: $userId');
-      debugPrint('🌐 URL: ${ApiConstants.incidents}/$id');
-      debugPrint('📦 Data envoyée: {user_id: $userId}');
-      debugPrint('═══════════════════════════════════════════════════════');
-
+      
       final response = await _apiClient.delete(
         '${ApiConstants.incidents}/$id',
         data: {
@@ -235,24 +203,14 @@ class ReportService {
         },
       );
 
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('✅ [DELETE] Suppression réussie!');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint('📦 Response Data: ${response.data}');
-      debugPrint('═══════════════════════════════════════════════════════');
+      
     } catch (e) {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('❌ [DELETE] ERREUR lors de la suppression');
-      debugPrint('🔥 Erreur: $e');
+      
       
       if (e is DioException) {
-        debugPrint('📊 Status Code: ${e.response?.statusCode}');
-        debugPrint('📦 Response Data: ${e.response?.data}');
+        
       }
-      
-      debugPrint('═══════════════════════════════════════════════════════');
-      
-      // Gestion des erreurs spécifiques
+     
       if (e is DioException) {
         if (e.response?.statusCode == 400) {
           final errorMessage = e.response?.data['error'] ?? 'Requête invalide';

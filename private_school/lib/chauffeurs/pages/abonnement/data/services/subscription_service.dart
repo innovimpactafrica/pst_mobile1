@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/utils/api_constants.dart';
@@ -20,20 +20,18 @@ Future<SubscriptionModel?> getCurrentSubscription() async {
   try {
     final response = await _apiClient.get(ApiConstants.driverSubscription);
     
-    // Si l'API renvoie des données avec succès
+    
     final subData = response.data['data'] ?? response.data;
     if (subData == null) return null;
     
     return SubscriptionModel.fromJson(subData);
   } catch (e) {
-    // ICI ON GÈRE LE 404 SPÉCIFIQUEMENT
-    debugPrint('ℹ️ Info subscription: Aucun abonnement actif (404 ou vide)');
-    // On retourne null au lieu de faire planter le Bloc
+    
     return null; 
   }
 }
 
-  // SOUSCRIRE (On définit planId et paymentMethodId comme paramètres nommÉS avec {})
+  
   Future<SubscriptionModel> subscribe({
     required String planId, 
     required String paymentMethodId,
@@ -72,16 +70,14 @@ Future<SubscriptionModel?> getCurrentSubscription() async {
     });
   }
 
-  // Ajoute ces méthodes à l'intérieur de ta classe SubscriptionService
+  
 Future<List<PaymentMethod>> fetchPaymentMethods() async {
   final response = await _apiClient.get(ApiConstants.driverSubscriptionPlans);
-  // On suppose que l'API renvoie une liste de méthodes
   final List rawData = response.data['paymentMethods'] ?? [];
   return rawData.map((e) => PaymentMethod.fromJson(e)).toList();
 }
 
 Future<void> setDefaultPaymentMethod(String methodId) async {
-  // Utilisation de l'endpoint dynamique de tes constantes
   await _apiClient.put(ApiConstants.driverSubscriptionPlanSetDefault(methodId));
 }
 

@@ -18,7 +18,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _contactController = TextEditingController();
-  bool _isPhoneMode = true; // true = Téléphone, false = Email
+  bool _isPhoneMode = true; 
 
   @override
   void dispose() {
@@ -106,7 +106,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       ),
     );
 
-    // ✅ PASSER userId à VerifyOtpForgotPage
+   
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -114,7 +114,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           value: context.read<DriverAuthBloc>(),
           child: VerifyOtpForgotPage(
             contact: _contactController.text.trim(),
-            userId: state.userId,  // ✅ Récupéré depuis le state
+            userId: state.userId,  
           ),
         ),
       ),
@@ -224,7 +224,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 12),
 
-                  // Subtitle
+                 
                   Text(
                     'enter_phone_or_email'.tr(),
                     textAlign: TextAlign.center,
@@ -237,7 +237,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 30),
 
-                  // Toggle Téléphone / Email
+                  
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -364,7 +364,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                   const SizedBox(height: 24),
 
-                  // Input Field
+                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(

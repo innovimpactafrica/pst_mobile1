@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/services/messaging_service.dart';
 import '../../data/models/conversation_model.dart' as driver_model;
@@ -51,10 +52,10 @@ class _MessageriePageState extends State<MessageriePage> {
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF9FAFB),
+                  color: AppColors.backgroundLight,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(AppConstants.radiusXL),
+                    topRight: Radius.circular(AppConstants.radiusXL),
                   ),
                 ),
                 child: _isLoading
@@ -63,16 +64,16 @@ class _MessageriePageState extends State<MessageriePage> {
                         ? Center(
                             child: Text(
                               'no_conversation'.tr(),
-                              style: const TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: AppColors.textSecondary),
                             ),
                           )
                         : RefreshIndicator(
                             onRefresh: _loadConversations,
                             child: ListView(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(AppConstants.spacingM),
                               children: [
                                 _buildSearchBar(),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: AppConstants.spacingM),
                                 ..._conversations.map((conv) => _buildConversationCard(conv)),
                               ],
                             ),
@@ -87,23 +88,23 @@ class _MessageriePageState extends State<MessageriePage> {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(AppConstants.spacingM),
       child: Row(
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
               Icons.arrow_back_ios,
-              color: Colors.white,
-              size: 20,
+              color: AppColors.white,
+              size: AppConstants.iconSizeM,
             ),
           ),
           Text(
             'discussions'.tr(),
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: AppConstants.fontSizeXL,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.white,
             ),
           ),
         ],
@@ -115,18 +116,27 @@ class _MessageriePageState extends State<MessageriePage> {
     return TextField(
       decoration: InputDecoration(
         hintText: 'search'.tr(),
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-        prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+        hintStyle: TextStyle(
+          color: AppColors.textSecondary.withValues(alpha: 0.6),
+          fontSize: AppConstants.fontSizeM,
+        ),
+        prefixIcon: Icon(
+          Icons.search,
+          color: AppColors.textSecondary.withValues(alpha: 0.6),
+        ),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        fillColor: AppColors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppConstants.spacingM,
+          vertical: AppConstants.spacingL,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(AppConstants.radiusL),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
       ),
     );
@@ -151,7 +161,7 @@ class _MessageriePageState extends State<MessageriePage> {
 
   return GestureDetector(
     onTap: () async {
-      // ✅ Marquer comme lu immédiatement localement
+      
       setState(() {
         final index = _conversations.indexOf(conversation);
         if (index != -1) {
@@ -161,7 +171,7 @@ class _MessageriePageState extends State<MessageriePage> {
             displayAvatar: conversation.displayAvatar,
             lastMessagePreview: conversation.lastMessagePreview,
             timeAgo: conversation.timeAgo,
-            unreadCount: 0, // ← mettre à 0 immédiatement
+            unreadCount: 0, 
             lastMessageTime: conversation.lastMessageTime,
             participantId: conversation.participantId,
             participantType: conversation.participantType,
@@ -169,7 +179,6 @@ class _MessageriePageState extends State<MessageriePage> {
         }
       });
 
-      // ✅ Notifier le bloc du dashboard
       UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
 
       await Navigator.push(
@@ -188,21 +197,21 @@ class _MessageriePageState extends State<MessageriePage> {
       }
     },
     child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppConstants.spacingL),
+      padding: const EdgeInsets.all(AppConstants.spacingL),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
         border: Border.all(
           color: conversation.unreadCount > 0
               ? AppColors.primary.withValues(alpha: 0.3)
-              : const Color(0xFFE5E7EB),
+              : AppColors.borderLight,
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 24,
+            radius: AppConstants.avatarSizeM,
             backgroundColor: AppColors.primary.withValues(alpha: 0.2),
             backgroundImage: conversation.displayAvatar != null
                 ? NetworkImage(conversation.displayAvatar!)
@@ -213,14 +222,14 @@ class _MessageriePageState extends State<MessageriePage> {
                         ? conversation.displayName[0].toUpperCase()
                         : '?',
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: AppConstants.fontSizeXL,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
                   )
                 : null,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppConstants.spacingL),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,9 +241,9 @@ class _MessageriePageState extends State<MessageriePage> {
                       child: Text(
                         conversation.displayName,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: AppConstants.fontSizeL,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
+                          color: AppColors.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -242,23 +251,23 @@ class _MessageriePageState extends State<MessageriePage> {
                     Text(
                       conversation.timeAgo,
                       style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        fontSize: AppConstants.fontSizeS,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppConstants.spacingXS),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
                         conversation.lastMessagePreview,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: AppConstants.fontSizeM,
                           color: conversation.unreadCount > 0
-                              ? const Color(0xFF1F2937)
-                              : const Color(0xFF6B7280),
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
                           fontWeight: conversation.unreadCount > 0
                               ? FontWeight.w500
                               : FontWeight.normal,
@@ -267,25 +276,25 @@ class _MessageriePageState extends State<MessageriePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // ✅ Badge avec nombre de messages non lus
+                  
                     if (conversation.unreadCount > 0)
                       Container(
-                        margin: const EdgeInsets.only(left: 8),
+                        margin: const EdgeInsets.only(left: AppConstants.paddingS),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppConstants.radiusL),
                         ),
                         child: Text(
                           conversation.unreadCount > 99
                               ? '99+'
                               : conversation.unreadCount.toString(),
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
+                            color: AppColors.white,
+                            fontSize: AppConstants.fontSizeXS,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

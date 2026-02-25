@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -34,12 +36,12 @@ class CustomTextField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF6B7280),
+            fontSize: AppConstants.fontSizeM,
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w400,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppConstants.spacingS),
         TextFormField(
           controller: controller,
           initialValue: controller == null ? initialValue : null,
@@ -49,41 +51,41 @@ class CustomTextField extends StatelessWidget {
           onChanged: onChanged,
           maxLines: maxLines,
           style: const TextStyle(
-            fontSize: 16,
-            color: Color(0xFF1F2937),
+            fontSize: AppConstants.fontSizeL,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.w400,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF9CA3AF),
+              fontSize: AppConstants.fontSizeL,
+              color: AppColors.textTertiary,
             ),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.white,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
+              horizontal: AppConstants.spacingM,
+              vertical: AppConstants.fontSizeM,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
               borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
+                color: AppColors.borderLight,
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
               borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
+                color: AppColors.borderLight,
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
               borderSide: const BorderSide(
-                color: Color(0xFF2E3192),
+                color: AppColors.primary,
                 width: 1.5,
               ),
             ),

@@ -53,8 +53,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
 
   Future<void> _loadSchools() async {
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [CreateTripModal] Chargement des écoles...');
+     
       
       final schools = await _schoolService.fetchSchools();
       
@@ -63,14 +62,13 @@ class _CreateTripModalState extends State<CreateTripModal> {
         _loadingSchools = false;
       });
       
-      debugPrint('✅ ${schools.length} école(s) chargée(s)');
+  
       for (var school in schools) {
-        debugPrint('   📚 ${school.name} (ID: ${school.id})');
+        
       }
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+     
     } catch (e) {
-      debugPrint('❌ Erreur chargement écoles: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
       setState(() => _loadingSchools = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -101,9 +99,9 @@ class _CreateTripModalState extends State<CreateTripModal> {
         stop.childrenCount = children.length;
         stop.loadingChildrenCount = false;
       });
-      debugPrint('✅ ${children.length} enfant(s) trouvé(s) pour école ID: ${stop.selectedSchoolId}');
+      
     } catch (e) {
-      debugPrint('❌ Erreur chargement enfants: $e');
+    
       setState(() => stop.loadingChildrenCount = false);
     }
   }
@@ -318,7 +316,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
       }
     }
     
-    // Bouton pour ajouter un autre arrêt
+    //  ajouter un autre arrêt
     widgets.add(const SizedBox(height: 12));
     widgets.add(
       OutlinedButton.icon(
@@ -871,11 +869,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
   }
 
   void _submitForm() {
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('📤 [CreateTripModal] SUBMIT FORM');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
-    // Validation manuelle des champs PlaceAutocomplete
     if (_startPointController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -897,7 +891,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
     }
     
     if (_formKey.currentState!.validate()) {
-      debugPrint('✅ Validation du formulaire OK');
+    
 
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -930,7 +924,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
         );
 
         if (departureTime.isBefore(DateTime.now())) {
-          debugPrint('❌ Date de départ dans le passé');
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('departure_time_must_be_future'.tr()),
@@ -953,7 +947,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
         );
 
         if (returnTime.isBefore(DateTime.now())) {
-          debugPrint('❌ Date de retour dans le passé');
+         
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('return_time_must_be_future'.tr()),
@@ -968,7 +962,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
       final capacity = int.tryParse(_passengersController.text) ?? 0;
 
       if (capacity <= 0) {
-        debugPrint('❌ Capacité invalide: $capacity');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('passengers_must_be_positive'.tr()),
@@ -985,7 +979,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
           .toList();
 
       if (schoolIds.isEmpty) {
-        debugPrint('❌ Aucune école sélectionnée');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('please_select_at_least_one_school'.tr()),
@@ -995,16 +989,6 @@ class _CreateTripModalState extends State<CreateTripModal> {
         return;
       }
 
-      debugPrint('✅ Toutes les validations passées');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📤 DONNÉES DU TRAJET:');
-      debugPrint('   📍 Départ: ${_startPointController.text.trim()}');
-      debugPrint('   🎯 Arrivée: ${_endPointController.text.trim()}');
-      debugPrint('   🏫 Écoles IDs: $schoolIds');
-      debugPrint('   🕐 Date/Heure départ: ${departureTime ?? "Non spécifiée"}');
-      debugPrint('   🕐 Date/Heure retour: ${returnTime ?? "Non spécifiée"}');
-      debugPrint('   👥 Capacité: $capacity');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       context.read<TripBloc>().add(
             CreateTripEvent(
@@ -1022,8 +1006,7 @@ class _CreateTripModalState extends State<CreateTripModal> {
             ),
           );
     } else {
-      debugPrint('❌ Validation du formulaire échouée');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+     
     }
   }
 }

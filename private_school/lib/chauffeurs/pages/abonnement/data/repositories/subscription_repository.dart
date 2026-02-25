@@ -6,7 +6,6 @@ class SubscriptionRepository {
 
   SubscriptionRepository(this._service);
 
-  // Correction : rennomé pour correspondre au Bloc
   Future<List<SubscriptionPlan>> getPlans() async {
     return await _service.fetchPlans();
   }
@@ -30,7 +29,7 @@ class SubscriptionRepository {
     return await _service.renewSubscription();
   }
 
-  // --- NOUVELLES MÉTHODES POUR LES PAIEMENTS ---
+
 
   Future<List<PaymentMethod>> getPaymentMethods() async {
     return await _service.fetchPaymentMethods();
@@ -41,7 +40,7 @@ class SubscriptionRepository {
     String? cardNumber,
     String? phoneNumber,
   }) async {
-    // Note: Le service renvoie void, donc on attend juste la fin de l'exécution
+   
     return await _service.addPaymentMethod(
       type: type,
       cardNumber: cardNumber,

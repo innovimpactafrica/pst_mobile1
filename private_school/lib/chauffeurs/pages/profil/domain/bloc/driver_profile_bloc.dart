@@ -3,7 +3,7 @@ import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_
 import 'driver_profile_event.dart';
 import 'driver_profile_state.dart';
 
-/// BLoC for managing driver profile state
+
 class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
   final DriverProfileRepository repository;
 
@@ -11,7 +11,7 @@ class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
     on<LoadDriverProfileEvent>(_onLoadProfile);
     on<UpdateDriverProfileEvent>(_onUpdateProfile);
     on<UpdateDriverProfileWithPhotoEvent>(_onUpdateProfileWithPhoto);
-    on<UpdateDriverByIdEvent>(_onUpdateDriverById); // ✅ Nouveau handler
+    on<UpdateDriverByIdEvent>(_onUpdateDriverById); 
   }
 
   Future<void> _onLoadProfile(
@@ -64,8 +64,7 @@ class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
     }
   }
 
-  /// 🆕 Handler pour UpdateDriverByIdEvent
-  /// Utilisé pour mettre à jour le véhicule et les documents via PUT /api/drivers/{id}
+  
  Future<void> _onUpdateDriverById(
   UpdateDriverByIdEvent event,
   Emitter<DriverProfileState> emit,
@@ -78,7 +77,7 @@ class DriverProfileBloc extends Bloc<DriverProfileEvent, DriverProfileState> {
       formData: event.formData,
     );
 
-    // UN SEUL état final
+
     emit(DriverProfileUpdated(profile));
   } catch (e) {
     emit(DriverProfileError(e.toString()));

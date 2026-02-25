@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/report_repository.dart';
 import '../../data/models/report_model.dart';
@@ -208,7 +208,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
-  /// LOGIQUE DE FILTRAGE CORRIGÉE ✅
+
   List<ReportModel> _applyFilters(
     List<ReportModel> reports,
     String filter,
@@ -234,7 +234,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
       }).toList();
     }
 
-    // Appliquer la recherche
+    //recherche
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
       filtered = filtered.where((report) {
@@ -274,7 +274,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
-  /// MODIFICATION CORRIGÉE AVEC FICHIERS ✅
+
   Future<void> _onUpdateReport(
     UpdateReportEvent event,
     Emitter<ReportState> emit,
@@ -315,7 +315,7 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     }
   }
 
-  /// SUPPRESSION CORRIGÉE AVEC LOGS ✅
+
   Future<void> _onDeleteReport(
     DeleteReportEvent event,
     Emitter<ReportState> emit,
@@ -323,24 +323,18 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     emit(ReportDeleting());
 
     try {
-      debugPrint('═══════════════════════════════════════════════════════');
-      debugPrint('🔥 [BLOC] Suppression signalement');
-      debugPrint('📝 ID: ${event.id}');
-      debugPrint('👤 UserID: ${event.userId}');
-      debugPrint('═══════════════════════════════════════════════════════');
-      
+     
       await _repository.deleteReport(
         event.id,
         event.userId,
       );
 
-      debugPrint('✅ [BLOC] Suppression terminée avec succès');
       emit(ReportDeleted());
 
       await Future.delayed(const Duration(milliseconds: 500));
       add(LoadReportsEvent());
     } catch (e) {
-      debugPrint('❌ [BLOC] Erreur: $e');
+      
       emit(ReportError(e.toString()));
     }
   }

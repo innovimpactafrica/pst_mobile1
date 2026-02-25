@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
+
 import '../services/trip_service.dart';
 import '../models/trip_model.dart';
 
-/// Repository for managing driver trip data
+
 class TripRepository {
   final TripService _tripService = TripService();
 
-  /// Get all trips for the driver
+ 
   Future<List<TripModel>> getDriverTrips() async {
     try {
-      debugPrint('🔍 [TripRepository] GET DRIVER TRIPS');
+      
       return await _tripService.getDriverTrips();
     } catch (e) {
-      debugPrint('❌ [TripRepository] Error: $e\n');
+   
       rethrow;
     }
   }
@@ -32,7 +32,7 @@ class TripRepository {
     double? endLongitude,
   }) async {
     try {
-      debugPrint('🟢 [TripRepository] CREATE TRIP');
+      
       
       return await _tripService.createTrip(
         startPoint: startPoint,
@@ -48,7 +48,7 @@ class TripRepository {
         endLongitude: endLongitude,
       );
     } catch (e) {
-      debugPrint('❌ [TripRepository] Error: $e\n');
+      
       rethrow;
     }
   }
@@ -56,10 +56,10 @@ class TripRepository {
   /// Start a trip
   Future<Map<String, dynamic>> startTrip(String tripId, {String? direction}) async {
     try {
-      debugPrint('🚀 [TripRepository] START TRIP: $tripId (${direction ?? "aller"})');
+      
       return await _tripService.startTrip(tripId, direction: direction);
     } catch (e) {
-      debugPrint('❌ [TripRepository] Error: $e\n');
+      
       rethrow;
     }
   }
@@ -67,10 +67,10 @@ class TripRepository {
   /// Complete a trip
   Future<Map<String, dynamic>> completeTrip(String tripId, {String? direction}) async {
     try {
-      debugPrint('✅ [TripRepository] COMPLETE TRIP: $tripId (${direction ?? "aller"})');
+   
       return await _tripService.completeTrip(tripId, direction: direction);
     } catch (e) {
-      debugPrint('❌ [TripRepository] Error: $e\n');
+     
       rethrow;
     }
   }
@@ -78,10 +78,10 @@ class TripRepository {
   /// Cancel a trip
   Future<Map<String, dynamic>> cancelTrip(String tripId, String reason) async {
     try {
-      debugPrint('🔴 [TripRepository] CANCEL TRIP: $tripId');
+    
       return await _tripService.cancelTrip(tripId, reason);
     } catch (e) {
-      debugPrint('❌ [TripRepository] Error: $e\n');
+      
       rethrow;
     }
   }

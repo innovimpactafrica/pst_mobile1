@@ -33,7 +33,7 @@ class ReportRepository {
     );
   }
 
-  /// Update a report - MÉTHODE CORRIGÉE AVEC FICHIERS ✅
+  /// Update a report 
   Future<ReportModel> updateReport({
     required int id,
     required String type,
@@ -61,7 +61,7 @@ class ReportRepository {
     );
   }
 
-  /// Delete a report - MÉTHODE CORRIGÉE ✅
+  /// Delete a report 
   Future<void> deleteReport(int id, int userId) async {
     return await _service.deleteReport(id, userId);
   }

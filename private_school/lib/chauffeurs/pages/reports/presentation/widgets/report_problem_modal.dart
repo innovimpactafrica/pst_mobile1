@@ -1,6 +1,3 @@
-// Modal for reporting problems - CORRECTED VERSION WITH EDIT SUPPORT
-// Path: lib/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -241,7 +238,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       return;
     }
 
-    // Les fichiers sont obligatoires UNIQUEMENT en mode création
+ 
     if (!isEditMode && _selectedFiles.isEmpty) {
       _showErrorSnackBar('please_add_document'.tr());
       return;
@@ -258,7 +255,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
       );
 
       if (isEditMode) {
-        // Mode modification - avec fichiers optionnels
+       
         context.read<ReportBloc>().add(
               UpdateReportEvent(
                 id: widget.reportToEdit!.id,
@@ -269,7 +266,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
               ),
             );
       } else {
-        // Mode création
+       
         context.read<ReportBloc>().add(
               CreateReportEvent(
                 type: problemConfig['api']!,
@@ -335,7 +332,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 const SizedBox(height: 24),
                 _buildDescriptionField(),
                 const SizedBox(height: 24),
-                _buildDocumentsSection(), // ✅ TOUJOURS afficher, pas seulement en mode création
+                _buildDocumentsSection(), 
                 const SizedBox(height: 32),
                 _buildSubmitButton(),
               ],
@@ -500,7 +497,7 @@ class _ReportProblemModalState extends State<ReportProblemModal> {
                 color: AppColors.textPrimary,
               ),
             ),
-            // ✅ AIDE en mode édition
+           
             if (isEditMode) ...[
               const SizedBox(width: 8),
               Text(

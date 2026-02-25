@@ -1,5 +1,4 @@
-/// Application constants
-/// Location: lib/core/utils/app_constants.dart
+
 class AppConstants {
   AppConstants._();
 
@@ -22,6 +21,11 @@ class AppConstants {
   static const double spacingXL = 16.0;
   static const double spacingXXL = 24.0;
   static const double spacingXXXL = 32.0;
+
+  // Padding
+  static const double paddingS = 8.0;
+  static const double paddingM = 12.0;
+  static const double paddingL = 20.0;
 
   // Radius
   static const double radiusS = 4.0;
@@ -147,6 +151,11 @@ class AppConstants {
   static const String labelTransactions = "Transactions";
   static const String labelStart = "Commencer";
   static const String labelNotifications = "Notifications";
+  static const String labelRecentNotifications = "Notifications récentes";
+  static const String labelViewAllNotifications = "Voir tout";
+
+  // Notification badge
+  static const double notificationBadgeSize = 8.0;
 
   // Status
   static const String statusPending = "pending";

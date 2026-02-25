@@ -1,12 +1,12 @@
 
 class VehicleModel {
   final String? id;
-  final String? brand;       // Marque du véhicule (Ex: Ford)
-  final String? color;       // Couleur du véhicule (Ex: Jaune)
-  final String? plate;       // Immatriculation (Ex: AA-2535-01)
-  final int? capacity;       // Nombre de places (Ex: 12)
-  final String? photo;       // Photo du véhicule
-  final String? type;        // Type de véhicule (Ex: Bus scolaire)
+  final String? brand;       
+  final String? color;       
+  final String? plate;      
+  final int? capacity;      
+  final String? photo;       
+  final String? type;        
 
   VehicleModel({
     this.id,
@@ -18,7 +18,7 @@ class VehicleModel {
     this.type,
   });
 
-  /// Create from JSON (API response)
+
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
     return VehicleModel(
       id: _parseToStringOrNull(json['_id'] ?? json['id']),
@@ -31,7 +31,7 @@ class VehicleModel {
     );
   }
 
-  // Helper methods for safe type conversion
+
   static String? _parseToStringOrNull(dynamic value) {
     if (value == null) return null;
     if (value is String) return value.isEmpty ? null : value;
@@ -46,7 +46,7 @@ class VehicleModel {
     return null;
   }
 
-  /// Convert to JSON
+  
   Map<String, dynamic> toJson() {
     return {
       if (id != null) 'id': id,
@@ -59,7 +59,7 @@ class VehicleModel {
     };
   }
 
-  /// Create a copy with modified fields
+
   VehicleModel copyWith({
     String? id,
     String? brand,

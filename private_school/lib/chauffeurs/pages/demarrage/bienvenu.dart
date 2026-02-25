@@ -4,8 +4,6 @@ import 'package:private_school/pages/role_selection_page.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
-/// Welcome page - First screen users see
-/// Shows app branding and navigation to role selection
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 

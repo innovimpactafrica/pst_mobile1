@@ -232,11 +232,8 @@ class _ReportsPageState extends State<ReportsPage> {
             }
 
             return Column(
-              children: [
-                // ✅ Pagination EN HAUT - toujours visible, jamais cachée par la navbar
+              children: [   
                 if (state.totalPages > 1) _buildPaginationBar(state),
-
-                // ✅ Liste des signalements
                 Expanded(
                   child: RefreshIndicator(
                     color: AppColors.primary,
@@ -279,7 +276,6 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  // ✅ Pagination avec flèches + boutons numérotés - même style que notifications_page
   Widget _buildPaginationBar(ReportsLoaded state) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -296,7 +292,7 @@ class _ReportsPageState extends State<ReportsPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // ✅ Flèche gauche
+     
           IconButton(
             onPressed: state.currentPage > 1 && !state.isLoadingMore
                 ? () => context
@@ -312,7 +308,7 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
 
-          // ✅ Boutons numérotés
+         
           Row(
             children: List.generate(state.totalPages, (index) {
               final page = index + 1;
@@ -362,7 +358,7 @@ class _ReportsPageState extends State<ReportsPage> {
             }),
           ),
 
-          // ✅ Flèche droite
+       
           IconButton(
             onPressed: state.currentPage < state.totalPages && !state.isLoadingMore
                 ? () => context

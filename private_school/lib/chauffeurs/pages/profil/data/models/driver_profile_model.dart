@@ -1,9 +1,4 @@
 import 'vehicle_model.dart';
-
-/// Driver profile model matching EXACT API response from GET /api/drivers/profile
-/// API returns: { success: true, data: { personal: {...}, driver: {...}, vehicle: {...} } }
-/// Location: lib/chauffeurs/pages/profil/data/models/driver_profile_model.dart
-
 class DriverProfileModel {
   final PersonalInfo personal;
   final DriverInfo driver;
@@ -15,7 +10,6 @@ class DriverProfileModel {
     this.vehicle,
   });
 
-  // Convenience getters for backward compatibility
   String get id => personal.id.toString();
   String get firstName => personal.firstName;
   String get lastName => personal.lastName;
@@ -24,23 +18,23 @@ class DriverProfileModel {
   String get email => personal.email;
   String? get address => personal.address;
   String? get photo => personal.photoProfile;
-  String? get licenseNumber => null; // Not in API
-  bool get isActive => true; // Not in API
+  String? get licenseNumber => null; 
+  bool get isActive => true; 
 
-  // Vehicle getters for vehicle_info_page.dart compatibility
+ 
   String get vehicleModel => vehicle?.brand ?? 'Non renseigné';
   String get vehicleColor => vehicle?.color ?? 'Non renseigné';
   String get vehiclePlate => vehicle?.plate ?? 'Non renseigné';
   int get vehicleSeats => vehicle?.capacity ?? 0;
 
-  // Initials getter
+
   String get initials {
     String firstInitial = firstName.isNotEmpty ? firstName[0] : '';
     String lastInitial = lastName.isNotEmpty ? lastName[0] : '';
     return (firstInitial + lastInitial).toUpperCase();
   }
 
-  /// Create from JSON - matches API structure exactly
+
   factory DriverProfileModel.fromJson(Map<String, dynamic> json) {
     return DriverProfileModel(
       personal: PersonalInfo.fromJson(json['personal'] ?? {}),
@@ -51,7 +45,6 @@ class DriverProfileModel {
     );
   }
 
-  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'personal': personal.toJson(),
@@ -60,7 +53,7 @@ class DriverProfileModel {
     };
   }
 
-  /// Create a copy with modified fields
+  
   DriverProfileModel copyWith({
     PersonalInfo? personal,
     DriverInfo? driver,
@@ -74,7 +67,7 @@ class DriverProfileModel {
   }
 }
 
-/// Personal information section from API
+
 class PersonalInfo {
   final int id;
   final String firstName;
@@ -165,16 +158,13 @@ class PersonalInfo {
   }
 }
 
-/// Driver information section from API
-/// Driver information section from API
-/// UPDATED: Added document fields (license_document, id_document, vehicle_photo)
 class DriverInfo {
   final int id;
   final String status;
   final String? photoProfile;
-  final String? licenseDocument;  // NEW: Permis de conduire
-  final String? idDocument;       // NEW: CNI/Passeport
-  final String? vehiclePhoto;     // NEW: Photo du véhicule
+  final String? licenseDocument;  
+  final String? idDocument;      
+  final String? vehiclePhoto;     
 
   DriverInfo({
     required this.id,

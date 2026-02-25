@@ -7,6 +7,7 @@ import 'package:private_school/chauffeurs/pages/profil/data/services/driver_prof
 import 'package:private_school/chauffeurs/pages/reports/presentation/widgets/report_problem_modal.dart';
 import 'package:private_school/chauffeurs/pages/trajets/domain/bloc/trip_bloc.dart';
 import 'package:private_school/core/utils/app_colors.dart';
+import 'package:private_school/core/utils/app_constants.dart';
 import '../../domain/bloc/dashboard_bloc.dart';
 import '../../domain/bloc/dashboard_event.dart';
 import '../../domain/bloc/dashboard_state.dart';
@@ -76,7 +77,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     WidgetsBinding.instance.addObserver(this);
     _loadData();
     
-    // Initialiser le service de notification unifié
+    // Initialisation du service de  notification 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _notificationService.registerBlocs(
         messagesBloc: context.read<UnreadMessagesBloc>(),
@@ -85,7 +86,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     });
     
     _notificationService.startPolling();
-    debugPrint('🚗 [Dashboard] Service de notification unifié démarré pour chauffeur');
+   
   }
 
   @override
@@ -102,7 +103,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     
     switch (state) {
       case AppLifecycleState.resumed:
-        debugPrint('📱 [Dashboard] App resumed - redémarrage polling');
         _notificationService.startPolling();
         context.read<UnreadMessagesBloc>().add(RefreshUnreadCountEvent());
         context.read<UnreadNotificationsBloc>().add(RefreshUnreadNotificationsCountEvent());
@@ -110,7 +110,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
-        debugPrint('📱 [Dashboard] App paused/inactive - arrêt polling');
         _notificationService.stopPolling();
         break;
       case AppLifecycleState.detached:
@@ -204,7 +203,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.fromLTRB(AppConstants.paddingL, 0, AppConstants.paddingL, AppConstants.spacingM),
       child: Row(
         children: [
           Expanded(
@@ -212,10 +211,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
               height: 48,
               decoration: BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppConstants.radiusL),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: AppColors.blackOpacity05,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -230,16 +229,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                   hintText: 'search_trip'.tr(),
                   hintStyle: TextStyle(
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    fontSize: 14,
+                    fontSize: AppConstants.fontSizeM,
                   ),
                   prefixIcon: Icon(
                     Icons.search,
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    size: 20,
+                    size: AppConstants.iconSizeM,
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.close, size: 18),
+                          icon: const Icon(Icons.close, size: AppConstants.iconSizeM),
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -248,23 +247,23 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                       : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                    horizontal: AppConstants.spacingM,
+                    vertical: AppConstants.fontSizeM,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppConstants.spacingL),
           Container(
             width: 48,
             height: 48,
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.blackOpacity05,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -275,7 +274,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
               icon: const Icon(
                 Icons.tune,
                 color: AppColors.primary,
-                size: 20,
+                size: AppConstants.iconSizeM,
               ),
             ),
           ),
@@ -310,38 +309,38 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
 
   Widget _buildErrorState(String message) {
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(AppConstants.spacingXXL),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
               Icons.error_outline,
-              size: 64,
+              size: AppConstants.iconSizeXXXL,
               color: AppColors.error,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppConstants.spacingM),
             Text(
               message,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: AppConstants.fontSizeL,
                 color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppConstants.spacingXXL),
             ElevatedButton(
               onPressed: _loadData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
+                  horizontal: AppConstants.spacingXXL,
+                  vertical: AppConstants.paddingM,
                 ),
               ),
               child: Text(
                 'retry'.tr(),
-                style: TextStyle(color: AppColors.white),
+                style: const TextStyle(color: AppColors.white),
               ),
             ),
           ],
@@ -354,9 +353,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 20),
+        const SizedBox(height: AppConstants.paddingL),
         _buildUpcomingTripsSection(state),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppConstants.spacingXXL),
         _buildNotificationsSection(state),
         const SizedBox(height: 100),
       ],
@@ -365,8 +364,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
 
   Widget _buildUpcomingTripsSection(DashboardLoaded state) {
     final upcomingTripsList = state.dashboard.upcomingTripsList;
-    
-    // Filtrer les trajets selon la recherche et les filtres
     final filteredTrips = upcomingTripsList.where((tripData) {
       try {
         final trip = tripData is TripModel ? tripData : TripModel.fromJson(tripData);
@@ -426,8 +423,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           }
         }
         
-        // ✅ FILTRE IDENTIQUE À LA PAGE TRAJETS - Section "À venir"
-        // Trajet annulé = ne pas afficher
         if (trip.status == 'canceled') return false;
         
         // Trajet ALLER SIMPLE terminé = ne pas afficher
@@ -450,14 +445,14 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'upcoming_trips'.tr(),
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppConstants.fontSizeL,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -473,8 +468,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
                 },
                 child: Text(
                   'view_all'.tr(),
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: const TextStyle(
+                    fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.w500,
                     color: AppColors.primary,
                   ),
@@ -483,17 +478,17 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppConstants.spacingL),
         if (filteredTrips.isEmpty)
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(AppConstants.spacingXXL),
             child: Center(
               child: Text(
                 _searchQuery.isNotEmpty || _filters.isNotEmpty
                     ? 'no_search_results'.tr()
                     : 'no_trips_today'.tr(),
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: AppConstants.fontSizeM,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -501,11 +496,11 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
           )
         else
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
             child: Column(
               children: filteredTrips.map((tripData) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: AppConstants.spacingL),
                   child: _buildTripCard(tripData),
                 );
               }).toList(),
@@ -518,13 +513,13 @@ class _DashboardPageContentState extends State<_DashboardPageContent> with Widge
 Widget _buildTripCard(dynamic tripData) {
   try {
     if (tripData is Map<String, dynamic>) {
-      // ✅ Enrichir le JSON dashboard pour que parseSchools trouve school_id
+      
       final enriched = Map<String, dynamic>.from(tripData);
       if ((enriched['school_name'] != null) &&
           enriched['school_id'] == null &&
           (enriched['stops'] == null || (enriched['stops'] as List?)?.isEmpty == true)) {
-        // Injecter school_id fictif pour déclencher la Priorité 3 de parseSchools
-        enriched['school_id'] = enriched['school_name']; // non-null suffit
+        
+        enriched['school_id'] = enriched['school_name']; 
       }
       final trip = TripModel.fromJson(enriched);
         return TripCardWidget(
@@ -543,7 +538,7 @@ Widget _buildTripCard(dynamic tripData) {
       return const SizedBox.shrink();
       
     } catch (e) {
-      debugPrint('❌ Erreur création carte: $e');
+      
       return const SizedBox.shrink();
     }
   }
@@ -568,26 +563,26 @@ Widget _buildTripCard(dynamic tripData) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
           child: Text(
             'recent_notifications'.tr(),
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: AppConstants.fontSizeL,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppConstants.spacingL),
         if (notificationsList.isEmpty)
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(AppConstants.spacingXXL),
             child: Center(
               child: Text(
                 'no_notifications'.tr(),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary.withValues(alpha: 0.7),
+                style: const TextStyle(
+                  fontSize: AppConstants.fontSizeM,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -596,7 +591,7 @@ Widget _buildTripCard(dynamic tripData) {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingL),
             itemCount: notificationsList.length,
             itemBuilder: (context, index) {
               return _buildNotificationItem(notificationsList[index]);
@@ -637,18 +632,18 @@ Widget _buildTripCard(dynamic tripData) {
         break;
       case 'trip_completed':
         icon = Icons.check_circle;
-        iconColor = const Color(0xFF16A34A);
-        backgroundColor = const Color(0xFFF0FDF4);
+        iconColor = AppColors.tripCompleted;
+        backgroundColor = AppColors.tripCompletedBg;
         break;
       case 'subscription_activated':
         icon = Icons.card_membership;
-        iconColor = const Color(0xFF3B82F6);
-        backgroundColor = const Color(0xFFDEEBFF);
+        iconColor = AppColors.subscriptionActivated;
+        backgroundColor = AppColors.subscriptionActivatedBg;
         break;
       case 'booking_request':
         icon = Icons.person_add;
-        iconColor = const Color(0xFFF59E0B);
-        backgroundColor = const Color(0xFFFEF3C7);
+        iconColor = AppColors.bookingRequest;
+        backgroundColor = AppColors.bookingRequestBg;
         break;
       default:
         icon = Icons.notifications;
@@ -657,18 +652,18 @@ Widget _buildTripCard(dynamic tripData) {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: AppConstants.spacingL),
+      padding: const EdgeInsets.all(AppConstants.paddingM),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppConstants.radiusL),
         border: Border.all(
-          color: const Color(0xFFE5E5E5),
+          color: AppColors.notificationBorder,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.blackOpacity05,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -685,11 +680,11 @@ Widget _buildTripCard(dynamic tripData) {
             ),
             child: Icon(
               icon,
-              size: 20,
+              size: AppConstants.iconSizeM,
               color: iconColor,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppConstants.spacingL),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,7 +692,7 @@ Widget _buildTripCard(dynamic tripData) {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: AppConstants.fontSizeM,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -706,7 +701,7 @@ Widget _buildTripCard(dynamic tripData) {
                 Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: AppConstants.fontSizeS,
                     color: AppColors.textSecondary,
                   ),
                   maxLines: 2,
@@ -718,7 +713,7 @@ Widget _buildTripCard(dynamic tripData) {
           Text(
             _formatNotificationTime(dateCreation),
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: AppConstants.fontSizeXS,
               color: AppColors.textSecondary,
             ),
           ),
@@ -741,8 +736,8 @@ Widget _buildTripCard(dynamic tripData) {
       child: SvgPicture.asset(
         'assets/icons/13.svg',
         colorFilter: const ColorFilter.mode(AppColors.white, BlendMode.srcIn),
-        width: 28,
-        height: 28,
+        width: AppConstants.iconSizeL,
+        height: AppConstants.iconSizeL,
       ),
     );
   }

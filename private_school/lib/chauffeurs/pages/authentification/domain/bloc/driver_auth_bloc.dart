@@ -29,7 +29,7 @@ class DriverAuthBloc extends Bloc<DriverAuthEvent, DriverAuthState> {
         phone: event.phone,
         password: event.password,
       );
-      // ✅ Sauvegarder le rôle
+    
 await SecureStorage().saveUserRole('driver');
 emit(DriverAuthenticated(driver));
       emit(DriverAuthenticated(driver));

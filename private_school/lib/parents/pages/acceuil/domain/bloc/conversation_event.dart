@@ -30,11 +30,12 @@ class RefreshConversationsEvent extends ConversationEvent {
 
 class CreateDirectConversationEvent extends ConversationEvent {
   final int otherUserId;
-  final String? initialMessage; // ← Ajouter ce champ
-
+  final String? initialMessage;
+  final String? otherUserAvatar;  
   const CreateDirectConversationEvent({
     required this.otherUserId,
     this.initialMessage,
+    this.otherUserAvatar,
   });
 
   @override

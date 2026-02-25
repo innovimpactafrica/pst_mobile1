@@ -83,9 +83,9 @@ class TripModel {
       }
     }
 
-   // ✅ APRÈS — lit les stops qui contiennent les vraies infos d'école
+   
 List<SchoolModel> parseSchools(Map<String, dynamic> json) {
-  // Priorité 1 : liste "stops" (format GET /api/drivers/trips)
+ 
   if (json['stops'] != null && json['stops'] is List && (json['stops'] as List).isNotEmpty) {
     return (json['stops'] as List).map((stop) {
       final s = stop as Map<String, dynamic>;
@@ -99,12 +99,11 @@ List<SchoolModel> parseSchools(Map<String, dynamic> json) {
     }).toList();
   }
 
-  // Priorité 2 : liste "schools" directe
+
   if (json['schools'] != null && json['schools'] is List && (json['schools'] as List).isNotEmpty) {
     return (json['schools'] as List).map((s) => SchoolModel.fromJson(s)).toList();
   }
 
-  // Priorité 3 : school_id unique (fallback)
   final schoolId = json['school_id'];
   if (schoolId != null) {
     return [
@@ -130,42 +129,41 @@ List<SchoolModel> parseSchools(Map<String, dynamic> json) {
     }
 
     return TripModel(
-      // 🔥 CORRECTION : L'id peut être int ou String, on force la conversion
       id: (json['id'] ?? json['_id'] ?? '').toString(),
       
-      // driver_id peut être null ou int
+      
       driverId: json['driver_id']?.toString() ?? json['driverId']?.toString(),
       
-      // Champs texte
+     
       destination: (json['end_point'] ?? json['destination'] ?? '').toString(),
       startLocation: (json['start_point'] ?? json['lieuDepart'] ?? '').toString(),
       
-      // Date et heure
+     
       date: parseDate(json['departure_time'] ?? json['date']),
       time: extractTime(json['departure_time']) ?? (json['time'] ?? '00:00').toString(),
       returnTime: extractTime(json['return_departure_time']),
       tripType: (json['trip_type'] ?? 'aller').toString(),
       
-      // Nombres
+     
       totalSeats: safeInt(json['capacity_max'] ?? json['totalSeats'] ?? 0),
       availableSeats: safeInt(json['placesDisponibles'] ?? json['capacity_max'] ?? 0),
       
-      // Prix optionnel
+      
       price: safeDouble(json['price']),
       
-      // Status
+     
       status: (json['status'] ?? 'pending').toString().toLowerCase(),
       returnStatus: json['return_status']?.toString().toLowerCase(),
       
-      // Listes
+      
       passengers: json['passengers'] != null
           ? (json['passengers'] as List).map((p) => Passenger.fromJson(p)).toList()
           : [],
       
-      // ✅ MODIFIÉ : Parser les écoles intelligemment
+    
       schools: parseSchools(json),
       
-      // Dates optionnelles
+     
       startedAt: json['startedAt'] != null ? parseDate(json['startedAt']) : null,
       completedAt: json['completedAt'] != null ? parseDate(json['completedAt']) : null,
       cancelReason: json['cancelReason']?.toString(),
@@ -286,7 +284,7 @@ class Passenger {
 }
 
   factory Passenger.fromJson(Map<String, dynamic> json) {
-    // Extraire et nettoyer le nom
+   
     String rawName = (json['child_name'] ?? json['name'] ?? json['nom'] ?? '').toString().trim();
     
     return Passenger(

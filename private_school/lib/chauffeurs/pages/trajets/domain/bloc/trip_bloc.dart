@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/trip_repository.dart';
 import 'trip_event.dart';
@@ -24,17 +24,12 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     emit(TripLoading());
     
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔵 [TripBloc] LOAD TRIPS');
-      
+     
       final trips = await repository.getDriverTrips();
       
-      debugPrint('✅ ${trips.length} trip(s) loaded');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
       emit(TripsLoaded(trips: trips));
     } catch (e) {
-      debugPrint('❌ [TripBloc] Error: $e\n');
       emit(TripError('Erreur lors du chargement des trajets'));
     }
   }
@@ -47,17 +42,10 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     emit(TripCreating());
     
     try {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🟢 [TripBloc] CREATE TRIP');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📍 Start: ${event.startPoint}');
-      debugPrint('🎯 End: ${event.endPoint}');
-      if (event.departureTime != null) debugPrint('🕐 Departure: ${event.departureTime}');
-      if (event.returnTime != null) debugPrint('🕐 Return: ${event.returnTime}');
-      debugPrint('👥 Capacity: ${event.capacityMax}');
-      debugPrint('🏫 School IDs: ${event.schoolIds}');
-      debugPrint('🔄 Recurring: ${event.isRecurring}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      if (event.departureTime != null) ;
+      if (event.returnTime != null) ;
+  
       
       await repository.createTrip(
         startPoint: event.startPoint,
@@ -73,19 +61,14 @@ class TripBloc extends Bloc<TripEvent, TripState> {
         endLongitude: event.endLongitude,
       );
       
-      debugPrint('✅ Trip created successfully');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+   
       
       emit(TripCreated());
       
       // Recharger la liste des trajets
       add(LoadTripsEvent());
     } catch (e) {
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('❌ [TripBloc] CREATE TRIP ERROR');
-      debugPrint('Error: $e');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      
+    
       String errorMessage = 'Erreur lors de la création du trajet';
       
       final errorStr = e.toString().toLowerCase();
@@ -114,18 +97,15 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      debugPrint('🚀 [TripBloc] START TRIP: ${event.tripId} (${event.direction ?? "aller"})');
       
       await repository.startTrip(event.tripId, direction: event.direction);
-      
-      debugPrint('✅ Trip started\n');
-      
+     
       emit(TripStarted());
       
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-      debugPrint('❌ [TripBloc] Error: $e\n');
+      
       emit(TripError('Erreur lors du démarrage du trajet'));
     }
   }
@@ -136,18 +116,15 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      debugPrint('✅ [TripBloc] COMPLETE TRIP: ${event.tripId} (${event.direction ?? "aller"})');
       
       await repository.completeTrip(event.tripId, direction: event.direction);
-      
-      debugPrint('✅ Trip completed\n');
-      
+     
       emit(TripCompleted());
       
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-      debugPrint('❌ [TripBloc] Error: $e\n');
+     
       emit(TripError('Erreur lors de la finalisation du trajet'));
     }
   }
@@ -158,19 +135,15 @@ class TripBloc extends Bloc<TripEvent, TripState> {
     Emitter<TripState> emit,
   ) async {
     try {
-      debugPrint('🔴 [TripBloc] CANCEL TRIP: ${event.tripId}');
-      debugPrint('Reason: ${event.reason}');
-      
+     
       await repository.cancelTrip(event.tripId, event.reason);
-      
-      debugPrint('✅ Trip canceled\n');
-      
+     
       emit(TripCanceled());
       
       // Recharger les trajets
       add(LoadTripsEvent());
     } catch (e) {
-      debugPrint('❌ [TripBloc] Error: $e\n');
+      
       emit(TripError('Erreur lors de l\'annulation du trajet'));
     }
   }

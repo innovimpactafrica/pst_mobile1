@@ -273,16 +273,36 @@ class _DiscussionsPageState extends State<DiscussionsPage> {
     );
   }
 
-  void _openChat(ConversationModel conversation) async {
+ void _openChat(ConversationModel conversation) async {
+  // ✅ Si la photo est manquante, essayer de la récupérer depuis les trajets
+  ConversationModel enrichedConversation = conversation;
+  
+  if (conversation.otherUserAvatar == null && conversation.otherUserId != null) {
+    try {
+      final extractor = DriverUserIdExtractor();
+      final drivers = await extractor.getAllDriversWithUserId();
+      final driver = drivers.firstWhere(
+        (d) => d['id'] == conversation.otherUserId,
+        orElse: () => {},
+      );
+      if (driver.isNotEmpty && driver['photo'] != null) {
+        enrichedConversation = conversation.copyWith(
+          otherUserAvatar: driver['photo'] as String,
+        );
+      }
+    } catch (e) {
+      debugPrint('⚠️ Impossible de récupérer la photo: $e');
+    }
+  }
+
   await Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => ChatPage(conversation: conversation),
+      builder: (context) => ChatPage(conversation: enrichedConversation),
     ),
   );
   
   if (mounted) {
-    // ✅ Refresh conversations ET compteur au retour
     context.read<ConversationBloc>().add(const RefreshConversationsEvent());
     UnreadMessagesBloc.instance?.add(RefreshUnreadCountEvent());
   }
@@ -826,7 +846,7 @@ class _NewConversationContentState extends State<_NewConversationContent> {
                           }
                         });
                       } else {
-                        _createDirectConversation(driverId);
+                       _createDirectConversation(driverId, driver['photo'] as String?);
                       }
                     },
                   );
@@ -887,19 +907,20 @@ Future<List<Map<String, dynamic>>> _getAllDrivers() async {
   }
 }
 
-  void _createDirectConversation(int driverId) {
-    debugPrint('🎯 Création de conversation directe avec chauffeur ID: $driverId');
-    
-    context.read<ConversationBloc>().add(
-          CreateDirectConversationEvent(otherUserId: driverId),
-        );
-    widget.onConversationCreated();
-  }
+  void _createDirectConversation(int driverId, String? driverPhoto) {
+  context.read<ConversationBloc>().add(
+    CreateDirectConversationEvent(
+      otherUserId: driverId,
+      otherUserAvatar: driverPhoto, // ✅ transmettre la photo
+    ),
+  );
+  widget.onConversationCreated();
+}
 
   void _createGroupConversation() {
     final groupName = _groupNameController.text.trim();
     
-    // ✅ VALIDATION 1 : Nom du groupe
+   
     if (groupName.isEmpty) {
       debugPrint('❌ Nom du groupe vide');
       ScaffoldMessenger.of(context).showSnackBar(

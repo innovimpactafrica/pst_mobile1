@@ -1,6 +1,3 @@
-// Main screen for driver interface with bottom navigation
-// Path: lib/chauffeurs/widgets/main_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';

@@ -61,53 +61,40 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     }
   }
 
-  Future<void> _onRefreshMessages(
+ Future<void> _onRefreshMessages(
     RefreshMessagesEvent event,
     Emitter<MessageState> emit,
   ) async {
     debugPrint('🔄 MessageBloc._onRefreshMessages - START');
     debugPrint('💬 conversationId: ${event.conversationId}');
 
-    // Garder les messages actuels pendant le refresh
+    // ✅ Garder l'état actuel visible pendant le refresh (jamais de MessageEmpty)
     final currentState = state;
-    if (currentState is MessageLoaded &&
-        currentState.conversationId == event.conversationId) {
-      emit(MessageRefreshing(
-        conversationId: event.conversationId,
-        currentMessages: currentState.messages,
-      ));
-    }
 
     try {
       final messages = await repository.getMessages(event.conversationId);
       debugPrint('✅ ${messages.length} messages rafraîchis');
 
-      if (messages.isEmpty) {
-        emit(MessageEmpty(conversationId: event.conversationId));
-      } else {
-        messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-        // Conserver l'état de réponse si présent
-        if (currentState is MessageLoaded) {
-          emit(MessageLoaded(
-            conversationId: event.conversationId,
-            messages: messages,
-            replyToId: currentState.replyToId,
-            replyToContent: currentState.replyToContent,
-            replyToSenderName: currentState.replyToSenderName,
-          ));
-        } else {
-          emit(MessageLoaded(
-            conversationId: event.conversationId,
-            messages: messages,
-          ));
-        }
+      if (currentState is MessageLoaded) {
+        emit(MessageLoaded(
+          conversationId: event.conversationId,
+          messages: messages,
+          replyToId: currentState.replyToId,
+          replyToContent: currentState.replyToContent,
+          replyToSenderName: currentState.replyToSenderName,
+        ));
+      } else {
+        emit(MessageLoaded(
+          conversationId: event.conversationId,
+          messages: messages,
+        ));
       }
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors du rafraîchissement: $e');
       debugPrint('📋 StackTrace: $stackTrace');
 
-      // Remettre l'état précédent en cas d'erreur
       if (currentState is MessageLoaded) {
         emit(currentState);
       } else {
@@ -121,29 +108,38 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
 
   // ==================== SEND MESSAGE ====================
 
-  Future<void> _onSendMessage(
+ Future<void> _onSendMessage(
     SendMessageEvent event,
     Emitter<MessageState> emit,
   ) async {
     debugPrint('🔄 MessageBloc._onSendMessage - START');
-    debugPrint('💬 conversationId: ${event.conversationId}');
-    debugPrint('📝 content: ${event.content}');
-    debugPrint('↩️ replyToId: ${event.replyToId}');
 
     final currentState = state;
-    
-    // Garder les messages actuels
     List<MessageModel> currentMessages = [];
     if (currentState is MessageLoaded &&
         currentState.conversationId == event.conversationId) {
-      currentMessages = currentState.messages;
+      currentMessages = List.from(currentState.messages);
     }
 
-    emit(MessageSending(
+    // ✅ Message temporaire affiché immédiatement
+    final tempMessage = MessageModel(
+      id: -1,
       conversationId: event.conversationId,
+      senderId: event.currentUserId,
+      senderName: '',
+      senderRole: 'parent',
       content: event.content,
-      currentMessages: currentMessages,
-    ));
+      isEdited: false,
+      isDeleted: false,
+      createdAt: DateTime.now(),
+    );
+
+    if (currentState is MessageLoaded) {
+      emit(currentState.copyWith(
+        messages: [...currentMessages, tempMessage],
+        clearReply: true,
+      ));
+    }
 
     try {
       final message = await repository.sendMessage(
@@ -153,19 +149,26 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
       );
       debugPrint('✅ Message envoyé: ${message.id}');
 
-      emit(MessageSent(message: message));
+      // ✅ Remplacer le message temporaire par le vrai
+      final finalMessages = [
+        ...currentMessages,
+        message,
+      ];
 
-      // Recharger les messages
+      if (currentState is MessageLoaded) {
+        emit(currentState.copyWith(messages: finalMessages));
+      }
+
       add(RefreshMessagesEvent(conversationId: event.conversationId));
+      emit(MessageSent(message: message));
     } catch (e, stackTrace) {
-      debugPrint('❌ Erreur lors de l\'envoi du message: $e');
+      debugPrint('❌ Erreur lors de l\'envoi: $e');
       debugPrint('📋 StackTrace: $stackTrace');
 
-      // Remettre l'état précédent
+      // Rollback
       if (currentState is MessageLoaded) {
         emit(currentState);
       }
-
       emit(MessageError(
         message: 'Impossible d\'envoyer le message',
         error: e,
@@ -175,37 +178,41 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
 
   // ==================== UPDATE MESSAGE ====================
 
-  Future<void> _onUpdateMessage(
+ Future<void> _onUpdateMessage(
     UpdateMessageEvent event,
     Emitter<MessageState> emit,
   ) async {
     debugPrint('🔄 MessageBloc._onUpdateMessage - START');
     debugPrint('💬 conversationId: ${event.conversationId}, messageId: ${event.messageId}');
 
-    emit(MessageUpdating(
-      conversationId: event.conversationId,
-      messageId: event.messageId,
-    ));
+    final currentState = state;
+    if (currentState is! MessageLoaded) return;
 
+    // ✅ Mise à jour immédiate de l'UI (optimistic update)
+    final updatedMessages = currentState.messages.map((msg) {
+      if (msg.id == event.messageId) {
+        return msg.copyWith(content: event.content, isEdited: true);
+      }
+      return msg;
+    }).toList();
+
+    emit(currentState.copyWith(messages: updatedMessages));
+
+    // Appel API en arrière-plan
     try {
-      final message = await repository.updateMessage(
+      await repository.updateMessage(
         conversationId: event.conversationId,
         messageId: event.messageId,
         content: event.content,
       );
-      debugPrint('✅ Message modifié: ${message.id}');
-
-      emit(MessageUpdated(message: message));
-
-      // Recharger les messages
+      debugPrint('✅ Message modifié côté serveur');
       add(RefreshMessagesEvent(conversationId: event.conversationId));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de la modification: $e');
       debugPrint('📋 StackTrace: $stackTrace');
-      emit(MessageError(
-        message: 'Impossible de modifier le message',
-        error: e,
-      ));
+      // Rollback en cas d'erreur
+      emit(currentState);
+      emit(MessageError(message: 'Impossible de modifier le message', error: e));
     }
   }
 
@@ -218,32 +225,30 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     debugPrint('🔄 MessageBloc._onDeleteMessage - START');
     debugPrint('💬 conversationId: ${event.conversationId}, messageId: ${event.messageId}');
 
-    emit(MessageDeleting(
-      conversationId: event.conversationId,
-      messageId: event.messageId,
-    ));
+    final currentState = state;
+    if (currentState is! MessageLoaded) return;
 
+    // ✅ Suppression immédiate de l'UI (optimistic update)
+    final updatedMessages = currentState.messages
+        .where((msg) => msg.id != event.messageId)
+        .toList();
+
+    emit(currentState.copyWith(messages: updatedMessages));
+
+    // Appel API en arrière-plan
     try {
       await repository.deleteMessage(
         conversationId: event.conversationId,
         messageId: event.messageId,
       );
-      debugPrint('✅ Message supprimé: ${event.messageId}');
-
-      emit(MessageDeleted(
-        conversationId: event.conversationId,
-        messageId: event.messageId,
-      ));
-
-      // Recharger les messages
+      debugPrint('✅ Message supprimé côté serveur');
       add(RefreshMessagesEvent(conversationId: event.conversationId));
     } catch (e, stackTrace) {
       debugPrint('❌ Erreur lors de la suppression: $e');
       debugPrint('📋 StackTrace: $stackTrace');
-      emit(MessageError(
-        message: 'Impossible de supprimer le message',
-        error: e,
-      ));
+      // Rollback en cas d'erreur
+      emit(currentState);
+      emit(MessageError(message: 'Impossible de supprimer le message', error: e));
     }
   }
 

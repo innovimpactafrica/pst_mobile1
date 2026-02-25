@@ -5,8 +5,7 @@ import 'package:private_school/parents/pages/school/data/models/school_model.dar
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 
-/// Schools list modal widget
-/// Shows the complete list of schools served in a trip
+
 class SchoolsListModal extends StatelessWidget {
   final List<SchoolModel> schools;
 

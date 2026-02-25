@@ -60,11 +60,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     _plateController.text = vehicle?.plate ?? '';
     _capacityController.text = vehicle?.capacity?.toString() ?? '';
     
-    debugPrint('🚗 [VehicleInfoPage] Initializing with data:');
-    debugPrint('   Brand: ${vehicle?.brand}');
-    debugPrint('   Color: ${vehicle?.color}');
-    debugPrint('   Plate: ${vehicle?.plate}');
-    debugPrint('   Capacity: ${vehicle?.capacity}');
+   
   }
 
   Future<void> _pickVehicleImage() async {
@@ -148,7 +144,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? AppColors.error : AppColors.success,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -162,8 +158,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
             state is DriverProfileLoaded ? state.profile : widget.profile;
 
         final vehicle = profile.vehicle;
-        
-        // Mettre à jour les contrôleurs si le profil a changé
+      
         if (state is DriverProfileLoaded || state is DriverProfileUpdated) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && !_isEditMode) {
@@ -265,7 +260,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                       },
                       child: Text(
                         'cancel'.tr(),
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: AppColors.error),
                       ),
                     ),
                 ],
@@ -296,20 +291,20 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppConstants.radiusL),
               child: _selectedVehicleImage != null
-                  // 1. Si on vient de choisir une image sur le téléphone
+                  
                   ? Image.file(
                       _selectedVehicleImage!,
                       fit: BoxFit.cover,
                     )
                   : (vehicle?.photo != null && vehicle!.photo!.isNotEmpty)
-                      // 2. Si l'image vient du serveur (même si c'est un chemin relatif)
+                      
                       ? Image.network(
                           ImageUrlHelper.getFullImageUrl(vehicle.photo!),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(Icons.directions_car, size: 50, color: AppColors.primary),
                         )
-                      // 3. Image par défaut si aucune photo n'existe
+                      //  Image par défaut si aucune photo n'existe
                       : const Icon(
                           Icons.directions_car,
                           size: 50,

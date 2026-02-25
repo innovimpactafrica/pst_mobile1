@@ -12,7 +12,6 @@ class LanguageSelectionPage extends StatefulWidget {
 }
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
-  // Langue sélectionnée par défaut (à lier plus tard à ton système de trad)
   String selectedLanguage = 'Français';
 
   final List<Map<String, String>> languages = [
@@ -24,11 +23,11 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary, // Le violet du profil
+      backgroundColor: AppColors.primary, 
       body: SafeArea(
         child: Column(
           children: [
-            // Header avec bouton retour et titre
+           
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppConstants.spacingL,
@@ -54,7 +53,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
             const SizedBox(height: AppConstants.spacingL),
 
-            // Zone blanche
+            
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -78,7 +77,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                         setState(() {
                           selectedLanguage = lang['name']!;
                         });
-                        // TODO: Ajouter ici la logique pour changer la locale (ex: Bloc ou EasyLocalization)
+                        
                       },
                       child: Container(
                         

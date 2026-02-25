@@ -89,19 +89,14 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                         ),
                       );
                     }
-
-                    // ✅ CLEF : synchroniser le badge du dashboard header
-                    // chaque fois que le NotificationBloc se met à jour
                     if (state is NotificationLoaded) {
                       try {
                         context.read<UnreadNotificationsBloc>().add(
                               UpdateUnreadCountEvent(state.unreadCount),
                             );
-                        debugPrint(
-                          '🔔 [NotificationsPage] Badge synchro → ${state.unreadCount}',
-                        );
+                        
                       } catch (_) {
-                        // UnreadNotificationsBloc pas dans ce context, ignoré
+                        // 
                       }
                     }
                   },
@@ -182,11 +177,8 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
     }
 
     return Column(
-      children: [
-        // ✅ Pagination EN HAUT
+      children: [     
         if (totalPages > 1) _buildPaginationBar(totalPages),
-
-        // ✅ Liste des notifications
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -309,14 +301,10 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       child: GestureDetector(
         onTap: () {
           if (!notification.isRead) {
-            debugPrint('👆 [NotificationsPage] Tap notification ${notification.id}');
-
-            // ✅ 1. Marquer dans NotificationBloc → API → rechargement
             context.read<NotificationBloc>().add(
                   MarkNotificationAsReadEvent(notification.id),
                 );
 
-            // ✅ 2. Décrémenter IMMÉDIATEMENT le badge dans le header dashboard
             try {
               context.read<UnreadNotificationsBloc>().add(
                     MarkNotificationAsReadLocalEvent(notification.id),
@@ -358,7 +346,6 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                 child: Icon(icon, color: iconColor, size: AppConstants.iconSizeM),
               ),
               const SizedBox(width: AppConstants.spacingL),
-              // Contenu
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +367,6 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
                         ),
                         Row(
                           children: [
-                            // ✅ Point bleu si non lue
                             if (!notification.isRead)
                               Container(
                                 width: 8,
@@ -516,8 +502,6 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       return DateFormat('dd/MM').format(dateTime);
     }
   }
-
-  // ✅ Pagination EN HAUT avec design propre
   Widget _buildPaginationBar(int totalPages) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -534,7 +518,7 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Bouton précédent
+         
           IconButton(
             onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
             icon: Icon(
@@ -544,7 +528,7 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
             ),
           ),
 
-          // Numéros de pages
+          
           Row(
             children: List.generate(totalPages, (index) {
               final page = index + 1;
@@ -577,7 +561,7 @@ class _NotificationsPageContentState extends State<_NotificationsPageContent> {
             }),
           ),
 
-          // Bouton suivant
+         
           IconButton(
             onPressed: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
             icon: Icon(

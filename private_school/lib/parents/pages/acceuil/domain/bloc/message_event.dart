@@ -42,11 +42,12 @@ class SendMessageEvent extends MessageEvent {
   final int conversationId;
   final String content;
   final int? replyToId;
-
+  final int currentUserId; // ✅ ajout
   const SendMessageEvent({
     required this.conversationId,
     required this.content,
     this.replyToId,
+    this.currentUserId = 0, // ✅ valeur par défaut
   });
 
   @override

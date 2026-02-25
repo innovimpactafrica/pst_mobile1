@@ -120,13 +120,17 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   emit(const ConversationCreating());
 
   try {
-    final conversation = await repository.createOrGetDirectConversation(
+    var conversation = await repository.createOrGetDirectConversation(
       otherUserId: event.otherUserId,
       initialMessage: event.initialMessage,
     );
     debugPrint('✅ Conversation directe créée: ${conversation.displayName}');
 
-    emit(ConversationCreated(conversation: conversation));
+   // ✅ Injecter la photo si l'API ne la renvoie pas
+if (conversation.otherUserAvatar == null && event.otherUserAvatar != null) {
+  conversation = conversation.copyWith(otherUserAvatar: event.otherUserAvatar);
+}
+emit(ConversationCreated(conversation: conversation));
 
     // Recharger toutes les conversations
     add(const LoadConversationsEvent());

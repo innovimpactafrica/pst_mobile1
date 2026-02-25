@@ -1,5 +1,4 @@
-// Upcoming trips section widget
-// Path: lib/chauffeurs/pages/dashboard/presentation/widgets/upcoming_trips_section.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
@@ -74,14 +73,13 @@ class UpcomingTripsSection extends StatelessWidget {
   }
 
   Widget _buildTripCard(dynamic tripData) {
-    // ✅ Convertir en TripModel pour utiliser le parsing existant
     TripModel? trip;
     try {
       if (tripData is Map<String, dynamic>) {
         trip = TripModel.fromJson(tripData);
       }
     } catch (e) {
-      debugPrint('❌ Erreur parsing TripModel: $e');
+     //
     }
     
     final dateFormatter = DateFormat('dd MMM', 'fr_FR');

@@ -2,7 +2,7 @@ class MessageModel {
   final String id;
   final String conversationId;
   final String senderId;
-  final String senderType; // 'driver', 'parent', 'admin'
+  final String senderType; 
   final String content;
   final DateTime createdAt;
   final bool isRead;

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../storage/secure_storage.dart';
 import '../utils/base_url.dart';
@@ -34,24 +33,24 @@ class ApiClient {
           final token = await _storage.getAccessToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
-            debugPrint('🔑 Token added to request: ${options.path}');
+           
           } else {
-            debugPrint('⚠️ No token found for request: ${options.path}');
+           
           }
           return handler.next(options);
         },
         onError: (error, handler) async {
-          debugPrint('❌ API Error: ${error.response?.statusCode} - ${error.message}');
+          
           
           // Handle token expiration
           if (error.response?.statusCode == 401) {
-            debugPrint('🔒 Unauthorized - Clearing storage');
+        
             await _storage.clearAll();
           }
           return handler.next(error);
         },
         onResponse: (response, handler) {
-          debugPrint('✅ API Response: ${response.statusCode} - ${response.requestOptions.path}');
+          
           return handler.next(response);
         },
       ),

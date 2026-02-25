@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_bloc.dart';
 import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_event.dart';
-//import 'package:private_school/chauffeurs/pages/authentification/domain/bloc/driver_auth_state.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
 import 'bienvenu.dart';
 
@@ -50,12 +49,11 @@ class _SplashState extends State<Splash> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // ==== Coin haut gauche (forme diagonale nette) ====
             Positioned(
               top: -40,
               left: -60,
               child: Transform.rotate(
-                angle: -0.35, // rotation nette pour la diagonale
+                angle: -0.35, 
                 child: SvgPicture.asset(
                   'assets/icons/2.svg',
                   width: 150,
@@ -76,12 +74,12 @@ class _SplashState extends State<Splash> {
               ),
             ),
 
-            // ==== Coin bas droit (symétrique de la diagonale) ====
+           
             Positioned(
               bottom: -40,
               right: -60,
               child: Transform.rotate(
-                angle: -0.35, // même angle pour garder la diagonale
+                angle: -0.35, 
                 child: SvgPicture.asset(
                   'assets/icons/2.svg',
                   width: 150,
@@ -102,7 +100,7 @@ class _SplashState extends State<Splash> {
               ),
             ),
 
-            // ==== Logo central ====
+           
             Center(
               child: Image.asset(
                 'assets/images/2.jpg',

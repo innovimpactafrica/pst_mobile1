@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 import 'package:private_school/core/storage/secure_storage.dart';
 import '../../domain/bloc/message_bloc.dart';
 import '../../domain/bloc/message_event.dart';
@@ -36,13 +37,14 @@ class _ChatPageState extends State<ChatPage> {
   int? _currentUserId;
   bool _isLoading = true;
   MessageModel? _editingMessage;
+  MessageLoaded? _lastLoadedState; 
   int get _conversationId {
     final id = widget.conversation.id;
     debugPrint('🔍 [ChatPage] conversation.id = $id (type: ${id.runtimeType})');
-    return id; // Déjà un int selon votre modèle
+    return id; 
   }
 
-  @override
+
  @override
 void initState() {
   super.initState();
@@ -52,7 +54,7 @@ void initState() {
     LoadMessagesEvent(conversationId: _conversationId),
   );
   
-  // ✅ Marquer comme lu dès l'ouverture
+ 
   _markMessagesAsRead();
 }
 
@@ -60,27 +62,26 @@ void initState() {
   try {
     await _repository.markConversationAsRead(_conversationId);
     
-    // ✅ Notifier le bloc de DÉCREMENTER immédiatement
+   
     UnreadMessagesBloc.notifyMessageRead(_conversationId);
     
-    debugPrint('✅ [ChatPage] Messages marqués comme lus');
+    debugPrint(' [ChatPage] Messages marqués comme lus');
   } catch (e) {
-    debugPrint('⚠️ Erreur marquage messages lus: $e');
+    debugPrint(' Erreur marquage messages lus: $e');
   }
 }
 
 Future<void> _loadCurrentUser() async {
   try {
     final userDataRaw = await _storage.getUserData();
-    debugPrint('📦 getUserData type: ${userDataRaw?.runtimeType}');
-    debugPrint('📦 getUserData valeur: $userDataRaw');
+    debugPrint(' getUserData type: ${userDataRaw?.runtimeType}');
+    debugPrint(' getUserData valeur: $userDataRaw');
 
     int? extractedId;
 
     if (userDataRaw != null && userDataRaw.isNotEmpty) {
       debugPrint('📝 String à parser: $userDataRaw');
 
-      // ✅ MÉTHODE 1 : Parser JSON
       try {
         final decoded = jsonDecode(userDataRaw) as Map<String, dynamic>;
         final dynamic idValue = decoded['id'];
@@ -149,10 +150,8 @@ Future<void> _loadCurrentUser() async {
     return null;
   }
 
-  @override
+@override
 void dispose() {
-  // ✅ Marquer comme lu une dernière fois avant de quitter
-  _markMessagesAsRead();
   _messageController.dispose();
   _scrollController.dispose();
   super.dispose();
@@ -204,11 +203,13 @@ void dispose() {
               behavior: SnackBarBehavior.floating,
             ));
           }
-          if (state is MessageSent || state is MessageLoaded) {
-            _scrollToBottom();
-            // Marquer les messages comme lus quand de nouveaux messages arrivent
-            _markMessagesAsRead();
-          }
+          if (state is MessageSent) {
+  _scrollToBottom();
+  _markMessagesAsRead();
+}
+if (state is MessageLoaded) {
+  _scrollToBottom();
+}
           if (state is MessageSent && _editingMessage != null) {
             setState(() => _editingMessage = null);
             // Notifier qu'un nouveau message a été envoyé
@@ -216,20 +217,52 @@ void dispose() {
           }
         },
         builder: (context, state) {
-          if (state is MessageLoading) {
-            return const Center(
-                child: CircularProgressIndicator(color: AppColors.success));
-          }
-          if (state is MessageLoaded) return _buildChatView(state);
-          if (state is MessageEmpty) return _buildEmptyWithInput();
-          if (state is MessageError) return _buildErrorState(state.message);
-          return _buildEmptyWithInput();
-        },
+  // ✅ Mémoriser le dernier état MessageLoaded
+  if (state is MessageLoaded) {
+    _lastLoadedState = state;
+    return _buildChatView(state);
+  }
+
+  if (state is MessageLoading) {
+    // Premier chargement uniquement
+    if (_lastLoadedState == null) {
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.success));
+    }
+    // Si on a déjà des messages, garder l'affichage
+    return _buildChatView(_lastLoadedState!);
+  }
+
+  // ✅ Pour TOUS les autres états transitoires (MessageSent, MessageSending,
+  // MessageUpdating, MessageDeleting, MessageRefreshing...)
+  // garder le dernier affichage connu
+  if (_lastLoadedState != null) {
+    return _buildChatView(_lastLoadedState!);
+  }
+
+  // Seulement si vraiment aucun message n'a jamais été chargé
+  if (state is MessageEmpty) return _buildEmptyWithInput();
+  if (state is MessageError) return _buildErrorState(state.message);
+  
+  return _buildEmptyWithInput();
+},
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
+    debugPrint('🖼️ [ChatPage] displayAvatar: ${widget.conversation.displayAvatar}');
+    debugPrint('🖼️ [ChatPage] otherUserId: ${widget.conversation.otherUserId}');
+    debugPrint('🖼️ [ChatPage] otherUserAvatar: ${widget.conversation.otherUserAvatar}');
+    
+    final photoUrl = widget.conversation.otherUserAvatar ?? 
+        widget.conversation.displayAvatar ?? 
+        (widget.conversation.otherUserId != null 
+            ? ImageUrlHelper.getFullImageUrl('uploads/users/${widget.conversation.otherUserId}/profile.jpg')
+            : null);
+    
+    debugPrint('🖼️ [ChatPage] photoUrl finale: $photoUrl');
+
     return AppBar(
       backgroundColor: AppColors.success,
       elevation: 0,
@@ -242,10 +275,13 @@ void dispose() {
           CircleAvatar(
             radius: 20,
             backgroundColor: AppColors.white.withValues(alpha: 0.2),
-            backgroundImage: widget.conversation.displayAvatar != null
-                ? NetworkImage(widget.conversation.displayAvatar!)
+            backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                ? NetworkImage(photoUrl)
                 : null,
-            child: widget.conversation.displayAvatar == null
+            onBackgroundImageError: photoUrl != null ? (exception, stackTrace) {
+              debugPrint('❌ [ChatPage] Erreur chargement image: $exception');
+            } : null,
+            child: photoUrl == null || photoUrl.isEmpty
                 ? Icon(
                     widget.conversation.type == 'group'
                         ? Icons.group
@@ -341,11 +377,13 @@ Widget _buildChatView(MessageLoaded state) {
               return Column(
                 children: [
                   if (showDateSeparator) _buildDateSeparator(message.createdAt),
+
                   MessageBubbleWidget(
                     message: message,
                     isMe: isMe,
                     onLongPress: () => _showMessageOptions(message, isMe),
                     onReply: () => _setReplyTo(message),
+                    conversationAvatar: widget.conversation.displayAvatar,
                   ),
                 ],
               );
@@ -535,13 +573,13 @@ Widget _buildChatView(MessageLoaded state) {
       _cancelEdit();
     } else {
       context.read<MessageBloc>().add(
-            SendMessageEvent(
-              conversationId: _conversationId,
-              content: content,
-              replyToId: state.replyToId,
-            ),
-          );
-      // Pas besoin de notifier ici, c'est fait dans le listener
+      SendMessageEvent(
+        conversationId: _conversationId,
+        content: content,
+        replyToId: state.replyToId,
+        currentUserId: _currentUserId ?? 0,
+      ),
+    );
     }
 
     _messageController.clear();

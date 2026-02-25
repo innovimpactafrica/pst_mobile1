@@ -107,7 +107,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             ),
           );
 
-          // Retourner à la page de connexion
+          
           Navigator.of(context).popUntil((route) => route.isFirst);
         } else if (state is DriverAuthError) {
           if (Navigator.canPop(context)) {
@@ -168,7 +168,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 12),
 
-                  // Subtitle
+                  
                   Text(
                     'choose_secure_password'.tr(),
                     textAlign: TextAlign.center,
@@ -181,7 +181,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 40),
 
-                  // Password Field
+                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -231,7 +231,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 20),
 
-                  // Confirm Password Field
+                 
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -281,7 +281,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                   const SizedBox(height: 40),
 
-                  // Submit Button
+                  
                   SizedBox(
                     width: double.infinity,
                     height: 56,

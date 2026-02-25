@@ -1,5 +1,4 @@
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:private_school/chauffeurs/pages/abonnement/data/models/subscription_model.dart';
 import '../../data/repositories/subscription_repository.dart';
@@ -28,10 +27,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 ) async {
   try {
     final subscription = await repository.getCurrentSubscription();
-    emit(CurrentSubscriptionLoaded(subscription)); // null si pas d'abonnement
+    emit(CurrentSubscriptionLoaded(subscription)); 
   } catch (e) {
-    
-    debugPrint('⚠️ Erreur chargement abonnement: $e');
     emit(CurrentSubscriptionLoaded(null));
   }
 }
@@ -43,10 +40,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
  
   try {
     final plans = await repository.getPlans();
-    debugPrint('✅ ${plans.length} plans chargés');
     emit(SubscriptionPlansLoaded(plans));
   } catch (e) {
-    debugPrint('❌ Erreur chargement plans: $e');
     emit(SubscriptionError(e.toString()));
   }
 }
@@ -106,7 +101,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   AddPaymentMethodEvent event,
   Emitter<SubscriptionState> emit,
 ) async {
-  try { // <--- Ton try commence ici
+  try { 
     await repository.addPaymentMethod(
       type: event.type,
       cardNumber: event.cardNumber,
@@ -116,7 +111,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     emit(PaymentMethodAdded(PaymentMethod(id: '', type: event.type))); 
     add(LoadPaymentMethodsEvent());
 
-  } catch (e) { // <--- C'EST CETTE PARTIE QUI MANQUE (le catch)
+  } catch (e) {
     emit(SubscriptionError(e.toString()));
   }
 }

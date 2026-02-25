@@ -7,7 +7,7 @@ import 'package:easy_localization/easy_localization.dart' as easy;
 import 'dart:io';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
-import '../../../../../core/utils/image_url_helper.dart'; // 🔧 AJOUT
+import '../../../../../core/utils/image_url_helper.dart'; 
 import '../../data/models/driver_profile_model.dart';
 import '../../domain/bloc/driver_profile_bloc.dart';
 import '../../domain/bloc/driver_profile_event.dart';

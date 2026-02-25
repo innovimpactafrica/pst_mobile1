@@ -1,6 +1,3 @@
-// Main layout with bottom navigation - UPDATED
-// Path: lib/chauffeurs/widgets/main_layout.dart
-
 import 'package:flutter/material.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:private_school/chauffeurs/pages/profil/presentation/pages/profile_main_page.dart';

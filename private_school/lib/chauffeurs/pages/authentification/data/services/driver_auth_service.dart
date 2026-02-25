@@ -1,5 +1,4 @@
-// Driver authentication service - FULLY CORRECTED
-// Path: lib/chauffeurs/authentification/data/services/driver_auth_service.dart
+
 
 import 'dart:convert';
 import 'dart:io';
@@ -13,7 +12,7 @@ class DriverAuthService {
   final ApiClient _apiClient = ApiClient();
   final SecureStorage _storage = SecureStorage();
 
-  // Let errors from ApiClient propagate directly without wrapping
+
   Future<Map<String, dynamic>> login({
     required String phone,
     required String password,
@@ -21,7 +20,7 @@ class DriverAuthService {
     final response = await _apiClient.post(
       '/api/auth/login/driver',
       data: {
-        'email': phone, // API expects "email" field
+        'email': phone, 
         'password': password,
       },
     );
@@ -30,13 +29,13 @@ class DriverAuthService {
         ? response.data
         : {'data': response.data};
 
-    // Handle different API response formats
+    
     final accessToken = responseData['accessToken'] ?? responseData['token'];
     final refreshToken = responseData['refreshToken'];
     final userData =
         responseData['driver'] ?? responseData['user'] ?? responseData['data'];
 
-    // Save tokens
+   
     if (accessToken != null) {
       await _storage.saveAccessToken(accessToken);
     }
@@ -45,12 +44,12 @@ class DriverAuthService {
       await _storage.saveRefreshToken(refreshToken);
     }
 
-    // Save user data
+    
     if (userData != null) {
       await _storage.saveUserData(jsonEncode(userData));
     }
 
-    // Create DriverModel from JSON
+   
     final driver = DriverModel.fromJson(userData as Map<String, dynamic>);
 
     return {'token': accessToken, 'driver': driver};
@@ -79,21 +78,21 @@ class DriverAuthService {
         'password': password,
       };
       
-      // Ajouter les informations du véhicule si présentes
+     
       if (licenseNumber != null && licenseNumber.isNotEmpty) {
-        dataMap['vehicle_plate'] = licenseNumber; // Immatriculation
+        dataMap['vehicle_plate'] = licenseNumber; 
       }
       if (vehicleType != null && vehicleType.isNotEmpty) {
-        dataMap['vehicle_brand'] = vehicleType; // Marque
+        dataMap['vehicle_brand'] = vehicleType; 
       }
       if (vehicleColor != null && vehicleColor.isNotEmpty) {
-        dataMap['vehicle_color'] = vehicleColor; // Couleur
+        dataMap['vehicle_color'] = vehicleColor; 
       }
       if (capacity != null) {
-        dataMap['capacity'] = capacity; // Capacité
+        dataMap['capacity'] = capacity; 
       }
 
-      // Ajouter les fichiers
+     
       if (licenseFile != null) {
         dataMap['license_document'] = await MultipartFile.fromFile(
           licenseFile.path,
@@ -184,7 +183,7 @@ class DriverAuthService {
     try {
       await _apiClient.post('/api/auth/logout');
     } catch (_) {
-      // Continue with local logout even if API call fails
+      
     } finally {
       await _storage.clearAll();
     }

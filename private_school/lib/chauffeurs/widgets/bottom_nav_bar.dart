@@ -1,6 +1,3 @@
-// Bottom navigation bar for driver interface
-// Path: lib/chauffeurs/widgets/bottom_nav_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/app_colors.dart';

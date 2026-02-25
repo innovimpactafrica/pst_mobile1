@@ -38,11 +38,11 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
     body: SafeArea(
   child: Stack(
     children: [
-      // 1️⃣ FOND VIOLET (en haut)
+     
       Column(
         children: [
           Container(
-            height: 140, // Hauteur de la partie violette
+            height: 140, 
             color: AppColors.primary,
             padding: const EdgeInsets.symmetric(
               horizontal: AppConstants.spacingXL + 4,
@@ -61,7 +61,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
             ),
           ),
 
-          // 2️⃣ FOND BLANC (en bas)
+          
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
@@ -140,7 +140,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                         children: [
                           const SizedBox(height: AppConstants.spacingXXL),
 
-                          // "Général" section title
+                        
                           Text(
                             'general'.tr(),
                             style: GoogleFonts.inter(
@@ -152,7 +152,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
 
                           const SizedBox(height: AppConstants.spacingL),
 
-                          // Menu items (reste du code inchangé)
+                          
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.white,
@@ -462,7 +462,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
         ),
         child: Row(
           children: [
-            // Icon with colored background
+            
             Container(
               width: 40,
               height: 40,

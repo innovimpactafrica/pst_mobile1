@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../repositories/messaging_repository.dart';
 import '../../domain/bloc/unread_messages_bloc.dart';
-import '../../../profil/domain/bloc/unread_notifications_bloc.dart';
+
 
 class UnifiedNotificationService {
   static final UnifiedNotificationService _instance = UnifiedNotificationService._internal();
@@ -14,14 +14,10 @@ class UnifiedNotificationService {
   int _lastUnreadMessagesCount = 0;
 
   UnreadMessagesBloc? _messagesBloc;
-  UnreadNotificationsBloc? _notificationsBloc;
-
   void registerBlocs({
     UnreadMessagesBloc? messagesBloc,
-    UnreadNotificationsBloc? notificationsBloc,
   }) {
     _messagesBloc = messagesBloc;
-    _notificationsBloc = notificationsBloc;
     debugPrint('📋 [UnifiedNotificationService] Blocs enregistrés');
   }
 
@@ -64,6 +60,6 @@ class UnifiedNotificationService {
   void dispose() {
     stopPolling();
     _messagesBloc = null;
-    _notificationsBloc = null;
+    
   }
 }

@@ -14,8 +14,6 @@ import '../../../profil/domain/bloc/driver_profile_event.dart';
 import '../../../profil/domain/bloc/driver_profile_state.dart';
 import '../widgets/primary_button.dart';
 
-/// Documents page for drivers
-/// Manages driver's legal documents upload via PUT /api/drivers/{id}
 class DocumentsPage extends StatefulWidget {
   final DriverProfileModel profile;
 
@@ -34,11 +32,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
   @override
   void initState() {
     super.initState();
-    debugPrint('📄 [DocumentsPage] Initialized');
-    debugPrint('📄 [DocumentsPage] Driver ID: ${widget.profile.driver.id}');
-    debugPrint('📄 [DocumentsPage] License Document: ${widget.profile.driver.licenseDocument}');
-    debugPrint('📄 [DocumentsPage] ID Document: ${widget.profile.driver.idDocument}');
-    debugPrint('📄 [DocumentsPage] Vehicle Photo: ${widget.profile.driver.vehiclePhoto}');
+  
   }
 
   Future<void> _pickDocument(String type) async {
@@ -67,12 +61,12 @@ class _DocumentsPageState extends State<DocumentsPage> {
           }
         });
 
-        debugPrint('📄 [DocumentsPage] File selected: ${file.path.split('/').last} ($sizeKB Ko)');
+    
 
         if (mounted) _showSnackBar('file_selected_successfully'.tr(), isError: false);
       }
     } catch (e) {
-      debugPrint('❌ [DocumentsPage] Error: $e');
+     
       if (mounted) _showSnackBar('${'error_pick_file'.tr()}: $e', isError: true);
     }
   }
@@ -87,7 +81,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
 
   Future<void> _performUpload() async {
     try {
-      debugPrint('📤 [DocumentsPage] Starting upload...');
+ 
       final FormData formData = FormData();
 
       if (_licenseFile != null) {
@@ -98,7 +92,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
             await MultipartFile.fromFile(_licenseFile!.path, filename: fileName),
           ),
         );
-        debugPrint('📄 [DocumentsPage] License added: $fileName');
+       
       }
 
       if (_idCardFile != null) {
@@ -109,11 +103,11 @@ class _DocumentsPageState extends State<DocumentsPage> {
             await MultipartFile.fromFile(_idCardFile!.path, filename: fileName),
           ),
         );
-        debugPrint('📄 [DocumentsPage] ID card added: $fileName');
+        
       }
 
       final String driverId = widget.profile.driver.id.toString();
-      debugPrint('👤 [DocumentsPage] Driver ID: $driverId');
+     
 
       if (mounted) {
         context.read<DriverProfileBloc>().add(
@@ -121,7 +115,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
         );
       }
     } catch (e) {
-      debugPrint('❌ [DocumentsPage] Upload error: $e');
+      
       if (mounted) _showSnackBar('${'error_upload'.tr()}: $e', isError: true);
     }
   }
@@ -153,7 +147,6 @@ Widget build(BuildContext context) {
   return BlocListener<DriverProfileBloc, DriverProfileState>(
     listener: (context, state) {
       if (state is DriverProfileUpdated) {
-        debugPrint('✅ [DocumentsPage] Success');
         _showSnackBar('documents_uploaded_successfully'.tr(), isError: false);
 
         setState(() {
@@ -163,7 +156,7 @@ Widget build(BuildContext context) {
           _idCardSizeKB = null;
         });
       } else if (state is DriverProfileError) {
-        debugPrint('❌ [DocumentsPage] Error: ${state.message}');
+        
         _showSnackBar(state.message, isError: true);
       }
     },
@@ -386,8 +379,7 @@ Widget build(BuildContext context) {
 Widget _buildExistingDocumentPreview(dynamic documentUrl) {
   
   if (documentUrl == null || documentUrl is! String || documentUrl.isEmpty) {
-    debugPrint('⚠️ [DocumentsPage] URL invalide ou format Map détecté: $documentUrl');
-    return const SizedBox.shrink(); 
+       return const SizedBox.shrink(); 
   }
 
   final String fullUrl = documentUrl.startsWith('http') 

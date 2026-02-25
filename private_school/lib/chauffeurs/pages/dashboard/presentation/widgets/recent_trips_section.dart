@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:private_school/core/utils/app_colors.dart';
 import 'package:private_school/core/utils/app_constants.dart';
 
-/// Recent trips section for dashboard
-/// Location: lib/features/dashboard/presentation/widgets/recent_trips_section.dart
 class RecentTripsSection extends StatelessWidget {
   final List<dynamic> trips;
 
@@ -36,7 +34,7 @@ class RecentTripsSection extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  // Navigate to all trips
+    
                 },
                 child: const Text(
                   AppConstants.labelViewAll,

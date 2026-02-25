@@ -1,7 +1,6 @@
-/// Helper class for managing image URLs
-/// Converts relative paths to full URLs
+
 class ImageUrlHelper {
-  // 🔧 Remplacez par l'URL de votre backend
+
   static const String baseUrl = 'http://86.106.181.31:3000';
 
  
@@ -27,12 +26,12 @@ if (path.contains('drive.google.com')) {
   }
 }
 
-// si déjà une vraie URL http
+
 if (path.startsWith('http://') || path.startsWith('https://')) {
   return path;
 }
 
-// sinon image locale backend
+
 final cleanPath = path.startsWith('/') ? path.substring(1) : path;
 return '$baseUrl/$cleanPath';
 

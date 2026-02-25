@@ -7,7 +7,7 @@ class ConversationModel {
   final int unreadCount;
   final DateTime? lastMessageTime;
   final String participantId;
-  final String participantType; // 'parent' ou 'admin'
+  final String participantType;
 
   ConversationModel({
     required this.id,
@@ -22,7 +22,7 @@ class ConversationModel {
   });
 
  factory ConversationModel.fromJson(Map<String, dynamic> json) {
-  // Calculer timeAgo depuis last_message_at
+  
   String timeAgo = '';
   final lastMsgAt = json['last_message_at'] ?? json['last_message_time'];
   if (lastMsgAt != null) {
@@ -41,9 +41,7 @@ class ConversationModel {
 
   return ConversationModel(
     id: json['id']?.toString() ?? '',
-    
-    // ✅ Champs corrects selon l'API
-    displayName: json['other_participant_name']    // ← correct
+    displayName: json['other_participant_name']    
         ?? json['display_name'] 
         ?? json['participant_name'] 
         ?? 'Utilisateur',
@@ -52,22 +50,22 @@ class ConversationModel {
         ?? json['display_avatar'] 
         ?? json['participant_avatar'],
         
-    lastMessagePreview: json['last_message']        // ← correct
+    lastMessagePreview: json['last_message']        
         ?? json['last_message_preview'] 
         ?? '',
         
-    timeAgo: json['time_ago'] ?? timeAgo,           // ← calculé si absent
+    timeAgo: json['time_ago'] ?? timeAgo,           
     
-    unreadCount: json['unread_count'] ?? 0,         // ← déjà correct
+    unreadCount: json['unread_count'] ?? 0,         
     
     lastMessageTime: lastMsgAt != null 
         ? DateTime.tryParse(lastMsgAt) 
         : null,
         
-    participantId: (json['other_participant_id']    // ← correct
+    participantId: (json['other_participant_id']    
         ?? json['participant_id'])?.toString() ?? '',
         
-    participantType: json['other_participant_role'] // ← correct
+    participantType: json['other_participant_role'] 
         ?? json['participant_type'] 
         ?? 'parent',
   );

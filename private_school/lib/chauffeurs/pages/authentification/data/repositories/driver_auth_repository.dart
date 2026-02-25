@@ -9,7 +9,7 @@ class DriverAuthRepository {
   final DriverAuthService _authService = DriverAuthService();
   final SecureStorage _storage = SecureStorage();
 
-  // Let errors from service propagate directly
+ 
   Future<DriverModel> login({
     required String phone,
     required String password,
@@ -81,7 +81,7 @@ class DriverAuthRepository {
     try {
       await _authService.logout();
     } catch (e) {
-      // Continue with local logout
+      // 
     } finally {
       await _storage.clearAll();
     }

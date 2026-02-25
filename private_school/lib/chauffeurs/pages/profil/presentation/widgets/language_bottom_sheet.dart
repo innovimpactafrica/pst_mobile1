@@ -56,7 +56,7 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Petite poignée visuelle
+            
             Container(
               width: 40,
               height: 4,
@@ -67,7 +67,7 @@ class _LanguageBottomSheetState extends State<LanguageBottomSheet> {
               ),
             ),
 
-            // Card centrale, pas pleine largeur
+            
             Center(
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.88,

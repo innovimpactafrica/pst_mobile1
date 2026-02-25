@@ -85,7 +85,7 @@ void initState() {
     
     _notificationService.registerBlocs(
       messagesBloc: context.read<UnreadMessagesBloc>(),
-      notificationsBloc: context.read<UnreadNotificationsBloc>(),
+      //notificationsBloc: context.read<UnreadNotificationsBloc>(),
     );
     _notificationService.startPolling();
   });

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Centralization of all application colors
-/// Location: lib/core/utils/app_colors.dart
+
 class AppColors {
   AppColors._();
   
@@ -40,6 +39,16 @@ class AppColors {
   static const Color statusStartedBg = Color(0xFFE3F2FD);
   static const Color statusCompletedBg = Color(0xFFE8F5E9);
   static const Color statusCanceledBg = Color(0xFFFFEBEE);
+  
+  // Notification colors
+  static const Color notificationUnreadBg = Color(0xFFEFF6FF);
+  static const Color notificationBorder = Color(0xFFE5E7EB);
+  static const Color subscriptionActivated = Color(0xFF3B82F6);
+  static const Color tripCompleted = Color(0xFF16A34A);
+  static const Color tripCompletedBg = Color(0xFFF0FDF4);
+  static const Color subscriptionActivatedBg = Color(0xFFDEEBFF);
+  static const Color bookingRequest = Color(0xFFF59E0B);
+  static const Color bookingRequestBg = Color(0xFFFEF3C7);
   
   static const Color successBackground = Color(0xFFE8F5E9);
   static const Color warningBackground = Color(0xFFFFF3E0);
