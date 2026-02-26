@@ -35,41 +35,42 @@ class _TripDetailModalState extends State<TripDetailModal> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(color: AppColors.white),
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(child: _buildMap()),
-                  SliverToBoxAdapter(child: _buildTripInfoCard()),
-                  SliverToBoxAdapter(child: _buildPassengersSection(context)),
-                  SliverToBoxAdapter(child: _buildSchoolsSection(context)),
+ @override
+Widget build(BuildContext context) {
+ return Scaffold(
+  backgroundColor: Colors.white,
+  body: Column(
+        children: [
+          _buildHeader(context),
 
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: AppConstants.spacingXXXL),
-                  ),
+          // ✅ CARTE SORTIE DU SCROLLVIEW — gestes complètement libres
+          _buildMap(),
+
+          // ✅ CONTENU SCROLLABLE EN DESSOUS — indépendant de la carte
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                children: [
+                  _buildTripInfoCard(),
+                  _buildPassengersSection(context),
+                  _buildSchoolsSection(context),
+                  const SizedBox(height: AppConstants.spacingXXXL),
                 ],
               ),
             ),
-            if (widget.trip.status == AppConstants.statusPending ||
-                widget.trip.status == 'in_progress' ||
-                widget.trip.status == 'started' ||
-                widget.trip.status == 'partially_completed' ||
-                widget.trip.returnStatus == 'in_progress' ||
-                (widget.trip.status == 'completed' &&
-                    widget.trip.returnStatus == 'pending'))
-              _buildActionButtons(context),
-          ],
-        ),
-      ),
+          ),
+
+          if (widget.trip.status == AppConstants.statusPending ||
+              widget.trip.status == 'in_progress' ||
+              widget.trip.status == 'started' ||
+              widget.trip.status == 'partially_completed' ||
+              widget.trip.returnStatus == 'in_progress' ||
+              (widget.trip.status == 'completed' &&
+                  widget.trip.returnStatus == 'pending'))
+            _buildActionButtons(context),
+       ],
+  ),
     );
   }
 
@@ -113,28 +114,27 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
-  Widget _buildMap() {
-    return SizedBox(
-      height: 300,
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.spacingXL),
-        child: GestureDetector(
-          onVerticalDragUpdate: (_) {},
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppConstants.radiusL),
-            child: RealtimeTripMapWidget(
-              tripId: widget.trip.id,
-              startLocation: widget.trip.startLocation ?? 'Dakar',
-              destination: widget.trip.destination,
-              stops: widget.trip.schools,
-              enableRealtime: false,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+Widget _buildMap() {
+  final isActive = widget.trip.status == 'in_progress' ||
+      widget.trip.status == 'started' ||
+      widget.trip.returnStatus == 'in_progress' ||
+      widget.trip.isActive;
 
+  debugPrint('=== MAP isActive: $isActive | status: ${widget.trip.status} | returnStatus: ${widget.trip.returnStatus}');
+
+  return SizedBox(
+    height: 300,
+    width: double.infinity,
+    child: RealtimeTripMapWidget(
+      tripId: widget.trip.id,
+      startLocation: widget.trip.startLocation ?? 'Dakar',
+      destination: widget.trip.destination,
+      stops: widget.trip.schools,
+      enableRealtime: isActive,
+      isDriver: true,
+    ),
+  );
+}
   Widget _buildTripInfoCard() {
     final isAllerCompleted =
         widget.trip.status == 'completed' ||
@@ -504,269 +504,273 @@ class _TripDetailModalState extends State<TripDetailModal> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    final hasPassengers = widget.trip.passengers.isNotEmpty;
-    final isAllerCompleted =
-        widget.trip.status == 'completed' ||
-        widget.trip.status == 'partially_completed';
-    final isRetourPending = widget.trip.returnStatus == 'pending';
-    final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
-    final showReturnButton = isAllerCompleted && isRetourPending;
-    final showCompleteReturnButton = isRetourInProgress;
+ Widget _buildActionButtons(BuildContext context) {
+  final hasPassengers = widget.trip.passengers.isNotEmpty;
+  final isAllerCompleted =
+      widget.trip.status == 'completed' ||
+      widget.trip.status == 'partially_completed';
+  final isRetourPending = widget.trip.returnStatus == 'pending';
+  final isRetourInProgress = widget.trip.returnStatus == 'in_progress';
+  final showReturnButton = isAllerCompleted && isRetourPending;
+  final showCompleteReturnButton = isRetourInProgress;
 
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppConstants.spacingXL,
-        right: AppConstants.spacingXL,
-        top: AppConstants.spacingXL,
-        bottom: AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.blackOpacity05,
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          if (!hasPassengers &&
-              widget.trip.status == AppConstants.statusActive) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
-              padding: const EdgeInsets.all(AppConstants.spacingM),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                border: Border.all(color: const Color(0xFFF59E0B)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.warning_amber, color: Color(0xFFF59E0B), size: 20),
-                  SizedBox(width: AppConstants.spacingM),
-                  Expanded(
-                    child: Text(
-                      'Vous devez avoir au moins 1 passager pour démarrer',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeS,
-                        color: Color(0xFFF59E0B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+  return Container(
+    padding: EdgeInsets.only(
+      left: AppConstants.spacingXL,
+      right: AppConstants.spacingXL,
+      top: AppConstants.spacingXL,
+      bottom: AppConstants.spacingXL + MediaQuery.of(context).padding.bottom,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.white,
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.blackOpacity05,
+          blurRadius: 10,
+          offset: const Offset(0, -4),
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        if (!hasPassengers &&
+            widget.trip.status == AppConstants.statusActive) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: AppConstants.spacingM),
+            padding: const EdgeInsets.all(AppConstants.spacingM),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(AppConstants.radiusM),
+              border: Border.all(color: const Color(0xFFF59E0B)),
             ),
-          ],
-          Row(
-            children: [
-              if (widget.trip.status == AppConstants.statusPending) ...[
+            child: const Row(
+              children: [
+                Icon(Icons.warning_amber, color: Color(0xFFF59E0B), size: 20),
+                SizedBox(width: AppConstants.spacingM),
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _showCancelDialog(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      side: const BorderSide(
-                        color: AppColors.error,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusL,
-                        ),
-                      ),
-                    ),
-                    child: const Text(
-                      'Rejeter',
-                      style: TextStyle(
-                        color: AppColors.error,
-                        fontSize: AppConstants.fontSizeL,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppConstants.spacingM),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: hasPassengers
-                        ? () => _acceptTrip(context)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.grey300,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusL,
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Démarrer le trajet',
-                          style: TextStyle(
-                            color: hasPassengers
-                                ? AppColors.white
-                                : AppColors.grey600,
-                            fontSize: AppConstants.fontSizeL,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: hasPassengers
-                              ? AppColors.white
-                              : AppColors.grey600,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ] else if (widget.trip.status == 'in_progress' ||
-                  widget.trip.status == 'started') ...[
-                // Bouton de suivi GPS
-                LocationTrackingButton(tripId: widget.trip.id),
-                const SizedBox(height: AppConstants.spacingM),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _completeTrip(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusL,
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Terminer le trajet',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: AppConstants.fontSizeL,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ] else if (showReturnButton) ...[
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: hasPassengers
-                        ? () => _startReturnTrip(context)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: AppColors.grey300,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusL,
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Démarrer le retour',
-                          style: TextStyle(
-                            color: hasPassengers
-                                ? AppColors.white
-                                : AppColors.grey600,
-                            fontSize: AppConstants.fontSizeL,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.arrow_forward,
-                          color: hasPassengers
-                              ? AppColors.white
-                              : AppColors.grey600,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ] else if (showCompleteReturnButton) ...[
-                // Bouton de suivi GPS pour le retour
-                LocationTrackingButton(tripId: widget.trip.id),
-                const SizedBox(height: AppConstants.spacingM),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _completeReturnTrip(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppConstants.spacingL + 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppConstants.radiusL,
-                        ),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Terminer le retour',
-                          style: TextStyle(
-                            color: AppColors.white,
-                            fontSize: AppConstants.fontSizeL,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(width: AppConstants.spacingS),
-                        Icon(
-                          Icons.check_circle,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
-                      ],
+                  child: Text(
+                    'Vous devez avoir au moins 1 passager pour démarrer',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeS,
+                      color: Color(0xFFF59E0B),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
               ],
-            ],
+            ),
           ),
         ],
-      ),
-    );
-  }
+        Row(
+          children: [
+            if (widget.trip.status == AppConstants.statusPending) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _showCancelDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spacingL + 2,
+                    ),
+                    side: const BorderSide(
+                      color: AppColors.error,
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusL,
+                      ),
+                    ),
+                  ),
+                  child: const Text(
+                    'Rejeter',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontSize: AppConstants.fontSizeL,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: hasPassengers
+                      ? () => _acceptTrip(context)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.grey300,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spacingL + 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusL,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Démarrer le trajet',
+                        style: TextStyle(
+                          color: hasPassengers
+                              ? AppColors.white
+                              : AppColors.grey600,
+                          fontSize: AppConstants.fontSizeL,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: AppConstants.spacingS),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: hasPassengers
+                            ? AppColors.white
+                            : AppColors.grey600,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else if (widget.trip.status == 'in_progress' ||
+                widget.trip.status == 'started') ...[
+              // ✅ GPS + Terminer côte à côte correctement
+              Expanded(
+                child: LocationTrackingButton(tripId: widget.trip.id),
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _completeTrip(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spacingL + 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusL,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Terminer le trajet',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppConstants.fontSizeL,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: AppConstants.spacingS),
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else if (showReturnButton) ...[
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: hasPassengers
+                      ? () => _startReturnTrip(context)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.grey300,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spacingL + 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusL,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Démarrer le retour',
+                        style: TextStyle(
+                          color: hasPassengers
+                              ? AppColors.white
+                              : AppColors.grey600,
+                          fontSize: AppConstants.fontSizeL,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: AppConstants.spacingS),
+                      Icon(
+                        Icons.arrow_forward,
+                        color: hasPassengers
+                            ? AppColors.white
+                            : AppColors.grey600,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else if (showCompleteReturnButton) ...[
+              // ✅ GPS + Terminer retour côte à côte correctement
+              Expanded(
+                child: LocationTrackingButton(tripId: widget.trip.id),
+              ),
+              const SizedBox(width: AppConstants.spacingM),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _completeReturnTrip(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppConstants.spacingL + 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppConstants.radiusL,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Terminer le retour',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: AppConstants.fontSizeL,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: AppConstants.spacingS),
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStatusBadge() {
     final statusConfig = _getStatusConfig();

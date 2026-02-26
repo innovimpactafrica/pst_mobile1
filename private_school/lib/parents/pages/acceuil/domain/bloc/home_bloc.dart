@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:private_school/parents/pages/trajets/data/models/trip_model.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart';
 import 'home_event.dart';
 import 'home_state.dart';
@@ -69,7 +70,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('   Réservés (en premier): ${_reservedTripIds.length}');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      emit(HomeLoaded(trips: allTrips));
+      // Récupérer les réservations complètes pour le state
+List<TripModel> reservationsList = [];
+try {
+  reservationsList = await repository.getMyReservations();
+} catch (e) {
+  debugPrint('Erreur récupération réservations pour state: $e');
+}
+
+emit(HomeLoaded(
+  trips: allTrips,
+  reservations: reservationsList, 
+));
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

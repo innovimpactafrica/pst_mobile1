@@ -31,6 +31,7 @@ import 'package:private_school/parents/pages/trajets/presentation/pages/trip_tra
 import 'package:private_school/parents/pages/acceuil/presentation/pages/discussion.dart';
 import 'package:private_school/parents/pages/acceuil/presentation/widgets/trip_filter_modal.dart';
 import 'package:private_school/parents/widgets/main_layout.dart';
+import 'package:private_school/shared/widgets/realtime_trip_map_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,8 +75,7 @@ class _HomePageContentState extends State<_HomePageContent>
   final UnifiedNotificationService _notificationService =
       UnifiedNotificationService();
   final TextEditingController _searchController = TextEditingController();
-  TripFilters? _currentFilters;
-
+  TripFilters? _currentFilters; 
   @override
   void initState() {
     super.initState();
@@ -85,6 +85,7 @@ class _HomePageContentState extends State<_HomePageContent>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthBloc>().add(const LoadCurrentUserEvent());
       context.read<HomeBloc>().add(LoadDriversEvent());
+       context.read<HomeBloc>().add(LoadDriversEvent());
 
       _notificationService.registerBlocs(
         messagesBloc: context.read<UnreadMessagesBloc>(),
@@ -187,7 +188,9 @@ class _HomePageContentState extends State<_HomePageContent>
                   color: AppColors.white,
                   child: Stack(
                     children: [
-                      _buildMapBackground(context),
+                      BlocBuilder<HomeBloc, HomeState>(
+  builder: (context, homeState) => _buildMapBackground(context, homeState),
+),
                       Column(
                         children: [
                           _buildSearchBar(),
@@ -292,32 +295,222 @@ class _HomePageContentState extends State<_HomePageContent>
     );
   }
 
-  Widget _buildMapBackground(BuildContext context) {
-    final location = _homeLocation ?? const LatLng(14.6937, -17.4441);
+Widget _buildMapBackground(BuildContext context, HomeState homeState) {
+  if (homeState is! HomeLoaded) return _buildHomeMap();
 
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(target: location, zoom: 14),
-      onMapCreated: (controller) {},
-      markers: {
-        Marker(
-          markerId: const MarkerId('home'),
-          position: location,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
-          ),
-          infoWindow: InfoWindow(title: 'my_home'.tr()),
+  final activeTrips = homeState.reservations
+      .where((t) => t.status == 'in_progress')
+      .toList();
+
+  debugPrint('🗺️ [Map] ${activeTrips.length} trajet(s) en cours');
+
+  if (activeTrips.isEmpty) return _buildHomeMap();
+  if (activeTrips.length == 1) return _buildActiveTripMap(activeTrips.first);
+  return _buildMultipleActiveTrips(activeTrips);
+}
+
+Widget _buildHomeMap() {
+  final location = _homeLocation ?? const LatLng(14.6937, -17.4441);
+  return GoogleMap(
+    initialCameraPosition: CameraPosition(target: location, zoom: 14),
+    onMapCreated: (controller) {},
+    markers: {
+      Marker(
+        markerId: const MarkerId('home'),
+        position: location,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        infoWindow: InfoWindow(title: 'my_home'.tr()),
+      ),
+    },
+    myLocationEnabled: true,
+    myLocationButtonEnabled: false,
+    zoomControlsEnabled: false,
+    zoomGesturesEnabled: true,
+    scrollGesturesEnabled: true,
+    tiltGesturesEnabled: true,
+    rotateGesturesEnabled: true,
+    mapToolbarEnabled: false,
+  );
+}
+
+Widget _buildActiveTripMap(TripModel trip) {
+  return GestureDetector(
+    onTap: () => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => TripTrackingPage(trip: trip)),
+    ),
+    child: Stack(
+      children: [
+        RealtimeTripMapWidget(
+          tripId: trip.id,
+          startLocation: trip.departure,
+          destination: trip.arrival,
+          stops: trip.schools,
+          enableRealtime: true,
         ),
-      },
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      zoomGesturesEnabled: true,
-      scrollGesturesEnabled: true,
-      tiltGesturesEnabled: true,
-      rotateGesturesEnabled: true,
-      mapToolbarEnabled: false,
-    );
-  }
+        Positioned(
+          bottom: 12,
+          left: 8,
+          right: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.success,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.directions_bus, color: Colors.white, size: 16),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    '${trip.departure} → ${trip.destination}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 10),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildMultipleActiveTrips(List<TripModel> activeTrips) {
+  return StatefulBuilder(
+    builder: (context, setStateInner) {
+      int currentIndex = 0;
+      return StatefulBuilder(
+        builder: (context, setStateIndex) {
+          return Stack(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TripTrackingPage(trip: activeTrips[currentIndex]),
+                  ),
+                ),
+                child: RealtimeTripMapWidget(
+                  tripId: activeTrips[currentIndex].id,
+                  startLocation: activeTrips[currentIndex].departure,
+                  destination: activeTrips[currentIndex].arrival,
+                  stops: activeTrips[currentIndex].schools,
+                  enableRealtime: true,
+                ),
+              ),
+              Positioned(
+                bottom: 12,
+                left: 8,
+                right: 8,
+                child: Row(
+                  children: [
+                    if (currentIndex > 0)
+                      GestureDetector(
+                        onTap: () => setStateIndex(() => currentIndex--),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 36),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TripTrackingPage(trip: activeTrips[currentIndex]),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.directions_bus, color: Colors.white, size: 16),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  '${activeTrips[currentIndex].departure} → ${activeTrips[currentIndex].destination}',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${currentIndex + 1}/${activeTrips.length}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (currentIndex < activeTrips.length - 1)
+                      GestureDetector(
+                        onTap: () => setStateIndex(() => currentIndex++),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 36),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
   Widget _buildSearchBar() {
     return Padding(

@@ -177,63 +177,51 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           ),
 
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // GOOGLE MAPS — Carte avec suivi en temps réel
-                  SizedBox(
-                    height: AppConstants.mapHeight,
-                    width: double.infinity,
-                    child: GestureDetector(
-                      onVerticalDragUpdate: (_) {},
-                      child: RealtimeTripMapWidget(
-                        tripId: widget.trip.id,
-                        startLocation: widget.trip.departure,
-                        destination: widget.trip.arrival,
-                        stops: widget.trip.schools,
-                        enableRealtime: widget.trip.isActive,
+            child: Column(
+              children: [
+                // CARTE — hauteur fixe, gestes complètement libres
+                SizedBox(
+                  height: AppConstants.mapHeight,
+                  width: double.infinity,
+                  child: RealtimeTripMapWidget(
+                    tripId: widget.trip.id,
+                    startLocation: widget.trip.departure,
+                    destination: widget.trip.arrival,
+                    stops: widget.trip.schools,
+                    enableRealtime: widget.trip.isActive,
+                  ),
+                ),
+
+                // CONTENU scrollable en dessous — indépendant de la carte
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Container(
+                      color: AppColors.white,
+                      padding: const EdgeInsets.all(AppConstants.spacingXL),
+                      child: Column(
+                        children: [
+                          if (widget.trip.driverName?.isNotEmpty ?? false)
+                            _driverCard(),
+                          const SizedBox(height: AppConstants.spacingM),
+                          _actionButtons(),
+                          const SizedBox(height: AppConstants.spacingXL),
+                          _tripDetails(),
+                          const SizedBox(height: AppConstants.spacingL),
+                          _dateEstimation(),
+                          const SizedBox(height: AppConstants.spacingXL),
+                          _passengersTile(),
+                          const SizedBox(height: AppConstants.spacingM),
+                          _schoolsTile(),
+                          const SizedBox(height: AppConstants.spacingXXL),
+                          _reviewsSection(),
+                          const SizedBox(height: 100),
+                        ],
                       ),
                     ),
                   ),
-
-                  Container(
-                    color: AppColors.white,
-                    padding: const EdgeInsets.all(AppConstants.spacingXL),
-                    child: Column(
-                      children: [
-                        if (widget.trip.driverName?.isNotEmpty ?? false)
-                          _driverCard(),
-
-                        const SizedBox(height: AppConstants.spacingM),
-
-                        _actionButtons(),
-
-                        const SizedBox(height: AppConstants.spacingXL),
-
-                        _tripDetails(),
-
-                        const SizedBox(height: AppConstants.spacingL),
-
-                        _dateEstimation(),
-
-                        const SizedBox(height: AppConstants.spacingXL),
-
-                        _passengersTile(),
-
-                        const SizedBox(height: AppConstants.spacingM),
-
-                        _schoolsTile(),
-
-                        const SizedBox(height: AppConstants.spacingXXL),
-
-                        _reviewsSection(),
-
-                        const SizedBox(height: 100),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],

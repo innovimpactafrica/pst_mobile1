@@ -141,36 +141,41 @@ class LocationService {
   }
 
   /// Envoyer toutes les positions en cache
-  Future<void> _sendCachedLocations(String tripId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedJson = prefs.getString(_cachedLocationsKey);
+ Future<void> _sendCachedLocations(String tripId) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final cachedJson = prefs.getString(_cachedLocationsKey);
 
-      if (cachedJson == null || cachedJson == '[]') return;
+    if (cachedJson == null || cachedJson == '[]') return;
 
-      final List<dynamic> cached = json.decode(cachedJson);
+    final List<dynamic> cached = json.decode(cachedJson);
+    if (cached.isEmpty) return;
 
-      if (cached.isEmpty) return;
+    debugPrint(' Envoi de ${cached.length} position(s) en cache une par une...');
 
-      debugPrint(' Envoi de ${cached.length} position(s) en cache...');
-
-      // Envoyer en batch
+    // Envoyer une par une au lieu du batch (batch endpoint n'existe pas)
+    int sent = 0;
+    for (final location in cached) {
       try {
         await _apiClient.post(
-          '/api/drivers/trips/$tripId/location/batch',
-          data: {'locations': cached},
+          '/api/drivers/trips/$tripId/location',
+          data: location,
         );
-
-        // Vider le cache après envoi réussi
-        await prefs.remove(_cachedLocationsKey);
-        debugPrint(' ${cached.length} position(s) envoyée(s), cache vidé');
+        sent++;
       } catch (e) {
-        debugPrint(' Impossible d\'envoyer le cache: $e');
+        debugPrint(' Erreur envoi position cache: $e');
+        break; // Arrêter si pas de connexion
       }
-    } catch (e) {
-      debugPrint(' Erreur envoi cache: $e');
     }
+
+    if (sent > 0) {
+      await prefs.remove(_cachedLocationsKey);
+      debugPrint(' $sent position(s) envoyée(s), cache vidé');
+    }
+  } catch (e) {
+    debugPrint(' Erreur envoi cache: $e');
   }
+}
 
   /// Obtenir la position actuelle (une seule fois)
   Future<Position> getCurrentPosition() async {

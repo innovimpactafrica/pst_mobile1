@@ -58,7 +58,7 @@ class AppConstants {
   static const double avatarSizeXL = 64.0;
 
   // Map
-  static const double mapHeight = 250.0;
+  static const double mapHeight = 320.0;
   static const double mapBorderRadius = 16.0;
 
   // Modal

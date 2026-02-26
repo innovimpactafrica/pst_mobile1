@@ -55,17 +55,19 @@ class CurrentLocation {
     required this.timestamp,
   });
 
-  factory CurrentLocation.fromJson(Map<String, dynamic> json) {
+factory CurrentLocation.fromJson(Map<String, dynamic> json) {
     return CurrentLocation(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      latitude: double.parse(json['latitude'].toString()),
+      longitude: double.parse(json['longitude'].toString()),
       direction: json['direction'] ?? 'aller',
-      speed: json['speed'] != null ? (json['speed'] as num).toDouble() : null,
+      speed: json['speed'] != null
+          ? double.parse(json['speed'].toString())
+          : null,
       accuracy: json['accuracy'] != null
-          ? (json['accuracy'] as num).toDouble()
+          ? double.parse(json['accuracy'].toString())
           : null,
       heading: json['heading'] != null
-          ? (json['heading'] as num).toDouble()
+          ? double.parse(json['heading'].toString())
           : null,
       timestamp: DateTime.parse(json['timestamp']),
     );
@@ -130,10 +132,14 @@ class Coordinates {
 
   Coordinates({required this.latitude, required this.longitude});
 
-  factory Coordinates.fromJson(Map<String, dynamic> json) {
+ factory Coordinates.fromJson(Map<String, dynamic> json) {
     return Coordinates(
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      latitude: json['latitude'] != null
+          ? double.parse(json['latitude'].toString())
+          : 0.0,
+      longitude: json['longitude'] != null
+          ? double.parse(json['longitude'].toString())
+          : 0.0,
     );
   }
 }
@@ -161,7 +167,7 @@ class RealtimeTrackingService {
 
       throw Exception('Erreur récupération données');
     } catch (e) {
-      debugPrint('❌ Erreur récupération suivi: $e');
+      debugPrint(' Erreur récupération suivi: $e');
       rethrow;
     }
   }
@@ -188,7 +194,7 @@ class RealtimeTrackingService {
   void stopPolling() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
-    debugPrint('🛑 Polling arrêté\n');
+    debugPrint('Polling arrêté\n');
   }
 
   void dispose() {
