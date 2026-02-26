@@ -219,8 +219,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  widget.trip.driverRatingValue >
-                                                          0
+                                                  widget.trip.driver!.totalReviews > 0
                                                       ? widget
                                                             .trip
                                                             .driverRatingValue
