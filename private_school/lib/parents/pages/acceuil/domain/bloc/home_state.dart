@@ -13,13 +13,13 @@ class HomeLoading extends HomeState {}
 class HomeLoaded extends HomeState {
   final List<TripModel> trips;
   final List<TripModel> filteredTrips;
-   final List<TripModel> reservations;
+  final List<TripModel> reservations;
   final String searchQuery;
 
   HomeLoaded({
     required this.trips,
     List<TripModel>? filteredTrips,
-     this.reservations = const [],
+    this.reservations = const [],
     this.searchQuery = '',
   }) : filteredTrips = filteredTrips ?? trips;
 

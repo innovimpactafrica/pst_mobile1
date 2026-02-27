@@ -102,7 +102,6 @@ class _TripDetailPageState extends State<TripDetailPage> {
             Expanded(
               child: Column(
                 children: [
-                  // CARTE LIBRE — gestes non bloqués
                   SizedBox(
                     height: 320,
                     width: double.infinity,
@@ -115,7 +114,6 @@ class _TripDetailPageState extends State<TripDetailPage> {
                     ),
                   ),
 
-                  // CONTENU SCROLLABLE
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const ClampingScrollPhysics(),
@@ -199,7 +197,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                               Row(
                                                 children: [
                                                   Text(
-                                                    widget.trip.driver!
+                                                    widget
+                                                            .trip
+                                                            .driver!
                                                             .licenseNumber ??
                                                         '',
                                                     style: GoogleFonts.inter(
@@ -216,10 +216,13 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Text(
-                                                    widget.trip.driver!
+                                                    widget
+                                                                .trip
+                                                                .driver!
                                                                 .totalReviews >
                                                             0
-                                                        ? widget.trip
+                                                        ? widget
+                                                              .trip
                                                               .driverRatingValue
                                                               .toStringAsFixed(
                                                                 1,
@@ -260,10 +263,7 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                     Expanded(
                                       child: ElevatedButton.icon(
                                         onPressed: () => _callDriver(context),
-                                        icon: const Icon(
-                                          Icons.phone,
-                                          size: 18,
-                                        ),
+                                        icon: const Icon(Icons.phone, size: 18),
                                         label: Text(
                                           'call'.tr(),
                                           style: GoogleFonts.inter(
@@ -324,8 +324,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
 
                             // DÉTAILS DU TRAJET
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -376,8 +377,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
 
                             // DATE + ESTIMATION
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -524,11 +526,15 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                           child: Stack(
                                             children: [
                                               if (widget
-                                                  .trip.passengers.isNotEmpty)
+                                                  .trip
+                                                  .passengers
+                                                  .isNotEmpty)
                                                 Positioned(
                                                   left: 0,
                                                   child: _buildPassengerAvatar(
-                                                    widget.trip.passengers[0]
+                                                    widget
+                                                        .trip
+                                                        .passengers[0]
                                                         .initials,
                                                     Color(
                                                       int.parse(
@@ -545,12 +551,17 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                     ),
                                                   ),
                                                 ),
-                                              if (widget.trip.passengers.length >
+                                              if (widget
+                                                      .trip
+                                                      .passengers
+                                                      .length >
                                                   1)
                                                 Positioned(
                                                   left: 24,
                                                   child: _buildPassengerAvatar(
-                                                    widget.trip.passengers[1]
+                                                    widget
+                                                        .trip
+                                                        .passengers[1]
                                                         .initials,
                                                     Color(
                                                       int.parse(
@@ -567,12 +578,17 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                                     ),
                                                   ),
                                                 ),
-                                              if (widget.trip.passengers.length >
+                                              if (widget
+                                                      .trip
+                                                      .passengers
+                                                      .length >
                                                   2)
                                                 Positioned(
                                                   left: 48,
                                                   child: _buildPassengerAvatar(
-                                                    widget.trip.passengers[2]
+                                                    widget
+                                                        .trip
+                                                        .passengers[2]
                                                         .initials,
                                                     Color(
                                                       int.parse(
@@ -657,9 +673,12 @@ class _TripDetailPageState extends State<TripDetailPage> {
                                               width: 22,
                                               height: 22,
                                               color: AppColors.success,
-                                              errorBuilder: (context, error,
-                                                      stackTrace) =>
-                                                  Icon(
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Icon(
                                                     Icons.school,
                                                     color: AppColors.success,
                                                     size: 22,
@@ -977,9 +996,9 @@ class _TripDetailPageState extends State<TripDetailPage> {
 
       if (!mounted) return;
       Navigator.of(context).pop();
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PaymentPage(trip: widget.trip)),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => PaymentPage(trip: widget.trip)));
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop();

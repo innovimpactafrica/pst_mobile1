@@ -50,7 +50,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
           });
         }
       } catch (e) {
-        debugPrint('❌ Erreur reprise tracking: $e');
+        debugPrint(' Erreur reprise tracking: $e');
         // Si erreur, remettre à false
         await prefs.setBool(_prefKey, false);
         if (mounted) setState(() => _isLoading = false);
@@ -84,7 +84,7 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
         }
       } else {
         await _locationService.startLocationTracking(widget.tripId);
-        await prefs.setBool(_prefKey, true); // ← sauvegarder état
+        await prefs.setBool(_prefKey, true);
         setState(() {
           _isTracking = true;
           _isLoading = false;
@@ -128,7 +128,9 @@ class _LocationTrackingButtonState extends State<LocationTrackingButton> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.grey400,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }

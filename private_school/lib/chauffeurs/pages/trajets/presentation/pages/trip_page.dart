@@ -418,14 +418,14 @@ class _TripPageState extends State<TripPage>
   }
 
   void _showTripDetails(TripModel trip) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => BlocProvider.value(
-        value: context.read<TripBloc>(),
-        child: TripDetailModal(trip: trip),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: context.read<TripBloc>(),
+          child: TripDetailModal(trip: trip),
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

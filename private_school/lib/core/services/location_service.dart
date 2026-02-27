@@ -29,7 +29,7 @@ class LocationService {
 
       // Configurer l'envoi automatique toutes les 30 secondes
       _locationTimer = Timer.periodic(
-        const Duration(seconds: 30),
+        const Duration(seconds: 10),
         (_) => _sendCurrentLocation(tripId),
       );
 
@@ -141,41 +141,43 @@ class LocationService {
   }
 
   /// Envoyer toutes les positions en cache
- Future<void> _sendCachedLocations(String tripId) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final cachedJson = prefs.getString(_cachedLocationsKey);
+  Future<void> _sendCachedLocations(String tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(_cachedLocationsKey);
 
-    if (cachedJson == null || cachedJson == '[]') return;
+      if (cachedJson == null || cachedJson == '[]') return;
 
-    final List<dynamic> cached = json.decode(cachedJson);
-    if (cached.isEmpty) return;
+      final List<dynamic> cached = json.decode(cachedJson);
+      if (cached.isEmpty) return;
 
-    debugPrint(' Envoi de ${cached.length} position(s) en cache une par une...');
+      debugPrint(
+        ' Envoi de ${cached.length} position(s) en cache une par une...',
+      );
 
-    // Envoyer une par une au lieu du batch (batch endpoint n'existe pas)
-    int sent = 0;
-    for (final location in cached) {
-      try {
-        await _apiClient.post(
-          '/api/drivers/trips/$tripId/location',
-          data: location,
-        );
-        sent++;
-      } catch (e) {
-        debugPrint(' Erreur envoi position cache: $e');
-        break; // Arrêter si pas de connexion
+      // Envoyer une par une
+      int sent = 0;
+      for (final location in cached) {
+        try {
+          await _apiClient.post(
+            '/api/drivers/trips/$tripId/location',
+            data: location,
+          );
+          sent++;
+        } catch (e) {
+          debugPrint(' Erreur envoi position cache: $e');
+          break; // Arrêter si pas de connexion
+        }
       }
-    }
 
-    if (sent > 0) {
-      await prefs.remove(_cachedLocationsKey);
-      debugPrint(' $sent position(s) envoyée(s), cache vidé');
+      if (sent > 0) {
+        await prefs.remove(_cachedLocationsKey);
+        debugPrint(' $sent position(s) envoyée(s), cache vidé');
+      }
+    } catch (e) {
+      debugPrint(' Erreur envoi cache: $e');
     }
-  } catch (e) {
-    debugPrint(' Erreur envoi cache: $e');
   }
-}
 
   /// Obtenir la position actuelle (une seule fois)
   Future<Position> getCurrentPosition() async {

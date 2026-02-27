@@ -55,7 +55,7 @@ class CurrentLocation {
     required this.timestamp,
   });
 
-factory CurrentLocation.fromJson(Map<String, dynamic> json) {
+  factory CurrentLocation.fromJson(Map<String, dynamic> json) {
     return CurrentLocation(
       latitude: double.parse(json['latitude'].toString()),
       longitude: double.parse(json['longitude'].toString()),
@@ -132,7 +132,7 @@ class Coordinates {
 
   Coordinates({required this.latitude, required this.longitude});
 
- factory Coordinates.fromJson(Map<String, dynamic> json) {
+  factory Coordinates.fromJson(Map<String, dynamic> json) {
     return Coordinates(
       latitude: json['latitude'] != null
           ? double.parse(json['latitude'].toString())
@@ -175,7 +175,7 @@ class RealtimeTrackingService {
   /// Démarrer le polling automatique (toutes les 5 secondes)
   void startPolling(String tripId) {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint('🔄 [RealtimeTracking] Démarrage du polling');
+    debugPrint(' [RealtimeTracking] Démarrage du polling');
     debugPrint('   Trip ID: $tripId');
     debugPrint('   Intervalle: 5 secondes');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');

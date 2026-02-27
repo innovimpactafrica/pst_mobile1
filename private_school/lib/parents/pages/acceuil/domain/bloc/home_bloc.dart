@@ -71,17 +71,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       // Récupérer les réservations complètes pour le state
-List<TripModel> reservationsList = [];
-try {
-  reservationsList = await repository.getMyReservations();
-} catch (e) {
-  debugPrint('Erreur récupération réservations pour state: $e');
-}
+      List<TripModel> reservationsList = [];
+      try {
+        reservationsList = await repository.getMyReservations();
+      } catch (e) {
+        debugPrint('Erreur récupération réservations pour state: $e');
+      }
 
-emit(HomeLoaded(
-  trips: allTrips,
-  reservations: reservationsList, 
-));
+      emit(HomeLoaded(trips: allTrips, reservations: reservationsList));
     } catch (e, stackTrace) {
       debugPrint('');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

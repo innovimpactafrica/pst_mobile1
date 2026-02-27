@@ -179,7 +179,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
           Expanded(
             child: Column(
               children: [
-                // CARTE — hauteur fixe, gestes complètement libres
                 SizedBox(
                   height: AppConstants.mapHeight,
                   width: double.infinity,
@@ -192,7 +191,6 @@ class _TripTrackingPageState extends State<TripTrackingPage> {
                   ),
                 ),
 
-                // CONTENU scrollable en dessous — indépendant de la carte
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const ClampingScrollPhysics(),
