@@ -346,7 +346,7 @@
   "create_account_description": "Créer un compte maintenant et profitez\npleinement de l'application.",
   "first_last_name": "Prénom et nom",
   "name_example": "Ex: Birima Diop",
-  "phone_example": "Ex: 77 123 45 67",
+  "phone_example": "Ex: +221771234567",
   "confirm_password": "Confirmer le mot de passe",
   "password_min_length": "Le mot de passe doit contenir au moins 6 caractères",
   "passwords_do_not_match": "Les mots de passe ne correspondent pas",
