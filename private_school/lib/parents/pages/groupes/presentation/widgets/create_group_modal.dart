@@ -18,36 +18,21 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _membersController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _membersController.dispose();
     super.dispose();
   }
 
   void _createGroup(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
 
-    final memberEmails = _membersController.text
-        .split(RegExp(r'[,\s\n]+'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint(' [CreateGroupModal] CREATE GROUP');
-    debugPrint('   Name: ${_nameController.text.trim()}');
-    debugPrint('   Description: ${_descriptionController.text.trim()}');
-    debugPrint('   Members: $memberEmails');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
     context.read<GroupBloc>().add(
       CreateGroupEvent(
         name: _nameController.text.trim(),
-        memberEmails: memberEmails,
+        memberEmails: [],
         description: _descriptionController.text.trim().isNotEmpty
             ? _descriptionController.text.trim()
             : null,
@@ -55,7 +40,6 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
     );
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<GroupBloc, GroupState>(
@@ -86,28 +70,28 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
 
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
+          child: Padding(
+            // ✅ FIX OVERFLOW : le padding s'adapte au clavier
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 24,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // TITRE + BOUTON FERMER
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -129,6 +113,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                       ),
                       const SizedBox(height: 24),
 
+                      // CHAMP NOM
                       Text(
                         'group_name'.tr(),
                         style: GoogleFonts.inter(
@@ -171,7 +156,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                       ),
                       const SizedBox(height: 16),
 
-                      // DESCRIPTION (optionnel)
+                      // CHAMP DESCRIPTION
                       Text(
                         'description_optional'.tr(),
                         style: GoogleFonts.inter(
@@ -184,7 +169,10 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                       TextFormField(
                         controller: _descriptionController,
                         maxLines: 2,
-                        textInputAction: TextInputAction.next,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).unfocus();
+                        },
                         decoration: InputDecoration(
                           hintText: 'describe_group'.tr(),
                           hintStyle: GoogleFonts.inter(
@@ -207,55 +195,14 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      // MEMBRES
-                      Text(
-                        'members_optional'.tr(),
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _membersController,
-                        maxLines: 3,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'email_or_phone_separate'.tr(),
-                          hintStyle: GoogleFonts.inter(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.success),
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 32),
 
+                      // BOUTON CRÉER
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isLoading
-                              ? null
-                              : () => _createGroup(context),
+                          onPressed:
+                              isLoading ? null : () => _createGroup(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.success,
                             foregroundColor: Colors.white,
@@ -284,6 +231,7 @@ class _CreateGroupModalState extends State<CreateGroupModal> {
                                 ),
                         ),
                       ),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

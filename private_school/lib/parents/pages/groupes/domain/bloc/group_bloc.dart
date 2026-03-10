@@ -149,6 +149,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
     try {
       debugPrint(' [GroupBloc] LOAD GROUP DETAILS: ${event.groupId}');
 
+
       final results = await Future.wait([
         repository.getGroupById(event.groupId),
         repository.getGroupPlanning(event.groupId),
@@ -162,6 +163,7 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
       final members = results[2] as List<GroupMember>;
       final replacementRequests = results[3] as List<Map<String, dynamic>>;
       final allReplacementRequests = results[4] as List<Map<String, dynamic>>;
+      
 
       debugPrint(' Groupe chargé: ${group.name}');
       debugPrint(' ${plannings.length} plannings chargés');
@@ -235,7 +237,10 @@ class GroupBloc extends Bloc<GroupEvent, GroupState> {
         members: members,
       );
 
-      emit(GroupDetailsLoaded(group: groupWithData));
+      emit(GroupDetailsLoaded(
+  group: groupWithData,
+  replacementHistory: allReplacementRequests, 
+));
     } catch (e) {
       debugPrint(' Details error: $e');
       emit(GroupError(message: 'Erreur chargement groupe: $e'));

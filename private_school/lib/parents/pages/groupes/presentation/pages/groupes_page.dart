@@ -40,14 +40,17 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
     super.dispose();
   }
 
-  void _openCreateGroupModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) => BlocProvider.value(
-        value: context.read<GroupBloc>(),
+ void _openCreateGroupModal() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (modalContext) => BlocProvider.value(
+      value: context.read<GroupBloc>(),
+      child: GestureDetector(
+        onTap: () => FocusScope.of(modalContext).unfocus(),
         child: Padding(
+          
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(modalContext).viewInsets.bottom,
           ),
@@ -59,17 +62,16 @@ class _GroupesPageContentState extends State<GroupesPageContent> {
                 topRight: Radius.circular(24),
               ),
             ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: const _CreateGroupForm(),
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+              child: const _CreateGroupForm(),
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -721,60 +723,55 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _membersController = TextEditingController();
+  bool _isSubmitting = false;
+  
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _membersController.dispose();
     super.dispose();
   }
 
   void _createGroup(BuildContext context) {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
+  setState(() => _isSubmitting = true);
 
-    final memberEmails = _membersController.text
-        .split(RegExp(r'[,\s\n]+'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+  debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  debugPrint(' [CreateGroupForm] CREATE GROUP');
+  debugPrint('   Name: ${_nameController.text.trim()}');
+  debugPrint('   Description: ${_descriptionController.text.trim()}');
+  debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    debugPrint(' [CreateGroupForm] CREATE GROUP');
-    debugPrint('   Name: ${_nameController.text.trim()}');
-    debugPrint('   Description: ${_descriptionController.text.trim()}');
-    debugPrint('   Members: $memberEmails');
-    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    context.read<GroupBloc>().add(
-      CreateGroupEvent(
-        name: _nameController.text.trim(),
-        memberEmails: memberEmails,
-        description: _descriptionController.text.trim().isNotEmpty
-            ? _descriptionController.text.trim()
-            : null,
-      ),
-    );
-  }
-
+  context.read<GroupBloc>().add(
+    CreateGroupEvent(
+      name: _nameController.text.trim(),
+      memberEmails: [],
+      description: _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : null,
+    ),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<GroupBloc, GroupState>(
       listener: (context, state) {
         if (state is GroupCreated) {
+           setState(() => _isSubmitting = false);
           Navigator.pop(context);
           context.read<GroupBloc>().add(LoadAllGroupsEvent());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Groupe créé avec succès ✅',
+                'Groupe créé avec succès ',
                 style: GoogleFonts.inter(),
               ),
               backgroundColor: AppColors.success,
             ),
           );
         } else if (state is GroupError) {
+           setState(() => _isSubmitting = false); 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message, style: GoogleFonts.inter()),
@@ -784,7 +781,7 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
         }
       },
       builder: (context, state) {
-        final isLoading = state is GroupLoading;
+       final isLoading = state is GroupLoading && _isSubmitting;
 
         return Form(
           key: _formKey,
@@ -888,75 +885,9 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // MEMBRES
-              Text(
-                'members'.tr(),
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 4),
-
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: Colors.blue.shade700,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Les personnes invitées devront accepter avant de rejoindre le groupe',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.blue.shade700,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _membersController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'email_or_phone_number'.tr(),
-                  hintStyle: GoogleFonts.inter(
-                    color: Colors.grey.shade400,
-                    fontSize: 14,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppColors.success),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              SizedBox(
+              
+             const SizedBox(height: 32),
+          SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : () => _createGroup(context),
@@ -988,9 +919,12 @@ class _CreateGroupFormState extends State<_CreateGroupForm> {
                         ),
                 ),
               ),
+               SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
             ],
           ),
         );
+        
+       
       },
     );
   }

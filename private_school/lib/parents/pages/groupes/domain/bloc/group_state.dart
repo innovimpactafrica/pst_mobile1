@@ -80,13 +80,15 @@ class AvailableGroupsLoaded extends GroupState {
 class GroupDetailsLoaded extends GroupState {
   final GroupModel group;
   final int selectedTabIndex;
-  GroupDetailsLoaded({required this.group, this.selectedTabIndex = 0});
+  final List<Map<String, dynamic>> replacementHistory;
+  GroupDetailsLoaded({required this.group, this.selectedTabIndex = 0,this.replacementHistory = const [],});
   @override
-  List<Object?> get props => [group, selectedTabIndex];
-  GroupDetailsLoaded copyWith({GroupModel? group, int? selectedTabIndex}) {
+  List<Object?> get props => [group, selectedTabIndex,replacementHistory];
+  GroupDetailsLoaded copyWith({GroupModel? group, int? selectedTabIndex, List<Map<String, dynamic>>? replacementHistory,}) {
     return GroupDetailsLoaded(
       group: group ?? this.group,
       selectedTabIndex: selectedTabIndex ?? this.selectedTabIndex,
+       replacementHistory: replacementHistory ?? this.replacementHistory,
     );
   }
 }

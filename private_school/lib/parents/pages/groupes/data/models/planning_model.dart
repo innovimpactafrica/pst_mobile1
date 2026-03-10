@@ -17,6 +17,9 @@ class Planning {
   final String? notes;
   final String? replacementAcceptedBy;
   final String? replacementAcceptedByName;
+  final String? replacementRequesterName;
+  final String? replacementRequestCreatedAt;
+  final String? confirmationStatus;
 
   Planning({
     required this.id,
@@ -37,6 +40,9 @@ class Planning {
     this.notes,
     this.replacementAcceptedBy,
     this.replacementAcceptedByName,
+    this.replacementRequesterName,
+    this.replacementRequestCreatedAt,
+    this.confirmationStatus,
   });
 
   factory Planning.fromJson(Map<String, dynamic> json) {
@@ -61,6 +67,11 @@ class Planning {
       notes: json['notes'],
       replacementAcceptedBy: json['replacement_accepted_by']?.toString(),
       replacementAcceptedByName: json['replacement_accepted_by_name'],
+       replacementRequesterName: json['requester_name'] 
+          ?? json['replacement_requester_name'],
+      replacementRequestCreatedAt: json['created_at']?.toString() 
+          ?? json['requested_at']?.toString(),
+      confirmationStatus: json['confirmation_status'],
     );
   }
 
@@ -85,7 +96,8 @@ class Planning {
     'replacement_accepted_by_name': replacementAcceptedByName,
   };
 
-  bool get isConfirmed => status == 'confirmed';
+    bool get isConfirmed => 
+      status == 'confirmed' || confirmationStatus == 'confirmed';
   bool get isPending => status == 'scheduled' || status == 'pending';
   bool get needsReplacement => status == 'replacement_requested';
   bool get isReplacementAccepted => status == 'replacement_accepted';

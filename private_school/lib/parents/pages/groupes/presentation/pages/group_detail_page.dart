@@ -997,173 +997,117 @@ class GroupDetailPageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryTab(BuildContext context, GroupModel group) {
-    final historyItems = group.plannings
-        .where((p) {
-          return p.replacementAcceptedByName != null ||
-              p.replacementRequesterName != null;
-        })
-        .map((p) {
-          String dateStr = '';
-          try {
-            dateStr = DateFormat('EEEE dd MMMM', 'fr_FR').format(p.date);
-            dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
-          } catch (e) {
-            dateStr = DateFormat('EEEE dd MMMM').format(p.date);
-          }
-          return {
-            'date': dateStr,
-            'time': p.replacementRequestCreatedAt != null
-                ? DateFormat('HH:mm').format(
-                    DateTime.parse(p.replacementRequestCreatedAt!).toLocal(),
-                  )
-                : DateFormat('HH:mm').format(p.date),
-            'from': p.replacementRequesterName ?? p.driverName ?? 'Inconnu',
-            'to': p.replacementAcceptedByName ?? 'En attente',
-            'reason': p.replacementReason ?? 'Aucun motif',
-            'isPending': p.needsReplacement ? 'true' : 'false',
-          };
-        })
-        .toList();
+Widget _buildHistoryTab(BuildContext context, GroupModel group) {
+  final state = context.read<GroupBloc>().state;
+  final List<Map<String, dynamic>> history = state is GroupDetailsLoaded
+      ? state.replacementHistory
+      : [];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: historyItems.isEmpty
-            ? [
-                const SizedBox(height: 40),
-                Icon(Icons.history, size: 64, color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  'Aucun historique',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade600,
-                  ),
+  final sorted = [...history];
+  sorted.sort((a, b) {
+    final dateA = DateTime.tryParse(a['created_at']?.toString() ?? '') ?? DateTime(2000);
+    final dateB = DateTime.tryParse(b['created_at']?.toString() ?? '') ?? DateTime(2000);
+    return dateB.compareTo(dateA);
+  });
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: sorted.isEmpty
+          ? [
+              const SizedBox(height: 40),
+              Icon(Icons.history, size: 64, color: Colors.grey.shade300),
+              const SizedBox(height: 16),
+              Text('Aucun historique',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+              const SizedBox(height: 8),
+              Text('Les remplacements apparaîtront ici',
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade500)),
+            ]
+          : sorted.map((item) {
+              // Date
+              String dateStr = '';
+              try {
+                final rawDate = item['calendar_date'] ?? item['date'] ?? item['planning_date'];
+                final date = DateTime.tryParse(rawDate?.toString() ?? '');
+                if (date != null) {
+                  dateStr = DateFormat('EEEE dd MMMM', 'fr_FR').format(date);
+                  dateStr = dateStr[0].toUpperCase() + dateStr.substring(1);
+                }
+              } catch (_) {}
+
+              // Heure
+              String timeStr = '';
+              try {
+                final dt = DateTime.tryParse(item['created_at']?.toString() ?? '');
+                if (dt != null) timeStr = DateFormat('HH:mm').format(dt.toLocal());
+              } catch (_) {}
+
+              // Données
+              final fromName = item['requested_by_name'] ?? item['requester_name'] ?? 'Inconnu';
+              final toName   = item['responded_by_name'] ?? item['accepter_name'];
+              final reason   = item['reason'] ?? 'Aucun motif';
+              final isAccepted = item['status']?.toString() == 'accepted';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8, offset: const Offset(0, 2),
+                  )],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Les trajets passés apparaîtront ici',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ]
-            : historyItems
-                  .map(
-                    (item) => Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40, height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        color: isAccepted
+                            ? AppColors.success.withValues(alpha: 0.1)
+                            : Colors.orange.shade50,
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
+                      child: Center(child: Icon(
+                        isAccepted ? Icons.check_circle : Icons.sync,
+                        color: isAccepted ? AppColors.success : Colors.orange.shade600,
+                        size: 20,
+                      )),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                item['isPending'] == 'true'
-                                    ? Icons.sync
-                                    : Icons.check_circle,
-                                color: item['isPending'] == 'true'
-                                    ? Colors.orange.shade600
-                                    : AppColors.success,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['date']!,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['isPending'] == 'true'
-                                      ? '${item['from']} → En attente'
-                                      : '${item['from']} → ${item['to']}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Raison : ${item['reason']}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade600,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: item['isPending'] == 'true'
-                                        ? Colors.orange.shade50
-                                        : AppColors.success.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    item['isPending'] == 'true'
-                                        ? 'En attente'
-                                        : 'Accepté',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: item['isPending'] == 'true'
-                                          ? Colors.orange.shade700
-                                          : AppColors.success,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          Text(dateStr,
+                            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+                          const SizedBox(height: 4),
                           Text(
-                            item['time']!,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: Colors.grey.shade500,
-                            ),
+                            isAccepted && toName != null
+                                ? '$fromName → $toName'
+                                : '$fromName → En attente',
+                            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade700),
                           ),
+                          const SizedBox(height: 6),
+                          Text('Raison : $reason',
+                            style: GoogleFonts.inter(
+                              fontSize: 13, color: Colors.grey.shade600,
+                              fontStyle: FontStyle.italic,
+                            )),
                         ],
                       ),
                     ),
-                  )
-                  .toList(),
-      ),
-    );
-  }
+                    if (timeStr.isNotEmpty)
+                      Text(timeStr,
+                        style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade500)),
+                  ],
+                ),
+              );
+            }).toList(),
+    ),
+  );
+}
 }
