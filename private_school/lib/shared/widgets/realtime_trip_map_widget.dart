@@ -31,14 +31,17 @@ class RealtimeTripMapWidget extends StatefulWidget {
   State<RealtimeTripMapWidget> createState() => _RealtimeTripMapWidgetState();
 }
 
-class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
+class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   GoogleMapController? _mapController;
   final RealtimeTrackingService _trackingService = RealtimeTrackingService();
 
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   Marker? _driverMarker;
-  final List<LatLng> _traveledPath = [];
+  final List<LatLng> _traveledPath = []; // Points GPS bruts
+  final List<LatLng> _traveledRoutePoints = []; // Points de route calculés
   Polyline? _routePolyline;
   List<LatLng> _fullRoutePoints = [];
   bool _isRecalculating = false;
@@ -46,6 +49,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
   LatLng? _startCoords;
   LatLng? _endCoords;
   RealtimeTripData? _currentData;
+  LatLng? _lastCalculatedPosition; // Dernière position pour laquelle on a calculé la route
 
   Timer? _idleAnimationTimer;
   Timer? _movementTimer;
@@ -150,7 +154,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
         }
       }
     } catch (e) {
-      debugPrint(' Erreur tracé itinéraire: $e');
+      debugPrint('Erreur tracé itinéraire: $e');
     }
   }
 
@@ -564,19 +568,71 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
   }
 
   void _startRealtimeTracking() {
-    _trackingService.startPolling(widget.tripId);
-    _trackingService.trackingStream.listen((data) {
-      _currentData = data;
-      _updateDriverPosition(data);
+    debugPrint('\n [REALTIME TRACKING] Démarrage pour trip ${widget.tripId}');
+    
+    // Attendre que la carte soit initialisée avant de démarrer le tracking
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      
+      debugPrint(' Coordonnées de départ: $_startCoords');
+      debugPrint(' Coordonnées d\'arrivée: $_endCoords');
+      
+      _trackingService.startPolling(widget.tripId);
+      _trackingService.trackingStream.listen((data) {
+        debugPrint('📡 [REALTIME] Données reçues pour trip ${data.tripId}');
+        _currentData = data;
+        _updateDriverPosition(data);
+      });
     });
   }
 
   Future<void> _updateDriverPosition(RealtimeTripData data) async {
-    if (data.currentLocation == null) return;
+    if (data.currentLocation == null) {
+      debugPrint(' [UPDATE DRIVER] Pas de localisation');
+      return;
+    }
 
     final location = data.currentLocation!;
     final newPosition = LatLng(location.latitude, location.longitude);
+    
+    debugPrint('\n [UPDATE DRIVER POSITION]');
+    debugPrint('   Nouvelle position: $newPosition');
+    debugPrint('   Historique GPS: ${_traveledPath.length} points');
+    debugPrint('   Historique route: ${_traveledRoutePoints.length} points');
+    
+    // Initialiser avec le point de départ si c'est la première position
+    if (_traveledPath.isEmpty && _startCoords != null) {
+      debugPrint(' Point de départ ajouté à l\'historique');
+      
+      // Calculer immédiatement la route du départ à la position actuelle
+      debugPrint(' Calcul route initiale: départ → position actuelle');
+      await _calculateTraveledRoute(_startCoords!, newPosition);
+      _lastCalculatedPosition = newPosition;
+      debugPrint(' Route initiale calculée: ${_traveledRoutePoints.length} points');
+    }
+    
+    // Ajouter la position GPS brute
     _traveledPath.add(newPosition);
+    debugPrint(' Position GPS ajoutée: ${_traveledPath.length} points');
+    
+    // Calculer la route entre la dernière position et la nouvelle (tous les 50m)
+    if (_lastCalculatedPosition != null) {
+      final distance = _calculateDistanceMeters(
+        _lastCalculatedPosition!.latitude,
+        _lastCalculatedPosition!.longitude,
+        newPosition.latitude,
+        newPosition.longitude,
+      );
+      
+      debugPrint('   Distance depuis dernière calcul: ${distance.toStringAsFixed(1)}m');
+      
+      if (distance > 50) {
+        debugPrint(' Calcul nouvelle route: ${distance.toStringAsFixed(1)}m parcourus');
+        await _calculateTraveledRoute(_lastCalculatedPosition!, newPosition);
+        _lastCalculatedPosition = newPosition;
+        debugPrint(' Route mise à jour: ${_traveledRoutePoints.length} points totaux');
+      }
+    }
 
     // Mise à jour marqueur chauffeur
     if (_driverMarker == null) {
@@ -608,107 +664,57 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
   Future<void> _updateRouteColors(LatLng driverPos) async {
     if (_isRecalculating) return;
 
+    debugPrint('\n🔄 [UPDATE ROUTE COLORS] Début');
+    debugPrint('   Position chauffeur: $driverPos');
+    debugPrint('   Points route complète: ${_fullRoutePoints.length}');
+    debugPrint('   Points parcourus (GPS): ${_traveledPath.length}');
+    debugPrint('   Points parcourus (route): ${_traveledRoutePoints.length}');
+
     // Attendre que la route soit chargée
     int waited = 0;
     while (_fullRoutePoints.isEmpty && waited < 10000) {
       await Future.delayed(const Duration(milliseconds: 500));
       waited += 500;
     }
-    if (_fullRoutePoints.isEmpty) return;
+    if (_fullRoutePoints.isEmpty) {
+      debugPrint(' Aucune route complète chargée');
+      return;
+    }
 
     _isRecalculating = true;
 
     try {
-      final closestIndex = _findClosestPointIndex(driverPos, _fullRoutePoints);
-      final closestPoint = _fullRoutePoints[closestIndex];
-      final distanceToRoute = _calculateDistanceMeters(
-        driverPos.latitude,
-        driverPos.longitude,
-        closestPoint.latitude,
-        closestPoint.longitude,
-      );
+      if (mounted) {
+        setState(() {
+          // Supprimer les anciennes polylines
+          _polylines.removeWhere(
+            (p) =>
+                p.polylineId.value == 'traveled_path' ||
+                p.polylineId.value == 'complete_route',
+          );
 
-      debugPrint(
-        ' Distance route: ${distanceToRoute.toStringAsFixed(0)}m | Index: $closestIndex/${_fullRoutePoints.length}',
-      );
-
-      if (distanceToRoute <= 150.0) {
-        //  Sur la route → vert + bleu sur la polyline officielle
-        _hasRecalculatedOffRoute = false; // reset quand on revient sur la route
-
-        final traveledPoints = _fullRoutePoints.sublist(0, closestIndex + 1);
-        final remainingPoints = _fullRoutePoints.sublist(closestIndex);
-
-        debugPrint(
-          ' Sur route: ${traveledPoints.length} verts | ${remainingPoints.length} bleus',
-        );
-
-        if (mounted) {
-          setState(() {
-            _polylines.removeWhere(
-              (p) =>
-                  p.polylineId.value == 'traveled_path' ||
-                  p.polylineId.value == 'complete_route' ||
-                  p.polylineId.value == 'off_route',
-            );
-
-            if (traveledPoints.length >= 2) {
-              _polylines.add(
-                Polyline(
-                  polylineId: const PolylineId('traveled_path'),
-                  points: traveledPoints,
-                  color: const Color(0xFF34A853),
-                  width: 6,
-                  zIndex: 2,
-                ),
-              );
-            }
-
-            if (remainingPoints.length >= 2) {
-              _polylines.add(
-                Polyline(
-                  polylineId: const PolylineId('complete_route'),
-                  points: remainingPoints,
-                  color: const Color(0xFF1A73E8),
-                  width: 5,
-                  zIndex: 1,
-                ),
-              );
-            }
-          });
-        }
-      } else {
-        // Hors route → GPS en vert + recalcul bleu
-        debugPrint(' Hors route (${distanceToRoute.toStringAsFixed(0)}m)');
-
-        if (mounted) {
-          setState(() {
-            _polylines.removeWhere(
-              (p) =>
-                  p.polylineId.value == 'traveled_path' ||
-                  p.polylineId.value == 'off_route',
-            );
-
-            final gpsTraveledPoints = [_fullRoutePoints.first, driverPos];
-
+          // TOUJOURS tracer le chemin avec les points de route calculés en VERT
+          if (_traveledRoutePoints.length >= 2) {
             _polylines.add(
               Polyline(
                 polylineId: const PolylineId('traveled_path'),
-                points: gpsTraveledPoints,
+                points: List.from(_traveledRoutePoints),
                 color: const Color(0xFF34A853),
                 width: 6,
+                geodesic: true,
                 zIndex: 2,
               ),
             );
-          });
-        }
-
-        // Recalculer UNE SEULE FOIS tant qu'on est hors route
-        if (!_hasRecalculatedOffRoute) {
-          _hasRecalculatedOffRoute = true;
-          await _recalculateRouteFromPosition(driverPos);
-        }
+            debugPrint(' Tracé vert ajouté: ${_traveledRoutePoints.length} points de route');
+          } else {
+            debugPrint(' Pas assez de points pour le tracé vert: ${_traveledRoutePoints.length} (minimum 2 requis)');
+          }
+        });
       }
+
+      // TOUJOURS recalculer la route bleue depuis la position actuelle du chauffeur
+      await _recalculateRouteFromPosition(driverPos);
+      debugPrint(' [UPDATE ROUTE COLORS] Terminé\n');
     } finally {
       _isRecalculating = false;
     }
@@ -754,6 +760,45 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
       }
     } catch (e) {
       debugPrint('Erreur recalcul: $e');
+    }
+  }
+
+  /// Calculer la route entre deux positions GPS
+  Future<void> _calculateTraveledRoute(LatLng from, LatLng to) async {
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/directions/json?'
+        'origin=${from.latitude},${from.longitude}&'
+        'destination=${to.latitude},${to.longitude}&'
+        'mode=driving&'
+        'key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
+      );
+
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['routes'] != null && data['routes'].isNotEmpty) {
+          final polylinePoints =
+              data['routes'][0]['overview_polyline']['points'];
+          final routePoints = _decodePolyline(polylinePoints);
+          
+          // Si c'est la première route calculée, ajouter tous les points
+          if (_traveledRoutePoints.isEmpty) {
+            _traveledRoutePoints.addAll(routePoints);
+            debugPrint(' Route initiale calculée: ${routePoints.length} points');
+          } else {
+            // Sinon, ajouter les nouveaux points (sauf le premier qui est déjà dans la liste)
+            if (routePoints.length > 1) {
+              _traveledRoutePoints.addAll(routePoints.skip(1));
+              debugPrint(' Route calculée: +${routePoints.length - 1} points (total: ${_traveledRoutePoints.length})');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint(' Erreur calcul route parcouru: $e');
+      // En cas d'erreur, ajouter juste le point de destination
+      _traveledRoutePoints.add(to);
     }
   }
 
@@ -868,6 +913,8 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); 
+    
     if (_startCoords == null || _endCoords == null) {
       return Container(
         color: Colors.grey.shade200,

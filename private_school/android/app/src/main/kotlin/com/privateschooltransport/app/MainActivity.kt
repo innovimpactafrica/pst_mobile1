@@ -1,4 +1,4 @@
-package com.example.private_school
+package com.privateschooltransport.app
 
 import io.flutter.embedding.android.FlutterActivity
 

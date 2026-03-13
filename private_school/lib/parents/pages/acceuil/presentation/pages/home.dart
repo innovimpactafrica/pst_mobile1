@@ -306,7 +306,9 @@ class _HomePageContentState extends State<_HomePageContent>
     debugPrint('🗺️ [Map] ${activeTrips.length} trajet(s) en cours');
 
     if (activeTrips.isEmpty) return _buildHomeMap();
-    if (activeTrips.length == 1) return _buildActiveTripMap(activeTrips.first);
+    if (activeTrips.length == 1) {
+      return _ActiveTripMapWrapper(trip: activeTrips.first);
+    }
     return _buildMultipleActiveTrips(activeTrips);
   }
 
@@ -336,74 +338,6 @@ class _HomePageContentState extends State<_HomePageContent>
     );
   }
 
-  Widget _buildActiveTripMap(TripModel trip) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => TripTrackingPage(trip: trip)),
-      ),
-      child: Stack(
-        children: [
-          RealtimeTripMapWidget(
-            tripId: trip.id,
-            startLocation: trip.departure,
-            destination: trip.arrival,
-            stops: trip.schools,
-            enableRealtime: true,
-          ),
-          Positioned(
-            bottom: 12,
-            left: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.success,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.directions_bus,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      '${trip.departure} → ${trip.destination}',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMultipleActiveTrips(List<TripModel> activeTrips) {
     return StatefulBuilder(
       builder: (context, setStateInner) {
@@ -421,6 +355,7 @@ class _HomePageContentState extends State<_HomePageContent>
                     ),
                   ),
                   child: RealtimeTripMapWidget(
+                    key: ValueKey('trip_${activeTrips[currentIndex].id}'),
                     tripId: activeTrips[currentIndex].id,
                     startLocation: activeTrips[currentIndex].departure,
                     destination: activeTrips[currentIndex].arrival,
@@ -1068,6 +1003,94 @@ class _HomePageContentState extends State<_HomePageContent>
           });
           context.read<HomeBloc>().add(FilterTripsEvent(filters));
         },
+      ),
+    );
+  }
+}
+
+/// Widget wrapper pour préserver l'état de la carte entre les reconstructions
+class _ActiveTripMapWrapper extends StatefulWidget {
+  final TripModel trip;
+
+  const _ActiveTripMapWrapper({required this.trip});
+
+  @override
+  State<_ActiveTripMapWrapper> createState() => _ActiveTripMapWrapperState();
+}
+
+class _ActiveTripMapWrapperState extends State<_ActiveTripMapWrapper>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => TripTrackingPage(trip: widget.trip)),
+      ),
+      child: Stack(
+        children: [
+          RealtimeTripMapWidget(
+            key: ValueKey('trip_${widget.trip.id}'),
+            tripId: widget.trip.id,
+            startLocation: widget.trip.departure,
+            destination: widget.trip.arrival,
+            stops: widget.trip.schools,
+            enableRealtime: true,
+          ),
+          Positioned(
+            bottom: 12,
+            left: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.success,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.directions_bus,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      '${widget.trip.departure} → ${widget.trip.destination}',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: 10,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
