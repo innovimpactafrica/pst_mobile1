@@ -59,11 +59,13 @@ import 'package:private_school/parents/pages/acceuil/domain/bloc/conversation_bl
 import 'package:private_school/parents/pages/acceuil/domain/bloc/message_bloc.dart';
 import 'package:private_school/parents/pages/acceuil/data/repositories/messaging_repository.dart';
 
-//  HOME BLOC - PARENT (AJOUTÉ)
+//  HOME BLOC - PARENT
 import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart';
 //import 'package:private_school/parents/pages/acceuil/domain/bloc/home_event.dart';
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart'
     as parent_trip;
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,6 +75,8 @@ void main() async {
 
   // Initialize EasyLocalization
   await EasyLocalization.ensureInitialized();
+
+ 
 
   // Initialize API Client
   await ApiClient().init();
