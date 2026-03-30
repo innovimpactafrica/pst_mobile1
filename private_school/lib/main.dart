@@ -65,7 +65,8 @@ import 'package:private_school/parents/pages/acceuil/domain/bloc/home_bloc.dart'
 import 'package:private_school/parents/pages/trajets/data/repositories/trip_repository.dart'
     as parent_trip;
 
-
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +77,10 @@ void main() async {
   // Initialize EasyLocalization
   await EasyLocalization.ensureInitialized();
 
+WidgetsFlutterBinding.ensureInitialized();
+await Firebase.initializeApp(
+options: DefaultFirebaseOptions.currentPlatform,
+ );
  
 
   // Initialize API Client

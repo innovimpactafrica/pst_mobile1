@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "1015520706916",
-    "project_id": "pst-private-school-transport",
-    "storage_bucket": "pst-private-school-transport.firebasestorage.app"
+    "project_number": "49798505343",
+    "project_id": "innovimpactafrica",
+    "storage_bucket": "innovimpactafrica.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1015520706916:android:4da1b05817f9bba5027a71",
+        "mobilesdk_app_id": "1:49798505343:android:bb60fa5e8783bf68af304a",
         "android_client_info": {
           "package_name": "com.privateschooltransport.app"
         }
@@ -15,7 +15,64 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAwdU4TToWBTq8b0iBxpl-h9_jZmXvfM5A"
+          "current_key": "AIzaSyDmcgkI6rXeKwvT8tJv-VYDZO8VKaT8Tc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49798505343:android:eecb565773d45357af304a",
+        "android_client_info": {
+          "package_name": "com.wakana.club_promo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmcgkI6rXeKwvT8tJv-VYDZO8VKaT8Tc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49798505343:android:bb0810d3b4bcae81af304a",
+        "android_client_info": {
+          "package_name": "com.wakana.coopachat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmcgkI6rXeKwvT8tJv-VYDZO8VKaT8Tc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49798505343:android:d30bf4d0a89ab9b9af304a",
+        "android_client_info": {
+          "package_name": "com.wakana.secureforms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmcgkI6rXeKwvT8tJv-VYDZO8VKaT8Tc8"
         }
       ],
       "services": {

@@ -2,7 +2,7 @@ class ApiConstants {
   ApiConstants._();
 
   // ==================== BASE URL ====================
-  static const String baseUrl = 'http://86.106.181.31:3000';
+  static const String baseUrl = 'https://api.pst.innovimpactdev.cloud';
 
   // ==================== AUTH ENDPOINTS ====================
 
