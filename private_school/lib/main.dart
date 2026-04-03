@@ -11,7 +11,6 @@ import 'package:private_school/chauffeurs/pages/authentification/presentation/pa
 import 'package:private_school/chauffeurs/pages/authentification/presentation/pages/verify_otp_page.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/dashboard_bloc.dart';
-import 'package:private_school/chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
 import 'package:private_school/chauffeurs/widgets/main_layout.dart';
 import 'package:private_school/chauffeurs/pages/profil/domain/bloc/driver_profile_event.dart';
 import 'package:private_school/chauffeurs/pages/trajets/data/repositories/trip_repository.dart'
@@ -46,6 +45,7 @@ import 'package:private_school/chauffeurs/pages/profil/data/repositories/driver_
 import 'package:private_school/parents/pages/school/domain/bloc/school_bloc.dart';
 
 import 'chauffeurs/pages/dashboard/domain/bloc/notification_bloc.dart';
+import 'chauffeurs/pages/dashboard/domain/bloc/notification_event.dart';
 import 'chauffeurs/pages/dashboard/data/repositories/notification_repository.dart';
 
 // Report BLoCs

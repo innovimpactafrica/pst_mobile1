@@ -4,13 +4,13 @@ class BaseUrl {
   BaseUrl._();
 
   // Production environment
-  static const String production = 'http://86.106.181.31:3000';
+  static const String production = 'https://api.pst.innovimpactdev.cloud';
 
   // Development environment
-  static const String development = 'http://86.106.181.31:3000';
+  static const String development = 'https://api.pst.innovimpactdev.cloud';
 
   // Staging environment (if needed)
-  static const String staging = 'http://86.106.181.31:3000';
+  static const String staging = 'https://api.pst.innovimpactdev.cloud';
 
   // Current active environment
   static const String current = production;
