@@ -69,7 +69,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                         topRight: Radius.circular(AppConstants.radiusXXL - 6),
                       ),
                     ),
-                    child: BlocBuilder<DriverProfileBloc, DriverProfileState>(
+                    child: RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async {
+                        context.read<DriverProfileBloc>().add(LoadDriverProfileEvent());
+                      },
+                      child: BlocBuilder<DriverProfileBloc, DriverProfileState>(
                       builder: (context, state) {
                         if (state is DriverProfileLoading) {
                           return const Center(
@@ -304,6 +309,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
 
                         return const SizedBox();
                       },
+                    ),
                     ),
                   ),
                 ),

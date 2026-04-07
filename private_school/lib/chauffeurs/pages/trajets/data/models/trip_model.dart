@@ -96,6 +96,16 @@ class TripModel {
                 : int.tryParse(s['school_id'].toString()),
             name: (s['school_name'] ?? 'École').toString(),
             address: (s['school_address'] ?? '').toString(),
+            latitude: s['school_latitude'] != null
+                ? double.tryParse(s['school_latitude'].toString())
+                : s['latitude'] != null
+                ? double.tryParse(s['latitude'].toString())
+                : null,
+            longitude: s['school_longitude'] != null
+                ? double.tryParse(s['school_longitude'].toString())
+                : s['longitude'] != null
+                ? double.tryParse(s['longitude'].toString())
+                : null,
           );
         }).toList();
       }

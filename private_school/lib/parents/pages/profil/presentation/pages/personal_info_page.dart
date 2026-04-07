@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:private_school/core/utils/google_maps_config.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
 import '../../domain/bloc/profil_bloc.dart';
@@ -41,14 +42,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     _addressController = TextEditingController();
 
     // Initialiser immédiatement si le state est déjà chargé
-    final state = context.read<ProfilBloc>().state;
-    if (state is ProfilLoaded) {
-      _firstNameController.text = state.user.firstName;
-      _lastNameController.text = state.user.lastName;
-      _phoneController.text = state.user.phone ?? '';
-      _emailController.text = state.user.email;
-      _addressController.text = state.user.address ?? '';
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = context.read<ProfilBloc>().state;
+      if (state is ProfilLoaded) {
+        _firstNameController.text = state.user.firstName;
+        _lastNameController.text = state.user.lastName;
+        _phoneController.text = state.user.phone ?? '';
+        _emailController.text = state.user.email;
+        _addressController.text = state.user.address ?? '';
+      } else {
+        context.read<ProfilBloc>().add(LoadUserProfileEvent());
+      }
+    });
   }
 
   @override
@@ -215,6 +220,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       ),
       body: BlocListener<ProfilBloc, ProfilState>(
         listener: (context, state) {
+          if (state is ProfilLoaded) {
+            _firstNameController.text = state.user.firstName;
+            _lastNameController.text = state.user.lastName;
+            _phoneController.text = state.user.phone ?? '';
+            _emailController.text = state.user.email;
+            _addressController.text = state.user.address ?? '';
+          }
+
           if (state is ProfilUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -453,43 +466,49 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         else
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(AppConstants.radiusL),
               border: Border.all(color: AppColors.success),
             ),
-            child: GooglePlaceAutoCompleteTextField(
-              textEditingController: controller,
-              googleAPIKey: GoogleMapsConfig.apiKey,
-              inputDecoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                hintText: 'address_example'.tr(),
-                hintStyle: GoogleFonts.inter(
-                  fontSize: AppConstants.fontSizeL - 1,
-                  color: AppColors.grey400,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppConstants.radiusL),
+              child: GooglePlaceAutoCompleteTextField(
+                textEditingController: controller,
+                googleAPIKey: GoogleMapsConfig.apiKey,
+                inputDecoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.white,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  hintText: 'address_example'.tr(),
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeL - 1,
+                    color: AppColors.grey400,
+                  ),
                 ),
-              ),
-              textStyle: GoogleFonts.inter(
-                fontSize: AppConstants.fontSizeL - 1,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-              debounceTime: 800,
-              countries: const ["sn"],
-              isLatLngRequired: false,
-              getPlaceDetailWithLatLng: (prediction) {
-                setState(() {
+                textStyle: GoogleFonts.inter(
+                  fontSize: AppConstants.fontSizeL - 1,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                debounceTime: 800,
+                countries: const ["sn"],
+                isLatLngRequired: false,
+                getPlaceDetailWithLatLng: (prediction) {
+                  setState(() {
+                    controller.text = prediction.description ?? '';
+                  });
+                },
+                itemClick: (prediction) {
                   controller.text = prediction.description ?? '';
-                });
-              },
-              itemClick: (prediction) {
-                controller.text = prediction.description ?? '';
-                controller.selection = TextSelection.fromPosition(
-                  TextPosition(offset: controller.text.length),
-                );
-              },
+                  controller.selection = TextSelection.fromPosition(
+                    TextPosition(offset: controller.text.length),
+                  );
+                },
+              ),
             ),
           ),
       ],
@@ -577,7 +596,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     }
 
     // URL relative
-    final fullUrl = 'http://86.106.181.31:3000$photoUrl';
+    final fullUrl = ImageUrlHelper.getFullImageUrl(photoUrl);
     return CircleAvatar(
       radius: 60,
       backgroundColor: AppColors.grey200,

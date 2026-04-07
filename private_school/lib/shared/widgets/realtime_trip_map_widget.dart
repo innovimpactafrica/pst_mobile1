@@ -60,13 +60,10 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
   @override
   void initState() {
     super.initState();
-    _initializeMap();
     if (widget.enableRealtime) {
       if (widget.isDriver) {
-        //  Chauffeur : GPS direct du téléphone
         _startDriverGpsTracking();
       } else {
-        //  Parent : API realtime
         _startRealtimeTracking();
       }
     }
@@ -83,29 +80,76 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
   }
 
   Future<void> _initializeMap() async {
+    debugPrint('\n [MAP INIT] Début initialisation');
+    debugPrint('   startLocation: ${widget.startLocation}');
+    debugPrint('   destination: ${widget.destination}');
+    debugPrint('   stops: ${widget.stops.length}');
+    
     await _geocodeLocations();
+    debugPrint('   startCoords: $_startCoords');
+    debugPrint('   endCoords: $_endCoords');
+    
     await _createStopMarkers();
+    debugPrint('   markers: ${_markers.length}');
+    
     await _drawCompleteRoute();
+    debugPrint('   polylines: ${_polylines.length}');
+    debugPrint('   fullRoutePoints: ${_fullRoutePoints.length}');
+    debugPrint(' [MAP INIT] Terminé\n');
+    
+    if (mounted) setState(() {});
+  }
+
+  bool _isCoordNearRoute(LatLng coord) {
+    if (_startCoords == null || _endCoords == null) return false;
+    // Vérifier que le waypoint est dans une boîte englobante raisonnable (+ 1 degré de marge)
+    final minLat = (_startCoords!.latitude < _endCoords!.latitude
+        ? _startCoords!.latitude : _endCoords!.latitude) - 1.0;
+    final maxLat = (_startCoords!.latitude > _endCoords!.latitude
+        ? _startCoords!.latitude : _endCoords!.latitude) + 1.0;
+    final minLng = (_startCoords!.longitude < _endCoords!.longitude
+        ? _startCoords!.longitude : _endCoords!.longitude) - 1.0;
+    final maxLng = (_startCoords!.longitude > _endCoords!.longitude
+        ? _startCoords!.longitude : _endCoords!.longitude) + 1.0;
+    return coord.latitude >= minLat && coord.latitude <= maxLat &&
+           coord.longitude >= minLng && coord.longitude <= maxLng;
   }
 
   Future<void> _drawCompleteRoute() async {
-    if (_startCoords == null || _endCoords == null) return;
+    if (_startCoords == null || _endCoords == null) {
+      debugPrint(' [ROUTE] Annulé - coords null');
+      return;
+    }
 
     try {
       List<String> waypoints = [];
 
       for (var stop in widget.stops) {
-        if (stop.address.isNotEmpty) {
+        if (stop.latitude != null && stop.longitude != null) {
+          final coord = LatLng(stop.latitude!, stop.longitude!);
+          if (_isCoordNearRoute(coord)) {
+            waypoints.add('via:${stop.latitude},${stop.longitude}');
+            debugPrint(' [ROUTE] Waypoint ajouté: ${stop.name} $coord');
+          } else {
+            debugPrint(' [ROUTE] Waypoint ignoré (trop loin): ${stop.name} $coord');
+          }
+        } else if (stop.address.isNotEmpty) {
           try {
             final url = Uri.parse(
-              'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(stop.address)}&region=sn&key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
+              'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(stop.address + ', Sénégal')}&region=sn&key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
             );
             final response = await http.get(url);
             if (response.statusCode == 200) {
               final data = json.decode(response.body);
               if (data['results'] != null && data['results'].isNotEmpty) {
                 final location = data['results'][0]['geometry']['location'];
-                waypoints.add('via:${location['lat']},${location['lng']}');
+                final coord = LatLng(location['lat'], location['lng']);
+                if (_isCoordNearRoute(coord)) {
+                  waypoints.add('via:${location['lat']},${location['lng']}');
+                  debugPrint(' [ROUTE] Waypoint géocodé ajouté: ${stop.name} $coord');
+                } else {
+                  debugPrint(' [ROUTE] Waypoint géocodé ignoré (trop loin): ${stop.name} $coord');
+                }
               }
             }
           } catch (e) {
@@ -118,74 +162,120 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
           ? '&waypoints=${waypoints.join('|')}'
           : '';
 
-      final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/directions/json?'
-        'origin=${_startCoords!.latitude},${_startCoords!.longitude}&'
-        'destination=${_endCoords!.latitude},${_endCoords!.longitude}'
-        '$waypointsParam&'
-        'mode=driving&'
-        'key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
-      );
+      final routeUrl =
+          'https://maps.googleapis.com/maps/api/directions/json?'
+          'origin=${_startCoords!.latitude},${_startCoords!.longitude}&'
+          'destination=${_endCoords!.latitude},${_endCoords!.longitude}'
+          '$waypointsParam&'
+          'mode=driving&'
+          'key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A';
 
-      final response = await http.get(url);
+      debugPrint(' [ROUTE] URL: $routeUrl');
+
+      final response = await http.get(Uri.parse(routeUrl));
+      debugPrint(' [ROUTE] Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['routes'] != null && data['routes'].isNotEmpty) {
+        debugPrint(' [ROUTE] Status API: ${data['status']}');
+
+        if (data['routes'] != null && (data['routes'] as List).isNotEmpty) {
           final route = data['routes'][0];
           final polylinePoints = route['overview_polyline']['points'];
           final points = _decodePolyline(polylinePoints);
           _fullRoutePoints = points;
-          debugPrint(' ${_fullRoutePoints.length} points de route chargés');
+          debugPrint(' [ROUTE] ${_fullRoutePoints.length} points chargés');
 
-          _routePolyline = Polyline(
-            polylineId: const PolylineId('complete_route'),
-            points: points,
-            color: AppColors.primary,
-            width: 5,
-            geodesic: true,
-          );
+          if (mounted) {
+            setState(() {
+              _polylines.removeWhere((p) => p.polylineId.value == 'complete_route');
+              _polylines.add(Polyline(
+                polylineId: const PolylineId('complete_route'),
+                points: points,
+                color: const Color(0xFF1A73E8),
+                width: 5,
+                geodesic: true,
+              ));
+            });
+          }
 
-          _polylines.add(_routePolyline!);
-
-          if (mounted) setState(() {});
-
-          // Ajuster la caméra pour voir tout le trajet
           _fitBounds();
+        } else {
+          debugPrint(' [ROUTE] Aucune route trouvée - status: ${data['status']}');
+          // Tracer une ligne droite comme fallback
+          _drawStraightLine();
         }
+      } else {
+        debugPrint(' [ROUTE] Erreur HTTP: ${response.statusCode}');
+        _drawStraightLine();
       }
     } catch (e) {
-      debugPrint('Erreur tracé itinéraire: $e');
+      debugPrint(' [ROUTE] Exception: $e');
+      _drawStraightLine();
+    }
+  }
+
+  void _drawStraightLine() {
+    if (_startCoords == null || _endCoords == null) return;
+    debugPrint(' [ROUTE] Tracé ligne droite fallback');
+    final points = [_startCoords!, _endCoords!];
+    _fullRoutePoints = points;
+    if (mounted) {
+      setState(() {
+        _polylines.removeWhere((p) => p.polylineId.value == 'complete_route');
+        _polylines.add(Polyline(
+          polylineId: const PolylineId('complete_route'),
+          points: points,
+          color: const Color(0xFF1A73E8),
+          width: 5,
+          geodesic: true,
+        ));
+      });
     }
   }
 
   /// Ajuster la caméra pour voir tout le trajet
   Future<void> _fitBounds() async {
     if (_startCoords == null || _endCoords == null || _mapController == null) {
+      debugPrint(' [FIT BOUNDS] Annulé - coords ou controller null');
       return;
     }
 
-    final double minLat = _startCoords!.latitude < _endCoords!.latitude
-        ? _startCoords!.latitude
-        : _endCoords!.latitude;
-    final double maxLat = _startCoords!.latitude > _endCoords!.latitude
-        ? _startCoords!.latitude
-        : _endCoords!.latitude;
-    final double minLng = _startCoords!.longitude < _endCoords!.longitude
-        ? _startCoords!.longitude
-        : _endCoords!.longitude;
-    final double maxLng = _startCoords!.longitude > _endCoords!.longitude
-        ? _startCoords!.longitude
-        : _endCoords!.longitude;
+    debugPrint(' [FIT BOUNDS] Ajustement vue');
 
-    await _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
+    double minLat = _startCoords!.latitude < _endCoords!.latitude
+        ? _startCoords!.latitude : _endCoords!.latitude;
+    double maxLat = _startCoords!.latitude > _endCoords!.latitude
+        ? _startCoords!.latitude : _endCoords!.latitude;
+    double minLng = _startCoords!.longitude < _endCoords!.longitude
+        ? _startCoords!.longitude : _endCoords!.longitude;
+    double maxLng = _startCoords!.longitude > _endCoords!.longitude
+        ? _startCoords!.longitude : _endCoords!.longitude;
+
+    // Inclure les stops dans les bounds
+    for (final marker in _markers) {
+      final lat = marker.position.latitude;
+      final lng = marker.position.longitude;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+    }
+
+    try {
+      await _mapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat - 0.005, minLng - 0.005),
+            northeast: LatLng(maxLat + 0.005, maxLng + 0.005),
+          ),
+          60,
         ),
-        60,
-      ),
-    );
+      );
+      debugPrint(' [FIT BOUNDS] Vue ajustée');
+    } catch (e) {
+      debugPrint(' [FIT BOUNDS] Erreur: $e');
+    }
   }
 
   List<LatLng> _decodePolyline(String encoded) {
@@ -300,10 +390,18 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
       final stop = widget.stops[i];
       LatLng? position;
 
-      if (stop.address.isNotEmpty) {
+      // Utiliser les coordonnées GPS directement si disponibles
+      if (stop.latitude != null && stop.longitude != null) {
+        position = LatLng(stop.latitude!, stop.longitude!);
+        debugPrint(' École "${stop.name}" coords directes: $position');
+      } else {
+        // Fallback: géocoder par adresse ou nom
+        final query = stop.address.isNotEmpty
+            ? '${stop.address}, Sénégal'
+            : '${stop.name}, Dakar, Sénégal';
         try {
           final url = Uri.parse(
-            'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(stop.address)}&region=sn&key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
+            'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(query)}&region=sn&key=AIzaSyAGd7ZK7kkDEr9NOWcQOzkbDL8ddUStX9A',
           );
           final response = await http.get(url);
           if (response.statusCode == 200) {
@@ -311,6 +409,7 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
             if (data['results'] != null && data['results'].isNotEmpty) {
               final location = data['results'][0]['geometry']['location'];
               position = LatLng(location['lat'], location['lng']);
+              debugPrint(' École "${stop.name}" géocodée: $position');
             }
           }
         } catch (e) {
@@ -670,15 +769,14 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
     debugPrint('   Points parcourus (GPS): ${_traveledPath.length}');
     debugPrint('   Points parcourus (route): ${_traveledRoutePoints.length}');
 
-    // Attendre que la route soit chargée
-    int waited = 0;
-    while (_fullRoutePoints.isEmpty && waited < 10000) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      waited += 500;
-    }
+    // Si la route n'est pas encore chargée, la charger maintenant
     if (_fullRoutePoints.isEmpty) {
-      debugPrint(' Aucune route complète chargée');
-      return;
+      debugPrint(' [UPDATE ROUTE COLORS] Route vide, rechargement...');
+      await _drawCompleteRoute();
+      if (_fullRoutePoints.isEmpty) {
+        debugPrint(' [UPDATE ROUTE COLORS] Toujours vide après rechargement');
+        return;
+      }
     }
 
     _isRecalculating = true;
@@ -913,44 +1011,43 @@ class _RealtimeTripMapWidgetState extends State<RealtimeTripMapWidget> with Auto
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); 
-    
-    if (_startCoords == null || _endCoords == null) {
-      return Container(
-        color: Colors.grey.shade200,
-        child: const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
-    }
+    super.build(context);
 
     return Stack(
       children: [
         GoogleMap(
           initialCameraPosition: CameraPosition(
-            target: _startCoords!,
+            target: _startCoords ?? const LatLng(14.6928, -17.4467),
             zoom: 13,
           ),
           markers: _markers,
           polylines: _polylines,
           onMapCreated: (controller) {
             _mapController = controller;
-            // Ajuster la vue après création
-            Future.delayed(const Duration(milliseconds: 500), _fitBounds);
+            debugPrint(' [MAP] onMapCreated - démarrage init');
+            _initializeMap().then((_) {
+              Future.delayed(const Duration(milliseconds: 300), _fitBounds);
+            });
           },
           myLocationEnabled: false,
           myLocationButtonEnabled: false,
-
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
-
           zoomGesturesEnabled: true,
           scrollGesturesEnabled: true,
           tiltGesturesEnabled: true,
           rotateGesturesEnabled: true,
         ),
 
-        // Informations de suivi en temps réel
+        // Indicateur de chargement
+        if (_startCoords == null)
+          Container(
+            color: Colors.grey.shade200,
+            child: const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+          ),
+
         if (widget.enableRealtime && _currentData != null)
           Positioned(
             bottom: 12,

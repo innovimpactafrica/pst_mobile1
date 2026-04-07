@@ -1,3 +1,5 @@
+import 'package:private_school/core/utils/image_url_helper.dart';
+
 class UserModel {
   final String id;
   final String firstName;
@@ -35,17 +37,12 @@ class UserModel {
     final dynamic rawId = json['id'] ?? json['_id'];
     final String parsedId = rawId != null ? rawId.toString() : '';
 
-    // l'adresse serveur
-    const String baseUrl = "http://86.106.181.31:3000";
-
     String? rawPhoto =
         json['photo_profil'] ?? json['photo'] ?? json['photoUrl'];
 
     String? fullPhotoUrl;
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      fullPhotoUrl = rawPhoto.startsWith('http')
-          ? rawPhoto
-          : '$baseUrl$rawPhoto';
+      fullPhotoUrl = ImageUrlHelper.getFullImageUrl(rawPhoto);
     }
 
     return UserModel(

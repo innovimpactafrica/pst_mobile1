@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'dart:io';
+import 'package:private_school/core/utils/image_url_helper.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_constants.dart';
@@ -450,9 +451,7 @@ class _DocumentsPageState extends State<DocumentsPage> {
       return const SizedBox.shrink();
     }
 
-    final String fullUrl = documentUrl.startsWith('http')
-        ? documentUrl
-        : "http://86.106.181.31:3000$documentUrl";
+    final String fullUrl = ImageUrlHelper.getFullImageUrl(documentUrl);
 
     return GestureDetector(
       onTap: () async {

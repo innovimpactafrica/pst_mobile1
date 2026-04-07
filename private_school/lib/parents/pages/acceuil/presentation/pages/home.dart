@@ -130,11 +130,30 @@ class _HomePageContentState extends State<_HomePageContent>
     });
 
     try {
+      // Attendre que l'auth soit chargée
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+
       final authState = context.read<AuthBloc>().state;
       String? address;
 
       if (authState is AuthAuthenticated && authState.user != null) {
         address = authState.user!.address;
+      } else if (authState is UserLoaded) {
+        address = authState.user.address;
+      }
+
+      // Si pas encore chargé, écouter le prochain état
+      if (address == null || address.isEmpty) {
+        context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        final newState = context.read<AuthBloc>().state;
+        if (newState is AuthAuthenticated && newState.user != null) {
+          address = newState.user!.address;
+        } else if (newState is UserLoaded) {
+          address = newState.user.address;
+        }
       }
 
       debugPrint(' Adresse utilisateur: $address');
@@ -196,7 +215,15 @@ class _HomePageContentState extends State<_HomePageContent>
                         children: [
                           _buildSearchBar(),
                           const Spacer(),
-                          BlocBuilder<HomeBloc, HomeState>(
+                          RefreshIndicator(
+                            color: AppColors.success,
+                            onRefresh: () async {
+                              context.read<AuthBloc>().add(const LoadCurrentUserEvent());
+                              context.read<HomeBloc>().add(LoadDriversEvent());
+                            },
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: BlocBuilder<HomeBloc, HomeState>(
                             builder: (context, state) {
                               debugPrint(
                                 ' [HomePage] HomeBloc state: ${state.runtimeType}',
@@ -277,6 +304,8 @@ class _HomePageContentState extends State<_HomePageContent>
 
                               return const SizedBox.shrink();
                             },
+                          ),
+                            ),
                           ),
                           SizedBox(
                             height: MediaQuery.of(context).padding.bottom + 90,

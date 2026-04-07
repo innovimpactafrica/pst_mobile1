@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 import 'package:private_school/chauffeurs/pages/profil/presentation/widgets/language_bottom_sheet.dart';
 import 'package:private_school/parents/pages/reports/presentation/pages/reports_page.dart';
 import '../../../../../core/utils/app_colors.dart';
@@ -111,7 +112,13 @@ class ProfilPageContent extends StatelessWidget {
                           topRight: Radius.circular(AppConstants.radiusXXL - 6),
                         ),
                       ),
-                      child: SingleChildScrollView(
+                      child: RefreshIndicator(
+                        color: AppColors.success,
+                        onRefresh: () async {
+                          context.read<ProfilBloc>().add(LoadUserProfileEvent());
+                        },
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -254,6 +261,7 @@ class ProfilPageContent extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ),
                         ),
                       ),
                     ),
@@ -455,7 +463,7 @@ class ProfilPageContent extends StatelessWidget {
     }
 
     // Cas 3 : URL relative
-    final fullUrl = 'http://86.106.181.31:3000$photoUrl';
+    final fullUrl = ImageUrlHelper.getFullImageUrl(photoUrl);
     return CircleAvatar(
       radius: 40,
       backgroundColor: AppColors.grey200,

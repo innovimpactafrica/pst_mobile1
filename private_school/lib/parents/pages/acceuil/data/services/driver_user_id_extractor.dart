@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:private_school/core/storage/secure_storage.dart';
 import 'package:private_school/core/network/api_client.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 
 class DriverUserIdExtractor {
   final ApiClient _apiClient = ApiClient();
@@ -60,9 +61,7 @@ class DriverUserIdExtractor {
             if (!driversMap.containsKey(userId)) {
               String? fullPhotoUrl;
               if (photo != null && photo.isNotEmpty) {
-                fullPhotoUrl = photo.startsWith('http')
-                    ? photo
-                    : 'http://86.106.181.31:3000$photo';
+                fullPhotoUrl = ImageUrlHelper.getFullImageUrl(photo);
               }
 
               driversMap[userId] = {
@@ -100,9 +99,7 @@ class DriverUserIdExtractor {
 
               String? fullPhotoUrl;
               if (photo != null && photo.isNotEmpty) {
-                fullPhotoUrl = photo.startsWith('http')
-                    ? photo
-                    : 'http://86.106.181.31:3000$photo';
+                fullPhotoUrl = ImageUrlHelper.getFullImageUrl(photo);
               }
 
               driversMap[driverId] = {

@@ -1,3 +1,5 @@
+import 'package:private_school/core/utils/image_url_helper.dart';
+
 class DriverModel {
   final String id;
   final String? userId;
@@ -82,15 +84,12 @@ class DriverModel {
       }
     }
 
-    const String baseUrl = "http://86.106.181.31:3000";
     String? rawPhoto =
         json['photo'] ?? json['photoUrl'] ?? json['photo_profil'];
     String? fullPhotoUrl;
 
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      fullPhotoUrl = rawPhoto.startsWith('http')
-          ? rawPhoto
-          : '$baseUrl$rawPhoto';
+      fullPhotoUrl = ImageUrlHelper.getFullImageUrl(rawPhoto);
     }
 
     final vehicleData = json['vehicle'] as Map<String, dynamic>?;
@@ -225,16 +224,11 @@ class VehicleModel {
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
-    const String baseUrl = "http://86.106.181.31:3000";
     String? rawPhoto = json['photo']?.toString();
     String? fullPhotoUrl;
 
     if (rawPhoto != null && rawPhoto.isNotEmpty) {
-      if (rawPhoto.startsWith('http')) {
-        fullPhotoUrl = rawPhoto;
-      } else {
-        fullPhotoUrl = '$baseUrl$rawPhoto';
-      }
+      fullPhotoUrl = ImageUrlHelper.getFullImageUrl(rawPhoto);
     }
 
     return VehicleModel(

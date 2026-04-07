@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:private_school/core/utils/image_url_helper.dart';
 import 'package:private_school/chauffeurs/pages/authentification/data/models/driver_model.dart';
 import 'package:private_school/parents/pages/school/data/models/school_model.dart';
 import 'passenger_model.dart';
@@ -194,7 +195,7 @@ class TripModel {
       }
     }
 
-    const String baseUrl = "http://86.106.181.31:3000";
+    const String baseUrl = "";
 
     String? mobileDriverName;
     String? mobileDriverPhone;
@@ -216,11 +217,7 @@ class TripModel {
         String? docVehiclePhoto = json['driver']['documents']['vehicle_photo']
             ?.toString();
         if (docVehiclePhoto != null && docVehiclePhoto.isNotEmpty) {
-          if (!docVehiclePhoto.startsWith('http')) {
-            mobileVehiclePhoto = '$baseUrl$docVehiclePhoto';
-          } else {
-            mobileVehiclePhoto = docVehiclePhoto;
-          }
+          mobileVehiclePhoto = ImageUrlHelper.getFullImageUrl(docVehiclePhoto);
         }
       }
     } else {
@@ -234,18 +231,14 @@ class TripModel {
 
       mobileDriverPhoto = json['driver_photo']?.toString();
       if (mobileDriverPhoto != null && mobileDriverPhoto.isNotEmpty) {
-        if (!mobileDriverPhoto.startsWith('http')) {
-          mobileDriverPhoto = '$baseUrl$mobileDriverPhoto';
-        }
+        mobileDriverPhoto = ImageUrlHelper.getFullImageUrl(mobileDriverPhoto);
       }
 
       mobileVehiclePlate = json['vehicle_plate']?.toString();
 
       mobileVehiclePhoto = json['vehicle_photo']?.toString();
       if (mobileVehiclePhoto != null && mobileVehiclePhoto.isNotEmpty) {
-        if (!mobileVehiclePhoto.startsWith('http')) {
-          mobileVehiclePhoto = '$baseUrl$mobileVehiclePhoto';
-        }
+        mobileVehiclePhoto = ImageUrlHelper.getFullImageUrl(mobileVehiclePhoto);
       }
     }
 
@@ -275,6 +268,16 @@ class TripModel {
               : int.tryParse(s['school_id'].toString()),
           name: (s['school_name'] ?? 'École').toString(),
           address: (s['school_address'] ?? '').toString(),
+          latitude: s['school_latitude'] != null
+              ? double.tryParse(s['school_latitude'].toString())
+              : s['latitude'] != null
+              ? double.tryParse(s['latitude'].toString())
+              : null,
+          longitude: s['school_longitude'] != null
+              ? double.tryParse(s['school_longitude'].toString())
+              : s['longitude'] != null
+              ? double.tryParse(s['longitude'].toString())
+              : null,
         );
       }).toList();
       schoolCountValue = parsedSchools.length;

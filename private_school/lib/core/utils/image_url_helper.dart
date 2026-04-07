@@ -11,6 +11,10 @@ class ImageUrlHelper {
     }
 
     final cleanPath = path.startsWith('/') ? path : '/$path';
+    // Éviter le doublon /uploads/uploads
+    if (cleanPath.startsWith('/uploads/')) {
+      return '$baseUrl/api$cleanPath';
+    }
     return '$baseUrl/api/uploads$cleanPath';
   }
 
